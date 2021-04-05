@@ -62,7 +62,7 @@ class Node:
     def __hash__(self):
         return self.id
 
-# Restricted form of ITEG, only having combinational circuit
+# ITE Graph
 class IteGraph:
     
     inputs = []
