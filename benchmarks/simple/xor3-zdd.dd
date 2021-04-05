@@ -1,0 +1,15 @@
+# 3-input XOR, as ZDD.  One less node at lowest level
+# TYPE VARCOUNT LEAFCOUNT NODECOUNT ROOTID
+Z 3 2 6 6
+# Variable list
+0
+1
+2
+# Leaves: ID VALUE
+1 1
+2 0
+# Nodes: ID INDICES TCHILD ECHILD
+3 2 1 2
+4 1 3 1
+5 1 1 3
+6 0 4 5

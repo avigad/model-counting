@@ -5,6 +5,7 @@
 # ZDD: Support zero-suppression rule
 
 import aig
+import iteg
 
 def trim(s):
     while len(s) > 0 and s[-1] in '\n\r':
@@ -423,4 +424,22 @@ class Dd:
             nodeMap[n] = g.iteOp(iref, tref, eref)
         g.makeOutput(nodeMap[self.root])
         return g
-        
+
+    def add2iteg(self):
+        if self.root is None:
+            raise DdException("Need to have root declared")
+        if self.ddType != 'A':
+            raise DdException("Can only generated ITEGs for ADDs")
+        if self.isChained:
+            raise DdException("Must remove chaining before convert to ITEG")
+        g = iteg.IteGraph(len(self.varList))
+        inputMap = { self.varList[idx] : g.inputs[idx] for idx in range(len(self.varList)) }
+        nodeMap = { self.leafZero : g.zeroNode, self.leafOne : g.oneNode }
+        for n in self.varNodes:
+            inode = inputMap[n.tvar]
+            tnode = nodeMap[n.hi]
+            enode = nodeMap[n.lo]
+            nodeMap[n] = g.iteOp(inode, tnode, enode)
+        g.makeOutput(nodeMap[self.root])
+        return g
+    
