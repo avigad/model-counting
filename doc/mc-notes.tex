@@ -184,17 +184,16 @@ While model counting is a difficult problem for arbitrary
 formulas, it readily be computed when $F$ takes the form of a free
 ITE graph.
 
-Letting $n = |X|$, we can use the following recursive computation:
+\begin{theorem}
+\label{theorem:count}
+Letting $n = |X|$, the following recursive formula holds for any node in a free ITE graph
 \begin{eqnarray}
 \mcount(\tautology) & = & 2^{n} \label{eqn:count:true}\\
 \mcount(\nil) & = & 0 \label{eqn:count:false}\\
 \mcount(x) & = & 2^{n-1} \label{eqn:count:variable}\\
 \mcount(\ite(x, v_t, v_e)) & = & \frac{\mcount(v_t) + \mcount(v_e)}{2} \label{eqn:count:ite}
 \end{eqnarray}  
-
-\begin{theorem}
-Equations (\ref{eqn:count:true}--\ref{eqn:count:ite}) correctly hold for any node $v$ in a free ITE graph.
-\end{theorem}  
+\end{theorem}
 \noindent
 {\em Proof:} The key result here is (\ref{eqn:count:ite}).  It follows
 from Lemma~\ref{lemma:independent:split}, (\ref{eqn:ite:interp}),
