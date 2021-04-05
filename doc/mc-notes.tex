@@ -100,7 +100,7 @@ if every $\interp \in \interpset{F}$ has $\interp\subsflip{x} \in
 \interpset{F}$.
 
 \begin{lemma}
-\label{lemma:independent}
+\label{lemma:independent:split}
 if Boolean formula $F$ is independent of variable $x$, then:
 \begin{equation}
 |\interpset{F}| \; = \; 2\cdot |\interpset{F\land x}| = \; 2\cdot |\interpset{F\land \obar{x}}| \label{eqn:independent}
@@ -143,8 +143,6 @@ consisting of three node types:
 \item[Operator:] Represents an application of the $\ite$ operation.  An operator node has three incoming arcs, labeled \ifarg{}, \thenarg{}, and \elsearg{}, corresponding to the three arguments of the $\ite$ operation.
 \end{description}  
 
-We consider only graphs having unique root nodes, i.e., nodes with no outgoing arcs.
-
 A {\em proper} ITE graph is one for which the incoming \ifarg{} arc for every operator node is
 from an input node.  That is, the result of one $\ite$ operation can
 serve as the ``then'' or ``else'' argument to another $\ite$
@@ -156,7 +154,7 @@ $\ite(x, v_t, v_e)$, where $v_t$ and $v_e$ are the
 nodes corresponding to the \thenarg{} and \elsearg{} inputs, respectively.
 
 We can define the function $\depend$ mapping each node
-$v$ to the set of variables on which it logically depends.  This can be expressed recursively as
+$v$ in a proper ITE graph to the set of variables on which it logically depends.  This can be expressed recursively as
 \begin{eqnarray}
 \depend(\tautology) & = & \emptyset \label{eqn:depend:true}\\
 \depend(\nil) & = & \emptyset \label{eqn:depend:false}\\
@@ -166,7 +164,7 @@ $v$ to the set of variables on which it logically depends.  This can be expresse
 
 
 \begin{lemma}
-\label{lemma:free}
+\label{lemma:independent:dset}
 Any node $v$ in an ITE graph is independent of any variable $y \in X$ such that $y \not \in \depend(v)$.
 \end{lemma}  
 \noindent
@@ -174,14 +172,11 @@ Any node $v$ in an ITE graph is independent of any variable $y \in X$ such that 
 
 
 A {\em free} ITE graph is a proper ITE graph satisfying the added
-restriction that for every chain of nodes from an input or constant
-node to the root node, and for every variable $x \in X$, only a single
-operator node can have the input node for $x$ as its \ifarg{} input.
-More formally, for every operator node $v = \ite(x, v_t, v_e)$ in a
-free ITE graph, its incoming \thenarg{} and \elsearg{} arcs must be
-from nodes such that $x \not \in \depend(v_t)$ and $x \not \in
-\depend(v_e)$.
+property that for every operator node $v = \ite(x, v_t, v_e)$, its
+incoming \thenarg{} and \elsearg{} arcs must be from nodes such that
+$x \not \in \depend(v_t)$ and $x \not \in \depend(v_e)$.
 
+Free ITE graphs correspond directly to a class of binary decision diagrams known as {\em free} BDDs (FBDDs)~\cite{gergov:ieeetc:1994}.  Ordered BDDs are a subclass of FBDDs.
 
 \section{Model Counting Free ITE Graphs}
 
@@ -202,8 +197,8 @@ Equations (\ref{eqn:count:true}--\ref{eqn:count:ite}) correctly hold for any nod
 \end{theorem}  
 \noindent
 {\em Proof:} The key result here is (\ref{eqn:count:ite}).  It follows
-from Lemma~\ref{lemma:independent}, (\ref{eqn:ite:interp}),
-Lemma~\ref{lemma:free}, and (\ref{eqn:depend:ite}).  That is, both
+from Lemma~\ref{lemma:independent:split}, (\ref{eqn:ite:interp}),
+Lemma~\ref{lemma:independent:dset}, and (\ref{eqn:depend:ite}).  That is, both
 $v_t$ and $v_e$ are independent of $x$.  That implies that half of the
 satisfying assignments $\interp$ for $v_t$ have have $\interp(x) =
 \tautology$.  Similarly, half of the satisfying assignments $\interp$
