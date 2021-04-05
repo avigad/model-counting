@@ -1,0 +1,214 @@
+\documentclass{llncs}
+
+\usepackage{latexsym}
+\usepackage{times}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{cite}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{marvosym}
+%% Colored hyperlink 
+\newcommand{\cref}[2]{\href{#1}{\color{blue}#2}}
+%% Colored hyperlink showing link in TT font
+% \newcommand{\chref}[1]{\href{#1}{\small\tt \color{blue}#1}}
+\newcommand{\hcref}[1]{\cref{#1}{\small\tt #1}}
+
+\bibliographystyle{splncs04}
+
+\newcommand{\one}{\mbox{\bf 1}}
+\newcommand{\zero}{\mbox{\bf 0}}
+\newcommand{\leafone}{L_1}
+\newcommand{\leafzero}{L_0}
+\newcommand{\booland}{\land}
+\newcommand{\boolor}{\lor}
+\newcommand{\boolxor}{\oplus}
+\newcommand{\boolnot}{\neg}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\ite}{\mbox{\it ITE}}
+
+\newcommand{\opname}[1]{\mbox{\sc #1}}
+\newcommand{\andop}{\opname{And}}
+\newcommand{\implyop}{\opname{Imply}}
+
+\newcommand{\turnstile}{\vdash}
+
+\newcommand{\fname}[1]{\mbox{\small\sf #1}}
+
+\newcommand{\lo}{\fname{Lo}}
+\newcommand{\hi}{\fname{Hi}}
+\newcommand{\var}{\fname{Var}}
+\newcommand{\val}{\fname{Val}}
+
+\newcommand{\interp}{\sigma}
+\newcommand{\interpset}[1]{\Sigma_{#1}}
+\newcommand{\mcount}{\mu}
+
+\newcommand{\ifarg}{\textbf{I}}
+\newcommand{\thenarg}{\textbf{T}}
+\newcommand{\elsearg}{\textbf{E}}
+\newcommand{\depend}{{\it D}}
+
+\newcommand{\subs}[2]{[#1/#2]}
+\newcommand{\substrue}[1]{\subs{#1}{\tautology}}
+\newcommand{\subsfalse}[1]{\subs{#1}{\false}}
+\newcommand{\subsflip}[1]{\subs{#1}{\obar{#1}}}
+
+\title{Notes on Validated Model Counting}
+
+\author{Randal E. Bryant}
+
+\institute{
+Computer Science Department \\
+Carnegie Mellon University, Pittsburgh, PA, United States
+}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Notation}
+
+Consider Boolean formulas over a set of variables $X$.  An
+assignment $\interp$ is a function mapping each variable to 
+truth value $\tautology$ (true) or $\nil$ (false).  We can extend
+$\interp$ to Boolean formulas in the normal way, such that
+$\interp(F)$ will be $\tautology$ (respectively, $\nil$) if the
+evaluation of formula $F$ yields $\tautology$ (resp., $\nil$) when its
+variables are assigned values according to $\interp$.
+
+For Boolean formula $F$, we define its set of {\em models} $\interpset{F}$ as
+\begin{eqnarray}
+\interpset{F} & = & \{ \interp | \interp(F) = \tautology \}
+\end{eqnarray}
+The task of model counting is, given formula $F$, to determine the size of its set of models
+$\mcount(F) = |\interpset{F}|$.  Ideally, this should be done without actually enumerating the set.
+
+For interpretation $\interp$ and a Boolean formula $E$ over $X$, we
+use the notation $\interp\subs{x}{E}$ to denote the intepretation
+$\interp'$, such that $\interp'(y) = \interp(y)$ for all $y \not = x$
+and $\interp'(x) = \interp(E)$.  In particular, the notation
+$\interp\subsflip{x}$ indicates the interpretation in which the value
+assigned to $x$ is complemented, while others remain unchanged.
+
+A Boolean formula $F$ is said to be {\em independent} of variable $x$
+if every $\interp \in \interpset{F}$ has $\interp\subsflip{x} \in
+\interpset{F}$.
+
+\begin{lemma}
+\label{lemma:independent}
+if Boolean formula $F$ is independent of variable $x$, then:
+\begin{equation}
+|\interpset{F}| \; = \; 2\cdot |\interpset{F\land x}| = \; 2\cdot |\interpset{F\land \obar{x}}| \label{eqn:independent}
+\end{equation}  
+\end{lemma}  
+That is, the set of interpretations of $F$ are split evenly between
+those assigning $\tautology$ to $x$ and those assigning $\nil$ to $x$.
+
+\section{ITE Operation}
+
+We consider a single Boolean operation, known as
+``If-Then-Else,'' or simply ``ITE.''  For Boolean values $a, b, c$,
+the operation is defined as $\ite(a,b,c) = (a \land b) \lor (\obar{a}
+\land c)$.  This single operation can be used to express several common Boolean operations:
+\begin{eqnarray*}
+\obar{a} & = & \ite(a, \nil, \tautology) \\
+a \land b & = & \ite(a, b, \nil) \\
+a \lor b & = & \ite(a, \tautology, b) \\
+a \rightarrow b & = & \ite(a, b, \tautology) \\
+\end{eqnarray*}  
+
+For variable $x$ and Boolean formulas $F$ and $G$, the set of models
+for $\ite(x, F, G)$ is given by the formula:
+\begin{eqnarray}
+  \interpset{\ite(x, F, G)} & = & \{ \interp \in \interpset{F} | \interp(x) = \tautology \}
+  \cup \{ \interp \in \interpset{G} | \interp(x) = \nil \} \label{eqn:ite:interp}
+\end{eqnarray}
+
+\section{ITE Graphs}
+Model counting is especially simple for a class of formulas we
+call ``free ITE graphs.''  This representation can be obtained
+directly from an Ordered Binary Decision Diagram (OBDD) representation
+of a Boolean function~\cite{Bryant:1986}.
+
+An {\em ITE graph} is defined to be a directed acyclic graph,
+consisting of three node types:
+\begin{description}
+\item[Constant:] Corresponds to value $\tautology$ or $\nil$.  A constant node has no incoming arcs.
+\item[Input:] Corresponds to one of the variables in $X$.   A variable node has no incoming arcs.
+\item[Operator:] Represents an application of the $\ite$ operation.  An operator node has three incoming arcs, labeled \ifarg{}, \thenarg{}, and \elsearg{}, corresponding to the three arguments of the $\ite$ operation.
+\end{description}  
+
+We consider only graphs having unique root nodes, i.e., nodes with no outgoing arcs.
+
+A {\em proper} ITE graph is one for which the incoming \ifarg{} arc for every operator node is
+from an input node.  That is, the result of one $\ite$ operation can
+serve as the ``then'' or ``else'' argument to another $\ite$
+operation, but not for the ``if'' argument.
+
+When describing proper ITE graphs, we refer to constant and input
+nodes by their associated value or variable.  An operator node is described by an expression of the form
+$\ite(x, v_t, v_e)$, where $v_t$ and $v_e$ are the
+nodes corresponding to the \thenarg{} and \elsearg{} inputs, respectively.
+
+We can define the function $\depend$ mapping each node
+$v$ to the set of variables on which it logically depends.  This can be expressed recursively as
+\begin{eqnarray}
+\depend(\tautology) & = & \emptyset \label{eqn:depend:true}\\
+\depend(\nil) & = & \emptyset \label{eqn:depend:false}\\
+\depend(x) & = & \{x \} \label{eqn:depend:variable}\\
+\depend(\ite(x, v_t, v_e)) & = & \{ x \} \cup \depend(v_t) \cup \depend(v_e) \label{eqn:depend:ite}
+\end{eqnarray}  
+
+
+\begin{lemma}
+\label{lemma:free}
+Any node $v$ in an ITE graph is independent of any variable $y \in X$ such that $y \not \in \depend(v)$.
+\end{lemma}  
+\noindent
+{\em Proof:} Follows by the recursive definition of $\depend$ (\ref{eqn:depend:true}--\ref{eqn:depend:ite}) and by (\ref{eqn:ite:interp}).
+
+
+A {\em free} ITE graph is a proper ITE graph satisfying the added
+restriction that for every chain of nodes from an input or constant
+node to the root node, and for every variable $x \in X$, only a single
+operator node can have the input node for $x$ as its \ifarg{} input.
+More formally, for every operator node $v = \ite(x, v_t, v_e)$ in a
+free ITE graph, its incoming \thenarg{} and \elsearg{} arcs must be
+from nodes such that $x \not \in \depend(v_t)$ and $x \not \in
+\depend(v_e)$.
+
+
+\section{Model Counting Free ITE Graphs}
+
+While model counting is a difficult problem for arbitrary
+formulas, it readily be computed when $F$ takes the form of a free
+ITE graph.
+
+Letting $n = |X|$, we can use the following recursive computation:
+\begin{eqnarray}
+\mcount(\tautology) & = & 2^{n} \label{eqn:count:true}\\
+\mcount(\nil) & = & 0 \label{eqn:count:false}\\
+\mcount(x) & = & 2^{n-1} \label{eqn:count:variable}\\
+\mcount(\ite(x, v_t, v_e)) & = & \frac{\mcount(v_t) + \mcount(v_e)}{2} \label{eqn:count:ite}
+\end{eqnarray}  
+
+\begin{theorem}
+Equations (\ref{eqn:count:true}--\ref{eqn:count:ite}) correctly hold for any node $v$ in a free ITE graph.
+\end{theorem}  
+\noindent
+{\em Proof:} The key result here is (\ref{eqn:count:ite}).  It follows
+from Lemma~\ref{lemma:independent}, (\ref{eqn:ite:interp}),
+Lemma~\ref{lemma:free}, and (\ref{eqn:depend:ite}).  That is, both
+$v_t$ and $v_e$ are independent of $x$.  That implies that half of the
+satisfying assignments $\interp$ for $v_t$ have have $\interp(x) =
+\tautology$.  Similarly, half of the satisfying assignments $\interp$
+for $v_e$ have $\interp(x) = \nil$.  Equation (\ref{eqn:count:ite}) then follows by (\ref{eqn:ite:interp}).
+
+\bibliography{references}
+
+\end{document}
