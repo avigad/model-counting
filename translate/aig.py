@@ -140,9 +140,8 @@ class AiGraph:
     def comment(self, line):
         self.comments.append(line)
         
-    def header(self):
+    def header(self, I):
         M = len(self.inputs)
-        I = len(self.inputs)
         L = 0
         O = len(self.outputs)
         A = len(self.gates)-1
@@ -151,10 +150,22 @@ class AiGraph:
         return " ".join(slist)
 
     def generate(self, outfile = sys.stdout):
-        h = self.header()
+        realInputs = set([])
+        for oref in self.outputs:
+            onode = oref.node
+            if onode != self.gates[0] and onode.isInput and onode not in realInputs:
+                realInputs |= { onode }
+        for g in self.gates:
+            for cref in g.children:
+                c = cref.node
+                if c != self.gates[0] and c.isInput and c not in realInputs:
+                    realInputs |= { c }
+
+        rlist = sorted([i for i in realInputs], key=lambda g: g.id)
+                
+        h = self.header(len(rlist))
         outfile.write(h + '\n')
-        for iref in self.inputs:
-            inode = iref.node
+        for inode in rlist:
             outfile.write(inode.declare() + '\n')
         for oref in self.outputs:
             outfile.write(str(oref.encode()) + '\n')

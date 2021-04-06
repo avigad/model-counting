@@ -67,7 +67,7 @@ class IteGraph:
     
     inputs = []
     outputs = []
-    gates = []  # Set of all gates, including constant zero
+    gates = []  # Set of all gates, including constants zero and one
     nextId = 2
     zeroNode = None # Representing constant zero
     oneNode = None  # Representing constant one
@@ -108,9 +108,8 @@ class IteGraph:
     def comment(self, line):
         self.comments.append(trim(line))
         
-    def header(self):
+    def header(self, I):
         M = len(self.inputs)+1
-        I = len(self.inputs)
         O = len(self.outputs)
         N = len(self.gates)
         ilist = [M, I, O, N]
@@ -121,10 +120,19 @@ class IteGraph:
         if self.comments:
             for line in self.comments:
                 outfile.write("c " + line + '\n')
-        h = self.header()
+        realInputs = set([])
+        for onode in self.outputs:
+            if onode.isInput and onode not in realInputs:
+                realInputs |= { onode}
+        for gnode in self.gates:
+            for cnode in gnode.children:
+                if cnode.isInput and cnode not in realInputs:
+                    realInputs |= { cnode }
+        rlist = sorted([i for i in realInputs], key=lambda g: g.id)
+        h = self.header(len(rlist))
         outfile.write(h + '\n')
         outfile.write("c Input declarations\n")
-        for inode in self.inputs:
+        for inode in rlist:
             outfile.write(str(inode.id) + '\n')
         outfile.write("c Output declarations\n")
         for onode in self.outputs:
