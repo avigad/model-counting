@@ -24,8 +24,10 @@
 \newcommand{\boolor}{\lor}
 \newcommand{\boolxor}{\oplus}
 \newcommand{\boolnot}{\neg}
-\newcommand{\tautology}{\top}
-\newcommand{\nil}{\bot}
+%\newcommand{\tautology}{\top}
+%\newcommand{\nil}{\bot}
+\newcommand{\tautology}{1}
+\newcommand{\nil}{0}
 \newcommand{\obar}[1]{\overline{#1}}
 \newcommand{\ite}{\mbox{\it ITE}}
 
@@ -51,7 +53,7 @@
 \newcommand{\elsearg}{\textbf{E}}
 \newcommand{\depend}{{\it D}}
 
-\newcommand{\subs}[2]{[#1/#2]}
+\newcommand{\subs}[2]{[#2/#1]}
 \newcommand{\substrue}[1]{\subs{#1}{\tautology}}
 \newcommand{\subsfalse}[1]{\subs{#1}{\false}}
 \newcommand{\subsflip}[1]{\subs{#1}{\obar{#1}}}
