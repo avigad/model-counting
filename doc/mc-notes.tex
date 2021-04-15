@@ -145,18 +145,18 @@ consisting of three node types:
 \item[Operator:] Represents an application of the $\ite$ operation.  An operator node has three incoming arcs, labeled \ifarg{}, \thenarg{}, and \elsearg{}, corresponding to the three arguments of the $\ite$ operation.
 \end{description}  
 
-A {\em proper} ITE graph is one for which the incoming \ifarg{} arc for every operator node is
+An {\em input-controlled} ITE graph is one for which the incoming \ifarg{} arc for every operator node is
 from an input node.  That is, the result of one $\ite$ operation can
 serve as the ``then'' or ``else'' argument to another $\ite$
 operation, but not for the ``if'' argument.
 
-When describing proper ITE graphs, we refer to constant and input
+When describing input-controlled ITE graphs, we refer to constant and input
 nodes by their associated value or variable.  An operator node is described by an expression of the form
 $\ite(x, v_t, v_e)$, where $v_t$ and $v_e$ are the
 nodes corresponding to the \thenarg{} and \elsearg{} inputs, respectively.
 
 We can define the function $\depend$ mapping each node
-$v$ in a proper ITE graph to the set of variables on which it logically depends.  This can be expressed recursively as
+$v$ in an input-controlled ITE graph to the set of variables on which it logically depends.  This can be expressed recursively as
 \begin{eqnarray}
 \depend(\tautology) & = & \emptyset \label{eqn:depend:true}\\
 \depend(\nil) & = & \emptyset \label{eqn:depend:false}\\
@@ -173,7 +173,7 @@ Any node $v$ in an ITE graph is independent of any variable $y \in X$ such that 
 {\em Proof:} Follows by the recursive definition of $\depend$ (\ref{eqn:depend:true}--\ref{eqn:depend:ite}) and by (\ref{eqn:ite:interp}).
 
 
-A {\em free} ITE graph is a proper ITE graph satisfying the added
+A {\em free} ITE graph is an input-controlled ITE graph satisfying the added
 property that for every operator node $v = \ite(x, v_t, v_e)$, its
 incoming \thenarg{} and \elsearg{} arcs must be from nodes such that
 $x \not \in \depend(v_t)$ and $x \not \in \depend(v_e)$.

@@ -1,0 +1,104 @@
+         The ITE Graph (ITEG) Format Version 20210405
+        ----------------------------------------------
+ 	 Randal E. Bryant, Carnegie Mellon University
+
+This report describes the ITEG file format for representing
+combinational logic circuits using the If-Then-Else (ITE) logic
+primitive.
+
+The ITE operator is can defined in several ways:
+     ITE(a,b,c) = (a & b) | (!a & c)
+     		= (a --> b) & (!a --> c)
+		= (!a | b) & (a | c)
+
+Together with constant values 0 and 1, it can directly encode a number
+of standard logic operations:
+
+     AND(a,b)    = ITE(a,b,0)
+      OR(a,b)    = ITE(a,1,b)
+     NOT(a)      = ITE(a,0,1)
+     IMPLY(a,b)  = ITE(a,b,1)
+
+It also serves as a way to directly translate a Binary Decision
+Diagram (BDD) into a circuit, with each node represented by an ITE
+operation.
+
+The ITEG file format is an ASCII, line-oriented format with the fields
+being separated by whitespace characters.
+
+Lines that begin with the character 'c' are considered to be comments
+and can be ignored.
+
+The file uses nonnegative integer indices as follows:
+
+0         False
+1         True
+2   - M   Inputs
+M+2 - M+N ITE Operators
+
+The file consists of the following:
+    HEADER
+    INPUT DECLARATIONS
+    OUTPUT DECLARATIONS
+    ITE OPERATIONS
+
+HEADER
+  The header for an ITE file consists of the following:
+
+     iteg M I O N
+
+  interpreted as:
+
+     M = maximum variable index
+     I = number of inputs (typically M = I+1)
+     O = number of outputs
+     N = number of ITE operators
+
+INPUT DECLARATIONS
+
+  The input declarations list the input indices in ascending order, each on a separate line
+
+OUTPUT DECLARATIONS
+
+  The output declarations list the output indices, each on a separate
+  line.  Each of these can be the index of a constant, an input, or an
+  ITE operation.  The indices need not be consecutive.
+
+ITE OPERATIONS
+
+  Each ITE operation is listed on a separate line, with four indices
+
+    O I T E  
+
+  with O being the index of the operation, and I, T, and E being the
+  indices of the three arguments.  The operations must be listed in
+  order and numbered consecutively.  The I, T, and E indices must all be
+  less than O.
+
+EXAMPLES
+
+  An inverter:
+
+    iteg 2 1 1 1
+    c Input a
+    2
+    c Output
+    3
+    c ITE(a, 0, 1)
+    3 2 0 1
+
+  Xor(a,b)
+
+    iteg 3 2 1 2
+    c Inputs a, b
+    2
+    3
+    c Output
+    6
+    c !b = ITE(b, 0, 1)
+    4 3 0 1
+    c a^b = ITE(a, !b, b)
+    5 2 4 3
+
+
+    
