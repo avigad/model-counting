@@ -11,3 +11,8 @@ parity-$(N).iteg: $(GEN) $(CONVERT)
 	rm -f parity-$(N).cmd parity-$(N).bdd
 
 
+clean:
+	rm -f *~ *.cmd *.bdd
+
+superclean: clean
+	rm -f *.iteg
