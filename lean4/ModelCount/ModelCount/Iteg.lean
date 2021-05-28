@@ -218,21 +218,94 @@ by
           apply card_models_Ite h₀ free.1 free.2
 
 
-/- The array based algorithm. -/
+/- The array-based algorithm. -/
+
+def countModelsStep (I : Array IteElt) (numVars : Nat) (i : Nat) (O : Array Nat) :=
+  O.push $ match I[i] with
+            | Tr         => 2 ^ numVars
+            | Fls        => 0
+            | Var k      => 2^ (numVars - 1)
+            | Ite c t f  => (O[t] + O[f]) / 2
 
 def countModels (I : Array IteElt) (numVars : Nat) : Array Nat := do 
-  let n := I.size 
   let mut O : Array Nat := #[]
-  for i in [:n] do
-    O := match I.get! i with
-         | Tr         => O.push (2 ^ numVars)
-         | Fls        => O.push 0
-         | Var k      => O.push (2^ (numVars - 1))
-         | Ite c t f  => O.push ((O[t] + O[f]) / 2)
+  for i in [:I.size] do O := countModelsStep I numVars i O
   return O
 
-theorem countModels_eq_count (I : Iteg) (numVars : Nat) :
-  ∀ j, j < I.val.size → (countModels I.val numVars)[j] = I.count numVars j :=
-sorry 
+/-
+The array-based algorithm is equal to the recursive description.
+-/
+
+@[simp] theorem size_countModelsStep (I : Array IteElt) (numVars : Nat) (i : Nat) (O : Array Nat) :
+    Array.size (countModelsStep I numVars i O) = O.size + 1 := by
+  simp [countModelsStep]
+
+@[simp] theorem get_countModelsStep_of_lt (I : Array IteElt) (numVars : Nat) (O : Array Nat) 
+      (i j : Nat) (hi : i < O.size) :
+    (countModelsStep I numVars j O)[i] = O[i] := by
+  simp [countModelsStep]; rw [Array.get_push_of_lt O _ hi]
+
+@[simp] theorem get_countModelsStep_size (I : Array IteElt) (numVars : Nat) (O : Array Nat) :
+    (countModelsStep I numVars i O)[O.size] =
+      match I[i] with
+        | Tr         => 2 ^ numVars
+        | Fls        => 0
+        | Var k      => 2^ (numVars - 1)
+        | Ite c t f  => (O[t] + O[f]) / 2 := by
+  simp [countModelsStep]
+
+def countModelsRec (I : Array IteElt) (numVars : Nat) (n j : Nat) (init : Array Nat) : Array Nat := 
+  Std.Range.forIn.loop (m := Id) [:I.size]
+    (fun i (O : Array Nat) => ForInStep.yield $ countModelsStep I numVars i O) n j init
+
+theorem countModels_eq_countModelsRec (I : Array IteElt) (numVars : Nat) :
+  countModels I numVars = countModelsRec I numVars I.size 0 #[] := rfl
+
+theorem countModelsRecSucc (I : Array IteElt) (numVars : Nat) (n j : Nat) (init : Array Nat) : 
+    countModelsRec I numVars (n + 1) j init =
+      if j ≥ Array.size I then init else
+        countModelsRec I numVars n (j + 1) (countModelsStep I numVars j init) := by
+  simp [countModelsRec]
+
+theorem countModelsRec_prop (I : Iteg) (numVars : Nat) : ∀ n j (init : Array Nat),
+  init.size = j → (∀ i, i < j → init[i] = I.count numVars i) → n + j ≤ I.val.size →  
+    let O := countModelsRec I.val numVars n j init
+    O.size = n + j ∧ ∀ i, i < n + j → O[i] = I.count numVars i
+| 0, j, init, h₁, h₂, _ => by
+  simp [countModelsRec]
+  exact ⟨h₁, fun i hi => h₂ _ hi⟩ 
+| n+1, j, init, h₁, h₂, h₃ => by
+  simp [countModelsRecSucc]
+  let O := countModelsStep I.val numVars j init
+  have h₄ : Array.size O = j + 1 by simp [h₁]
+  have h₅ : ∀ i, i < j + 1 → O[i] = count I numVars i by
+    intros i hi
+    cases Nat.le_iff_lt_or_eq.mp $ Nat.lt_succ_iff_le.mp hi with
+      | inl h' =>
+        rw [←h₂ _ h', get_countModelsStep_of_lt]; try rfl
+        rw [h₁]; apply h'
+      | inr h' =>
+        rw [h', ←h₁, get_countModelsStep_size, count_eq, h₁]
+        cases ieq: I.val[j] with 
+          | Ite c t f => 
+            have bdd : IteEltBounded (Ite c t f) j by { rw ←ieq; apply I.property }
+            simp [h₂ _ bdd.1, h₂ _ bdd.2]
+          | _ => rfl
+  have h₆ : n + (j + 1) = n + 1 + j by rw [Nat.add_assoc, Nat.add_comm j]
+  have h₇ : n + (j + 1) ≤ I.val.size by rw [h₆]; exact h₃ 
+  let ih := countModelsRec_prop I numVars n (j+1) (countModelsStep I.val numVars j init) h₄ h₅ h₇
+  have h₇ : ¬ j ≥ I.val.size by
+    apply Nat.not_le_of_lt
+    apply Nat.lt_of_lt_of_le _ h₃
+    rw [Nat.add_comm (n + 1), ←Nat.add_assoc]
+    apply Nat.lt_succ_of_le
+    apply Nat.le_add_right
+  rw [ifNeg h₇, ←h₆]
+  exact ih
+
+theorem countModels_eq_count (I : Iteg) (numVars : Nat) {j} (hj : j < I.val.size) :
+    (countModels I.val numVars)[j] = I.count numVars j :=
+  (countModelsRec_prop I numVars I.val.size 0 #[] Array.size_empty 
+    (fun _ hi => absurd hi (Nat.not_lt_zero _)) (Nat.le_refl _)).2 _ hj
 
 end Iteg

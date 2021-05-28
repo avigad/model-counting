@@ -1,4 +1,5 @@
 import Init
+import Lean.Elab.Tactic
 
 /- Facts about Nat -/
 
@@ -17,6 +18,7 @@ theorem lt_of_lt_of_le {a b c : Nat} : a < b → b ≤ c → a < c := sorry
 theorem lt_succ_iff_le {a b : Nat} : a < b + 1 ↔ a ≤ b:= sorry
 theorem lt_succ_self (a : Nat) : a < a + 1 := lt_succ_iff_le.mpr (le_refl a)
 theorem le_iff_lt_or_eq {a b : Nat} : a ≤ b ↔ a < b ∨ a = b := sorry
+theorem le_add_right (a b : Nat) : a ≤ a + b  := sorry 
 
 theorem CompleteInductionOn
     {motive : Nat → Prop}
@@ -33,7 +35,7 @@ have ∀ z, ∀ y, y < z → motive y by
       intros y ylt
       cases (le_iff_lt_or_eq.mp (lt_succ_iff_le.mp ylt)) with
       | inl h1 => exact ih _ h1
-      | inr h1 => rw h1
+      | inr h1 => rw [h1]
                   exact ind _ ih
 this _ x (Nat.lt_succ_self _)
 
@@ -126,7 +128,7 @@ fun hx => h₁ (h₀ hx)
   simp [subset_def]
   apply Iff.intro
   { intro h; apply h; rfl }
-  { intros h x xeq; rw xeq; exact h }
+  { intros h x xeq; rw [xeq]; exact h }
 
 theorem subset_union_left  (s t : Finset α) : s ⊆ s ∪ t := by { intros x hx; exact Or.inl hx }
 theorem subset_union_right (s t : Finset α) : t ⊆ s ∪ t := by { intros x hx; exact Or.inr hx }
@@ -140,3 +142,80 @@ axiom card {α : Type} : Finset α → Nat
   card (s ∪ t) = card s + card t := sorry
 
 end Finset
+
+namespace Array
+
+@[simp] theorem size_empty : Array.size (#[] : Array α) = 0 := rfl
+
+theorem get_push_of_lt [Inhabited α] (A : Array α) (x : α) {i : Nat} (h : i < A.size) :
+  (A.push x)[i] = A[i] :=
+sorry
+
+@[simp] theorem get_push_size [Inhabited α] (A : Array α) (x : α) :
+  (A.push x)[A.size] = x :=
+sorry
+
+end Array
+
+
+/- From Mario -/
+
+namespace Lean.Elab.Tactic
+open Meta
+
+syntax (name := trustme) "trustme" term : tactic
+@[tactic «trustme»] def evalTrustme : Tactic := fun stx =>
+  match stx with
+  | `(tactic| trustme $e) => closeMainGoalUsing (fun type => elabTerm e type)
+  | _                   => throwUnsupportedSyntax
+
+end Lean.Elab.Tactic
+
+namespace Std.Range.forIn
+
+theorem loop_eq {β : Type u} {m : Type u → Type v} [Monad m]
+  (range : Std.Range) (f : Nat → β → m (ForInStep β)) (i j : Nat) (b : β) :
+  loop range f i j b =
+  Nat.brecOn (motive := fun _ => Nat → β → m β) i
+    (fun i (F : Nat.below i) (j : Nat) (b : β) =>
+      if j ≥ range.stop then pure b else
+        (match i : ∀ i, Nat.below i → m β with
+          | 0 => fun x => pure b
+          | Nat.succ i => fun x =>
+            do match ← f j b with
+            | ForInStep.done b => pure b
+            | ForInStep.yield b => by exact PProd.fst x.fst (j + range.step) b)
+          F)
+    j b := by
+  trustme (rfl : loop range f i j b = _)
+
+@[simp] theorem loop_zero {β : Type u} {m : Type u → Type v} [Monad m]
+  (range : Std.Range) (f : Nat → β → m (ForInStep β)) (j : Nat) (b : β) :
+  loop range f 0 j b = pure b := by
+  simp [loop_eq]
+  show (if range.stop ≤ j then pure b else pure b : m β) = pure b
+  cases Nat.decLe range.stop j <;> rfl
+
+@[simp] theorem loop_succ {β : Type u} {m : Type u → Type v} [Monad m]
+  (range : Std.Range) (f : Nat → β → m (ForInStep β)) (i j : Nat) (b : β) :
+  loop range f (Nat.succ i) j b =
+  (if j ≥ range.stop then pure b else do
+    match ← f j b with
+    | ForInStep.done b => pure b
+    | ForInStep.yield b => loop range f i (j + range.step) b) := by
+  simp [loop_eq]
+
+theorem loop_stop {β : Type u} {m : Type u → Type v} [Monad m]
+  (range : Std.Range) (f : Nat → β → m (ForInStep β)) (i j : Nat) (b : β)
+  (h : range.stop ≤ j) : loop range f i j b = pure b := by
+  cases i <;> simp [h]
+
+theorem loop_non_stop {β : Type u} {m : Type u → Type v} [Monad m]
+  (range : Std.Range) (f : Nat → β → m (ForInStep β)) (i j : Nat) (b : β)
+  (h : ¬ range.stop ≤ j) : loop range f (Nat.succ i) j b = (do
+    match ← f j b with
+    | ForInStep.done b => pure b
+    | ForInStep.yield b => loop range f i (j + range.step) b) := by
+  simp [h]
+
+end Std.Range.forIn
