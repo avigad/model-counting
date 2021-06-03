@@ -1,7 +1,7 @@
 TOP = ../..
 GEN = $(TOP)/benchmarks/generators/parity.py
 RUN = ~/repos/Cloud-BDD/runbdd
-CONVERT = $(TOP)/translate/ddtrans.py
+CONVERT = $(TOP)/process/ddtrans.py
 N=010
 
 parity-$(N).iteg: $(GEN) $(CONVERT)
