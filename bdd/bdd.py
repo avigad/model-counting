@@ -112,6 +112,9 @@ class Node(Quantified):
     def clauses(self, prover):
         return []
 
+    def clauseIds(self):
+        return []
+
     def isZero(self):
         return False
 
@@ -212,10 +215,15 @@ class VariableNode(Node):
         else:
             return self
         
-    # Return list of defining clauses
-    def clauses(self, prover):
+    # Return list of defining clause Ids
+    def clauseIds(self):
         idlist = [self.inferTrueUp, self.inferFalseUp, self.inferTrueDown, self.inferFalseDown]
         idlist = [id for id in idlist if (id is not None and id != resolver.tautologyId)]
+        return idlist
+
+    # Return list of defining clauses
+    def clauses(self, prover):
+        idlist = self.clauseIds()
         return [prover.clauseDict[id] for id in idlist]
 
     def __str__(self):
@@ -437,6 +445,10 @@ class Manager:
         lits = [self.literal(v, 1) for v in  vlist]
         return self.buildClause(lits)
 
+    def getSubgraph(self, node):
+        nodeDict = self.buildInformation(node, lambda n:n, {})
+        return sorted(nodeDict.values(), key = lambda n: n.id)
+
     def getSupportIds(self, node):
         varDict = self.buildInformation(node, lambda n: n.variable.id, {})
         fullList = sorted(varDict.values())
@@ -460,7 +472,7 @@ class Manager:
     # Generate clausal representation of BDD
     def generateClauses(self, node, outfile):
         nodeDict = self.buildInformation(node, lambda n: n, {})
-        nodeList = sorted(nodeDict.values(), key = lambda n: n.id)
+        nodeList = self.getSubgraph(node) 
         # Clear out leaf nodes
         nodeList = [n for n in nodeList if not n.isLeaf()]
         clauseList = [n.clauses(self.prover) for n in nodeList]

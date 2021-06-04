@@ -873,7 +873,10 @@ class Solver:
         buckets = { level : [] for level in levels }
         # Insert ids into lists according quantification level
         ids = sorted(self.activeIds.keys())
+        # What is final BDD root
         resultNode = None
+        # What is the validating clause for the root
+        keepStep = None
         for id in ids:
             if self.verbLevel >= 3:
                 self.writer.write("Initial cluster #%d.  Size: %d\n" % (id, self.activeIds[id].size))
@@ -903,6 +906,7 @@ class Solver:
                         break
                     id = buckets[blevel][0]
                     resultNode = self.activeIds[id].root
+                    keepStep = self.activeIds[id].validation
                     if self.verbLevel >= 2:
                         bsize = self.manager.getSize(resultNode)
                         self.writer.write("Got final output BDD with root node %d.  BDD size = %s\n" %
@@ -959,8 +963,10 @@ class Solver:
         if resultNode is None:
             raise SolverException("Failed to generate result node")
         if self.prover.mode in [proof.ProverMode.satProof, proof.ProverMode.dualProof]:
-            # Make sure all resolution clauses cleared away
-            self.prover.qcollect(1, resolveOnly = True)
+            # Make sure all clauses except for defining clauses for BDD are cleared away
+            nodeList = self.manager.getSubgraph(resultNode)
+            evarList = [n.id for n in nodeList]
+            self.prover.qcollect(1, keepStep = keepStep, keepList = evarList)
 
         if self.verbLevel >= 0:
             self.manager.summarize()

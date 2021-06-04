@@ -299,26 +299,25 @@ class Prover:
             self.expungeClause(id)
 
     # Clause removal
-    def qcollect(self, qlevel, resolveOnly = False):
+    # keepList is list of extension variables for which defining clauses should be retained
+    def qcollect(self, qlevel, keepStep = None, keepList = []):
         # Delete all clauses for qlevels >= qlevel
         qlevels = sorted(self.qlevelClauses.keys(), key=lambda q:-q)
         for q in qlevels:
-            # self.file.write ("level?\n")
             if q < qlevel:
                 break
             idList = self.qlevelClauses[q]
             idList.reverse()
             comment = "Deleting resolution clauses with qlevel %d" % q
             for id in idList:
-                # self.file.write ("clause\n")
+                if keepStep is not None and id == keepStep:
+                    continue
                 if id in self.antecedentDict:
-                    # self.file.write ("true\n")
                     self.proveDeleteResolution(id, self.antecedentDict[id], comment)
                     comment = None
             self.qlevelClauses[q] = []
 
-        if resolveOnly:
-            return
+        keepSet = set(keepList)
 
         qlevels = sorted(self.qlevelEvars.keys(), key=lambda q:-q)
         for q in qlevels:
@@ -327,6 +326,8 @@ class Prover:
             evarList = sorted(self.qlevelEvars[q].keys(), key=lambda i : -i)
             comment = "Deleting defining clauses for extension variables with qlevel %d" % q
             for evar in evarList:
+                if evar in keepSet:
+                    continue
                 dlist = self.qlevelEvars[q][evar]
                 self.proveDeleteDavisPutnam(evar, dlist, [], comment)
                 comment = None
