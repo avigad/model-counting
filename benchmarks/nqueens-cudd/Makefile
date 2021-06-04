@@ -1,7 +1,7 @@
 TOP = ../..
 GEN = $(TOP)/benchmarks/generators/lqueen.py
 RUN = ~/repos/Cloud-BDD/runbdd
-CONVERT = $(TOP)/process/ddtrans.py
+CONVERT = $(TOP)/translate/ddtrans.py
 N=04
 
 nqueen-$(N).iteg: $(GEN) $(CONVERT)

@@ -1,5 +1,5 @@
 # Translate DD's into different graph types
-TDIR = ../../process
+TDIR = ../../translate
 TRANS=$(TDIR)/ddtrans.py
 
 %.iteg : %.dd
