@@ -529,6 +529,8 @@ class Solver:
     manager = None
     # How many terms have been generated
     termCount = 0
+    # Mapping from input Id to variable
+    varMap = {}
     # Mapping from input Ids to BDD representation of literal
     litMap = {}
 
@@ -576,22 +578,20 @@ class Solver:
             # Default is identity permutation
             permuter = util.Permuter(list(range(1, reader.nvar+1)))
         self.permuter = permuter
-        # Construct literal map
+        # Construct variable map
         self.litMap = {}
+        self.varMap = {}
         for vlevel in range(1, reader.nvar+1):
             inputId = self.permuter.forward(vlevel)
             qlevel,isExistential = qmap[inputId]
             var = self.manager.newVariable(qlevel, name = "input-%d" % inputId, id = inputId, existential = isExistential)
-            t = self.manager.literal(var, 1)
-            self.litMap[ inputId] = t
-            e = self.manager.literal(var, 0)
-            self.litMap[-inputId] = e
+            self.varMap[inputId] = var
         # Generate BDD representations of clauses
         self.termCount = 0
         self.activeIds = {}
         for clause in reader.clauses:
             self.termCount += 1
-            litList = [self.litMap[v] for v in clause]
+            litList = [self.getLiteral(lval) for lval in clause]
             if self.prover.mode == proof.ProverMode.noProof:
                 root, validation = self.manager.constructClauseNoProof(self.termCount, litList)
             elif self.prover.mode == proof.ProverMode.refProof:
@@ -603,6 +603,13 @@ class Solver:
             term = Term(self.manager, root, validation, mode = prover.mode)
             self.activeIds[self.termCount] = term
         self.outcome = None
+
+    def getLiteral(self, lval):
+        if lval not in self.litMap:
+            var = self.varMap[abs(lval)]
+            phase = 1 if lval > 0 else 0
+            self.litMap[lval] = self.manager.literal(var, phase)
+        return self.litMap[lval]
 
     # Determine whether term is constant.  Optionally matching specified value
     def termIsConstant(self, id):
@@ -664,7 +671,7 @@ class Solver:
     def equantifyTerm(self, id, varList):
         term = self.activeIds[id]
         del self.activeIds[id]
-        litList = [self.litMap[v] for v in varList]
+        litList = [self.getLiteral(v) for v in varList]
         clause = self.manager.buildClause(litList)
         vstring = " ".join(sorted([str(v) for v in varList]))
         if self.verbLevel >= 3:
@@ -690,8 +697,8 @@ class Solver:
     def uquantifyTermDual(self, id, var):
         term = self.activeIds[id]
         del self.activeIds[id]
-        lit = self.litMap[var]
-        nlit = self.litMap[-var]
+        lit = self.getLiteral(var)
+        nlit = self.getLiteral(-var)
         if self.verbLevel >= 3:
             print("Computing T%d (Node %s) UQuant(%s)" % (id, term.root.label(), str(var)))
             print("  lit = %s,  nlit = %s" % (lit.label(), nlit.label()))
@@ -714,7 +721,7 @@ class Solver:
     def uquantifyTermRefutation(self, id, var):
         term = self.activeIds[id]
         del self.activeIds[id]
-        lit = self.litMap[var]
+        lit = self.getLiteral(var)
         if self.verbLevel >= 3:
             print("Computing T%d (Node %s) Restrict1(%s)" % (id, term.root.label(), str(var)))
         term1 = term.restrictRefutation(lit, self.prover)
@@ -729,7 +736,7 @@ class Solver:
             id1 = self.termCount
             self.activeIds[id1] = term1
 
-        nlit = self.litMap[-var]
+        nlit = self.getLiteral(-var)
         if self.verbLevel >= 3:
             print("Computing T%d (Node %s) Restrict0(%s)" % (id, term.root.label(), str(var)))
         term0 = term.restrictRefutation(nlit, self.prover)
@@ -766,8 +773,8 @@ class Solver:
     def equantifyTermDualSatisfaction(self, id, var):
         term = self.activeIds[id]
         del self.activeIds[id]
-        lit = self.litMap[var]
-        nlit = self.litMap[-var]
+        lit = self.getLiteral(var)
+        nlit = self.getLiteral(-var)
         if self.verbLevel >= 3:
             print("Computing T%d (Node %s) EQuant(%s)" % (id, term.root.label(), str(var)))
             print("  lit = %s,  nlit = %s" % (lit.label(), nlit.label()))
@@ -797,7 +804,7 @@ class Solver:
     def uquantifyTerm(self, id, varList):
         term = self.activeIds[id]
         del self.activeIds[id]
-        litList = [self.litMap[v] for v in varList]
+        litList = [self.getLiteral(v) for v in varList]
         clause = self.manager.buildClause(litList)
         vstring = " ".join(sorted([str(v) for v in varList]))
         if self.verbLevel >= 3:

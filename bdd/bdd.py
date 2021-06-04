@@ -470,6 +470,8 @@ class Manager:
         return len(oneDict)
 
     # Generate clausal representation of BDD
+    # Declare extension variables as existentially quantified
+    # Include unit clause for root
     def generateClauses(self, node, outfile):
         nodeDict = self.buildInformation(node, lambda n: n, {})
         nodeList = self.getSubgraph(node) 
@@ -485,7 +487,10 @@ class Manager:
         svlist = [str(v) for v in vlist]
         gateMap = { nodeList[idx].id : idx+maxIndex+1  for idx in range(len(nodeList)) }
         outfile.write("c CNF representation of BDD with root node %d\n" % node.id)
-        outfile.write("p cnf %d %d\n" % (atomCount, clauseCount))
+        outfile.write("p cnf %d %d\n" % (atomCount, clauseCount+1))
+        outfile.write("c Generated extension variables are existentially quantified\n")
+        slist = [str(n.id) for n in nodeList] + ['0']
+        outfile.write("e %s\n" % " ".join(slist))
         # Header for iteg file
         outfile.write("c_ITEG iteg %d %d 1 %d\n" % (maxIndex, inputCount, len(nodeList)))
         outfile.write("c Variables: %s\n" % " ".join(svlist))
@@ -511,6 +516,8 @@ class Manager:
                 sc = [str(l) for l in c] + ['0']
                 outfile.write(" ".join(sc))
                 outfile.write('\n')
+        outfile.write("c Assert root node as unit clause\n")
+        outfile.write("%d 0\n" % node.id)
 
     def showLiteral(self, lit):
         positive = lit.high == self.leaf1
