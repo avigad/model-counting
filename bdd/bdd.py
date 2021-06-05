@@ -469,14 +469,29 @@ class Manager:
             self.buildInformation(node, lambda n:1, oneDict)
         return len(oneDict)
 
+    # Generate list of all nodes from root.
+    # Order according to postorder traversal of graph
+    def getNodeList(self, node, includeLeaves = True):
+        ndict = {}
+        nlist = []
+        def traverse(n):
+            if n in ndict:
+                return
+            if not n.isLeaf():
+                traverse(n.high)
+                traverse(n.low)
+                nlist.append(n)
+            elif includeLeaves:
+                nlist.append(n)
+            ndict[n] = True
+        traverse(node)
+        return nlist
+
     # Generate clausal representation of BDD
     # Declare extension variables as existentially quantified
     # Include unit clause for root
     def generateClauses(self, node, outfile):
-        nodeDict = self.buildInformation(node, lambda n: n, {})
-        nodeList = self.getSubgraph(node) 
-        # Clear out leaf nodes
-        nodeList = [n for n in nodeList if not n.isLeaf()]
+        nodeList = self.getNodeList(node, includeLeaves=False)
         clauseList = [n.clauses(self.prover) for n in nodeList]
         clauseCount = sum([len(clist) for clist in clauseList])
         atomCount = max([n.id for n in nodeList])
