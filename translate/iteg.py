@@ -102,8 +102,8 @@ class IteGraph:
         return node
 
     def iteOp(self, inode, tnode, enode):
-        if tnode == enode:
-            return tnode
+#        if tnode == enode:
+#            return tnode
         key = (inode.id, tnode.id, enode.id)
         if key in self.nodeMap:
             return self.nodeMap[key]
