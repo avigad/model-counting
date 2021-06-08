@@ -151,12 +151,12 @@ class OrderWriter(Writer):
             print("Warning: Incorrect number of variables in ordering")
             print("  Expected %d.  Got %d" % (self.variableCount, len(self.variableList)))
 
-        expected = range(1, self.variableCount+1)
+        expected = list(range(1, self.variableCount+1))
         self.variableList.sort()
         for (e, a) in zip(expected, self.variableList):
             if e != a:
-               raise WriterException("Mismatch in ordering.  Expected %d.  Got %d" % (e, a))
-        self.writer.finish(self)
+               print("Warning: Mismatch in ordering.  Expected %d.  Got %d" % (e, a))
+        Writer.finish(self)
 
 class ClusterWriter(Writer):
 
