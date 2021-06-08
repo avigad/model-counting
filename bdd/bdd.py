@@ -490,30 +490,45 @@ class Manager:
     # Generate clausal representation of BDD
     # Declare extension variables as existentially quantified
     # Include unit clause for root
-    def generateClauses(self, node, outfile):
-        nodeList = self.getNodeList(node, includeLeaves=False)
-        clauseList = [n.clauses(self.prover) for n in nodeList]
+    def generateClauses(self, node, idlist, outfile):
+        if node.isLeaf():
+            nodeList = []
+            clauseList = [[[]]] if node == self.leaf0 else [[]]
+            rootid = 0 if node == self.leaf0 else 1
+        else:
+            nodeList = [node] if node.isLeaf() else self.getNodeList(node, includeLeaves=False)
+            clauseList = [n.clauses(self.prover) for n in nodeList]
+            rootid = node.id
         clauseCount = sum([len(clist) for clist in clauseList])
-        atomCount = max([n.id for n in nodeList])
-        varSet = set([n.variable.id for n in nodeList])
-        vlist = sorted(varSet)
-        maxIndex = vlist[-1] + 1
-        inputCount = len(vlist)
-        svlist = [str(v) for v in vlist]
+        idlist = sorted(idlist)
+        maxIndex = idlist[-1] + 1
+        inputCount = len(idlist)
+        sidlist = [str(v) for v in idlist]
         gateMap = { nodeList[idx].id : idx+maxIndex+1  for idx in range(len(nodeList)) }
-        outfile.write("c CNF representation of BDD with root node %d\n" % node.id)
-        outfile.write("p cnf %d %d\n" % (atomCount, clauseCount+1))
-        outfile.write("c Generated extension variables are existentially quantified\n")
-        slist = [str(n.id) for n in nodeList] + ['0']
-        outfile.write("e %s\n" % " ".join(slist))
+        outfile.write("c CNF representation of BDD with root node %d\n" % rootid)
+        if len(nodeList) == 0:
+            outfile.write("p cnf %d %d\n" % (inputCount, clauseCount))
+        else:
+            outfile.write("p cnf %d %d\n" % (inputCount, clauseCount+1))
+            outfile.write("c Generated extension variables are existentially quantified\n")
+            slist = [str(n.id) for n in nodeList] + ['0']
+            outfile.write("e %s\n" % " ".join(slist))
         # Header for iteg file
         outfile.write("c_ITEG iteg %d %d 1 %d\n" % (maxIndex, inputCount, len(nodeList)))
-        outfile.write("c Variables: %s\n" % " ".join(svlist))
+        outfile.write("c Variables: %s\n" % " ".join(sidlist))
         outfile.write("c_ITEG c Input declarations\n")
-        for v in vlist:
+        for v in idlist:
             outfile.write("c_ITEG %d\n" % (v+1))
         outfile.write("c_ITEG c Outputs\n")
-        outfile.write("c_ITEG %d\n" % gateMap[node.id])
+        if len(nodeList) > 0:
+            outfile.write("c_ITEG %d\n" % gateMap[node.id])
+        else:
+            oidx = maxIndex+1
+            outfile.write("c_ITEG %d\n" % rootid)
+            for c in clauseList[0]:
+                sc = [str(l) for l in c] + ['0']
+                outfile.write(" ".join(sc))
+                outfile.write('\n')
         for idx in range(len(nodeList)):
             n = nodeList[idx]
             nid = n.id
@@ -531,8 +546,9 @@ class Manager:
                 sc = [str(l) for l in c] + ['0']
                 outfile.write(" ".join(sc))
                 outfile.write('\n')
-        outfile.write("c Assert root node as unit clause\n")
-        outfile.write("%d 0\n" % node.id)
+        if len(nodeList) > 0:
+            outfile.write("c Assert root node as unit clause\n")
+            outfile.write("%d 0\n" % node.id)
 
     def showLiteral(self, lit):
         positive = lit.high == self.leaf1
