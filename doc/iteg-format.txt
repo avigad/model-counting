@@ -49,7 +49,7 @@ HEADER
 
   interpreted as:
 
-     M = maximum variable index
+     M = maximum variable index (allows sparse numbering of inputs)
      I = number of inputs (typically M = I+1)
      O = number of outputs
      N = number of ITE operators
@@ -94,7 +94,7 @@ EXAMPLES
     2
     3
     c Output
-    6
+    5
     c !b = ITE(b, 0, 1)
     4 3 0 1
     c a^b = ITE(a, !b, b)
