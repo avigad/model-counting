@@ -44,17 +44,13 @@ import util
 sys.setrecursionlimit(50 * sys.getrecursionlimit())
 
 def usage(name):
-    sys.stderr.write("Usage: %s [-h][-v LEVEL]  [-i ifile] [-o file.cnf] [-p file.{qrat,qproof}] [-B BPERM] [-P VPERM] [-L logfile]\n" % name)
+    sys.stderr.write("Usage: %s [-h][-v LEVEL]  [-i ifile] [-o file.cnf] [-p file.{qrat,qproof}] [-P VPERM] [-L logfile]\n" % name)
     sys.stderr.write("  -h          Print this message\n")
-#    sys.stderr.write("  -m MODE     Set proof mode (n = no proof, d = dual, s = satisfaction only, r = refutation only)\n")
-#    sys.stderr.write("  -l e|u|eu   Linearize quantifier blocks for existential (e) and/or universal (u) variables\n")
     sys.stderr.write("  -v LEVEL    Set verbosity level\n")
     sys.stderr.write("  -i ifile    Name of input file (qdimacs format)\n")
     sys.stderr.write("  -o bfile    Name of output file (cnf format with comments)\n")
     sys.stderr.write("  -p pfile    Name of proof output file (QRAT or QPROOF format)\n")
-    sys.stderr.write("  -B BPERM    Process terms via bucket elimination ordered by permutation file BPERM\n")
     sys.stderr.write("  -P VPERM    Name of file specifying mapping from CNF variable to BDD level\n")
-#    sys.stderr.write("  -c CLUSTER  Name of file specifying how to group clauses into clusters\n")
     sys.stderr.write("  -L logfile  Append standard error output to logfile\n")
 
 # Verbosity levels
@@ -895,6 +891,7 @@ class Solver:
                                   ("existential" if isExistential else "universal", blevel, str(vars), len(buckets[blevel])))
             if isExistential:
                 # Conjunct all terms in bucket
+                gotFalse = False
                 while len(buckets[blevel]) > 1:
                     id1 = buckets[blevel][0]
                     id2 = buckets[blevel][1]
@@ -902,14 +899,20 @@ class Solver:
                     newId = self.combineTerms(id1, id2)
                     if newId < 0:
                         # Hit False case
-                        resultNode = self.manager.leafZero
+                        resultNode = self.manager.leaf0
+                        gotFalse = True
                         break
                     self.placeInQuantBucket(buckets, newId)
+                if gotFalse:
+                    resultNode = self.manager.leaf0
+                    self.writer.write("Got False\n")
+                    break
                 if blevel == 1:
                     # Should have final BDD
                     if len(buckets[blevel]) == 0:
                         # Tautology
                         resultNode = self.manager.leaf1
+                        self.writer.write("Got tautology\n")
                         break
                     id = buckets[blevel][0]
                     resultNode = self.activeIds[id].root
@@ -1001,15 +1004,11 @@ def run(name, args):
     stretchExistential = False
     stretchUniversal = False
 
-    optlist, args = getopt.getopt(args, "hB:v:i:p:o:m:p:L:")
+    optlist, args = getopt.getopt(args, "hP:v:i:p:o:m:p:L:")
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
             return
-        if opt == '-B':
-            bpermuter = util.readPermutation(val)
-            if bpermuter is None:
-                return
         elif opt == '-v':
             verbLevel = int(val)
         elif opt == '-i':
@@ -1029,11 +1028,6 @@ def run(name, args):
             usage(name)
             return
 
-    # If no quantification permuter specified, follow variable ordering
-    # This will cause the quantifications to be performed from the bottom of the BDDs upward
-    if bpermuter is None:
-        bpermuter = permuter
-
     writer = util.Logger(logName)
 
     try:
@@ -1041,6 +1035,11 @@ def run(name, args):
     except Exception as ex:
         writer.write("Couldn't create prover (%s)\n" % str(ex))
         return
+
+    # If no quantification permuter specified, follow variable ordering
+    # This will cause the quantifications to be performed from the bottom of the BDDs upward
+    if bpermuter is None:
+        bpermuter = permuter
 
     if bddName is None:
         outfile = sys.stdout
@@ -1070,7 +1069,10 @@ def run(name, args):
     solver = Solver(reader, prover = prover, permuter = permuter, verbLevel = verbLevel)
 
     node = solver.runQuantBucket()
-    solver.manager.generateClauses(node, outfile)
+    vlist = solver.quantMap[1][0]
+    solver.manager.generateClauses(node, vlist, outfile)
+    ncount = solver.manager.getSize(node)
+    writer.write("Final BDD size: %d nodes\n" % ncount)
     if outfile != sys.stdout:
         outfile.close()
     
@@ -1084,6 +1086,3 @@ def run(name, args):
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
 
-    
-
-    
