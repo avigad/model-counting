@@ -501,7 +501,8 @@ class Manager:
             rootid = node.id
         clauseCount = sum([len(clist) for clist in clauseList])
         idlist = sorted(idlist)
-        maxIndex = idlist[-1] + 1
+        maxIndex = idlist[-1]+1
+        maxId = max(idlist[-1], max([n.id for n in nodeList]))
         inputCount = len(idlist)
         sidlist = [str(v) for v in idlist]
         gateMap = { nodeList[idx].id : idx+maxIndex+1  for idx in range(len(nodeList)) }
@@ -509,7 +510,7 @@ class Manager:
         if len(nodeList) == 0:
             outfile.write("p cnf %d %d\n" % (inputCount, clauseCount))
         else:
-            outfile.write("p cnf %d %d\n" % (inputCount, clauseCount+1))
+            outfile.write("p cnf %d %d\n" % (maxId, clauseCount+1))
             outfile.write("c Generated extension variables are existentially quantified\n")
             slist = [str(n.id) for n in nodeList] + ['0']
             outfile.write("e %s\n" % " ".join(slist))
