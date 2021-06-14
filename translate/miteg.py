@@ -6,15 +6,17 @@
 import getopt
 import sys
 import iteg
+import writer
 
 def usage(name):
-    print("Usage: %s [-h] [-i IFILE] [-p PREFIX] [-o OFILE]" % name)
+    print("Usage: %s [-h] [-i IFILE] [-p PREFIX] [-o OFILE] [-q QFILE]" % name)
     print(" -h         Print this message")
     print(" -i IFILE   Input ITE graph file")
     print(" -p PREFIX  Prefix for lines of interest")
     print(" -o OFILE   Write ITE graph to file")
+    print(" -q QFILE   Write QBF representation of ITE graph to file")
     
-def process(iname, prefix, oname):
+def process(iname, prefix, oname, qname):
     if iname is None:
         ifile = sys.stdin
     else:
@@ -42,12 +44,27 @@ def process(iname, prefix, oname):
             return
         g.generate(ofile)
         ofile.close
+    if qname is not None:
+        root =  qname
+        suffix = 'qcnf'
+        fields = qname.split('.')
+        if len(fields) > 1:
+            root = ".".join(fields[:-1])
+            suffix = fields[-1]
+        try:
+            qwriter = writer.QcnfWriter(root, suffix)
+        except Exception as ex:
+            print("Couldn't initialize QBF writer '%s'" % str(ex))
+            return
+        g.genQbf(qwriter)
+        qwriter.finish()
 
 def run(name, args):
     iname = None
     oname = None
     prefix = None
-    optlist, args = getopt.getopt(args, "hi:p:o:")
+    qname = None
+    optlist, args = getopt.getopt(args, "hi:p:o:q:")
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
@@ -58,10 +75,12 @@ def run(name, args):
             prefix = val
         elif opt == '-o':
             oname = val
+        elif opt == '-q':
+            qname = val
         else:
             print("Unknown command option '%s'" % opt)
             return
-    process(iname, prefix, oname)
+    process(iname, prefix, oname, qname)
         
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])

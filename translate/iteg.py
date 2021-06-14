@@ -235,6 +235,32 @@ class IteGraph:
 
         return ngraph
 
+    def genQbf(self, writer):
+        inputIds = [n.id-1 for n in self.gates if n.isInput]
+        writer.addVariables(0, inputIds, True)
+        iteGates = [n for n in self.gates if n.isIte] 
+        nodeIds = [n.id-1 for n in iteGates]
+        writer.addVariables(1, nodeIds, True)
+        # Generate clauses
+        for n in iteGates:
+            isRoot = n == iteGates[-1]
+            inode, tnode, enode = n.children
+            gid = n.id-1
+            iid = inode.id-1
+            tid = tnode.id-1
+            eid = enode.id-1
+            if tnode.isZero:
+                writer.doClause([-iid, -gid])
+            elif not tnode.isOne:
+                writer.doClause([-iid, -gid, tid])
+            if enode.isZero:
+                writer.doClause([iid, -gid])
+            elif not enode.isOne:
+                writer.doClause([iid, -gid, eid])
+            if isRoot:
+                writer.doClause([gid])
+        
+        
 
 
     # Compute number of models.  Must be Free ITEG (not checked)
