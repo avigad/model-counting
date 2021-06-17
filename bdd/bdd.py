@@ -251,6 +251,8 @@ class Manager:
     # GC support
     # Callback function from driver that will collect accessible roots for GC
     rootGenerator = None
+    # Set when have reduced to final BDD
+    lastRoot = None
     # How many quantifications had been performed by last GC?
     lastGC = 0
     # How many variables should be quantified to trigger GC?
@@ -275,6 +277,7 @@ class Manager:
         self.prover = DummyProver() if prover is None else prover
         self.writer = self.prover.writer
         self.rootGenerator = rootGenerator
+        self.lastRoot = None
         self.variables = []
         self.leaf0 = LeafNode(0)
         self.leaf1 = LeafNode(1)
@@ -445,10 +448,6 @@ class Manager:
         lits = [self.literal(v, 1) for v in  vlist]
         return self.buildClause(lits)
 
-    def getSubgraph(self, node):
-        nodeDict = self.buildInformation(node, lambda n:n, {})
-        return sorted(nodeDict.values(), key = lambda n: n.id)
-
     def getSupportIds(self, node):
         varDict = self.buildInformation(node, lambda n: n.variable.id, {})
         fullList = sorted(varDict.values())
@@ -487,6 +486,34 @@ class Manager:
         traverse(node)
         return nlist
 
+    # Shift all nodes in list to ones with consecutive ids starting with designated value
+    # nodeList must be an ordered traversal with a unique root as the last element
+    # nodeList should not include any leaf nodes
+    # These should be only nodes in graph, and all but their defining clauses should
+    # have been deleted.
+    # Assumes none of the target nodes are in use
+    # If startId == None, will keep numbering from current position.
+    def shiftNodes(self, nodeList, startId = None):
+        # Don't want to reuse any existing nodes
+        self.uniqueTable = {}
+        # Nothing in here worth keeping
+        self.uniqueTable = {}
+        if startId is None:
+            startId = self.nextNodeId
+        self.nextNodeId = startId
+        # Mapping from old Ids to new ones
+        oldToNew = { nodeList[i].id : i+startId for i in range(len(nodeList)) } 
+        # Map from new Id to new node
+        newMap = {}
+        newNodeList = []
+        for n in nodeList:
+            nhigh = n.high if n.high.isLeaf() else newMap[oldToNew[n.high.id]]
+            nlow = n.low if n.low.isLeaf() else newMap[oldToNew[n.low.id]]
+            nn = self.findOrMake(n.variable, nhigh, nlow)
+            newMap[nn.id] = nn
+            newNodeList.append(nn)
+        return newNodeList
+
     # Generate clausal representation of BDD
     # Declare extension variables as existentially quantified
     # Include unit clause for root
@@ -496,7 +523,7 @@ class Manager:
             clauseList = [[[]]] if node == self.leaf0 else [[]]
             rootid = 0 if node == self.leaf0 else 1
         else:
-            nodeList = [node] if node.isLeaf() else self.getNodeList(node, includeLeaves=False)
+            nodeList = self.getNodeList(node, includeLeaves=False)
             clauseList = [n.clauses(self.prover) for n in nodeList]
             rootid = node.id
         clauseCount = sum([len(clist) for clist in clauseList])

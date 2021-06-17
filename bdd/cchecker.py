@@ -748,7 +748,10 @@ class Prover:
                 self.flagError("Can't parse '%s' as variable" % vs)
                 return
             if var in self.varDict:
-                self.flagError("Variable %d already declared" % var)
+                # See if possible to reuse this variable
+                ccount = self.cmgr.literalCountDict[var] + self.cmgr.literalCountDict[-var]
+                if ccount > 0:
+                    self.flagError("Variable %d already declared and appears in %d clauses" % (var, ccount))
                 return
             self.varDict[var] = (level, True)
 
@@ -1173,7 +1176,7 @@ class CheckProver(DualProver):
         elif self.cmgr.liveClauseCount != ccmgr.liveClauseCount:
             msg = "Input has %d live clauses, but check version has %d." % (self.cmgr.liveClauseCount, ccmgr.liveClauseCount)
             if self.verbose:
-                msg += "  Live input clauses: %s" % (str(list(self.cmgr.liveClauseSet)))
+                msg += "  Live input clauses: %s" % (str(sorted(list(self.cmgr.liveClauseSet))))
             self.failProof(msg)
         else:
             iclist = [self.cmgr.clauseDict[id] for id in self.cmgr.liveClauseSet]

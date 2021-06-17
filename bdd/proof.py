@@ -329,10 +329,10 @@ class Prover:
                 if evar in keepSet:
                     continue
                 dlist = self.qlevelEvars[q][evar]
+                del self.evarQlevels[evar]
+                del self.qlevelEvars[q][evar]
                 self.proveDeleteDavisPutnam(evar, dlist, [], comment)
                 comment = None
-            self.qlevelEvars[q] = {}
-
 
     def summarize(self):
         if self.verbLevel >= 1:

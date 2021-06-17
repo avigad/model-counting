@@ -509,6 +509,21 @@ class Term:
 
         return Term(self.manager, newRoot, validation, mode = self.mode)
 
+    # Shift to set of node Ids that gives new numbering of node Ids
+    # Assume that none of these Ids are in use
+    def renumber(self, startId):
+        root = self.root
+        if root.isLeaf():
+            return self
+        nodeList = self.manager.getNodeList(root, includeLeaves = False)
+        newNodeList = self.manager.shiftNodes(nodeList, startId)
+        newRoot = newNodeList[-1]
+        check, implication = self.manager.justifyImply(root, newRoot)
+        antecedents = [implication, self.validation]
+        comment = "Add unit clause for shifting root from %s to %s" % (root.label(), newRoot.label())
+        validation = self.manager.prover.proveAddResolution([newRoot.id], antecedents, comment)
+        return Term(self.manager, newRoot, validation, mode = self.mode)
+
 
 class SolverException(Exception):
 
@@ -828,6 +843,21 @@ class Solver:
         self.manager.checkGC(generateClauses = False)
         return self.termCount
 
+    # Shift Node ids
+    # Assume that new Ids are not in use
+    def renumberTerm(self, id, startId):
+        term = self.activeIds[id]
+        del self.activeIds[id]
+        newTerm = term.renumber(startId)
+        self.termCount += 1
+        comment = "T%d (Node %s) --> T%d (Node %s)" % (id, term.root.label(), self.termCount, newTerm.root.label())
+        self.prover.comment(comment)
+        check, implication = self.manager.justifyImply(newTerm.root, term.root)
+        comment = "Delete unit clause for T%d" % id
+        self.prover.proveDeleteResolution(term.validation, [newTerm.validation, implication], comment)
+        self.activeIds[self.termCount] = newTerm
+        return self.termCount
+
     def processClusters(self, cfile):
         try:
             infile = open(cfile, 'r')
@@ -880,6 +910,7 @@ class Solver:
         resultNode = None
         # What is the validating clause for the root
         keepStep = None
+        resultId = None
         for id in ids:
             if self.verbLevel >= 3:
                 self.writer.write("Initial cluster #%d.  Size: %d\n" % (id, self.activeIds[id].size))
@@ -899,12 +930,12 @@ class Solver:
                     newId = self.combineTerms(id1, id2)
                     if newId < 0:
                         # Hit False case
-                        resultNode = self.manager.leaf0
                         gotFalse = True
                         break
                     self.placeInQuantBucket(buckets, newId)
                 if gotFalse:
                     resultNode = self.manager.leaf0
+                    resultId = newId
                     self.writer.write("Got False\n")
                     break
                 if blevel == 1:
@@ -916,11 +947,8 @@ class Solver:
                         break
                     id = buckets[blevel][0]
                     resultNode = self.activeIds[id].root
+                    resultId = id
                     keepStep = self.activeIds[id].validation
-                    if self.verbLevel >= 2:
-                        bsize = self.manager.getSize(resultNode)
-                        self.writer.write("Got final output BDD with root node %d.  BDD size = %s\n" %
-                                          (resultNode.id, bsize))
                     break
                 elif blevel > 1 and len(buckets[blevel]) > 0:
                     id = buckets[blevel][0]
@@ -972,14 +1000,46 @@ class Solver:
         # Get here with resultNode
         if resultNode is None:
             raise SolverException("Failed to generate result node")
-        if self.prover.mode in [proof.ProverMode.satProof, proof.ProverMode.dualProof]:
+        if not resultNode.isLeaf() and self.prover.mode in [proof.ProverMode.satProof, proof.ProverMode.dualProof]:
+            # Want to have result BDD with canonically labeled nodes
+            termId = resultId
+            root = resultNode
             # Make sure all clauses except for defining clauses for BDD are cleared away
-            nodeList = self.manager.getSubgraph(resultNode)
+            nodeList = self.manager.getNodeList(root, includeLeaves = False)
+            evarList = [n.id for n in nodeList]
+            self.prover.qcollect(1, keepStep = keepStep, keepList = evarList)
+            # See if need to shift upward before shifting into place
+            vlist = self.quantMap[1][0]
+            targetStartId = max(vlist) + 1
+            targetLastId = targetStartId + len(nodeList) - 1
+            minCurrentId = min(evarList)
+            if minCurrentId <= targetLastId:
+                termId = self.renumberTerm(termId, startId = None)
+                root = self.activeIds[termId].root
+                keepStep = self.activeIds[termId].validation
+                # Delete clauses from old BDD
+                nodeList = self.manager.getNodeList(root, includeLeaves = False)
+                evarList = [n.id for n in nodeList]
+                self.prover.qcollect(1, keepStep = keepStep, keepList = evarList)
+            # Move into target position
+            termId = self.renumberTerm(termId, startId=targetStartId)
+            resultNode = self.activeIds[termId].root
+            keepStep = self.activeIds[termId].validation
+            # Delete clauses from previous BDD
+            nodeList = self.manager.getNodeList(resultNode, includeLeaves = False)
             evarList = [n.id for n in nodeList]
             self.prover.qcollect(1, keepStep = keepStep, keepList = evarList)
 
+        if self.verbLevel >= 2:
+            bsize = self.manager.getSize(resultNode)
+            self.writer.write("Got final output BDD with root node %d.  BDD size = %s\n" %
+                              (resultNode.id, bsize))
+
+
         if self.verbLevel >= 0:
             self.manager.summarize()
+
+            
 
         return resultNode
 
@@ -997,7 +1057,6 @@ def run(name, args):
     proofName = None
     permuter = None
     bpermuter = None
-    doBucket = True
     verbLevel = 1
     logName = None
     mode = proof.ProverMode.dualProof
