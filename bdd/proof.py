@@ -299,6 +299,7 @@ class Prover:
             self.expungeClause(id)
 
     # Clause removal
+    # keepStep is id of clause that should not be deleted by resolution
     # keepList is list of extension variables for which defining clauses should be retained
     def qcollect(self, qlevel, keepStep = None, keepList = []):
         # Delete all clauses for qlevels >= qlevel
