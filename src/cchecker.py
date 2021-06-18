@@ -1268,7 +1268,7 @@ def run(name, args):
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     print("Elapsed time for check: %.2f seconds" % seconds)
-
+    sys.exit(0 if ok else 1)
     
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
