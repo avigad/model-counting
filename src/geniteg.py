@@ -134,8 +134,10 @@ def runChecker(inQbf, inProof, genQbf, verbLevel):
     fields += ['-i', inQbf, '-c', genQbf, '-p', inProof]
     return runCode(fields)
 
-def runExtractor(inQbf, outIteg, outQbf):
+def runExtractor(inQbf, outIteg, outQbf, perm):
     fields = [getProgram('extractor'), '-i', inQbf, '-p', 'c_ITEG', '-o', outIteg, '-q', outQbf]
+    if perm is not None:
+        fields += ['-P', perm]
     return runCode(fields)
 
 def run(name, args):
@@ -191,14 +193,15 @@ def run(name, args):
 
     logger.write("Generating ITEG\n")
     itegQbf = buildFile(inQbf, "-iteg.qcnf")
-    if not runExtractor(genQbf, outIteg, itegQbf):
+    itegOrder = buildFile(inQbf, "-iteg.order")
+    if not runExtractor(genQbf, outIteg, itegQbf, itegOrder):
         logger.write("Exiting\n")
         return
 
     logger.write("Generating BDD from ITEG\n")
     checkQbf = buildFile(inQbf, "-iteg-check.qcnf")
     checkProof = buildFile(inQbf, "-iteg-check.qproof")
-    if not runSolver(itegQbf, checkQbf, checkProof, None, vlevel):
+    if not runSolver(itegQbf, checkQbf, checkProof, itegOrder, vlevel):
         logger.write("Exiting\n")
         return
 
@@ -213,7 +216,7 @@ def run(name, args):
         return
 
     if not keepFiles:
-        xfiles = [genQbf, outProof, itegQbf, checkQbf, checkProof]
+        xfiles = [genQbf, outProof, itegQbf, itegOrder, checkQbf, checkProof]
         for fname in xfiles:
             try:
                 os.remove(fname)

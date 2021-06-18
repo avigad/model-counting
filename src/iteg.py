@@ -262,8 +262,22 @@ class IteGraph:
             if isRoot:
                 writer.doClause([gid])
         
-        
-
+    def genOrder(self, writer):
+        iteGates = [n for n in self.gates if n.isIte] 
+        nodeIds = [n.id-1 for n in iteGates]
+        # Map from input Ids to all gate having this input
+        levelMap = {}
+        for n in iteGates:
+            inode, tnode, enode = n.children
+            gid = n.id-1
+            iid = inode.id-1
+            if iid in levelMap:
+                levelMap[iid].append(gid)
+            else:
+                levelMap[iid] = [gid]
+        iidList = sorted(levelMap.keys())
+        for iid in iidList:
+            writer.doOrder([iid] + levelMap[iid])
 
     # Compute number of models.  Must be Free ITEG (not checked)
     def countModels(self, node):
