@@ -170,7 +170,6 @@ class IteGraph:
         idMap = {}
         for line in infile:
             lineNum += 1
-#            print("Line %d: %s" % (lineNum, trim(line)))
             fields = line.split()
             if len(fields) == 0:
                 continue
@@ -223,7 +222,10 @@ class IteGraph:
                     raise ParseException(lineNum, "Wrong gate Id.  File id = %d.  Expected %d" % (ilist[0], g.id))
                 idMap[g.id] = g
                 gotIteCount += 1
-            
+
+        if exIteCount is None:
+            raise ParseException(lineNum, "No ITEG declarations found")
+
         if gotIteCount != exIteCount:
             raise ParseException(lineNum, "Expected %d ITE gates.  Got %d" % (exIteCount, gotIteCount))
         for id in outputIds:
