@@ -616,12 +616,12 @@ class Prover:
         doneLevels = False
         if self.failed:
             self.failProof("Problem with QCNF file")
-            return
+            return False
         try:
             pfile = open(fname)
         except:
             self.failProof("Couldn't open proof file '%s" % fname)
-            return
+            return False
         for line in pfile:
             self.line = trim(line)
             self.lineNumber += 1
@@ -679,6 +679,7 @@ class Prover:
                 break
         pfile.close()
         self.checkProof()
+        return not self.failed
             
     def invalidCommand(self, cmd):
         self.flagError("Invalid command '%s' in proof" % cmd)
@@ -856,6 +857,8 @@ class Prover:
         tcount = 0
         print("%d total clauses" % self.cmgr.totalClauseCount)
         print("%d maximum live clauses" % self.cmgr.maxLiveClauseCount)
+        if not self.verbose:
+            return
         print("Command occurences:")
         for cmd in clist:
             count = self.ruleCounters[cmd]
@@ -1069,6 +1072,7 @@ class DualProver(Prover):
                 msg += ": %s" % (str(list(self.cmgr.liveClauseSet)))
             self.failProof(msg)
         self.summarize()
+        return not self.failed
 
             
 class RefutationProver(DualProver):
@@ -1101,6 +1105,7 @@ class RefutationProver(DualProver):
         else:
             self.failProof("Have not added empty clause")
         self.summarize()
+        return not self.failed
 
 class SatisfactionProver(DualProver):
 
@@ -1136,6 +1141,7 @@ class SatisfactionProver(DualProver):
                 msg += ": %s" % (str(list(self.cmgr.liveClauseSet)))
             self.failProof(msg)
         self.summarize()
+        return not self.failed
 
 class CheckProver(DualProver):
 
@@ -1206,10 +1212,11 @@ class CheckProver(DualProver):
                         msg += "    %s" % str(clause)
                 self.failProof(msg)
             else:
-                msg = "Both versions have %d identical clauses." % self.cmgr.liveClauseCount
+                msg = "Both QBFs reduce to the same %d clauses." % self.cmgr.liveClauseCount
                 self.passProof(msg)
 
         self.summarize()
+        return not self.failed
 
 
 def run(name, args):
@@ -1221,7 +1228,7 @@ def run(name, args):
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
-            return
+            return False
         elif opt == '-v':
             verbose = True
         elif opt == '-i':
@@ -1233,31 +1240,31 @@ def run(name, args):
         else:
             print("Unrecognized option '%s'" % opt)
             usage(name)
-            return
+            return False
     if inQcnfName is None:
         print("Need input QCNF file name")
-        return
+        return False
     if checkQcnfName is None:
         print("Need check QCNF file name")
-        return
+        return False
     if proofName is None:
         print("Need proof file name")
-        return
+        return False
     start = datetime.datetime.now()
     iqreader = QcnfReader(inQcnfName)
     if iqreader.failed:
         print("Error reading input QCNF file: %s" % iqreader.errorMessage)
         print("PROOF FAILED")
-        return
+        return False
 
     cqreader = QcnfReader(checkQcnfName)
     if cqreader.failed:
         print("Error reading check QCNF file: %s" % cqreader.errorMessage)
         print("PROOF FAILED")
-        return
+        return False
 
     prover = CheckProver(iqreader, cqreader, verbose)
-    prover.prove(proofName)
+    ok = prover.prove(proofName)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     print("Elapsed time for check: %.2f seconds" % seconds)
