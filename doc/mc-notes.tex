@@ -1,5 +1,4 @@
 \documentclass{llncs}
-
 \usepackage{latexsym}
 \usepackage{times}
 \usepackage{amsmath}
@@ -15,6 +14,7 @@
 \newcommand{\hcref}[1]{\cref{#1}{\small\tt #1}}
 
 \bibliographystyle{splncs04}
+%\bibliographystyle{abbrv}
 
 \newcommand{\one}{\mbox{\bf 1}}
 \newcommand{\zero}{\mbox{\bf 0}}
@@ -24,10 +24,10 @@
 \newcommand{\boolor}{\lor}
 \newcommand{\boolxor}{\oplus}
 \newcommand{\boolnot}{\neg}
-%\newcommand{\tautology}{\top}
-%\newcommand{\nil}{\bot}
-\newcommand{\tautology}{1}
-\newcommand{\nil}{0}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+%\newcommand{\tautology}{1}
+%\newcommand{\nil}{0}
 \newcommand{\obar}[1]{\overline{#1}}
 \newcommand{\ite}{\mbox{\it ITE}}
 
@@ -44,8 +44,8 @@
 \newcommand{\var}{\fname{Var}}
 \newcommand{\val}{\fname{Val}}
 
-\newcommand{\interp}{\sigma}
-\newcommand{\interpset}[1]{\Sigma_{#1}}
+\newcommand{\interp}{\alpha}
+\newcommand{\interpset}[1]{{\cal M}(#1)}
 \newcommand{\mcount}{\mu}
 
 \newcommand{\ifarg}{\textbf{I}}
@@ -58,9 +58,16 @@
 \newcommand{\subsfalse}[1]{\subs{#1}{\false}}
 \newcommand{\subsflip}[1]{\subs{#1}{\obar{#1}}}
 
+\newcommand{\subspace}{{\cal S}}
+
 \title{Notes on Validated Model Counting \\ Version of \today}
 
 \author{Randal E. Bryant}
+
+\authorrunning{R. E. Bryant}
+
+\titlerunning{Validated Model Counting}
+
 
 \institute{
 Computer Science Department \\
@@ -88,35 +95,52 @@ For Boolean formula $F$, we define its set of {\em models} $\interpset{F}$ as
 The task of model counting is, given formula $F$, to determine the size of its set of models
 $\mcount(F) = |\interpset{F}|$.  Ideally, this should be done without actually enumerating the set.
 
-For interpretation $\interp$ and a Boolean formula $E$ over $X$, we
-use the notation $\interp\subs{x}{E}$ to denote the intepretation
+For assignment $\interp$ and a Boolean formula $E$ over $X$, we
+use the notation $\interp\subs{x}{E}$ to denote the assignment
 $\interp'$, such that $\interp'(y) = \interp(y)$ for all $y \not = x$
 and $\interp'(x) = \interp(E)$.  In particular, the notation
-$\interp\subsflip{x}$ indicates the interpretation in which the value
+$\interp\subsflip{x}$ indicates the assignment in which the value
 assigned to $x$ is complemented, while others remain unchanged.
 
 A Boolean formula $F$ is said to be {\em independent} of variable $x$
 if every $\interp \in \interpset{F}$ has $\interp\subsflip{x} \in
 \interpset{F}$.
 
+The following lemmas describe the primary abstractions used to perform
+model counting without enumerating all solutions.
+
 \begin{lemma}
-\label{lemma:independent:split}
-If Boolean formula $F$ is independent of variable $x$, then:
-\begin{equation}
-|\interpset{F}| \; = \; 2\cdot |\interpset{F\land x}| = \; 2\cdot |\interpset{F\land \obar{x}}| \label{eqn:independent}
-\end{equation}  
-\end{lemma}  
-That is, the set of models of $F$ is split evenly between
-those assigning $\tautology$ to $x$ and those assigning $\nil$ to $x$.
+  \label{lemma:negation}
+  For any formula $F$:
+  \begin{eqnarray*}
+    \mcount(\neg F) & =  & 2^n - \mcount(F)
+  \end{eqnarray*}
+\end{lemma}
+
+\begin{lemma}
+  \label{lemma:product}
+  For a partitioning of the variables $X$ into disjoint sets $X_1$ and $X_2$, and for formulas $F_1$ defined over $X_1$ and $F_2$ defined over $X_2$:
+  \begin{eqnarray*}
+    \mcount(F_1 \land F_2) &=& \mcount(F_1) \cdot \mcount(F_2)
+  \end{eqnarray*}
+\end{lemma}
+
+\begin{lemma}
+  \label{lemma:sum}
+  For formulas $F_1$ and $F_2$ such that $\interpset{F_1} \cap \interpset{F_2} = \emptyset$:
+  \begin{eqnarray*}
+    \mcount(F_1 \lor F_2) &=& \mcount(F_1) + \mcount(F_2)
+  \end{eqnarray*}
+\end{lemma}
 
 \section{ITE Operation}
 
 We consider a single Boolean operation, known as
 ``If-Then-Else,'' or simply ``ITE.''  For Boolean values $a, b, c$,
-the operation is defined as $\ite(a,b,c) = (a \land b) \lor (\obar{a}
+the operation is defined as $\ite(a,b,c) = (a \land b) \lor (\neg a
 \land c)$.  This single operation can be used to express several common Boolean operations:
 \begin{eqnarray*}
-\obar{a} & = & \ite(a, \nil, \tautology) \\
+\neg a & = & \ite(a, \nil, \tautology) \\
 a \land b & = & \ite(a, b, \nil) \\
 a \lor b & = & \ite(a, \tautology, b) \\
 a \rightarrow b & = & \ite(a, b, \tautology) \\
@@ -130,36 +154,28 @@ for $\ite(x, F, G)$ is given by the formula:
 \end{eqnarray}
 
 \section{ITE Graphs}
-Model counting is especially simple for a class of formulas we
-call ``free ITE graphs.''  This representation can be obtained
-directly from an Ordered Binary Decision Diagram (OBDD) representation
-of a Boolean function~\cite{Bryant:1986}.
 
-An {\em ITE graph} is defined to be a directed acyclic graph,
-consisting of three node types:
+An {\em ITE graph} describes a combinational logic circuit constructed from two-input multiplexors.
+It is defined as a directed acyclic graph
+with three node types:
 \begin{description}
 \item[Constant:] Corresponds to value $\tautology$ or $\nil$.  A constant node has no incoming arcs.
 \item[Input:] Corresponds to one of the variables in $X$.   A variable node has no incoming arcs.
 \item[Operator:] Represents an application of the $\ite$ operation.  An operator node has three incoming arcs, labeled \ifarg{}, \thenarg{}, and \elsearg{}, corresponding to the three arguments of the $\ite$ operation.
 \end{description}  
 
-An {\em input-controlled} ITE graph is one for which the incoming \ifarg{} arc for every operator node is
-from an input node.  That is, the result of one $\ite$ operation can
-serve as the ``then'' or ``else'' argument to another $\ite$
-operation, but not for the ``if'' argument.
-
-When describing input-controlled ITE graphs, we refer to constant and input
+When describing ITE graphs, we refer to constant and input
 nodes by their associated value or variable.  An operator node is described by an expression of the form
-$\ite(x, v_t, v_e)$, where $v_t$ and $v_e$ are the
-nodes corresponding to the \thenarg{} and \elsearg{} inputs, respectively.
+$\ite(v_i, v_t, v_e)$, where $v_i$, $v_t$, and $v_e$ are the
+nodes corresponding to the \ifarg{}, \thenarg{}, and \elsearg{} inputs, respectively.
 
 We can define the function $\depend$ mapping each node
-$v$ in an input-controlled ITE graph to the set of variables on which it logically depends.  This can be expressed recursively as
+$v$ in an ITE graph to the set of variables on which it logically depends.  This can be expressed recursively as
 \begin{eqnarray}
 \depend(\tautology) & = & \emptyset \label{eqn:depend:true}\\
 \depend(\nil) & = & \emptyset \label{eqn:depend:false}\\
 \depend(x) & = & \{x \} \label{eqn:depend:variable}\\
-\depend(\ite(x, v_t, v_e)) & = & \{ x \} \cup \depend(v_t) \cup \depend(v_e) \label{eqn:depend:ite}
+\depend(\ite(x, v_t, v_e)) & = & \depend(v_i) \cup \depend(v_t) \cup \depend(v_e) \label{eqn:depend:ite}
 \end{eqnarray}  
 
 
@@ -170,39 +186,180 @@ Any node $v$ in an ITE graph is independent of any variable $y \in X$ such that 
 \noindent
 {\em Proof:} Follows by the recursive definition of $\depend$ (\ref{eqn:depend:true}--\ref{eqn:depend:ite}) and by (\ref{eqn:ite:interp}).
 
+A {\em variable-partitioned} ITE (VPITE) graph is one satisfying the property
+that for every operator node $v = \ite(v_i, v_t, v_e)$, the dependency
+set of its \ifarg{} input most be disjoint from those of its
+\thenarg{} and \elsearg{} inputs.  That is, both $\depend(v_i) \cap \depend(v_t) = \emptyset$ and
+$\depend(v_i) \cap \depend(v_e) = \emptyset$.
 
-A {\em free} ITE graph is an input-controlled ITE graph satisfying the added
-property that for every operator node $v = \ite(x, v_t, v_e)$, its
-incoming \thenarg{} and \elsearg{} arcs must be from nodes such that
-$x \not \in \depend(v_t)$ and $x \not \in \depend(v_e)$.
-
-Free ITE graphs correspond directly to a class of binary decision diagrams known as {\em free} BDDs (FBDDs)~\cite{gergov:ieeetc:1994}.  Ordered BDDs are a subclass of FBDDs.
-
-\section{Model Counting Free ITE Graphs}
+\section{Model Counting VPITE Graphs}
 
 While model counting is a difficult problem for arbitrary
-formulas, it readily be computed when $F$ takes the form of a free
-ITE graph.
+formulas, it readily be computed when $F$ takes the form of a VPITE graph.
 
 \begin{theorem}
 \label{theorem:count}
-Letting $n = |X|$, the following recursive formula holds for any node in a free ITE graph
+Letting $n = |X|$, the following recursive formula holds for any node in a VPITE graph:
 \begin{eqnarray}
 \mcount(\tautology) & = & 2^{n} \label{eqn:count:true}\\
 \mcount(\nil) & = & 0 \label{eqn:count:false}\\
 \mcount(x) & = & 2^{n-1} \label{eqn:count:variable}\\
-\mcount(\ite(x, v_t, v_e)) & = & \frac{\mcount(v_t) + \mcount(v_e)}{2} \label{eqn:count:ite}
+\mcount[\ite(v_i, v_t, v_e)] & = & \frac{\mcount(v_i) \cdot \mcount(v_t) + [2^n-\mcount(v_i)] \cdot \mcount(v_e)}{2} \label{eqn:count:ite}
 \end{eqnarray}  
 \end{theorem}
 \noindent
 {\em Proof:} The key result here is (\ref{eqn:count:ite}).  It follows
-from Lemma~\ref{lemma:independent:split}, (\ref{eqn:ite:interp}),
-Lemma~\ref{lemma:independent:dset}, and (\ref{eqn:depend:ite}).  That is, both
-$v_t$ and $v_e$ are independent of $x$.  That implies that half of the
-satisfying assignments $\interp$ for $v_t$ have have $\interp(x) =
-\tautology$.  Similarly, half of the satisfying assignments $\interp$
-for $v_e$ have $\interp(x) = \nil$.  Equation (\ref{eqn:count:ite}) then follows by (\ref{eqn:ite:interp}).
+from Lemmas~\ref{lemma:negation}--\ref{lemma:sum}, along with the definition of the ITE operator.
+
+
+\section{Relation to Other Representations}
+
+In general, there is a trade-off between the compactness of different
+Boolean function representations versus the ease with which different
+properties can readily be computed.  For example, Boolean formulas and
+Boolean circuits can be very compact, but basic properties of these
+representations, such as satisfiability, equivalence testing, and
+model counting are NP-hard.  On the other hand all of these properties
+can be computed in polynomial time for reduced, orderd binary decision
+diagrams (ROBDDs)~\cite{Bryant:1986}, but they can grow exponentially
+in relation to the representation of the function as a formula or
+circuit.  ITE graphs lie somewhere between these two extremes.  Here
+we examine how they relate to other representations and the implications
+of these relations.
+
+\subsection{Binary Decision Diagrams}
+
+Binary Decision Diagrams~\cite{akers:ieeetc:1978} also represent Boolean formulas
+as directed graphs consisting of ITE operators.  They can be seen as
+equivalent to a class of graphs we will call {\em input-controlled} ITE
+graphs.  These are ones for which the \ifarg{} input to every operator
+node is a variable.
+
+If we combine the properties of variable partitioned and input
+control, we arrive at the representation known as {\em
+  Free}~BDDs~\cite{gergov:ieeetc:1994}.  If we further restrict the
+variables in a variable-controlled, input-partitioned ITE graph to
+obey the same ordering along all paths formed in the graph, we arrive
+at OBDDs.  An OBDD can be reduced by a simple set of rules to give an
+ROBDD representation, and this form is canonical~\cite{Bryant:1986}.
+
+\subsection{Sententential Decision Diagrams}
+
+Darwiche uses the Sentential Decision Diagram (SDD)
+representation~\cite{darwiche:ijcai:2011} as his framework for several
+model counting programs.  An SDD can be seen as a combination of 1) a
+generalization of VPITE graphs consisting of $k$-input multiplexors,
+and 2) an ordering restriction on the variables.
+That is, each operator node in an SDD is defined to
+have $k$ data inputs and $k$ control inputs, where the Boolean
+functions corresponding to the control inputs $p_1, p_2, \ldots, p_k$
+satisfy $p_i \land p_j = \nil$ for $1 \leq i < j \leq k$ and
+$\bigvee_{i=1,k} p_i = \tautology$.  The $k$ data inputs represent
+Boolean functions $s_1, s_2, \ldots, s_k$.  In addition, the
+dependency sets for the control and data inputs must be disjoint:
+$\depend(p_i) \cap \depend(s_j) = \emptyset$ for $1 \leq i,j \leq k$.
+Furthermore, the ordering of the variables in an SDD must obey a hierarchical decomposition
+defined by
+a tree structure known as a {\em vtree}.  Indeed, an SDD can be seen
+as equivalent to a generalization of BDDs devised by McMillan, which
+he termed {\em tree} BDDs~\cite{mcmillan:cav:1994}.
+
+The graph part of an SDD can be readily translated into a VPITE graph
+by expanding each $k$-input node into $k-1$ ITE nodes, giving an
+output value defined as:
+\begin{displaymath}
+\ite(p_1, s_1, \ite(p_2, s_2, \ite( \cdots \ite(p_{k-1}, s_{k-1}, s_k)\cdots))
+\end{displaymath}
+If we express the size of an SDD as the number of branches, this
+translation from SDD to ITE graph will expand the size by a constant
+factor.
+
+
+\section{Probabilistic Equivalence Checking}
+
+One further feature of VPITE graphs is that there is a randomized
+polynomial time (RP) algorithm for determining whether two graphs
+represent equivalent Boolean functions.  This algorithm generalizes
+the RP equivalence-testing algorithm for free BDDs described by Blum,
+Chandra, and Wegman~\cite{blum:ipl:1980}.
 
 \bibliography{references}
 
 \end{document}
+
+
+\section{A Model Counting Calculus}
+
+Objective: Create a simple system for defining and reasoning about an
+abstraction of Boolean formulas that suffices for tracking the number
+of models.  
+
+
+Define a {\em counting subspace} $\subspace{} = \langle V, \alpha, k\rangle$, with:
+\begin{itemize}
+\item $V$ is a set of variables
+\item $\alpha$ is a partial assignment to variables in $V$, represented as a set of literals.
+\item $k$ is an integer, indicating the number of models for
+  the formula within the specified subspace.  For $n = |V|$ and $m= |\var(\alpha)|$, it satisfies
+  $0 \leq k \leq 2^{n-m}$.
+\end{itemize}
+
+\subsection{Subspace Primitives}
+\begin{itemize}
+\item
+Universal subspace: $\langle \emptyset, \emptyset, 1 \rangle$.
+\item
+Null subspace: $\langle \emptyset, \emptyset, 0 \rangle$.
+\item
+  Positive literal: $\langle \{ x\}, \{x\}, 1\rangle$.
+\item
+  Negative literal: $\langle \{ x\}, \{\obar{x}\}, 1\rangle$.
+\item
+  Unused variable: $\langle \{ x\}, \emptyset, 2\rangle$.
+\end{itemize}
+
+\subsection{Basic Subspace Operations}
+
+Assume $\subspace_1 = \langle V_1, \alpha_1, k_1\rangle$ and
+$\subspace_2 = \langle V_2, \alpha_2, k_2\rangle$ are two subspaces
+
+Subspace product $\subspace_1 \times \subspace_2$
+\begin{itemize}
+\item Condition: $V_1 \cap V_2 = \emptyset$
+\item Result: $\langle V_1 \cup V_2, \alpha_1 \cup \alpha_2, k_1 \cdot k_2\rangle$.
+\end{itemize}
+
+Subspace Sum $\subspace_1 + \subspace_2$
+\begin{itemize}
+\item Conditions:
+  \begin{itemize}
+  \item $V_1 = V_2$.
+  \item For some literal $l$ of variable $x \in V_1$ and assignment $\alpha$, the argument assignments satisfy
+    $\alpha_1 = \alpha \cup \{l\}$ and $\alpha_2 = \alpha \cup \{ \obar{l} \}$.
+  \end{itemize}
+\item Result: $\langle V_1 - \{ x\}, \alpha, (k_1 + k_2)/2\rangle$.
+\end{itemize}
+  
+\subsection{Derived Subspace Operations}
+
+These useful operations can be constructed by combining primitive values and basic operations.
+
+Expanding subspace $\subspace{} = \langle V, \alpha, k\rangle$:
+\begin{itemize}
+\item
+  Condition: $x \not \in V$
+\item
+  Results:
+  \begin{itemize}
+    \item Positive expansion: $\langle V \cup \{ x \}, \alpha \cup \{ x \}, k \rangle$.
+    \item Negative expansion: $\langle V \cup \{ x \}, \alpha \cup \{ \obar{x} \}, k \rangle$.
+    \item Don't-care expansion: $\langle V \cup \{ x \}, \alpha , 2\cdot k \rangle$.
+  \end{itemize}
+\end{itemize}
+
+A particularly useful expansion is to apply the don't-care expansion
+with a set of variables $U$ such that $U \cap V = \emptyset$.  This
+will give the subspace $\langle U \cup V, \alpha, 2^{|U|} \cdot
+k\rangle$.
+
+
