@@ -204,7 +204,7 @@ Letting $n = |X|$, the following recursive formula holds for any node in a VPITE
 \mcount(\tautology) & = & 2^{n} \label{eqn:count:true}\\
 \mcount(\nil) & = & 0 \label{eqn:count:false}\\
 \mcount(x) & = & 2^{n-1} \label{eqn:count:variable}\\
-\mcount[\ite(v_i, v_t, v_e)] & = & \frac{\mcount(v_i) \cdot \mcount(v_t) + [2^n-\mcount(v_i)] \cdot \mcount(v_e)}{2} \label{eqn:count:ite}
+\mcount[\ite(v_i, v_t, v_e)] & = & \frac{\mcount(v_i) \cdot \mcount(v_t) + [2^n-\mcount(v_i)] \cdot \mcount(v_e)}{2^n} \label{eqn:count:ite}
 \end{eqnarray}  
 \end{theorem}
 \noindent
