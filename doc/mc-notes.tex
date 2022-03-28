@@ -24,10 +24,10 @@
 \newcommand{\boolor}{\lor}
 \newcommand{\boolxor}{\oplus}
 \newcommand{\boolnot}{\neg}
-\newcommand{\tautology}{\top}
-\newcommand{\nil}{\bot}
-%\newcommand{\tautology}{1}
-%\newcommand{\nil}{0}
+%\newcommand{\tautology}{\top}
+%\newcommand{\nil}{\bottom}
+\newcommand{\tautology}{1}
+\newcommand{\nil}{0}
 \newcommand{\obar}[1]{\overline{#1}}
 \newcommand{\ite}{\mbox{\it ITE}}
 
@@ -46,6 +46,11 @@
 
 \newcommand{\interp}{\alpha}
 \newcommand{\interpset}[1]{{\cal M}(#1)}
+\newcommand{\ring}{{\cal Z}}
+\newcommand{\cost}{\sigma}
+\newcommand{\density}{\rho}
+\newcommand{\hashset}{{\cal H}}
+\newcommand{\fhash}{h}
 \newcommand{\mcount}{\mu}
 
 \newcommand{\ifarg}{\textbf{I}}
@@ -79,6 +84,101 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \maketitle
 
 \section{Notation}
+
+Let $X = \{x_1, x_2, \ldots, x_n\}$ be a set of Boolean variables.  An
+{\em assignment} is a function $\interp$ assigning Boolean values to
+the variables: $\interp:X \rightarrow \{\nil, \tautology\}$.  We can
+also view an assignment as a set of {\em literals} $\{l_1, l_2,
+\ldots, l_n\}$, where each literal $l_i$ is either $x_i$ or
+$\obar{x}_i$, corresponding to the assignments $\interp(x_i)$ = 1 or 0,
+respectively.
+
+\subsection{Boolean Functions}
+
+A {\em Boolean function} $f:2^X \rightarrow \{0,1\}$ can be
+characterized by the set of assignments for which the function
+evaluates to 1: $\interpset{f} = \{ \interp | f(\interp) = 1\}$.  Let
+$\one$ denote the Boolean function that assigns value 1 to every
+assignment, and $\zero$ denote the assignment that assigns value 0 to
+every assignment.  These are characterized by the universal and empty
+assignment sets, respectively.
+
+
+From
+this we can define the {\em negation} of function $f$ as the function
+$\boolnot f$ such that
+$\interpset{\boolnot f} = \{ \interp | f(\interp) = 0\}$.
+We can also define the conjunction and disjunction operations over functions $f_1$ and $f_2$ as characterized by the sets
+$\interpset{f_1 \booland f_2} = \interpset{f_1} \cap \interpset{f_2}$ and
+$\interpset{f_1 \boolor f_2} = \interpset{f_1} \cup \interpset{f_2}$.
+
+For assignment $\interp$ and a Boolean formula $E$ over $X$, we
+use the notation $\interp\subs{x_i}{E}$ to denote the assignment
+$\interp'$, such that $\interp'(x_j) = \interp(x_j)$ for all $j \not = i$
+and $\interp'(x_i) = \interp(E)$, where $\interp(E)$ is the value obtained by evaluating formula $E$ with each variable assigned the value given by $\interp$.
+In particular, the notation
+$\interp\subsflip{x_i}$ indicates the assignment in which the value
+assigned to $x_i$ is complemented, while others remain unchanged.
+
+A Boolean function $f$ is said to be {\em independent} of variable
+$x_i$ if every $\interp \in \interpset{f}$ has $\interp\subsflip{x_i}
+\in \interpset{f}$.  The {\em dependency set} of $f$, denoted
+$\depend(f)$ consists of all variables $x_i$ for which $f$ is {\em
+  not} independent.
+
+\subsection{Separable Cost Functions}
+
+Let $\ring$ denote the elements of a commutative ring.  A {\em
+  separable cost function} $\cost:X \rightarrow \ring$ assigns a value
+from the ring to each variable.  We extend this function by defining
+the cost of literal as $\cost(\obar{x}_i) = 1 - \cost(x_i)$, the cost
+of an assignment as $\cost(\interp) = \prod_{l_i \in \interp}
+\cost(l_i)$, and the cost of a function $f$ as $\cost(f) =
+\sum_{\interp \in \interpset{f}} \cost(\interp)$.
+
+{\bf Example 1}: Let $\ring$ be the set of rational numbers and
+$\cost(x_i) = 1/2$ for all variables $x_i$.  Then cost of every
+assignment will be $1/2^{n}$, and the cost of a function will be its
+{\em density}, denoted $\density(f)$.  That is $\density(f) \in [0,
+  1]$ will be the fraction of assignments for which the function
+evaluates to 1.  Given an ability to compute the density of
+function $f$, we can scale this by $2^n$ to compute $|\interpset{f}|$, the core task of model counting.
+Using density as our metric has the advantage that it
+does not vary when the function is embedded in a larger domain $X'
+\supseteq X$.
+
+{\bf Example 2}: Let $\ring$ be a field with $|\ring| > 2n$,
+and let $\hashset$ be the set functions
+mapping elements of $X$ to elements of $\ring$.  For
+two distinct functions $f_1$ and $f_2$ and a randomly chosen $\fhash
+\in \hashset$, the probability that $h(f_1) = h(f_2)$ will be at most
+$2^n/|\ring|< 1/2$.  Therefore, these functions can be used as part of a
+randomized algorithm for equivalence testing~\cite{blum:ipl:1980}.
+
+\subsection{Computing Cost Functions}
+
+Three key properties of separable cost functions makes it
+possible, in some cases, to compute the cost of a Boolean formula without enumerating all of its satisfying solutions.
+
+\begin{lemma}[Complementation]
+  For separable cost function $\cost$ and Boolean function $f$:
+  $\cost(\neg f) = 1 - \cost(f)$.
+\end{lemma}
+
+\begin{lemma}[Conjunction over Independent Domains]
+  For separable cost function $\cost$ and Boolean functions $f_1$ and $f_2$ such that $\depend(f_1) \cap \depend(f_2) = \emptyset$:
+    $\cost(f_1 \land f_2) = \cost(f_1) \cdot \cost(f_2)$.
+\end{lemma}
+
+\begin{lemma}[Disjunction over Disjoint Domains]
+  For separable cost function $\cost$ and Boolean functions $f_1$ and $f_2$ such that $\interpset{f_1} \cap \interpset{f_2} = \emptyset$:
+    $\cost(f_1 \lor f_2) = \cost(f_1) + \cost(f_2)$.
+\end{lemma}
+
+\bibliography{references}
+
+\end{document}
+
 
 Consider Boolean formulas over a set of variables $X$.  An
 assignment $\interp$ is a function mapping each variable to 
