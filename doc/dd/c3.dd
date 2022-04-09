@@ -1,0 +1,25 @@
+# Representation of schema for single clause
+# Nodes
+n s7  100 400 t=b r=30 l=$\mathbin{\lor_{\textrm{pa}}}$
+n x1   40 340 t=r r=15 e=fillcolor f=fillcolor l=$x_1$
+n p6  120 300 t=b r=30 l=$\mathbin{\land_{\textrm{pv}}}$
+n mx1  40 300 t=r r=15 e=fillcolor f=fillcolor l=$\overline{x}_1$
+n s5  140 200 t=b r=30 l=$\mathbin{\lor_{\textrm{pa}}}$
+n x2   80 140 t=r r=15 e=fillcolor f=fillcolor l=$x_2$
+n p4  160 100 t=b r=30 l=$\mathbin{\land_{\textrm{pv}}}$
+n mx2 100 100 t=r r=15 e=fillcolor f=fillcolor l=$\overline{x}_2$
+n x3  100  40 t=r r=15 e=fillcolor f=fillcolor l=$x_3$
+# Edges
+e s7  x1 t=n
+e s7  p6 t=n
+e p6 mx1 t=n
+e p6  s5 t=n
+e s5  x2 t=n
+e s5  p4 t=n
+e p4 mx2 t=n
+e p4  x3 t=n
+# Tags
+t s7 $s_7$ p=r off=0
+t p6 $p_6$ p=r off=0
+t s5 $s_5$ p=r off=0
+t p4 $p_4$ p=r off=0
