@@ -8,7 +8,7 @@ c  s7 = v1 + p6
 c  Input clause
 1  i 1 2 3 0
 c  p4 = -v2 & v3
-   p 4 -v2 v3 0
+   p 4 -2 3 0
 c  Defining clauses for p4
 2  ab 4 2 -3 0 0
 3  ab -4 -2 0 -2 0
@@ -28,10 +28,10 @@ c  Defining clauses for p6
 c  s7 = v1 + p6
    s 7 1 6 0 9 0
 c  Defining clauses for s7
-8  ab -7 1 6 0 0
-9  ab 7 -1 0 -8 0
-10 ab 7 -6 0 -8 0
+11 ab -7 1 6 0 0
+12 ab 7 -1 0 -8 0
+13 ab 7 -6 0 -8 0
 c  Assert clause s7
-11 ar 7 0 ... 2 1 0
+14 ar 7 0 12 13  7 6 2 1 0
 c  Delete input clause
-   dr 1 0 4 5 10 8 11 0
+   dr 1 0 4 5 10 11 14 0
