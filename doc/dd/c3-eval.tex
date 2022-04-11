@@ -1,0 +1,38 @@
+\begin{tikzpicture}
+\definecolor{neutralcolor}{RGB}{0,0,0}
+\definecolor{pathcolor}{RGB}{0,0,0}
+\definecolor{fillcolor}{RGB}{255,255,255}
+\definecolor{background}{RGB}{225,225,225}
+\definecolor{highcolor}{RGB}{0,0,0}
+\definecolor{lowcolor}{RGB}{0,0,0}
+\draw (1.32,6.80) [thin,neutralcolor] -- (0.26,5.74);
+\draw (1.32,6.80) [thin,neutralcolor] -- (1.68,5.03);
+\draw (1.68,5.03) [thin,neutralcolor] -- (2.74,3.97);
+\draw (1.68,5.03) [thin,neutralcolor] -- (1.32,3.27);
+\draw (1.32,3.27) [thin,neutralcolor] -- (0.26,2.21);
+\draw (1.32,3.27) [thin,neutralcolor] -- (1.68,1.50);
+\draw (1.68,1.50) [thin,neutralcolor] -- (2.74,0.44);
+\draw (1.68,1.50) [thin,neutralcolor] -- (0.62,0.44);
+\draw [thin,fill=fillcolor,draw=fillcolor] (1.68,5.03) circle [radius=0.26];
+\node at (1.68,5.03) {{\texttt{*}}};
+\draw [thin,fill=fillcolor,draw=fillcolor] (1.68,1.50) circle [radius=0.26];
+\node at (1.68,1.50) {{\texttt{*}}};
+\draw [thin,fill=fillcolor,draw=fillcolor] (2.74,0.44) circle [radius=0.44];
+\node at (2.74,0.44) {$1-w_2$};
+\draw [thin,fill=fillcolor,draw=fillcolor] (1.32,6.80) circle [radius=0.26];
+\node at (1.32,6.80) {{\texttt{+}}};
+\draw [thin,fill=fillcolor,draw=fillcolor] (1.32,3.27) circle [radius=0.26];
+\node at (1.32,3.27) {{\texttt{+}}};
+\draw [thin,fill=fillcolor,draw=fillcolor] (2.74,3.97) circle [radius=0.44];
+\node at (2.74,3.97) {$1-w_1$};
+\draw [thin,fill=fillcolor,draw=fillcolor] (0.26,2.21) circle [radius=0.26];
+\node at (0.26,2.21) {$w_2$};
+\draw [thin,fill=fillcolor,draw=fillcolor] (0.62,0.44) circle [radius=0.26];
+\node at (0.62,0.44) {$w_3$};
+\draw [thin,fill=fillcolor,draw=fillcolor] (0.26,5.74) circle [radius=0.26];
+\node at (0.26,5.74) {$w_1$};
+\node [right] at (1.59,6.80) {$s_7$};
+\node [left] at (1.41,5.03) {$p_6$};
+\node [right] at (1.59,3.27) {$s_5$};
+\node [left] at (1.41,1.50) {$p_4$};
+\end{tikzpicture}%%

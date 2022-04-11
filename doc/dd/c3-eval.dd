@@ -3,12 +3,12 @@
 n s7  100 400 t=r r=15 e=fillcolor f=fillcolor l={\texttt{+}}
 n x1   40 340 t=r r=15 e=fillcolor f=fillcolor l=$w_1$
 n p6  120 300 t=r r=15 e=fillcolor f=fillcolor l={\texttt{*}}
-n mx1 200 260 t=r r=35 e=fillcolor f=fillcolor l=$1-w_1$
-n s5  140 200 t=r r=15 e=fillcolor f=fillcolor l={\texttt{+}}
-n x2   80 140 t=r r=15 e=fillcolor f=fillcolor e=fillcolor f=fillcolor l=$w_2$
-n p4  160 100 t=r r=15 e=fillcolor f=fillcolor l={\texttt{*}}
-n mx2 240  60 t=r r=35 e=fillcolor f=fillcolor l=$1-w_2$
-n x3  100  40 t=r r=15 e=fillcolor f=fillcolor l=$w_3$
+n mx1 180 240 t=r r=25 e=fillcolor f=fillcolor l=$1-w_1$
+n s5  100 200 t=r r=15 e=fillcolor f=fillcolor l={\texttt{+}}
+n x2   40 140 t=r r=15 e=fillcolor f=fillcolor e=fillcolor f=fillcolor l=$w_2$
+n p4  120 100 t=r r=15 e=fillcolor f=fillcolor l={\texttt{*}}
+n mx2 180  40 t=r r=25 e=fillcolor f=fillcolor l=$1-w_2$
+n x3   60  40 t=r r=15 e=fillcolor f=fillcolor l=$w_3$
 # Edges
 e s7  x1 t=n
 e s7  p6 t=n

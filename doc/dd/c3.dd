@@ -3,12 +3,12 @@
 n s7  100 400 t=l r=30 l=$\mathbin{\lor_{\textrm{pa}}}$
 n x1   40 340 t=r r=15 e=fillcolor f=fillcolor l=$x_1$
 n p6  120 300 t=b r=30 l=$\mathbin{\land_{\textrm{pv}}}$
-n mx1 200 260 t=r r=15 e=fillcolor f=fillcolor l=$\overline{x}_1$
-n s5  140 200 t=l r=30 l=$\mathbin{\lor_{\textrm{pa}}}$
-n x2   80 140 t=r r=15 e=fillcolor f=fillcolor l=$x_2$
-n p4  160 100 t=b r=30 l=$\mathbin{\land_{\textrm{pv}}}$
-n mx2 240  60 t=r r=15 e=fillcolor f=fillcolor l=$\overline{x}_2$
-n x3  100  40 t=r r=15 e=fillcolor f=fillcolor l=$x_3$
+n mx1 180 240 t=r r=15 e=fillcolor f=fillcolor l=$\overline{x}_1$
+n s5  100 200 t=l r=30 l=$\mathbin{\lor_{\textrm{pa}}}$
+n x2   40 140 t=r r=15 e=fillcolor f=fillcolor l=$x_2$
+n p4  120 100 t=b r=30 l=$\mathbin{\land_{\textrm{pv}}}$
+n mx2 180  40 t=r r=15 e=fillcolor f=fillcolor l=$\overline{x}_2$
+n x3   60  40 t=r r=15 e=fillcolor f=fillcolor l=$x_3$
 # Edges
 e s7  x1 t=n
 e s7  p6 t=n

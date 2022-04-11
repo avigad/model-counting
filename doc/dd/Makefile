@@ -2,6 +2,8 @@ GDIR = .
 GEN = $(GDIR)/ddgen.py
 SCALE=50pt
 
+tex: c3.tex c3-eval.tex
+
 c3.tex: c3.dd
 	$(GEN) -i c3.dd -o c3.tex -u $(SCALE)
 

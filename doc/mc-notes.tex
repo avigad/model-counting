@@ -145,15 +145,16 @@ of an assignment as $\cost(\interp) = \prod_{l_i \in \interp}
 
 {\bf Example 1}: Let $\ring$ be the set of rational numbers and
 $\cost(x_i) = 1/2$ for all variables $x_i$.  The cost of every
-assignment will be $1/2^{n}$, and the cost of a function will be its
-{\em density}, denoted $\density(f)$.  That is $\density(f) \in [0,
-  1]$ will be the fraction of assignments for which the function
-evaluates to 1.  Given an ability to compute the density of function
-$f$, we can scale this by $2^n$ to compute the total number of models
+assignment is then $1/2^{n}$, and the cost of a function is its
+{\em density}, denoted $\density(f)$.  That is, the density of $f$ satisfies
+$0 \leq \density(f) \leq 1$.  It
+is the fraction of assignments for which the $f$
+evaluates to 1, with $\density(\zero) = 0$ and $\density(\one) = 1$.  The density of a function
+$f$ can be scaled by $2^n$ to compute the total number of models
 $|\interpset{f}|$.  This is the core task of model counting.  Using
-density as our metric has the advantage that it does not vary when the
+density as the metric, rather than the number of models, has the advantage that it does not vary when the
 function is embedded in a larger domain $X' \supseteq X$.  As a
-variant, we can support some forms of weighted model counting by
+variant, some other forms of weighted model counting can be supported by
 assigning weights of the form $\cost(x_i) = w_i$, where $0 \leq w_i
 \leq 1$ for every variable $x_i$.
 
@@ -200,20 +201,21 @@ condition that $f_1$ and $f_2$ hold for mutually exclusive assignments.
 We introduce the CRAT clausal proof framework for generating a
 checkable proof of the valuation of a Boolean formula, given in
 conjunctive normal form, according to a specified cost function.  A
-CRAT proof provides two capabilities: 1) a {\em schema} for computing a cost
+CRAT proof provides two forms of information: 1) a {\em schema} for computing a cost
 function using the ring operations, and 2) a {\em proof} that this schema
 accurately characterizes the cost function for the input formula.
 A schema can be either {\em function independent}, meaning that it holds
 for any cost function, or {\em function dependent}, meaning that
 it holds for only for a specific cost function.
 
-The CRAT format draws its inspiration from the QRAT format for
+The CRAT format draws its inspiration from the LRAT format for Boolean formulas and the
+QRAT format for
 quantified Boolean formulas (QBF).  The following are its key properties:
 \begin{itemize}
-\item Clause addition is allowed, as long as either 1) the new clause is
-  blocked, or 2) it satisfies the RUP/RAT property with respect to a sequence
+\item As with LRAT, a clause can be added as long as either 1) it is
+  blocked, or 2) it satisfies the RUP/RAT property with respect to a supplied sequence
   of earlier antecedent clauses.
-\item  Extension variables can be introduced only according to the operations $\pand$, $\por$, and {\em abstraction}
+\item  Extension variables can be introduced only according to the operations $\pand$, $\por$, and to an abstraction rule.
 \begin{itemize}
 \item The checker tracks the dependency set for every input and
   extension variable.  When an extension variable is introduced based
@@ -229,7 +231,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
   arguments of the extension operations to be literals and not just
   variables.
 \end{itemize}
-\item Unlike DRAT, the deletion of a clause requires showing that this clause is implied by one or more other clauses.
+\item Unlike LRAT, the deletion of a clause requires showing that this clause is implied by one or more other clauses.
 \item Unlike QRAT, it need not support universal quantification.
 \end{itemize}
 
@@ -310,7 +312,7 @@ that ensures that each clause addition and each clause deletion preserves
 equivalence.  Starting with the set of input clauses, it produces a
 sequence of steps that both add and delete clauses.  Each addition
 must be truth preserving and each deletion must be falsehood
-prserving.  At the end, all input clauses must have been deleted, and
+preserving.  At the end, all input clauses must have been deleted, and
 among the remaining clauses there must be only a single unit clause consisting of some variable or
 its complement.  Except for trivial cases, the final variable will be
 an extension variable.  The sequence of extension operations define
@@ -327,11 +329,11 @@ clause.
 \begin{figure}
   \centering{
     \begin{minipage}{0.4\textwidth}
-    A) Logical Schema\\[2ex]
+      A) Logical Form   \\[2ex]
     \centering{\input{dd/c3}}
     \end{minipage}
     \begin{minipage}{0.4\textwidth}
-    B) Evaluation Schema\\[2ex]
+    B) Evaluation Form\\[2ex]
     \centering{\input{dd/c3-eval}}
     \end{minipage}
   }
@@ -371,10 +373,10 @@ clause.
     
 As an illustration, consider the Boolean formula $x_1 \lor x_2 \lor
 x_3$, represented by a single clause.  We cannot directly use the
-$\por$ operation to form this disjunction, since the sets of assignments
+$\por$ operation to form these disjunctions, since the sets of assignments
 satisfying the individual literals are not disjoint.  Instead, we must
 decompose this formula into a sequence of operations, as shown by the
-logical schema of Figure~\ref{fig:c3:schema}A\@.  Circles in this schema
+logical form of Figure~\ref{fig:c3:schema}A\@.  Circles in this schema
 correspond to $\pand$ operations and squares to $\por$ operations.
 The subscripts of the variables and the operator labels correspond to
 the numbers of the input and extension variables in the CRAT proof.
@@ -395,41 +397,46 @@ function, since it contains no abstraction operations.
 Figure~\ref{fig:c3:crat} shows an annotated version of the CRAT proof
 for this example.  Clause \#1 corresponds to the input formula, and
 clauses \#2--\#13 are the defining clauses for the four operations.
-Clause \#13 adds the unit clause corresponding to sum $s_7$,
+Each of the two sum operations lists one of the earlier defining
+clauses as a proof that its arguments are mutually exclusive.
+Clause \#14 adds the unit clause corresponding to sum $s_7$,
 indicating that the extension variable variable will evaluate to
-$\tautology$.  for any assigment that satisfies the input clause.  We
-can write this as $C \turnstile  s_7$ for input clause $C$.  The
-deletion step at the end turns this around, showing that
-$s_7 \turnstile C_I$, and therefore the input clause can be deleted,
-This completes a proof that extension variable $s_7$ is logically
+$\tautology$  for any assigment that satisfies the input clause.  We
+can write this as $C \turnstile s_7$ for input clause $C$.  The
+deletion step at the end turns this around, showing that $s_7
+\turnstile C_I$, and therefore the input clause can be deleted, This
+completes a proof that extension variable $s_7$ is logically
 equivalent to the input formula.
 
-\section{What's known, and what's not}
+\section{Looking Ahead}
+
+\subsection{Implementing Certified Counters}
 
 Given an arbitrary CNF formula, we can use BDD operations to generate
 a schematic representation.  The proof generation can follow the
 methods we have used for generating unsatisfiability proofs of Boolean
 formulas~\cite{bryant:tacas:2021} and dual proofs of quantified
-Boolean formulas~\cite{bryant:cade:2021}.  The key idea of that work
-was to use extended resolution to encode the semantics of the BDD
+Boolean formulas~\cite{bryant:cade:2021}.  The key idea 
+is to use extended resolution to encode the semantics of the BDD
 nodes as part of the proof.  Here we can further decompose each $\ite$
 (short for ``if-then-else'') operation representing a BDD node into
 two $\pand$ and one $\por$ operation.  That is, we can encode
-$\ite(x,A,B$ as $(x \pand A) \por (\obar{x} \pand B$, where $x$ is an
-input variable and $A$ and $B$ are subformulas.  In doing so, we must
+$\ite(x,A,B)$ as $(x \pand A) \por (\obar{x} \pand B)$, where $x$ is an
+input variable and $A$ and $B$ are subformulas.  The sum operation trivially satisfies the disjoint assignment requirement, since $x$ has positive polarity in the first product and negative polarity in the second.
+We must also
 make sure that $x$ is not in the dependency set of either $A$ or $B$.
-For ordered BDDs,~\cite{Bryant:1986} this property holds, since the
-variables in $A$ and $B$ must be greater in the variable ordering than
+For ordered BDDs,~\cite{Bryant:1986} this property holds, because the
+variables in $A$ and $B$ will be greater in the variable ordering than
 $x$.
 
 The BDD representations of many of the formulas occuring in
 model-counting problems are far to large for this approach to be
 practical.  One refinement of the approach, implemented by the ADDMC
 model counter, is to abstract subformulas, keeping track only of the
-number of models they can have, representing a number of subformulas
+number of models they can have and representing a number of subformulas
 with a single ADD leaf node.  Our abstraction operation is intended to
-support this capability.  Under controlled conditions, we can
-introduce a new variable the represents the cost function for some
+support this capability.  We can
+introduce a new variable to represent the cost function for some
 subformula.  If subsequent formulas are guaranteed to yield the same
 cost, then these can alias to the earlier variable.  However, it is
 not clear how to prove that this aliasing preserves equivalence.
@@ -440,6 +447,40 @@ schmas.  These exploit the key abstractions we have identified.  We
 must find ways to modify these model counters to also generate CRAT
 proofs.
 
+\subsection{TO-DO List}
+
+\begin{itemize}
+\item Proof Framework
+  \begin{itemize}
+  \item Generalities and details of the format
+  \item What should be the final state?
+  \item When can blocked clauses be deleted?
+  \item How can abstraction be incorporated?
+  \end{itemize}
+
+\item Checker
+  \begin{itemize}
+  \item Working prototype
+  \item C/C++ (or Rust?)
+  \item Formally verified
+  \end{itemize}
+
+\item Counters
+\begin{itemize}
+\item BDD-based
+  \begin{itemize}
+  \item Prototype
+  \item C/C++
+  \end{itemize}
+
+\item CDCL-based
+  \begin{itemize}
+  \item Prototype
+  \item C/C++
+  \end{itemize}
+\end{itemize}
+
+\end{itemize}
 
 
 \bibliography{references}
