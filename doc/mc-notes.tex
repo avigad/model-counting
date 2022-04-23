@@ -24,8 +24,8 @@
 \newcommand{\leafzero}{L_0}
 \newcommand{\booland}{\land}
 \newcommand{\boolor}{\lor}
-\newcommand{\pand}{\mathbin{\land_{\rm pv}}}
-\newcommand{\por}{\mathbin{\lor_{\rm pa}}}
+\newcommand{\pand}{\mathbin{\land_{\sf v}}}
+\newcommand{\por}{\mathbin{\lor_{\sf a}}}
 \newcommand{\boolxor}{\oplus}
 \newcommand{\boolnot}{\neg}
 %\newcommand{\tautology}{\top}
@@ -34,6 +34,8 @@
 \newcommand{\nil}{0}
 \newcommand{\obar}[1]{\overline{#1}}
 \newcommand{\ite}{\mbox{\it ITE}}
+\newcommand{\pite}{\mbox{\it ITE}_{\sf v}}
+\newcommand{\oneminus}{{\sim}}
 
 \newcommand{\opname}[1]{\mbox{\sc #1}}
 \newcommand{\andop}{\opname{And}}
@@ -52,6 +54,7 @@
 \newcommand{\nodeu}{\makenode{u}}
 
 \newcommand{\interp}{\alpha}
+\newcommand{\uinterp}{{\cal U}}
 \newcommand{\interpset}[1]{{\cal M}(#1)}
 \newcommand{\ring}{{\cal Z}}
 \newcommand{\cost}{\sigma}
@@ -97,7 +100,7 @@ the variables: $\interp:X \rightarrow \{\nil, \tautology\}$.  We can
 also view an assignment as a set of {\em literals} $\{l_1, l_2,
 \ldots, l_n\}$, where each literal $l_i$ is either $x_i$ or
 $\obar{x}_i$, corresponding to the assignments $\interp(x_i)$ = 1 or 0,
-respectively.
+respectively.  We denote the set of all assignments over these variables as $\uinterp$.
 
 \subsection{Boolean Functions}
 
@@ -143,8 +146,10 @@ of an assignment as $\cost(\interp) = \prod_{l_i \in \interp}
 \cost(l_i)$, and the cost of a function $f$ as $\cost(f) =
 \sum_{\interp \in \interpset{f}} \cost(\interp)$.
 
-{\bf Example 1}: Let $\ring$ be the set of rational numbers and
-$\cost(x_i) = 1/2$ for all variables $x_i$.  The cost of every
+For ring elemement $a$, we use the notation $\oneminus a$ to denote $1 - a$.
+
+{\bf Example 1}: Let $\ring$ be the set of rational numbers of the form $a\cdot 2^b$ where $a$ and $b$ are integers.
+Let $\cost(x_i) = 1/2$ for all variables $x_i$.  The cost of every
 assignment is then $1/2^{n}$, and the cost of a function is its
 {\em density}, denoted $\density(f)$.  That is, the density of $f$ satisfies
 $0 \leq \density(f) \leq 1$.  It
@@ -153,12 +158,18 @@ evaluates to 1, with $\density(\zero) = 0$ and $\density(\one) = 1$.  The densit
 $f$ can be scaled by $2^n$ to compute the total number of models
 $|\interpset{f}|$.  This is the core task of model counting.  Using
 density as the metric, rather than the number of models, has the advantage that it does not vary when the
-function is embedded in a larger domain $X' \supseteq X$.  As a
-variant, some other forms of weighted model counting can be supported by
-assigning weights of the form $\cost(x_i) = w_i$, where $0 \leq w_i
-\leq 1$ for every variable $x_i$.
+function is embedded in a larger domain $X' \supseteq X$.  
 
-{\bf Example 2}: Let $\ring$ be a field with $|\ring| > 2n$,
+{\bf Example 2}: Let $\ring$ be the set of rational numbers.  Assign a
+{\em weight} $w_i$ for each variable $x_i$ such that $0 \leq w_i \leq
+1$ and let $\cost(x_i) = w_i$.  This can support a restricted version of
+{\em weighted} model counting.  The key restrictions are: 1) the
+weight of an assignment equals the product of the weights of its
+literals, and 2) the weight of a variable $x_i$ and its complement
+$\obar{x}_i$ sum to 1.
+
+
+{\bf Example 3}: Let $\ring$ be a field with $|\ring| \geq 2n$,
 and let $\hashset$ be the set of functions
 mapping elements of $X$ to elements of $\ring$.  For
 two distinct functions $f_1$ and $f_2$ and a randomly chosen $\fhash
@@ -176,7 +187,7 @@ enumerating all of its satisfying solutions.
 \begin{lemma}[Complementation]
 \label{lemma:complementation}
   For separable cost function $\cost$ and Boolean function $f$:
-  $\cost(\neg f) = 1 - \cost(f)$.
+  $\cost(\neg f) = \oneminus \cost(f)$.
 \end{lemma}
 
 \begin{lemma}[Variable-Partitioned Conjunction]
@@ -196,42 +207,132 @@ disjoint sets of variables.
 We use the notation $f_1 \por f_2$ to denote the disjunction of $f_1$ and $f_2$ under the
 condition that $f_1$ and $f_2$ hold for mutually exclusive assignments.
 
+We will also find it useful to introduce a restricted version of the
+if-then-else operator, denoted $\pite$.  That is, for functions $f_i$,
+$f_t$, and $f_e$, we define $\pite(f_i, f_t, f_e) = (f_i \pand f_t)
+\por (\neg f_i \pand f_e)$.  The two arguments to the disjunction are
+guaranteed to satisfy the constraints for an assignment-partitioned
+disjunction, since first argument can only be satisfied by assignments
+for which $f_i$ evaluates to $\tautology$, while the second can only
+be satisfied by assignments for which $f_i$ evaluates to $\nil$.  The
+only restriction of the $\pite$ operator is that
+$\depend(f_i) \cap \depend(f_t) = \emptyset$ and
+$\depend(f_i) \cap \depend(f_e) = \emptyset$.
+
+\section{Separable Schemas}
+
+\begin{table}
+  \caption{Recursive Definition of Separable Schemas}
+  \label{tab:schema}
+A) Primitive Operations\\
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+  \makebox[15mm]{$S$}           & \makebox[30mm]{Restrictions} & \makebox[30mm]{$D(S)$} & \makebox[30mm]{$\interpset{S}$}\\
+\midrule
+  $\nil$  & None  & $\emptyset$    & $\emptyset$ \\
+  $\tautology$        & None  & $\emptyset$    & $\uinterp$ \\
+$x_i$           & None  & $\{ x_i \}$    & $\{ \interp | \interp(x_i) = \tautology \}$ \\
+$\neg S_1$      & None  & $\depend(S_1)$ & $\uinterp - \interpset{S_1}$ \\
+$S_1 \pand S_2$ & $\depend(S_1) \cap \depend(S_2) = \emptyset$ & $\depend(S_1) \cup \depend(S_2)$ & $\interpset{S_1} \cap \interpset{S_2}$ \\
+$S_1 \por S_2$  & $\interpset{S_1} \cap \interpset{S_2} = \emptyset$ &  $\depend(S_1) \cup \depend(S_2)$ &  $\interpset{S_1} \cup \interpset{S_2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+B) Derived Operations\\
+\begin{center}
+\begin{tabular}{cc}
+\toprule
+  $S$           & Definition \\
+\midrule
+\makebox[30mm]{$\pite(S_1, S_2, S_3)$} & \makebox[40mm]{$[S_1 \pand S_2] \por [\neg S_1 \pand S_2]$}\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}
+
+A {\em separable schema} is a directed acyclic graph representing a
+Boolean formula where the only allowed operations are $\neg$, $\pand$,
+$\por$ and $\pite$.  We use a graph representation to allow sharing of
+subformulas.  The set of schemas over a set of variables $\{x_1, x_2,
+\ldots, x_n\}$ can be defined recursively, as is shown in Table
+\ref{tab:schema}.  Each schema $S$ has an associated dependency set
+$\depend(S)$ and an associated set of models $\interpset{S}$.  We
+divide the operations into {\em basic} ones that are fundamental to
+the representation, and {\em derived} ones that can be constructed
+from basic operations.  The latter category consists of just the $\pite$ operation.
+    
+A key property of a Boolean formula represented by separable schema
+$S$ is that, for any separable cost function $\cost$, the cost of the
+formula $\cost(S)$ can be computed with a linear number of ring
+operations.
+
+\begin{table}
+  \caption{Normalization Rules}
+  \label{tab:normalize}
+  \begin{center}
+  \begin{tabular}{ccccccc}
+    \makebox[20mm]{$\neg \nil$} & \makebox[5mm]{$\rightarrow$} & \makebox[20mm]{$\tautology$} & \makebox[15mm]{} &
+    \makebox[20mm]{$\neg \tautology$} & \makebox[5mm]{$\rightarrow$} & \makebox[20mm]{$\nil$} \\
+    $\neg \neg S$ & $\rightarrow$ & $S$ \\
+    $S \pand \nil$ & $\rightarrow$ & $\nil$ && $\nil \pand S$ & $\rightarrow$ & $\nil$ \\
+    $S \pand \tautology$ & $\rightarrow$ & $S$ && $\tautology \pand S$ & $\rightarrow$ & $S$ \\
+    $S \por \nil$ & $\rightarrow$ & $S$ && $\nil \por S$ & $\rightarrow$ & $S$ \\
+    $S \por \tautology$ & $\rightarrow$ & $\tautology$ && $\tautology \por S$ & $\rightarrow$ & $\tautology$ \\
+    $\pite(\neg S_1, S_2, S_3)$ & $\rightarrow$ & $\pite(S_1, S_3, S_2)$ \\
+    $\pite(\tautology, S_2, S_3)$ & $\rightarrow$ & $S_2$ & &
+    $\pite(\nil, S_2, S_3)$ & $\rightarrow$ & $S_3$ \\
+    $\pite(S_1, \tautology, \nil)$ & $\rightarrow$ & $S_1$ &&
+    $\pite(S_1, \nil, \tautology)$ & $\rightarrow$ & $\neg S_1$ \\
+    $\pite(S_1, S_2, \nil)$ & $\rightarrow$ & $S_1 \pand S_2$ & &
+    $\pite(S_1, \nil, S_3)$ & $\rightarrow$ & $\neg S_1 \pand S_3$ \\
+    $\pite(S_1, S_2, \tautology)$ & $\rightarrow$ & $\neg [S_1 \pand \neg S_2]$ & &
+    $\pite(S_1, \tautology, S_3)$ & $\rightarrow$ & $\neg [\neg S_1 \pand \neg S_3]$ \\
+  \end{tabular}
+  \end{center}
+\end{table}
+
+Table~\ref{tab:normalize} shows a list of {\em normalizing}
+transformations to simplify a separable schema.  These are mostly
+straightforward---eliminating extra negations and removing constant
+terms.  The most interesting are the two bottom rules, were we make
+use of DeMorgan's Laws to simplify an $\pite$ operation when one of
+the arguments is $\tautology$.  We will make use of this
+transformation when using BDDs to convert a set of clauses into a
+separable schema.
+
 \section{Proof Framework for Cost Functions}
 
-We introduce the CRAT clausal proof framework for generating a
-checkable proof of the valuation of a Boolean formula, given in
-conjunctive normal form, according to a specified cost function.  A
-CRAT proof provides two forms of information: 1) a {\em schema} for computing a cost
-function using the ring operations, and 2) a {\em proof} that this schema
-accurately characterizes the cost function for the input formula.
-A schema can be either {\em function independent}, meaning that it holds
-for any cost function, or {\em function dependent}, meaning that
-it holds for only for a specific cost function.
+The CRAT clausal proof framework provides a means for creating a
+checkable proof that a Boolean formula, given in conjunctive normal
+form, is logically equivalent to some separable schema.  This provides
+a framework for adding proof generation to model counting programs.
 
 The CRAT format draws its inspiration from the LRAT format for Boolean formulas and the
 QRAT format for
 quantified Boolean formulas (QBF).  The following are its key properties:
 \begin{itemize}
 \item As with LRAT, a clause can be added as long as either 1) it is
-  blocked, or 2) it satisfies the RUP/RAT property with respect to a supplied sequence
+  blocked, or 2) it satisfies the RAT property with respect to a supplied sequence
   of earlier antecedent clauses.
-\item  Extension variables can be introduced only according to the operations $\pand$, $\por$, and to an abstraction rule.
+\item  Extension variables can be introduced only according to the operations $\pand$, $\por$, and $\pite$.
 \begin{itemize}
 \item The checker tracks the dependency set for every input and
   extension variable.  When an extension variable is introduced based
-  on the $\pand$ operation, the dependency sets of its arguments must
+  on the $\pand$ or $\pite$ operation, the dependency sets of its arguments must
   be disjoint.
 \item When an extension variable is introduced based on the $\por$
-  operation, the step must cite earlier steps providing a RUP/RAT proof
+  operation, the step must cite earlier steps providing a RAT proof
   that the two arguments are mutually exclusive.
-\item The {\em abstraction} operation allows an extension
-  variable to serve as an alias for one of more other 
-  variables.  Use of this rule renders the schema function dependent.
 \item Boolean complement is provided implicitly by allowing the
   arguments of the extension operations to be literals and not just
   variables.
 \end{itemize}
-\item Unlike LRAT, the deletion of a clause requires showing that this clause is implied by one or more other clauses.
+\item A CRAT proof must show that the schema is logically equivalent
+  to the input formula, not just that they are equisatisfiable.
+  Therefore, each deletion step must also be show to be equivalence
+  preserving, either because the clause is blocked or it follows from
+  remaining clauses by the RAT property.
 \item Unlike QRAT, it need not support universal quantification.
 \end{itemize}
 
@@ -244,21 +345,22 @@ quantified Boolean formulas (QBF).  The following are its key properties:
   \begin{tabular}{lllll}
     \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
     \midrule
-    \makebox[5mm][l]{$C$} & \makebox[7mm][l]{\tt i}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Input clause} \\
+    \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\tt i}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Input clause} \\
     $C$ & {\tt ab} & $L^{+}$ {\tt 0} & ${\tt -}C^{*}$  {\tt 0}  & Add blocked clause \\
-    $C$ & {\tt ar} & $L^{*}$ {\tt 0} & $C^{+}$  {\tt 0} & Add RUP/RAT clause \\
-     & {\tt dr} & $C$             & $C^{+}$  {\tt 0} & Delete RUP/RAT clause \\
+    $C$ & {\tt ar} & $L^{*}$ {\tt 0} & $C^{+}$  {\tt 0} & Add RAT clause \\
+     & {\tt db} & $C$             & ${\tt -}C^{+}$  {\tt 0} & Delete blocked clause \\
+     & {\tt dr} & $C$             & $C^{+}$  {\tt 0} & Delete RAT clause \\
     \midrule
         & {\tt p} & $V \; L \; L$    &                  & Declare $\pand$ operation \\
         & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation \\ 
-        & {\tt a} & $V \; L$         & $V^{+}$ {\tt 0}  & First application of abstraction \\ 
-        & {\tt a} & $V \; L$         &                  & Subsequent applications of abstraction \\ 
+        & {\tt ite} & $V \; L \; L\; L$    &                  & Declare $\pite$ operation \\
   \end{tabular}
   }
 \end{table}
 
 Table~\ref{tab:crat:syntax} shows the set of proof rules for the CRAT
-format.  As with other clausal proof formats, a variable is
+format.
+As with other clausal proof formats, a variable is
 represented by a positive integer $v$, with the first ones being input
 variables and successive ones being extension variables.  Literal $l$
 is represented by a signed integer, with $-v$ being the complement of
@@ -270,18 +372,21 @@ C$.  However, clause identifiers need not be consecutive.
 
 The first set of proof rules are similar to those in other clausal
 proofs.  Our syntax optionally allows input clauses to be listed with
-a rule of type {\tt i}.  Clauses can be added via
-blocked-clause and RUP/RAT rules.  The hints portion of a
-blocked-clause addition lists all earlier clauses containing
-the negated version of the pivot literal, with the clause IDs negated.  The hints portion of a
-resolution addition must contain a sequence of clause IDs such that
-the added clause is RUP/RAT with respect to these clauses.  Clause
-deletion requires an explicit justification that the deleted clauses
-is RUP/RAT with respect to other clauses.
+a rule of type {\tt i}.  Clauses can be added via blocked-clause and
+RAT rules.  As described below, however, blocked clauses can only be added
+to define $\pand$, $\por$, and $\pite$ operations.  The hints portion
+of a blocked-clause addition lists all earlier clauses containing the
+negated version of the pivot literal, with the clause IDs negated.
+The hints portion of a RAT addition must contain a sequence of clause
+IDs such that the added clause is RAT with respect to these clauses.
+Clause deletion requires an explicit justification that the deleted
+clauses is RAT with respect to other clauses.
 
 The second set of proof rules is unique to the CRAT format.  Each of
 these indicates the addition of an extension variable.  For each case,
-the rule must be followed by a sequence of blocked-clause additions.
+the rule must be followed by a sequence of blocked-clause additions
+providing the defining clauses for the extension variable.
+
 A product rule of the form ${\tt p}\;v\;l_1\;l_2$ indicates that $v$
 will represent the product $l_1 \pand l_2$.  The blocked clause
 additions must encode the formula $v \leftrightarrow (l_1 \land l_2)$.
@@ -291,18 +396,14 @@ A sum rule of the form ${\tt s}\;v\;l_1\;l_2$ indicates that $v$ will
 represent the disjunction $l_1 \por l_2$.  The blocked clause
 additions must encode the formula $v \leftrightarrow (l_1 \lor l_2)$.
 The rule also contains a sequence of clause IDs such that the clause
-$\obar{l}_1 \lor \obar{l}_2$ is RUP/RAT with respect to the sequence.
+$\obar{l}_1 \lor \obar{l}_2$ is RAT with respect to the sequence.
 
-An abstraction rule of the form ${\tt a}\;v\;l$ indicates that
-variable $v$ will be an alias for literal $l$.  The syntax differs
-according to whether or not this is the first use of $v$ as an
-alias.  The first instance must include a list of variables that is a
-(possibly improper) superset of the dependency set for $l$.  It must
-be followed by a sequence of blocked-clause additions encoding the
-formula $v \leftrightarrow l$.  Subsequent instances do not
-include an explicit dependency set, but $\depend(l)$ must be a subset of
-those declared for $v$.  Furthermore, there are no blocked-clause
-additions for these cases.
+An if-then-else rule of the form ${\tt ite}\;v\;l_1\;l_2\;l_3$
+indicates that $v$ will represent $\pite(l_1, l_2, l_3)$.  The blocked
+clause additions must encode the formula
+$v \leftrightarrow \ite((l_1,l_2, l_3)$.
+The dependency set for $l_1$ must be disjoint from those
+of $l_2$ and $l_3$.
 
 
 \subsection{Semantics}
@@ -314,30 +415,24 @@ sequence of steps that both add and delete clauses.  Each addition
 must be truth preserving and each deletion must be falsehood
 preserving.  At the end, all input clauses must have been deleted, and
 among the remaining clauses there must be only a single unit clause consisting of some variable or
-its complement.  Except for trivial cases, the final variable will be
-an extension variable.  The sequence of extension operations define
-the schema for computing the cost function.  That is, a value for the
-cost function is computed for every literal according to the rules of
-Lemmas \ref{lemma:complementation}--\ref{lemma:disjunction}.  For
-every abstraction step, all literals having the indicated extension
-variable as their alias must evaluate to the same value.  The computed
-cost is then the value computed for the literal in the final unit
-clause.
+its complement.  Except for trivial cases, the final literal will be
+an extension variable or its complement.  That variable will indicate the root node of the schema.
+Working from that root backward, the schema can be extracted from the CRAT file.
 
-\subsection{Example}
+\subsection{Example 1}
 
 \begin{figure}
   \centering{
     \begin{minipage}{0.4\textwidth}
-      A) Logical Form   \\[2ex]
+      A) Schema   \\[2ex]
     \centering{\input{dd/c3}}
     \end{minipage}
     \begin{minipage}{0.4\textwidth}
-    B) Evaluation Form\\[2ex]
+    B) Cost Computation\\[2ex]
     \centering{\input{dd/c3-eval}}
     \end{minipage}
   }
-\caption{Schema for Formula $x_1 \lor x_2 \lor x_3$}
+\caption{Schema for Formula $x_1 \lor x_2 \lor x_3$ and its Cost Computation}
 \label{fig:c3:schema}
 \end{figure}
 
@@ -375,8 +470,8 @@ As an illustration, consider the Boolean formula $x_1 \lor x_2 \lor
 x_3$, represented by a single clause.  We cannot directly use the
 $\por$ operation to form these disjunctions, since the sets of assignments
 satisfying the individual literals are not disjoint.  Instead, we must
-decompose this formula into a sequence of operations, as shown by the
-logical form of Figure~\ref{fig:c3:schema}A\@.  Circles in this schema
+decompose this formula into a sequence of operations.  Figure~\ref{fig:c3:schema}A shows one such decomposition.
+Circles in this schema
 correspond to $\pand$ operations and squares to $\por$ operations.
 The subscripts of the variables and the operator labels correspond to
 the numbers of the input and extension variables in the CRAT proof.
@@ -407,6 +502,64 @@ deletion step at the end turns this around, showing that $s_7
 \turnstile C_I$, and therefore the input clause can be deleted, This
 completes a proof that extension variable $s_7$ is logically
 equivalent to the input formula.
+
+\subsection{Example 2}
+
+\begin{figure}
+  \centering{
+  \begin{tabular}{llllll}
+    \multicolumn{4}{c}{Proof line} & & \multicolumn{1}{c}{Explanation} \\
+\midrule
+    \makebox[5mm][l]{\tt 1} & \makebox[7mm][l]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[15mm]{}          & \makebox[5mm]{} & \makebox[20mm][l]{Input clause $C_1$}\\
+
+    {\tt 2} & {\tt i}   & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
+            & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
+    {\tt 3} & {\tt ab}  & {\tt 4 2 3 0} & {\tt 0}    & & Defining clauses for $p_4$ \\
+    {\tt 4} & {\tt ab}  & {\tt -4 -2 0} & {\tt -2 0}    & & \\
+    {\tt 5} & {\tt ab}  & {\tt -4 -3 0} & {\tt -2 0}    & & \\
+            & {\tt p}   & {\tt 5 -1 4}  &             & & Declare $p_5 = \obar{x}_1 \pand p_4 = \obar{x}_1 \pand \obar{x}_2 \pand \obar{x}_3$ \\
+    {\tt 6} & {\tt ab}  & {\tt 5 1 -4 0} & {\tt 0}    & & Defining clauses for $p_5$ \\
+    {\tt 7} & {\tt ab}  & {\tt -5 -1 0} & {\tt -6 0}    & & \\
+    {\tt 8} & {\tt ab}  & {\tt -5 4 0} & {\tt -6 0}    & & \\
+    {\tt 9} & {\tt ar}  & {\tt -5 0} & {\tt 7 8 4 5 1 0} & & Assert $t_1 = \obar{p}_5 = x_1 \lor x_2 \lor x_3$ \\
+            & {\tt dr}  & {\tt 1 } & {\tt 3 6 7 0} & & Delete clause $C_1$\\
+            & {\tt p}   & {\tt 6 1 -2} &              & & Declare $p_6 = x_1 \pand \obar{x}_2$ \\    
+    {\tt 10} & {\tt ab}  & {\tt 6 -1 2 0}  & {\tt 0}    & & Defining clauses for $p_6$ \\ 
+    {\tt 11} & {\tt ab}  & {\tt -6 1 0}    & {\tt -10 0} & & \\
+    {\tt 12} & {\tt ab}  & {\tt -6 -2 0}    & {\tt -10 0} & & \\ 
+    {\tt 13} & {\tt ar} & {\tt -6 0} & {\tt 11 12 2 0}  & & Assert $t_2 = \obar{p}_6 = \obar{x}_1 \lor x_2$ \\
+            & {\tt dr}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
+            & {\tt s}   & {\tt 7 5 6}   & {\tt 7 11 0}  & & Declare $s_7 = \obar{t}_1 \por \obar{t}_2$ \\
+    {\tt 14} & {\tt ab}  & {\tt -7 5 6 0}  & {\tt 0}    & & Defining clauses for $s_7$ \\ 
+    {\tt 15} & {\tt ab}  & {\tt  7 -5 0}    & {\tt -5 0} &  \\  
+    {\tt 16} & {\tt ab}  & {\tt  7 -6 0}    & {\tt -5 0} & &  \\
+    {\tt 17} & {\tt ar}  & {\tt -7 0}       & {\tt 9 13 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
+             & {\tt dr}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
+             & {\tt dr}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
+  \end{tabular}
+}  
+  \caption{CRAT Proof Steps for Formula $(x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2$}
+  \label{fig:p2:crat}
+\end{figure}
+
+As a more complex example, consider the Boolean formula given by the
+conjunction of clauses $C_1 = x_1 \lor x_2 \lor x_3$ and $C_2 =
+\obar{x}_1 \lor x_2$.  With this example, we also demonstrate the use
+of DeMorgan's Laws to provide a more direct encoding of the problem.
+The complement of the formula can be written in DNF as
+$\obar{x}_1\,\obar{x}_2\,\obar{x}_3 \lor x_1\,\obar{x}_2$.  Each of
+the two conjuncts can be formed using $\pand$ operations, and their
+sum can be formed using a $\por$ operation.  In this example, we first
+form a term $t_1$ that equals $C_1$ and a term $t_2$ that equals
+$C_2$.  These are asserted as unit clauses in proof lines 9 and 13,
+allowing the input clauses to be deleted.  Then we generate $t_3$ as
+the conjunction of $t_1$ and $t_2$ and assert it as a unit clause.
+Based on this, we can delete the unit clauses for terms $t_1$ and
+$t_2$.  Term $t_3$ then becomes the root of the schematic representation.
+
+
+
+
 
 \section{Looking Ahead}
 
