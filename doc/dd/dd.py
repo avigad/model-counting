@@ -27,9 +27,10 @@ import math
 #       Position options: above, below, left, right
 
 # Edge
-#    e FID TID value=neutral [only=XX]
+#    e FID TID value=neutral mark=none [only=XX]
 #       FID and TID are Ids of source and destination nodes
 #       value options: neutral, high, low, path
+#       mark options: none, bubble   
 
 # Graphic primitives
 #
@@ -330,10 +331,14 @@ class Node(Only):
 class EdgeType:
     neutral, high, low, path = list(range(4))
     names = ["neutral", "high", "low", "path"]
+    none, bubble = list(range(2))
+    markNames = ["none", "bubble"]
 
     def parse(self, prefix):
         return getIndex(prefix, self.names)
         
+    def parseMark(self, prefix):
+        return getIndex(prefix, self.markNames)
 
 class Edge(Only):
     fromId = None
@@ -341,6 +346,7 @@ class Edge(Only):
     toId = None
     toNode = None
     etype = None
+    mtype = EdgeType.none
     edgeSpacing = 12.0
     edgeFraction = 0.65
 
@@ -364,7 +370,7 @@ class Edge(Only):
                 raise ParseException(line, "Invalid key=value syntax")
             prefix, value = info
             try:
-                key = parseLabel(prefix, ["type", "only"])
+                key = parseLabel(prefix, ["type", "mark", "only"])
             except NoMatchException:
                 raise ParseException(line, "Invalid prefix '%s'" % prefix)
             except MultiMatchException:
@@ -376,6 +382,13 @@ class Edge(Only):
                     raise ParseException(line, "Invalid type '%s'" % value)
                 except MultiMatchException:
                     raise ParseException(line, "Ambiguous type '%s'" % value)
+            elif key == "mark":
+                try:
+                    self.mtype = EdgeType().parseMark(value)
+                except NoMatchException:
+                    raise ParseException(line, "Invalid mark '%s'" % value)
+                except MultiMatchException:
+                    raise ParseException(line, "Ambiguous mark '%s'" % value)
             elif key == "only":
                 self.setOnly(value)
         return self
@@ -401,6 +414,11 @@ class Edge(Only):
             outfile.write("%s\\draw [%s,%s,dashed] (%.2f,%.2f) -- (%.2f,%.2f);\n" % (self.indent, line, edge, sx,sy,fx,fy))
         else:
             outfile.write("%s\\draw (%.2f,%.2f) [%s,%s] -- (%.2f,%.2f);\n" % (self.indent, sx,sy,line,edge,fx,fy))
+        if self.mtype == EdgeType.bubble:
+            cx = (sx+fx)/2
+            cy = (sy+fy)/2
+            r = scale * NodeType.radius[NodeType.root]
+            outfile.write("%s\\draw [fill=%s,draw=%s] (%.2f,%.2f) circle [radius=%.2f];\n" % (self.indent, edge, edge, cx,cy,r))
         self.onlySuffix(outfile)
 
         
