@@ -121,10 +121,10 @@ We can also define the conjunction and disjunction operations over functions $f_
 $\interpset{f_1 \booland f_2} = \interpset{f_1} \cap \interpset{f_2}$ and
 $\interpset{f_1 \boolor f_2} = \interpset{f_1} \cup \interpset{f_2}$.
 
-For assignment $\interp$ and a Boolean formula $E$ over $X$, we
-use the notation $\interp\subs{x_i}{E}$ to denote the assignment
+For assignment $\interp$ and a Boolean formula $\phi$ over $X$, we
+use the notation $\interp\subs{x_i}{\phi}$ to denote the assignment
 $\interp'$, such that $\interp'(x_j) = \interp(x_j)$ for all $j \not = i$
-and $\interp'(x_i) = \interp(E)$, where $\interp(E)$ is the value obtained by evaluating formula $E$ with each variable assigned the value given by $\interp$.
+and $\interp'(x_i) = \interp(\phi)$, where $\interp(\phi)$ is the value obtained by evaluating formula $E$ with each variable assigned the value given by $\interp$.
 In particular, the notation
 $\interp(\subs{x_i}{\obar{x}_i})$
 indicates the assignment in which the value
@@ -432,7 +432,7 @@ Working from that root backward, the schema can be extracted from the CRAT file.
     \centering{\input{dd/c3-eval}}
     \end{minipage}
   }
-\caption{Schema for Formula $x_1 \lor x_2 \lor x_3$ and its Cost Computation}
+\caption{Schema for Formula $\phi_1 = x_1 \lor x_2 \lor x_3$ and its Cost Computation}
 \label{fig:c3:schema}
 \end{figure}
 
@@ -507,6 +507,22 @@ equivalent to the input formula.
 
 \begin{figure}
   \centering{
+    \begin{minipage}{0.4\textwidth}
+      A) Schema   \\[2ex]
+    \centering{\input{dd/p2}}
+    \end{minipage}
+    \begin{minipage}{0.4\textwidth}
+    B) Cost Computation\\[2ex]
+    \centering{\input{dd/p2-eval}}
+    \end{minipage}
+  }
+\caption{Schema for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
+\label{fig:c3:schema}
+\end{figure}
+
+
+\begin{figure}
+  \centering{
   \begin{tabular}{llllll}
     \multicolumn{4}{c}{Proof line} & & \multicolumn{1}{c}{Explanation} \\
 \midrule
@@ -538,7 +554,7 @@ equivalent to the input formula.
              & {\tt dr}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
   \end{tabular}
 }  
-  \caption{CRAT Proof Steps for Formula $(x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2$}
+  \caption{CRAT Proof Steps for Formula $\phi = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$}
   \label{fig:p2:crat}
 \end{figure}
 
