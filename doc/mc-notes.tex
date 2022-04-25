@@ -109,14 +109,14 @@ characterized by the set of assignments for which the function
 evaluates to 1: $\interpset{f} = \{ \interp | f(\interp) = 1\}$.  Let
 $\one$ denote the Boolean function that assigns value 1 to every
 assignment, and $\zero$ denote the assignment that assigns value 0 to
-every assignment.  These are characterized by the universal and empty
-assignment sets, respectively.
+every assignment.  These are characterized by the universal assignment set $\uinterp$ and the empty
+assignment set $\emptyset$, respectively.
 
 
 From
-this we can define the {\em complement} of function $f$ as the function
+this we can define the {\em negation} of function $f$ as the function
 $\boolnot f$ such that
-$\interpset{\boolnot f} = \{ \interp | f(\interp) = 0\}$.
+$\interpset{\boolnot f} = \uinterp - \interpset{f}$.
 We can also define the conjunction and disjunction operations over functions $f_1$ and $f_2$ as characterized by the sets
 $\interpset{f_1 \booland f_2} = \interpset{f_1} \cap \interpset{f_2}$ and
 $\interpset{f_1 \boolor f_2} = \interpset{f_1} \cup \interpset{f_2}$.
@@ -128,11 +128,12 @@ and $\interp'(x_i) = \interp(\phi)$, where $\interp(\phi)$ is the value obtained
 In particular, the notation
 $\interp(\subs{x_i}{\obar{x}_i})$
 indicates the assignment in which the value
-assigned to $x_i$ is complemented, while others remain unchanged.
+assigned to $x_i$ is negated, while others remain unchanged.
 
 A Boolean function $f$ is said to be {\em independent} of variable
-$x_i$ if every $\interp \in \interpset{f}$ has $\interp(\subs{x_i}{\obar{x}_i})
-\in \interpset{f}$.  The {\em dependency set} of $f$, denoted
+$x_i$ if every $\interp \in \interpset{f}$ has
+$\interp(\subs{x_i}{\obar{x}_i}) \in \interpset{f}$.
+The {\em dependency set} of $f$, denoted
 $\depend(f)$ consists of all variables $x_i$ for which $f$ is {\em
   not} independent.
 
@@ -142,18 +143,19 @@ Let $\ring$ denote the elements of a commutative ring.  A {\em
   separable cost function} $\cost:X \rightarrow \ring$ assigns a value
 from the ring to each variable.  We extend this function by defining
 the cost of literal $\obar{x}_i$ as $\cost(\obar{x}_i) = 1 - \cost(x_i)$, the cost
-of an assignment as $\cost(\interp) = \prod_{l_i \in \interp}
-\cost(l_i)$, and the cost of a function $f$ as $\cost(f) =
-\sum_{\interp \in \interpset{f}} \cost(\interp)$.
+of an assignment as
+$\cost(\interp) = \prod_{l_i \in \interp} \cost(l_i)$,
+and the cost of a function $f$ as
+$\cost(f) = \sum_{\interp \in \interpset{f}} \cost(\interp)$.
 
 For ring elemement $a$, we use the notation $\oneminus a$ to denote $1 - a$.
 
 {\bf Example 1}: Let $\ring$ be the set of rational numbers of the form $a\cdot 2^b$ where $a$ and $b$ are integers.
 Let $\cost(x_i) = 1/2$ for all variables $x_i$.  The cost of every
 assignment is then $1/2^{n}$, and the cost of a function is its
-{\em density}, denoted $\density(f)$.  That is, the density of $f$ satisfies
-$0 \leq \density(f) \leq 1$.  It
-is the fraction of assignments for which the $f$
+{\em density}, denoted $\density(f)$.  That is, the density of $f$, for which
+$0 \leq \density(f) \leq 1$, 
+is the fraction of assignments for which $f$
 evaluates to 1, with $\density(\zero) = 0$ and $\density(\one) = 1$.  The density of a function
 $f$ can be scaled by $2^n$ to compute the total number of models
 $|\interpset{f}|$.  This is the core task of model counting.  Using
@@ -161,9 +163,10 @@ density as the metric, rather than the number of models, has the advantage that 
 function is embedded in a larger domain $X' \supseteq X$.  
 
 {\bf Example 2}: Let $\ring$ be the set of rational numbers.  Assign a
-{\em weight} $w_i$ for each variable $x_i$ such that $0 \leq w_i \leq
-1$ and let $\cost(x_i) = w_i$.  This can support a restricted version of
-{\em weighted} model counting.  The key restrictions are: 1) the
+{\em weight} $w_i$ to each variable $x_i$ such that $0 \leq w_i \leq
+1$ and let $\cost(x_i) = w_i$.  This implements {\em weighted model counting}
+under the restrictions that: 
+1) the
 weight of an assignment equals the product of the weights of its
 literals, and 2) the weight of a variable $x_i$ and its complement
 $\obar{x}_i$ sum to 1.
@@ -184,47 +187,47 @@ some cases, to compute the cost of a Boolean formula without
 enumerating all of its satisfying solutions.
 
 
-\begin{lemma}[Complementation]
-\label{lemma:complementation}
+\begin{proposition}[Complementation]
+\label{prop:complementation}
   For separable cost function $\cost$ and Boolean function $f$:
-  $\cost(\neg f) = \oneminus \cost(f)$.
-\end{lemma}
+  $\cost(\neg f) = 1 - \cost(f) = \oneminus \cost(f)$.
+\end{proposition}
 
-\begin{lemma}[Variable-Partitioned Conjunction]
-\label{lemma:conjunction}
+\begin{proposition}[Variable-Partitioned Conjunction]
+\label{prop:conjunction}
   For separable cost function $\cost$ and Boolean functions $f_1$ and $f_2$ such that $\depend(f_1) \cap \depend(f_2) = \emptyset$:
     $\cost(f_1 \land f_2) = \cost(f_1) \cdot \cost(f_2)$.
-\end{lemma}
+\end{proposition}
 We use the notation $f_1 \pand f_2$ to denote the conjunction of $f_1$ and
 $f_2$ under the condition that $f_1$ and $f_2$ are defined over
 disjoint sets of variables.
 
-\begin{lemma}[Assignment-Partitioned Disjunction]
-\label{lemma:disjunction}
+\begin{proposition}[Assignment-Partitioned Disjunction]
+\label{prop:disjunction}
   For separable cost function $\cost$ and Boolean functions $f_1$ and $f_2$ such that $\interpset{f_1} \cap \interpset{f_2} = \emptyset$:
     $\cost(f_1 \lor f_2) = \cost(f_1) + \cost(f_2)$.
-\end{lemma}
+\end{proposition}
 We use the notation $f_1 \por f_2$ to denote the disjunction of $f_1$ and $f_2$ under the
 condition that $f_1$ and $f_2$ hold for mutually exclusive assignments.
 
-We will also find it useful to introduce a restricted version of the
-if-then-else operator, denoted $\pite$.  That is, for functions $f_i$,
-$f_t$, and $f_e$, we define $\pite(f_i, f_t, f_e) = (f_i \pand f_t)
-\por (\neg f_i \pand f_e)$.  The two arguments to the disjunction are
-guaranteed to satisfy the constraints for an assignment-partitioned
-disjunction, since first argument can only be satisfied by assignments
-for which $f_i$ evaluates to $\tautology$, while the second can only
-be satisfied by assignments for which $f_i$ evaluates to $\nil$.  The
+We also find it useful to introduce a restricted version of the
+if-then-else operator, denoted $\pite$.  For functions $f_1$,
+$f_2$, and $f_3$, we define $\pite(f_1, f_2, f_3) = (f_1 \pand f_2)
+\por (\neg f_1 \pand f_3)$.  The two arguments to the disjunction are
+guaranteed to satisfy the requirements for an assignment-partitioned
+disjunction, since the first argument can only be satisfied by assignments
+for which $f_1$ evaluates to $\tautology$, while the second can only
+be satisfied by assignments for which $f_1$ evaluates to $\nil$.  The
 only restriction of the $\pite$ operator is that
-$\depend(f_i) \cap \depend(f_t) = \emptyset$ and
-$\depend(f_i) \cap \depend(f_e) = \emptyset$.
+$\depend(f_1) \cap \depend(f_2) = \emptyset$ and
+$\depend(f_1) \cap \depend(f_3) = \emptyset$.
 
 \section{Separable Schemas}
 
 \begin{table}
   \caption{Recursive Definition of Separable Schemas}
   \label{tab:schema}
-A) Primitive Operations\\
+A) Basic Operations\\
 \begin{center}
 \begin{tabular}{cccc}
 \toprule
@@ -239,7 +242,7 @@ $S_1 \por S_2$  & $\interpset{S_1} \cap \interpset{S_2} = \emptyset$ &  $\depend
 \bottomrule
 \end{tabular}
 \end{center}
-B) Derived Operations\\
+B) Composite Operations\\
 \begin{center}
 \begin{tabular}{cc}
 \toprule
@@ -254,12 +257,13 @@ B) Derived Operations\\
 A {\em separable schema} is a directed acyclic graph representing a
 Boolean formula where the only allowed operations are $\neg$, $\pand$,
 $\por$ and $\pite$.  We use a graph representation to allow sharing of
-subformulas.  The set of schemas over a set of variables $\{x_1, x_2,
-\ldots, x_n\}$ can be defined recursively, as is shown in Table
+subformulas.  The set of schemas over a set of variables
+$\{x_1, x_2, \ldots, x_n\}$
+can be defined recursively, as is shown in Table
 \ref{tab:schema}.  Each schema $S$ has an associated dependency set
 $\depend(S)$ and an associated set of models $\interpset{S}$.  We
 divide the operations into {\em basic} ones that are fundamental to
-the representation, and {\em derived} ones that can be constructed
+the representation, and {\em composite} ones that can be constructed
 from basic operations.  The latter category consists of just the $\pite$ operation.
     
 A key property of a Boolean formula represented by separable schema
@@ -295,9 +299,9 @@ operations.
 Table~\ref{tab:normalize} shows a list of {\em normalizing}
 transformations to simplify a separable schema.  These are mostly
 straightforward---eliminating extra negations and removing constant
-terms.  The most interesting are the two bottom rules, were we make
-use of DeMorgan's Laws to simplify an $\pite$ operation when one of
-the arguments is $\tautology$.  We will make use of this
+terms.  The most interesting are the two bottom rules, which
+use DeMorgan's Laws to simplify an $\pite$ operation when one of
+the arguments is $\tautology$ into a $\pand$ operation.  We will make use of this
 transformation when using BDDs to convert a set of clauses into a
 separable schema.
 
@@ -314,7 +318,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
 \begin{itemize}
 \item As with LRAT, a clause can be added as long as either 1) it is
   blocked, or 2) it satisfies the RAT property with respect to a supplied sequence
-  of earlier antecedent clauses.
+  of earlier antecedent clauses.  However, blocked clauses can only be added when defining a schema operation.
 \item  Extension variables can be introduced only according to the operations $\pand$, $\por$, and $\pite$.
 \begin{itemize}
 \item The checker tracks the dependency set for every input and
@@ -330,7 +334,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
 \end{itemize}
 \item A CRAT proof must show that the schema is logically equivalent
   to the input formula, not just that they are equisatisfiable.
-  Therefore, each deletion step must also be show to be equivalence
+  Therefore, each deletion step must also be shown to be equivalence
   preserving, either because the clause is blocked or it follows from
   remaining clauses by the RAT property.
 \item Unlike QRAT, it need not support universal quantification.
@@ -365,22 +369,25 @@ represented by a positive integer $v$, with the first ones being input
 variables and successive ones being extension variables.  Literal $l$
 is represented by a signed integer, with $-v$ being the complement of
 variable $v$.  Each clause is indicated by a positive integer
-identifier $C$, with the first ones being input clauses and successive
-ones being added clauses.  Clause identifiers must be totally ordered,
+identifier $C$, with the first ones being the IDs of the input clauses and successive
+ones being the IDs of added clauses.  Clause identifiers must be totally ordered,
 such that clause $C$ can only reference clauses $C'$ such that $C' <
-C$.  However, clause identifiers need not be consecutive.
+C$.  Clause identifiers need not be consecutive.
 
 The first set of proof rules are similar to those in other clausal
 proofs.  Our syntax optionally allows input clauses to be listed with
-a rule of type {\tt i}.  Clauses can be added via blocked-clause and
-RAT rules.  As described below, however, blocked clauses can only be added
+a rule of type {\tt i}.  Clauses can be added via a blocked-clause addition (command {\tt ab})
+or a RAT addition (command {\tt dr}).
+As described below, however, blocked clauses can only be added
 to define $\pand$, $\por$, and $\pite$ operations.  The hints portion
 of a blocked-clause addition lists all earlier clauses containing the
 negated version of the pivot literal, with the clause IDs negated.
 The hints portion of a RAT addition must contain a sequence of clause
 IDs such that the added clause is RAT with respect to these clauses.
-Clause deletion requires an explicit justification that the deleted
-clauses is RAT with respect to other clauses.
+Similarly, a clause can be deleted if it blocked with respect to one
+of its literals (command {\tt db}), or because it is RAT (command {\tt
+  dr}) The hints portion of a RAT deletion operation must be an
+ordered list of clause IDs justifying the deletion.
 
 The second set of proof rules is unique to the CRAT format.  Each of
 these indicates the addition of an extension variable.  For each case,
@@ -409,15 +416,17 @@ of $l_2$ and $l_3$.
 \subsection{Semantics}
 
 A CRAT proof follows the same general form as a QRAT dual proof---one
-that ensures that each clause addition and each clause deletion preserves
-equivalence.  Starting with the set of input clauses, it produces a
-sequence of steps that both add and delete clauses.  Each addition
-must be truth preserving and each deletion must be falsehood
+that ensures that each clause addition and each clause deletion
+preserves equivalence.  Starting with the set of input clauses, it
+produces a sequence of steps that both add and delete clauses.  Each
+addition must be truth preserving and each deletion must be falsehood
 preserving.  At the end, all input clauses must have been deleted, and
-among the remaining clauses there must be only a single unit clause consisting of some variable or
-its complement.  Except for trivial cases, the final literal will be
-an extension variable or its complement.  That variable will indicate the root node of the schema.
-Working from that root backward, the schema can be extracted from the CRAT file.
+among the remaining clauses there must be only a single unit clause
+consisting of some variable or its complement.  Except for trivial
+cases, the final literal will be an extension variable or its
+complement.  That literal will indicate the root of the schema as the
+(possibly negated) outpuf of a schema operation.  Working from that
+root backward, the schema can be extracted from the CRAT file.
 
 \subsection{Example 1}
 
@@ -466,15 +475,16 @@ Working from that root backward, the schema can be extracted from the CRAT file.
   \label{fig:c3:crat}
 \end{figure}
     
-As an illustration, consider the Boolean formula $x_1 \lor x_2 \lor
-x_3$, represented by a single clause.  We cannot directly use the
+As an illustration, consider the Boolean formula
+$\phi_1 = x_1 \lor x_2 \lor x_3$,
+represented by a single clause.  We cannot directly use the
 $\por$ operation to form these disjunctions, since the sets of assignments
 satisfying the individual literals are not disjoint.  Instead, we must
-decompose this formula into a sequence of operations.  Figure~\ref{fig:c3:schema}A shows one such decomposition.
-Circles in this schema
-correspond to $\pand$ operations and squares to $\por$ operations.
+decompose this formula into a sequence of operations.
+Figure~\ref{fig:c3:schema}A shows one such decomposition.
 The subscripts of the variables and the operator labels correspond to
 the numbers of the input and extension variables in the CRAT proof.
+Edges marked with dots indicate Boolean negation.
 
 The conjunction of $\obar{x}_2$ and $x_3$ can be computed as $p_4 =
 \obar{x}_2 \pand x_3$, since the literals have disjoint dependency
@@ -483,24 +493,29 @@ as $s_5 = x_2 \por p_4$.  A similar process forms the
 disjunction $x_1 \lor x_2 \lor x_3$ by first forming the product $p_6
 = \obar{x}_1 \pand s_5$ and the final sum $s_7 = x_1 \por p_6$.
 
-The logical representation can readily be converted into a schema for
-computing the cost of the formula, given weight $w_i$ for each
-variable $x_i$ for $1 \leq i \leq 3$.  This is illustrated in
-Figure~\ref{fig:c3:schema}B\@.  This schema is valid for any cost
-function, since it contains no abstraction operations.
+The logical representation can readily be converted into a formula for
+computing $\cost(\phi_1)$, the cost of formula $\phi_1$, given a weight
+$w_i$ for each variable $x_i$ for $1 \leq i \leq 3$.  This is
+illustrated in Figure~\ref{fig:c3:schema}B\@.  Note how the Boolean
+negations become $\oneminus$ operations.  This formula is valid for
+any cost function.
 
 Figure~\ref{fig:c3:crat} shows an annotated version of the CRAT proof
-for this example.  Clause \#1 corresponds to the input formula, and
+for this example.  Clause \#1
+is the input clause, and
 clauses \#2--\#13 are the defining clauses for the four operations.
 Each of the two sum operations lists one of the earlier defining
 clauses as a proof that its arguments are mutually exclusive.
-Clause \#14 adds the unit clause corresponding to sum $s_7$,
-indicating that the extension variable variable will evaluate to
-$\tautology$  for any assigment that satisfies the input clause.  We
-can write this as $C \turnstile s_7$ for input clause $C$.  The
-deletion step at the end turns this around, showing that $s_7
-\turnstile C_I$, and therefore the input clause can be deleted, This
-completes a proof that extension variable $s_7$ is logically
+Proof clause \#14 adds the unit clause for the extension variable $s_7$.
+We refer to the literal representing formula $\phi_1$ as $t_1$,
+and we therefore have $t_1 = s_7$.
+The unit clause indicates that extension variable $s_7$ will evaluate to
+$\tautology$  for any assigment that satisfies the formula.  We
+can write this as $\phi_1 \turnstile t_1$.  The
+deletion step at the end turns this around, showing that
+$t_1 \turnstile \phi_1$,
+and therefore the input clause can be deleted, This
+completes a proof that $t_1$ is logically
 equivalent to the input formula.
 
 \subsection{Example 2}
@@ -517,7 +532,7 @@ equivalent to the input formula.
     \end{minipage}
   }
 \caption{Schema for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
-\label{fig:c3:schema}
+\label{fig:p2:schema}
 \end{figure}
 
 
@@ -561,7 +576,7 @@ equivalent to the input formula.
 As a more complex example, consider the Boolean formula given by the
 conjunction of clauses $C_1 = x_1 \lor x_2 \lor x_3$ and $C_2 =
 \obar{x}_1 \lor x_2$.  With this example, we also demonstrate the use
-of DeMorgan's Laws to provide a more direct encoding of the problem.
+of DeMorgan's Laws to provide a more compact encoding of the formula.
 The complement of the formula can be written in DNF as
 $\obar{x}_1\,\obar{x}_2\,\obar{x}_3 \lor x_1\,\obar{x}_2$.  Each of
 the two conjuncts can be formed using $\pand$ operations, and their
@@ -585,30 +600,16 @@ Given an arbitrary CNF formula, we can use BDD operations to generate
 a schematic representation.  The proof generation can follow the
 methods we have used for generating unsatisfiability proofs of Boolean
 formulas~\cite{bryant:tacas:2021} and dual proofs of quantified
-Boolean formulas~\cite{bryant:cade:2021}.  The key idea 
-is to use extended resolution to encode the semantics of the BDD
-nodes as part of the proof.  Here we can further decompose each $\ite$
-(short for ``if-then-else'') operation representing a BDD node into
-two $\pand$ and one $\por$ operation.  That is, we can encode
-$\ite(x,A,B)$ as $(x \pand A) \por (\obar{x} \pand B)$, where $x$ is an
-input variable and $A$ and $B$ are subformulas.  The sum operation trivially satisfies the disjoint assignment requirement, since $x$ has positive polarity in the first product and negative polarity in the second.
-We must also
-make sure that $x$ is not in the dependency set of either $A$ or $B$.
-For ordered BDDs,~\cite{Bryant:1986} this property holds, because the
-variables in $A$ and $B$ will be greater in the variable ordering than
-$x$.
-
-The BDD representations of many of the formulas occuring in
-model-counting problems are far to large for this approach to be
-practical.  One refinement of the approach, implemented by the ADDMC
-model counter, is to abstract subformulas, keeping track only of the
-number of models they can have and representing a number of subformulas
-with a single ADD leaf node.  Our abstraction operation is intended to
-support this capability.  We can
-introduce a new variable to represent the cost function for some
-subformula.  If subsequent formulas are guaranteed to yield the same
-cost, then these can alias to the earlier variable.  However, it is
-not clear how to prove that this aliasing preserves equivalence.
+Boolean formulas~\cite{bryant:cade:2021}.  The key idea is to use
+extended resolution to encode the semantics of the BDD nodes as part
+of the proof.  Each BDD node defines an ITE operation.  As the
+transformations of Table~\ref{tab:normalize} indicate, each of these
+will be represented in the proof by a literal, an $\pand$ operation,
+or an $\pite$ operation.  The ITE operation for a node has an input
+variable $x_i$ as its first argument.  In an ordered BDD, the
+dependency sets of the two children will include only variables
+greater than $x_i$ in the ordering.  Therefore, these operations will
+satisfy the partitioned-variable requirements of the  $\pand$ and $\pite$ operations.
 
 Other model counters use either top-down and bottom-up methods to
 generate representations of the formula that are similar to our
@@ -622,9 +623,12 @@ proofs.
 \item Proof Framework
   \begin{itemize}
   \item Generalities and details of the format
-  \item What should be the final state?
-  \item When can blocked clauses be deleted?
-  \item How can abstraction be incorporated?
+  \item Can some form of abstraction be incorporated?
+    \begin{itemize}
+    \item Want to abstract a subformula to consider only on its cost and dependency set
+    \item Could represent with fresh extension variable
+    \item But how to prove logical equivalence?
+    \end{itemize}
   \end{itemize}
 
 \item Checker
@@ -642,13 +646,14 @@ proofs.
   \item C/C++
   \end{itemize}
 
-\item CDCL-based
+  \item SDD-based
   \begin{itemize}
-  \item Prototype
-  \item C/C++
+  \item Bottom-up
+  \item Top-down
   \end{itemize}
-\end{itemize}
 
+\item Others?
+\end{itemize}
 \end{itemize}
 
 
