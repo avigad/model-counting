@@ -168,7 +168,7 @@ function is embedded in a larger domain $X' \supseteq X$.
 under the restrictions that: 
 1) the
 weight of an assignment equals the product of the weights of its
-literals, and 2) the weight of a variable $x_i$ and its complement
+literals, and 2) the weight of a variable $x_i$ and its negation
 $\obar{x}_i$ sum to 1.
 
 
@@ -187,8 +187,8 @@ some cases, to compute the cost of a Boolean formula without
 enumerating all of its satisfying solutions.
 
 
-\begin{proposition}[Complementation]
-\label{prop:complementation}
+\begin{proposition}[Negation]
+\label{prop:negation}
   For separable cost function $\cost$ and Boolean function $f$:
   $\cost(\neg f) = 1 - \cost(f) = \oneminus \cost(f)$.
 \end{proposition}
@@ -210,24 +210,25 @@ disjoint sets of variables.
 We use the notation $f_1 \por f_2$ to denote the disjunction of $f_1$ and $f_2$ under the
 condition that $f_1$ and $f_2$ hold for mutually exclusive assignments.
 
-We also find it useful to introduce a restricted version of the
-if-then-else operator, denoted $\pite$.  For functions $f_1$,
-$f_2$, and $f_3$, we define $\pite(f_1, f_2, f_3) = (f_1 \pand f_2)
-\por (\neg f_1 \pand f_3)$.  The two arguments to the disjunction are
-guaranteed to satisfy the requirements for an assignment-partitioned
-disjunction, since the first argument can only be satisfied by assignments
-for which $f_1$ evaluates to $\tautology$, while the second can only
-be satisfied by assignments for which $f_1$ evaluates to $\nil$.  The
-only restriction of the $\pite$ operator is that
-$\depend(f_1) \cap \depend(f_2) = \emptyset$ and
-$\depend(f_1) \cap \depend(f_3) = \emptyset$.
+
+%% We also find it useful to introduce a restricted version of the
+%% if-then-else operator, denoted $\pite$.  For functions $f_1$,
+%% $f_2$, and $f_3$, we define $\pite(f_1, f_2, f_3) = (f_1 \pand f_2)
+%% \por (\neg f_1 \pand f_3)$.  The two arguments to the disjunction are
+%% guaranteed to satisfy the requirements for an assignment-partitioned
+%% disjunction, since the first argument can only be satisfied by assignments
+%% for which $f_1$ evaluates to $\tautology$, while the second can only
+%% be satisfied by assignments for which $f_1$ evaluates to $\nil$.  The
+%% only restriction of the $\pite$ operator is that
+%% $\depend(f_1) \cap \depend(f_2) = \emptyset$ and
+%% $\depend(f_1) \cap \depend(f_3) = \emptyset$.
 
 \section{Separable Schemas}
 
 \begin{table}
   \caption{Recursive Definition of Separable Schemas}
   \label{tab:schema}
-A) Basic Operations\\
+%%A) Basic Operations\\
 \begin{center}
 \begin{tabular}{cccc}
 \toprule
@@ -242,29 +243,32 @@ $S_1 \por S_2$  & $\interpset{S_1} \cap \interpset{S_2} = \emptyset$ &  $\depend
 \bottomrule
 \end{tabular}
 \end{center}
-B) Composite Operations\\
-\begin{center}
-\begin{tabular}{cc}
-\toprule
-  $S$           & Definition \\
-\midrule
-\makebox[30mm]{$\pite(S_1, S_2, S_3)$} & \makebox[40mm]{$[S_1 \pand S_2] \por [\neg S_1 \pand S_2]$}\\
-\bottomrule
-\end{tabular}
-\end{center}
+%% B) Composite Operations\\
+%% \begin{center}
+%% \begin{tabular}{cc}
+%% \toprule
+%%   $S$           & Definition \\
+%% \midrule
+%% \makebox[30mm]{$\pite(S_1, S_2, S_3)$} & \makebox[40mm]{$[S_1 \pand S_2] \por [\neg S_1 \pand S_2]$}\\
+%% \bottomrule
+%% \end{tabular}
+%% \end{center}
 \end{table}
 
 A {\em separable schema} is a directed acyclic graph representing a
 Boolean formula where the only allowed operations are $\neg$, $\pand$,
-$\por$ and $\pite$.  We use a graph representation to allow sharing of
+$\por$.
+%% and $\pite$.
+We use a graph representation to allow sharing of
 subformulas.  The set of schemas over a set of variables
 $\{x_1, x_2, \ldots, x_n\}$
 can be defined recursively, as is shown in Table
 \ref{tab:schema}.  Each schema $S$ has an associated dependency set
-$\depend(S)$ and an associated set of models $\interpset{S}$.  We
-divide the operations into {\em basic} ones that are fundamental to
-the representation, and {\em composite} ones that can be constructed
-from basic operations.  The latter category consists of just the $\pite$ operation.
+$\depend(S)$ and an associated set of models $\interpset{S}$.
+%% We
+%% divide the operations into {\em basic} ones that are fundamental to
+%% the representation, and {\em composite} ones that can be constructed
+%% from basic operations.  The latter category consists of just the $\pite$ operation.
     
 A key property of a Boolean formula represented by separable schema
 $S$ is that, for any separable cost function $\cost$, the cost of the
@@ -283,34 +287,37 @@ operations.
     $S \pand \tautology$ & $\rightarrow$ & $S$ && $\tautology \pand S$ & $\rightarrow$ & $S$ \\
     $S \por \nil$ & $\rightarrow$ & $S$ && $\nil \por S$ & $\rightarrow$ & $S$ \\
     $S \por \tautology$ & $\rightarrow$ & $\tautology$ && $\tautology \por S$ & $\rightarrow$ & $\tautology$ \\
-    $\pite(\neg S_1, S_2, S_3)$ & $\rightarrow$ & $\pite(S_1, S_3, S_2)$ \\
-    $\pite(\tautology, S_2, S_3)$ & $\rightarrow$ & $S_2$ & &
-    $\pite(\nil, S_2, S_3)$ & $\rightarrow$ & $S_3$ \\
-    $\pite(S_1, \tautology, \nil)$ & $\rightarrow$ & $S_1$ &&
-    $\pite(S_1, \nil, \tautology)$ & $\rightarrow$ & $\neg S_1$ \\
-    $\pite(S_1, S_2, \nil)$ & $\rightarrow$ & $S_1 \pand S_2$ & &
-    $\pite(S_1, \nil, S_3)$ & $\rightarrow$ & $\neg S_1 \pand S_3$ \\
-    $\pite(S_1, S_2, \tautology)$ & $\rightarrow$ & $\neg [S_1 \pand \neg S_2]$ & &
-    $\pite(S_1, \tautology, S_3)$ & $\rightarrow$ & $\neg [\neg S_1 \pand \neg S_3]$ \\
+%%     $\pite(\neg S_1, S_2, S_3)$ & $\rightarrow$ & $\pite(S_1, S_3, S_2)$ \\
+%%     $\pite(\tautology, S_2, S_3)$ & $\rightarrow$ & $S_2$ & &
+%%     $\pite(\nil, S_2, S_3)$ & $\rightarrow$ & $S_3$ \\
+%%     $\pite(S_1, \tautology, \nil)$ & $\rightarrow$ & $S_1$ &&
+%%     $\pite(S_1, \nil, \tautology)$ & $\rightarrow$ & $\neg S_1$ \\
+%%     $\pite(S_1, S_2, \nil)$ & $\rightarrow$ & $S_1 \pand S_2$ & &
+%%     $\pite(S_1, \nil, S_3)$ & $\rightarrow$ & $\neg S_1 \pand S_3$ \\
+%%     $\pite(S_1, S_2, \tautology)$ & $\rightarrow$ & $\neg [S_1 \pand \neg S_2]$ & &
+%%     $\pite(S_1, \tautology, S_3)$ & $\rightarrow$ & $\neg [\neg S_1 \pand \neg S_3]$ \\
   \end{tabular}
   \end{center}
 \end{table}
 
 Table~\ref{tab:normalize} shows a list of {\em normalizing}
-transformations to simplify a separable schema.  These are mostly
-straightforward---eliminating extra negations and removing constant
-terms.  The most interesting are the two bottom rules, which
-use DeMorgan's Laws to simplify an $\pite$ operation when one of
-the arguments is $\tautology$ into a $\pand$ operation.  We will make use of this
-transformation when using BDDs to convert a set of clauses into a
-separable schema.
+transformations to simplify a separable schema.  These 
+eliminate extra negations and remove constant
+terms, such that constants only occur in schemas when representing constant functions $\zero$ and $\one$.
+%% The most interesting are the two bottom rules, which
+%% use DeMorgan's Laws to simplify an $\pite$ operation when one of
+%% the arguments is $\tautology$ into a $\pand$ operation.  We will make use of this
+%% transformation when using BDDs to convert a set of clauses into a
+%% separable schema.
 
 \section{Proof Framework for Cost Functions}
 
 The CRAT clausal proof framework provides a means for creating a
 checkable proof that a Boolean formula, given in conjunctive normal
-form, is logically equivalent to some separable schema.  This provides
-a framework for adding proof generation to model counting programs.
+form, is logically equivalent to a separable schema.  Once this
+equivalence has been established, the schema can form the basis
+for computations enabled by the
+this representation, including trusted model counting 
 
 The CRAT format draws its inspiration from the LRAT format for Boolean formulas and the
 QRAT format for
@@ -357,7 +364,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
     \midrule
         & {\tt p} & $V \; L \; L$    &                  & Declare $\pand$ operation \\
         & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation \\ 
-        & {\tt ite} & $V \; L \; L\; L$    &                  & Declare $\pite$ operation \\
+%%        & {\tt ite} & $V \; L \; L\; L$    &                  & Declare $\pite$ operation \\
   \end{tabular}
   }
 \end{table}
@@ -377,9 +384,11 @@ C$.  Clause identifiers need not be consecutive.
 The first set of proof rules are similar to those in other clausal
 proofs.  Our syntax optionally allows input clauses to be listed with
 a rule of type {\tt i}.  Clauses can be added via a blocked-clause addition (command {\tt ab})
-or a RAT addition (command {\tt dr}).
+or a RAT addition (command {\tt ar}).
 As described below, however, blocked clauses can only be added
-to define $\pand$, $\por$, and $\pite$ operations.  The hints portion
+to define $\pand$ and $\por$
+%%, and $\pite$
+operations.  The hints portion
 of a blocked-clause addition lists all earlier clauses containing the
 negated version of the pivot literal, with the clause IDs negated.
 The hints portion of a RAT addition must contain a sequence of clause
@@ -405,17 +414,16 @@ additions must encode the formula $v \leftrightarrow (l_1 \lor l_2)$.
 The rule also contains a sequence of clause IDs such that the clause
 $\obar{l}_1 \lor \obar{l}_2$ is RAT with respect to the sequence.
 
-An if-then-else rule of the form ${\tt ite}\;v\;l_1\;l_2\;l_3$
-indicates that $v$ will represent $\pite(l_1, l_2, l_3)$.  The blocked
-clause additions must encode the formula
-$v \leftrightarrow \ite((l_1,l_2, l_3)$.
-The dependency set for $l_1$ must be disjoint from those
-of $l_2$ and $l_3$.
-
+%% An if-then-else rule of the form ${\tt ite}\;v\;l_1\;l_2\;l_3$
+%% indicates that $v$ will represent $\pite(l_1, l_2, l_3)$.  The blocked
+%% clause additions must encode the formula
+%% $v \leftrightarrow \ite((l_1,l_2, l_3)$.
+%% The dependency set for $l_1$ must be disjoint from those
+%% of $l_2$ and $l_3$.
 
 \subsection{Semantics}
 
-A CRAT proof follows the same general form as a QRAT dual proof---one
+A CRAT proof follows the same general form as a QRAT dual proof~\cite{bryant:cade:2021}---one
 that ensures that each clause addition and each clause deletion
 preserves equivalence.  Starting with the set of input clauses, it
 produces a sequence of steps that both add and delete clauses.  Each
@@ -577,19 +585,21 @@ As a more complex example, consider the Boolean formula given by the
 conjunction of clauses $C_1 = x_1 \lor x_2 \lor x_3$ and $C_2 =
 \obar{x}_1 \lor x_2$.  With this example, we also demonstrate the use
 of DeMorgan's Laws to provide a more compact encoding of the formula.
+
 The complement of the formula can be written in DNF as
 $\obar{x}_1\,\obar{x}_2\,\obar{x}_3 \lor x_1\,\obar{x}_2$.  Each of
 the two conjuncts can be formed using $\pand$ operations, and their
 sum can be formed using a $\por$ operation.  In this example, we first
 form a term $t_1$ that equals $C_1$ and a term $t_2$ that equals
-$C_2$.  These are asserted as unit clauses in proof lines 9 and 13,
+$C_2$.  (Note that $t_1$ in this case is logically equivalent to $t_1$
+in the example of Figure~\ref{fig:c3:schema}, but the use of
+negation enables it to be represented with two operations
+rather than four.)
+Terms $t_1$ and $t_2$ are asserted as unit clauses in proof lines 9 and 13,
 allowing the input clauses to be deleted.  Then we generate $t_3$ as
 the conjunction of $t_1$ and $t_2$ and assert it as a unit clause.
 Based on this, we can delete the unit clauses for terms $t_1$ and
-$t_2$.  Term $t_3$ then becomes the root of the schematic representation.
-
-
-
+$t_2$.  Term $t_3$ then becomes the root of the schematic representation shown in Figure~\ref{fig:p2:schema}.
 
 
 \section{Looking Ahead}
@@ -602,18 +612,14 @@ methods we have used for generating unsatisfiability proofs of Boolean
 formulas~\cite{bryant:tacas:2021} and dual proofs of quantified
 Boolean formulas~\cite{bryant:cade:2021}.  The key idea is to use
 extended resolution to encode the semantics of the BDD nodes as part
-of the proof.  Each BDD node defines an ITE operation.  As the
-transformations of Table~\ref{tab:normalize} indicate, each of these
-will be represented in the proof by a literal, an $\pand$ operation,
-or an $\pite$ operation.  The ITE operation for a node has an input
-variable $x_i$ as its first argument.  In an ordered BDD, the
-dependency sets of the two children will include only variables
-greater than $x_i$ in the ordering.  Therefore, these operations will
-satisfy the partitioned-variable requirements of the  $\pand$ and $\pite$ operations.
+of the proof.  Depending on which, if any, of its children are
+terminal nodes, a BDD node will be represented in the schema as either
+1) a literal, 2) a single $\pand$ operation, or 3) two $\pand$
+operations and one $\por$ operation.
 
 Other model counters use either top-down and bottom-up methods to
 generate representations of the formula that are similar to our
-schmas.  These exploit the key abstractions we have identified.  We
+schemas.  These exploit the key abstractions we have identified.  We
 must find ways to modify these model counters to also generate CRAT
 proofs.
 
