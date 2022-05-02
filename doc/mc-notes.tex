@@ -211,6 +211,8 @@ We use the notation $f_1 \por f_2$ to denote the disjunction of $f_1$ and $f_2$ 
 condition that $f_1$ and $f_2$ hold for mutually exclusive assignments.
 
 
+
+
 %% We also find it useful to introduce a restricted version of the
 %% if-then-else operator, denoted $\pite$.  For functions $f_1$,
 %% $f_2$, and $f_3$, we define $\pite(f_1, f_2, f_3) = (f_1 \pand f_2)
@@ -224,6 +226,15 @@ condition that $f_1$ and $f_2$ hold for mutually exclusive assignments.
 %% $\depend(f_1) \cap \depend(f_3) = \emptyset$.
 
 \section{Separable Schemas}
+
+Computing the cost function for a Boolean formula becomes
+straightforward when the formula contains only the operations
+$\pand$, $\por$, and $\neg$, as is demonstrated by
+Propositions~\ref{prop:negation}--\ref{prop:disjunction}.  We define {\em separable schemas}
+as a direct-acyclic graph representation of such formulas.
+Representing formulas as a graph enables sharing subformulas, yielding a more compact representation.
+
+\subsection{Schema Definition}
 
 \begin{table}
   \caption{Recursive Definition of Separable Schemas}
@@ -255,12 +266,7 @@ $S_1 \por S_2$  & $\interpset{S_1} \cap \interpset{S_2} = \emptyset$ &  $\depend
 %% \end{center}
 \end{table}
 
-A {\em separable schema} is a directed acyclic graph representing a
-Boolean formula where the only allowed operations are $\neg$, $\pand$,
-$\por$.
-%% and $\pite$.
-We use a graph representation to allow sharing of
-subformulas.  The set of schemas over a set of variables
+The set of schemas over a set of variables
 $\{x_1, x_2, \ldots, x_n\}$
 can be defined recursively, as is shown in Table
 \ref{tab:schema}.  Each schema $S$ has an associated dependency set
@@ -274,6 +280,8 @@ A key property of a Boolean formula represented by separable schema
 $S$ is that, for any separable cost function $\cost$, the cost of the
 formula $\cost(S)$ can be computed with a linear number of ring
 operations.
+
+\subsection{Schema Normalization}
 
 \begin{table}
   \caption{Normalization Rules}
@@ -309,6 +317,56 @@ terms, such that constants only occur in schemas when representing constant func
 %% the arguments is $\tautology$ into a $\pand$ operation.  We will make use of this
 %% transformation when using BDDs to convert a set of clauses into a
 %% separable schema.
+
+\subsection{Encoding the ITE Operation}
+\label{sec:ite}
+
+
+The if-then-else (ITE) operation arises when converting the CNF
+representation of a formula into a separable schema, both for
+bottom-up approaches based on decision diagrams, and for top-down
+approaches based on CDCL\@.  For functions $f_1$, $f_2$, and $f_3$, we
+define
+$\ite(f_1, f_2, f_3) = (f_1 \land f_2) \lor (\neg f_1 \land f_3)$.
+Observe that the $\lor$ operation in this expression satisfies
+the requirements for $\por$, since the first argument can only yield
+$\tautology$ for assignments that yield $\tautology$ for $f_1$, while
+the second can only yield $\tautology$ for assignments that yield
+$\nil$ for $f_1$.  Therefore, the only condition imposed on an
+expansion of $\ite$ into the allowed schema operations is that the
+dependency set for $f_1$ must be disjoint from those of $f_2$ and
+$f_3$.
+
+\begin{table}
+  \caption{Encodings of the ITE Operation}
+  \label{tab:ite}
+  \begin{center}
+  \begin{tabular}{ccc}
+    ITE Form & & Encoding \\
+    \midrule
+     $\ite(S_1, S_2, S_3)$ & $$ & $(S_1 \pand S_2) \por (\neg S_1 \land S_3)$ \\
+     $\ite(\tautology, S_2, S_3)$ & $$ & $S_2$ \\
+     $\ite(\nil, S_2, S_3)$ & $$ & $S_3$ \\
+     $\ite(S_1, \tautology, \nil)$ & $$ & $S_1$ \\
+     $\ite(S_1, \nil, \tautology)$ & $$ & $\neg S_1$ \\
+     $\ite(S_1, S_2, \nil)$ & $$ & $S_1 \pand S_2$ \\
+     $\ite(S_1, \nil, S_3)$ & $$ & $\neg S_1 \pand S_3$ \\
+     $\ite(S_1, S_2, \tautology)$ & $$ & $\neg (S_1 \pand \neg S_2)$ \\
+     $\ite(S_1, \tautology, S_3)$ & $$ & $\neg (\neg S_1 \pand \neg S_3)$ \\
+  \end{tabular}
+  \end{center}
+\end{table}
+
+Table~\ref{tab:ite} shows different ways to encode an ITE operation
+into schema operations.  All of these require the dependency set of
+the argument $S_1$ to be disjoint from those of arguments $S_2$ and
+$S_3$.  The first row shows the most general case, require one $\por$
+and two $\pand$ operations.  The other rows show special cases, where
+one or more argument is a constant.  Of these, the final two rows are
+particularly noteworthy.  They make use of DeMorgan's Laws to convert
+disjunctions into conjunctions.  These conjunctions can then be
+encoded with $\pand$ operations, since their arguments will have
+disjoint dependency sets.
 
 \section{Proof Framework for Cost Functions}
 
@@ -433,7 +491,7 @@ among the remaining clauses there must be only a single unit clause
 consisting of some variable or its complement.  Except for trivial
 cases, the final literal will be an extension variable or its
 complement.  That literal will indicate the root of the schema as the
-(possibly negated) outpuf of a schema operation.  Working from that
+(possibly negated) output of a schema operation.  Working from that
 root backward, the schema can be extracted from the CRAT file.
 
 \subsection{Example 1}
@@ -449,7 +507,7 @@ root backward, the schema can be extracted from the CRAT file.
     \centering{\input{dd/c3-eval}}
     \end{minipage}
   }
-\caption{Schema for Formula $\phi_1 = x_1 \lor x_2 \lor x_3$ and its Cost Computation}
+\caption{Schema \#1 for Formula $\phi_1 = x_1 \lor x_2 \lor x_3$ and its Cost Computation}
 \label{fig:c3:schema}
 \end{figure}
 
@@ -479,7 +537,7 @@ root backward, the schema can be extracted from the CRAT file.
              & {\tt dr}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
   \end{tabular}
   }
-  \caption{CRAT Proof Steps for Formula $x_1 \lor x_2 \lor x_3$}
+  \caption{CRAT Proof \#1 for Formula $x_1 \lor x_2 \lor x_3$}
   \label{fig:c3:crat}
 \end{figure}
     
@@ -526,21 +584,21 @@ and therefore the input clause can be deleted, This
 completes a proof that $t_1$ is logically
 equivalent to the input formula.
 
-\subsection{Example 2}
+\subsection{Example 2A}
 
 \begin{figure}
   \centering{
     \begin{minipage}{0.4\textwidth}
       A) Schema   \\[2ex]
-    \centering{\input{dd/p2}}
+    \centering{\input{dd/p2-bdd}}
     \end{minipage}
     \begin{minipage}{0.4\textwidth}
     B) Cost Computation\\[2ex]
-    \centering{\input{dd/p2-eval}}
+    \centering{\input{dd/p2-bdd-eval}}
     \end{minipage}
   }
-\caption{Schema for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
-\label{fig:p2:schema}
+  \caption{Schema \#2A for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
+\label{fig:p2-bdd:schema}
 \end{figure}
 
 
@@ -570,36 +628,140 @@ equivalent to the input formula.
             & {\tt dr}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
             & {\tt s}   & {\tt 7 5 6}   & {\tt 7 11 0}  & & Declare $s_7 = \obar{t}_1 \por \obar{t}_2$ \\
     {\tt 14} & {\tt ab}  & {\tt -7 5 6 0}  & {\tt 0}    & & Defining clauses for $s_7$ \\ 
-    {\tt 15} & {\tt ab}  & {\tt  7 -5 0}    & {\tt -5 0} &  \\  
-    {\tt 16} & {\tt ab}  & {\tt  7 -6 0}    & {\tt -5 0} & &  \\
+    {\tt 15} & {\tt ab}  & {\tt  7 -5 0}    & {\tt -14 0} &  \\  
+    {\tt 16} & {\tt ab}  & {\tt  7 -6 0}    & {\tt -14 0} & &  \\
     {\tt 17} & {\tt ar}  & {\tt -7 0}       & {\tt 9 13 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
              & {\tt dr}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
              & {\tt dr}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
   \end{tabular}
 }  
-  \caption{CRAT Proof Steps for Formula $\phi = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$}
-  \label{fig:p2:crat}
+  \caption{CRAT Proof \#2A for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$}
+  \label{fig:p2-bdd:crat}
 \end{figure}
 
-As a more complex example, consider the Boolean formula given by the
-conjunction of clauses $C_1 = x_1 \lor x_2 \lor x_3$ and $C_2 =
+As a more complex example, consider the Boolean formula $\phi_2$ given
+by the conjunction of clauses $C_1 = x_1 \lor x_2 \lor x_3$ and $C_2 =
 \obar{x}_1 \lor x_2$.  With this example, we also demonstrate the use
-of DeMorgan's Laws to provide a more compact encoding of the formula.
+of DeMorgan's Laws to provide a more compact encoding of the formula,
+similar to the use of these laws when encoding ITE operations in
+Table~\ref{tab:ite}.
 
-The complement of the formula can be written in DNF as
-$\obar{x}_1\,\obar{x}_2\,\obar{x}_3 \lor x_1\,\obar{x}_2$.  Each of
-the two conjuncts can be formed using $\pand$ operations, and their
-sum can be formed using a $\por$ operation.  In this example, we first
-form a term $t_1$ that equals $C_1$ and a term $t_2$ that equals
-$C_2$.  (Note that $t_1$ in this case is logically equivalent to $t_1$
-in the example of Figure~\ref{fig:c3:schema}, but the use of
-negation enables it to be represented with two operations
-rather than four.)
-Terms $t_1$ and $t_2$ are asserted as unit clauses in proof lines 9 and 13,
-allowing the input clauses to be deleted.  Then we generate $t_3$ as
-the conjunction of $t_1$ and $t_2$ and assert it as a unit clause.
-Based on this, we can delete the unit clauses for terms $t_1$ and
-$t_2$.  Term $t_3$ then becomes the root of the schematic representation shown in Figure~\ref{fig:p2:schema}.
+Figure~\ref{fig:p2-bdd:schema} shows a schema representing the formula,
+and Figure~\ref{fig:p2-bdd:crat} shows the associated CRAT proof.  This
+proof was generated via a bottom-up strategy, such as would be created
+using BDDs.  It creates schematic representations of the input
+clauses and then forms their conjunction.  In the proof, unit
+clauses are generated for the representations of the input clauses,
+and then the input clauses are deleted.  These intermediate unit
+clauses are used to justify a unit clause for the final root, and then
+they are deleted.
+
+Using DeMorgan's Laws, $C_1$ can be written as 
+$t_1 = \neg [\obar{x}_1\land \obar{x}_2\land \obar{x}_3]$, and this can be
+expressed using $\pand$ operations $s_4$ and $s_5$, shown in
+Figure~\ref{fig:p2-bdd:schema}A\@.  (Note that $t_1$ in this case is
+logically equivalent to root $t_1$ in the schema of
+Figure~\ref{fig:c3:schema}A, but the use of negation enables it to be
+represented with two operations rather than four.)  Similarly, $C_2$
+can be written as $t_2 = \neg [x_1\land \obar{x}_2]$, and this can be
+represented by $\pand$ operation $p_6$.
+Terms $t_1$ and $t_2$ are asserted as unit clauses on proof lines 9 and 13,
+allowing the input clauses to be deleted.
+The conjunction $t_1 \land t_2$
+can be written as $t_3 = \neg[\obar{t_1} \lor \obar{t_2}]$, represented by $\por$ operation $s_7$.
+Term $t_3$ is asserted as a unit clause on proof line 17.
+Based on this, the unit clauses for terms $t_1$ and
+$t_2$ can be deleted.  Term $t_3$ then becomes the unique root of the cost
+computation shown in Figure~\ref{fig:p2-bdd:schema}B\@.
+
+\subsection{Example 2B}
+
+\begin{figure}
+  \centering{
+    \begin{minipage}{0.4\textwidth}
+      A) Schema   \\[2ex]
+    \centering{\input{dd/p2-cdcl}}
+    \end{minipage}
+    \begin{minipage}{0.4\textwidth}
+    B) Cost Computation\\[2ex]
+    \centering{\input{dd/p2-cdcl-eval}}
+    \end{minipage}
+  }
+\caption{Schema \#2B for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
+\label{fig:p2-cdcl:schema}
+\end{figure}
+
+
+\begin{figure}
+  \centering{
+  \begin{tabular}{llllll}
+    \multicolumn{4}{c}{Proof line} & & \multicolumn{1}{c}{Explanation} \\
+\midrule
+    \makebox[5mm][l]{\tt 1} & \makebox[7mm][l]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[15mm]{}          & \makebox[5mm]{} & \makebox[20mm][l]{Input clause $C_1$}\\
+
+    {\tt 2} & {\tt i}   & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
+            & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
+    {\tt 3} & {\tt ab}  & {\tt 4 2 3 0} & {\tt 0}    & & Defining clauses for $p_4$ \\
+    {\tt 4} & {\tt ab}  & {\tt -4 -2 0} & {\tt -2 0}    & & \\
+    {\tt 5} & {\tt ab}  & {\tt -4 -3 0} & {\tt -2 0}    & & \\
+            & {\tt p}   & {\tt 5 -1 -4}  &             & & Declare $p_5 = \obar{x}_1 \pand \obar{p_4}$ \\
+    {\tt 6} & {\tt ab}  & {\tt 5 1 4 0} & {\tt 0}    & & Defining clauses for $p_5$ \\
+    {\tt 7} & {\tt ab}  & {\tt -5 -1 0} & {\tt -6 0}    & & \\
+    {\tt 8} & {\tt ab}  & {\tt -5 -4 0} & {\tt -6 0}    & & \\
+            & {\tt p}   & {\tt 6 1 2} &              & & Declare $p_6 = x_1 \pand x_2$ \\    
+    {\tt 9} & {\tt ab}  & {\tt 6 -1 -2 0}  & {\tt 0}    & & Defining clauses for $p_6$ \\ 
+    {\tt 10} & {\tt ab}  & {\tt -6 1 0}    & {\tt -9 0} & & \\
+    {\tt 11} & {\tt ab}  & {\tt -6 2 0}    & {\tt -9 0} & & \\ 
+            & {\tt s}   & {\tt 7 5 6}   & {\tt 7 10 0}  & & Declare $s_7 = p_5 \por p_6$ \\
+    {\tt 12} & {\tt ab}  & {\tt -7 5 6 0}  & {\tt 0}    & & Defining clauses for $s_7$ \\ 
+    {\tt 13} & {\tt ab}  & {\tt  7 -5 0}    & {\tt -12 0} & & \\  
+    {\tt 14} & {\tt ab}  & {\tt  7 -6 0}    & {\tt -12 0} & & \\
+
+    {\tt 15} & {\tt ar}  & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p_4}$ \\
+    {\tt 16} & {\tt ar}  & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
+    {\tt 17} & {\tt ar}  & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
+    {\tt 18} & {\tt ar}  & {\tt 7 0}       & {\tt 16 17 0}  & & Justify unit clause $t = s_7$ \\
+             & {\tt dr}  & {\tt 1}         & {\tt 3 8 10 12 18 0} & & Delete $C_1$\\
+             & {\tt dr}  & {\tt 2}         & {\tt 11 7 12 18 0} & & Delete $C_2$\\
+  \end{tabular}
+}  
+  \caption{CRAT Proof \#2B for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$}
+  \label{fig:p2-cdcl:crat}
+\end{figure}
+
+Figure~\ref{fig:p2-cdcl:schema} shows an alternate schema representing
+the same formula $\phi_2$ as in Example~2A, and
+Figure~\ref{fig:p2-cdcl:crat} shows the associated CRAT proof.  This
+proof was generated via a top-down strategy, such as would be created
+using a model counter based on CDCL\@.  It starts by splitting on
+variable $x_1$.  Clause $C_1$ is trivially satisfied when $x_1$ is
+assigned $\tautology$, and clause $C_2$ becomes the clause $C'_2 =
+x_2$.  On the other hand, clause $C_2$ is trivially satisfied when
+$x_1$ is assigned $\nil$, and clause $C_1$ becomes $C'_1 = x_2 \lor
+x_3$.  Clause $C'_1$ can be represented schematically as
+$\neg[\obar{x}_2 \pand \obar{x}_3]$, with this operation labeled $p_4$
+in Figure~\ref{fig:p2-cdcl:schema}A\@.  The splitting on variable
+$x_1$ can be rejoined as $\ite(x_1, x_2, \obar{p_4})$, and this ITE
+operation can be expressed using the product operations $p_5$ and
+$p_6$, joined by the sum operation $t = s_7$.
+
+The two schemas shown in Figures~\ref{fig:p2-bdd:schema}A and
+\ref{fig:p2-cdcl:schema}A have similar structure.  They have very
+different negation patterns, but they are logically equivalent.  Their
+associated cost computations (Figures~\ref{fig:p2-bdd:schema}B and
+\ref{fig:p2-cdcl:schema}B) also yield the same results for arbitrary
+weights $w_1$, $w_2$, and $w_3$.
+
+The CRAT proof for the top-down approach follows a different pattern than does the proof based on a bottom-up construction.
+It does
+not create any intermediate unit clauses.  Instead, it constructs a proof
+that the root $t = s_7$ holds as a unit clause by splitting into the
+two assignments for variable $x_1$.  The proof that
+$\obar{x}_1 \rightarrow s_7$ (proof line 16) builds on the proof that
+$\obar{x}_1 \rightarrow \obar{p}_4$ (proof line 15), which derives from clause $C_1$.
+The proof that $x_1 \rightarrow x_7$ (proof line 17) derives from clause $C_2$.
+These two are combined to yield the unit clause $s_7$ (proof line 18).
+Given this unit clause, the two input clauses can then be deleted.
 
 
 \section{Looking Ahead}
@@ -610,18 +772,24 @@ Given an arbitrary CNF formula, we can use BDD operations to generate
 a schematic representation.  The proof generation can follow the
 methods we have used for generating unsatisfiability proofs of Boolean
 formulas~\cite{bryant:tacas:2021} and dual proofs of quantified
-Boolean formulas~\cite{bryant:cade:2021}.  The key idea is to use
-extended resolution to encode the semantics of the BDD nodes as part
-of the proof.  Depending on which, if any, of its children are
-terminal nodes, a BDD node will be represented in the schema as either
-1) a literal, 2) a single $\pand$ operation, or 3) two $\pand$
-operations and one $\por$ operation.
+Boolean formulas~\cite{bryant:cade:2021}.
+Each BDD node can be expressed as an ITE operation and
+make use of the encodings shown in Table~\ref{tab:ite}.
 
-Other model counters use either top-down and bottom-up methods to
-generate representations of the formula that are similar to our
-schemas.  These exploit the key abstractions we have identified.  We
-must find ways to modify these model counters to also generate CRAT
-proofs.
+A second class of model counters proceeds top-down, based on the CDCL
+framework.  These choose a splitting variable $x$ and recursively
+construct schemas $S_1$ and $S_0$ for the two assignments to the
+variable.  These are combined as $\ite(x, S_1, S_0)$, using one of the
+encodings of $\ite$ shown in Table~\ref{tab:ite}.  Like CDCL, the
+top-down algorithm can make use of unit propagation, conflict
+detection, and clause learning.  It can also make use of {\em
+  variable} partitioning.  That is, suppose for some partial
+assignment to the variables, the input clauses decompose into two or
+more sets over disjoint variables.  Then the schema for each of these
+partitions can be generated separately, and these are joined via the $\pand$
+operation.
+
+
 
 \subsection{TO-DO List}
 

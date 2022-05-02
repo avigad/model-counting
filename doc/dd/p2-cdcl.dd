@@ -1,0 +1,31 @@
+# Representation of schema for two clauses
+# Nodes
+n t3  75   400 t=r r=20 e=fillcolor f=fillcolor l=$t$
+n s7  75   300 t=b      l=$\lor_{\textrm{a}}$
+n p5   0   200 t=b      l=$\land_{\textrm{v}}$
+n p6 150   200 t=b      l=$\land_{\textrm{v}}$
+n p4   0   100 t=b      l=$\land_{\textrm{v}}$
+n jx1 75   150 t=r r=0
+n jx2 75    50 t=r r=0
+n rx2 150  100 t=r r=0
+n x1  75   100 t=r r=20 e=fillcolor f=fillcolor l=$x_1$
+n x2  75     0 t=r r=20 e=fillcolor f=fillcolor l=$x_2$
+n x3   0     0 t=r r=20 e=fillcolor f=fillcolor l=$x_3$
+# Edges
+e t3 s7 t=n
+e s7 p5 t=n
+e s7 p6 t=n
+e p5 jx1 t=n m=b
+e p5 p4 t=n m=b
+e p6 jx1 t=n
+e p6 rx2 t=n
+e jx1 x1 t=n
+e p4 x3 t=n m=b
+e p4 jx2 t=n m=b
+e rx2 jx2 t=n 
+e jx2 x2 t=n
+# Tags
+t s7 $s_7$ p=r off=0
+t p6 $p_6$ p=r off=0
+t p5 $p_5$ p=l off=0
+t p4 $p_4$ p=l off=0
