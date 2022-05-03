@@ -351,8 +351,8 @@ $f_3$.
      $\ite(S_1, \nil, \tautology)$ & $$ & $\neg S_1$ \\
      $\ite(S_1, S_2, \nil)$ & $$ & $S_1 \pand S_2$ \\
      $\ite(S_1, \nil, S_3)$ & $$ & $\neg S_1 \pand S_3$ \\
-     $\ite(S_1, S_2, \tautology)$ & $$ & $\neg (S_1 \pand \neg S_2)$ \\
      $\ite(S_1, \tautology, S_3)$ & $$ & $\neg (\neg S_1 \pand \neg S_3)$ \\
+     $\ite(S_1, S_2, \tautology)$ & $$ & $\neg (S_1 \pand \neg S_2)$ \\
   \end{tabular}
   \end{center}
 \end{table}
@@ -360,11 +360,15 @@ $f_3$.
 Table~\ref{tab:ite} shows different ways to encode an ITE operation
 into schema operations.  All of these require the dependency set of
 the argument $S_1$ to be disjoint from those of arguments $S_2$ and
-$S_3$.  The first row shows the most general case, require one $\por$
-and two $\pand$ operations.  The other rows show special cases, where
-one or more argument is a constant.  Of these, the final two rows are
-particularly noteworthy.  They make use of DeMorgan's Laws to convert
-disjunctions into conjunctions.  These conjunctions can then be
+$S_3$.  The first row shows the most general case, requiring one
+$\por$ and two $\pand$ operations.  The other rows show special cases,
+where one or more argument is a constant.  Of these, the final two
+rows are particularly noteworthy.  They make use of DeMorgan's Laws to
+convert disjunctions into conjunctions.  In particular, for Boolean
+functions $f_1$ and $f_2$, we can write $\ite(f_1, \tautology, f_2)$
+as $f_1 \lor f_2$, and by DeMorgan's Laws as $\neg(\neg f_1 \land
+\neg f_2)$.  Similarly $\ite(f_1, f_2, \tautology) = \neg f_1 \lor f_2 = \neg(f_1 \land \neg f_2)$.
+These conjunctions can then be
 encoded with $\pand$ operations, since their arguments will have
 disjoint dependency sets.
 
