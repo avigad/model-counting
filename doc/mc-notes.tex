@@ -172,12 +172,12 @@ literals, and 2) the weight of a variable $x_i$ and its negation
 $\obar{x}_i$ sum to 1.
 
 
-{\bf Example 3}: Let $\ring$ be a field with $|\ring| \geq 2n$,
+{\bf Example 3}: Let $\ring$ be a finite field with $z = |\ring| \geq 2n$,
 and let $\hashset$ be the set of functions
 mapping elements of $X$ to elements of $\ring$.  For
 two distinct functions $f_1$ and $f_2$ and a randomly chosen $\fhash
-\in \hashset$, the probability that $h(f_1) = h(f_2)$ will be at most
-$2^n/|\ring|< 1/2$.  Therefore, these functions can be used as part of a
+\in \hashset$, the probability that $h(f_1) \not = h(f_2)$ will be at least
+$(1-1/z)^n \geq (1-1/2n)^n >  1/2$.  Therefore, these functions can be used as part of a
 randomized algorithm for equivalence testing~\cite{blum:ipl:1980}.
 
 \subsection{Computing Cost Functions}
