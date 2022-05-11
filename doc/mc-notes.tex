@@ -374,39 +374,52 @@ disjoint dependency sets.
 
 \section{Proof Framework for Cost Functions}
 
-The CRAT clausal proof framework provides a means for creating a
+The CRAT clausal proof framework provides a means to express a
 checkable proof that a Boolean formula, given in conjunctive normal
 form, is logically equivalent to a separable schema.  Once this
 equivalence has been established, the schema can form the basis
 for computations enabled by the
-this representation, including trusted model counting 
+representation, including trusted model counting 
 
 The CRAT format draws its inspiration from the LRAT format for Boolean formulas and the
 QRAT format for
 quantified Boolean formulas (QBF).  The following are its key properties:
 \begin{itemize}
-\item As with LRAT, a clause can be added as long as either 1) it is
-  blocked, or 2) it satisfies the RAT property with respect to a supplied sequence
-  of earlier antecedent clauses.  However, blocked clauses can only be added when defining a schema operation.
-\item  Extension variables can be introduced only according to the operations $\pand$, $\por$, and $\pite$.
+  \item
+  In addition to explicit clause additions and deletions, the proof contains declarations of $\pand$ and $\por$ operations.
 \begin{itemize}
+\item 
+  These declarations implicitly add extension variables and their defining clauses to the proof.
+  This is the only means for generating extension variables or adding blocked clauses to the proof.
 \item The checker tracks the dependency set for every input and
   extension variable.  When an extension variable is introduced based
-  on the $\pand$ or $\pite$ operation, the dependency sets of its arguments must
-  be disjoint.
-\item When an extension variable is introduced based on the $\por$
-  operation, the step must cite earlier steps providing a RAT proof
-  that the two arguments are mutually exclusive.
+  on the $\pand$ operation, the dependency sets of its arguments must
+  be disjoint.  The resulting extension variable has a dependency set equal to the union of those of its arguments.
+\item Declaring a $\por$ operation requires a sequence of clauses
+  providing a RUP proof that the arguments are mutually exclusive.  This sequence can either be provided explicitly or inferred by the proof checker.
 \item Boolean complement is provided implicitly by allowing the
-  arguments of the extension operations to be literals and not just
+  arguments of the $\por$ and $\pand$ operations to be literals and not just
   variables.
 \end{itemize}
-\item A CRAT proof must show that the schema is logically equivalent
-  to the input formula, not just that they are equisatisfiable.
-  Therefore, each deletion step must also be shown to be equivalence
-  preserving, either because the clause is blocked or it follows from
-  remaining clauses by the RAT property.
-\item Unlike QRAT, it need not support universal quantification.
+\item
+  Clauses can also be added when they satisfy the RUP
+  property, with respect to a sequence of existing clauses.  This sequence can
+  be either supplied explicitly or inferred by the proof checker.
+\item
+  Deleting clauses requires proving that the resulting formula is not weaker.
+  \begin{itemize}
+    \item For an input clause or a clause declared by RUP addition, its
+      deletion must be accompanied by a sequence of remaining clauses
+      providing a RUP proof of the clause.  This sequence can either
+      be provided explicitly or inferred by the proof checker.
+    \item The clauses defining a $\pand$ or $\por$ operation are
+      implicitly deleted by deleting the operation.  This can only be
+      done when the only undeleted clauses containing
+      references to the associated extension variable are those
+      implicitly defined when the operation was declared.
+      This implies that there can be no undeleted operations having
+      the operation result as an argument.
+  \end{itemize}
 \end{itemize}
 
 \subsection{Syntax}
@@ -419,13 +432,14 @@ quantified Boolean formulas (QBF).  The following are its key properties:
     \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
     \midrule
     \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\tt i}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Input clause} \\
-    $C$ & {\tt ab} & $L^{+}$ {\tt 0} & ${\tt -}C^{*}$  {\tt 0}  & Add blocked clause \\
-    $C$ & {\tt ar} & $L^{*}$ {\tt 0} & $C^{+}$  {\tt 0} & Add RAT clause \\
-     & {\tt db} & $C$             & ${\tt -}C^{+}$  {\tt 0} & Delete blocked clause \\
-     & {\tt dr} & $C$             & $C^{+}$  {\tt 0} & Delete RAT clause \\
+    $C$ & {\tt a} & $L^{*}$ {\tt 0} & $C^{+}$  {\tt 0} & Add RUP clause.  Explicit hint \\
+    $C$ & {\tt a} & $L^{*}$ {\tt 0} &  {\tt * 0} & Add RUP clause.  Inferred hint \\
+     & {\tt d} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause.  Explicit hint \\
+     & {\tt d} & $C$             & {\tt * 0} & Delete RUP clause.  Inferred hint \\
     \midrule
-        & {\tt p} & $V \; L \; L$    &                  & Declare $\pand$ operation \\
-        & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation \\ 
+    $C$    & {\tt p} & $V \; L \; L$    &                  & Declare $\pand$ operation \\
+    $C$    & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation.  Explicit hint \\ 
+    $C$    & {\tt s} & $V \; L \; L$    & {\tt * 0}  & Declare $\por$ operation.  Inferred hint \\ 
 %%        & {\tt ite} & $V \; L \; L\; L$    &                  & Declare $\pite$ operation \\
   \end{tabular}
   }
@@ -445,58 +459,71 @@ C$.  Clause identifiers need not be consecutive.
 
 The first set of proof rules are similar to those in other clausal
 proofs.  Our syntax optionally allows input clauses to be listed with
-a rule of type {\tt i}.  Clauses can be added via a blocked-clause addition (command {\tt ab})
-or a RAT addition (command {\tt ar}).
-As described below, however, blocked clauses can only be added
-to define $\pand$ and $\por$
-%%, and $\pite$
-operations.  The hints portion
-of a blocked-clause addition lists all earlier clauses containing the
-negated version of the pivot literal, with the clause IDs negated.
-The hints portion of a RAT addition must contain a sequence of clause
-IDs such that the added clause is RAT with respect to these clauses.
-Similarly, a clause can be deleted if it blocked with respect to one
-of its literals (command {\tt db}), or because it is RAT (command {\tt
-  dr}) The hints portion of a RAT deletion operation must be an
-ordered list of clause IDs justifying the deletion.
+a rule of type {\tt i}.  Clauses can be added via RUP addition
+(command {\tt a}), with the sequence of antecedent clauses (the
+``hint'') either provided explicitly or to be inferred (indicated by the character `{\tt *}') by the proof
+checker.  Similarly for clause deletion (command {\tt d}).
 
-The second set of proof rules is unique to the CRAT format.  Each of
-these indicates the addition of an extension variable.  For each case,
-the rule must be followed by a sequence of blocked-clause additions
-providing the defining clauses for the extension variable.
+The declaration of a $\pand$ operation has the form:
+\begin{center}
+\begin{tabular}{ccccc}
+  \makebox[5mm]{$i$} & \makebox[5mm]{{\tt p}} & \makebox[5mm]{$v$} & \makebox[5mm]{$l_1$} & \makebox[5mm]{$l_2$} \\
+\end{tabular}
+\end{center}
+where $i$ is a new clause ID, $v$ is a positive integer that does not
+correspond to any previous variable, and $l_1$ and $l_2$ are signed
+integers representing literals of existing variables.
+This declaration implicitly causes three clauses to be added to the proof:
+\begin{center}
+\begin{tabular}{cccc}
+\makebox[10mm]{ID} & \multicolumn{3}{c}{Clause} \\
+  $i$ & $v$ & $-l_1$ & $-l_2$ \\
+  $i\!+\!1$ & $-v$ & $l_1$ & \\
+  $i\!+\!2$ & $-v$ & $l_2$ & \\
+\end{tabular}
+\end{center}
+The dependency sets for the arguments represented by literals $l_1$ and $l_2$ must be disjoint.
 
-A product rule of the form ${\tt p}\;v\;l_1\;l_2$ indicates that $v$
-will represent the product $l_1 \pand l_2$.  The blocked clause
-additions must encode the formula $v \leftrightarrow (l_1 \land l_2)$.
-Literals $l_1$ and $l_2$ must have disjoint dependency sets.
+The declaration of a $\por$ operation has the form:
+\begin{center}
+\begin{tabular}{ccccccc}
+  \makebox[5mm]{$i$} & \makebox[5mm]{{\tt s}} & \makebox[5mm]{$v$} & \makebox[5mm]{$l_1$} & \makebox[5mm]{$l_2$} 
+\makebox[5mm]{$H$} & \makebox[5mm]{$\texttt{0}$} \\
+\end{tabular}
+\end{center}
+where $i$ is a new clause ID, $v$ is a positive integer that does
+not correspond to any previous variable, and $l_1$ and $l_2$ are
+signed integers representing literals of existing variables.  Hint $H$
+can consist either of the single character \texttt{*}, or it can be a
+sequence of clause IDs.
 
-A sum rule of the form ${\tt s}\;v\;l_1\;l_2$ indicates that $v$ will
-represent the disjunction $l_1 \por l_2$.  The blocked clause
-additions must encode the formula $v \leftrightarrow (l_1 \lor l_2)$.
-The rule also contains a sequence of clause IDs such that the clause
-$\obar{l}_1 \lor \obar{l}_2$ is RAT with respect to the sequence.
-
-%% An if-then-else rule of the form ${\tt ite}\;v\;l_1\;l_2\;l_3$
-%% indicates that $v$ will represent $\pite(l_1, l_2, l_3)$.  The blocked
-%% clause additions must encode the formula
-%% $v \leftrightarrow \ite((l_1,l_2, l_3)$.
-%% The dependency set for $l_1$ must be disjoint from those
-%% of $l_2$ and $l_3$.
+This declaration implicitly causes three clauses to be added to the proof:
+\begin{center}
+\begin{tabular}{cccc}
+\makebox[10mm]{ID} & \multicolumn{3}{c}{Clause} \\
+  $i$ & $-v$ & $l_1$ & $l_2$ \\
+  $i\!+\!1$ & $v$ & $-l_1$ \\
+  $i\!+\!2$ & $v$ & $-l_2$ \\
+\end{tabular}
+\end{center}
+The explicit or implied hints must provide a RUP proof of the clause $-l_1 \lor -l_2$.
 
 \subsection{Semantics}
 
-A CRAT proof follows the same general form as a QRAT dual proof~\cite{bryant:cade:2021}---one
-that ensures that each clause addition and each clause deletion
-preserves equivalence.  Starting with the set of input clauses, it
-produces a sequence of steps that both add and delete clauses.  Each
-addition must be truth preserving and each deletion must be falsehood
-preserving.  At the end, all input clauses must have been deleted, and
-among the remaining clauses there must be only a single unit clause
-consisting of some variable or its complement.  Except for trivial
-cases, the final literal will be an extension variable or its
-complement.  That literal will indicate the root of the schema as the
-(possibly negated) output of a schema operation.  Working from that
-root backward, the schema can be extracted from the CRAT file.
+A CRAT proof follows the same general form as a QRAT dual
+proof~\cite{bryant:cade:2021}---one that ensures that each clause
+addition and each clause deletion preserves equivalence.  With CRAT,
+however, clauses are defined both explicitly and implicitly.  Starting
+with the set of input clauses, the proof consists of a sequence of steps that
+both add and delete clauses.  Each addition must be truth preserving
+and each deletion must be falsehood preserving.  At the end, all input
+clauses must have been deleted, and among the remaining clauses there
+must be only a single unit clause consisting of some variable or its
+complement.  Except for trivial cases, the final literal will be an
+extension variable or its complement.  That literal will indicate the
+root of the schema as the (possibly negated) output of a schema
+operation.  Working from that root backward, the schema can be
+extracted from the CRAT file.
 
 \subsection{Example 1}
 
@@ -516,32 +543,45 @@ root backward, the schema can be extracted from the CRAT file.
 \end{figure}
 
 \begin{figure}
-  \centering{
-  \begin{tabular}{llllll}
-    \multicolumn{4}{c}{Proof line} & & \multicolumn{1}{c}{Explanation} \\
+  A).  CRAT File Contents
+  \begin{center}
+  \begin{tabular}{lcllll}
+    \multicolumn{4}{c}{File line} & & \multicolumn{1}{c}{Explanation} \\
 \midrule
-    \makebox[5mm][l]{\tt 1} & \makebox[7mm][l]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[15mm]{}          & \makebox[5mm]{} & \makebox[20mm][l]{Input clause}\\
-            & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand x_3$ \\
-    {\tt 2} & {\tt ab}  & {\tt 4  2 -3 0}  & {\tt 0}    & & Defining clauses for $p_4$ \\ 
-    {\tt 3} & {\tt ab}  & {\tt -4 -2 0}    & {\tt -2 0} & & \\ %%Defining clause for $p_4$ \\ 
-    {\tt 4} & {\tt ab}  & {\tt -4 3 0}    & {\tt -2 0} & & \\ %%Defining clause for $p_4$ \\ 
-            & {\tt s}   & {\tt 5 2 4}   & {\tt 3 0}  & & Declare $s_5 = x_2 \por p_4$ \\
-    {\tt 5} & {\tt ab}  & {\tt -5 2 4 0}  & {\tt 0}    & & Defining clauses for $s_5$ \\ 
-    {\tt 6} & {\tt ab}  & {\tt  5 -2 0}    & {\tt -5 0} &  \\  %%Defining clause for $s_5$ \\ 
-    {\tt 7} & {\tt ab}  & {\tt  5 -4 0}    & {\tt -5 0} & &  \\  %%Defining clause for $s_5$ \\ 
-            & {\tt p}   & {\tt 6 -1 5}  &            & & Declare $p_6 = \obar{x}_1 \pand s_5$ \\
-    {\tt 8} & {\tt ab}  & {\tt 6  1 -5 0}  & {\tt 0}    & & Defining clauses for $p_6$ \\ 
-    {\tt 9} & {\tt ab}  & {\tt -6 -1 0}    & {\tt -8 0} & &  \\  %%Defining clause for $p_6$ \\ 
-    {\tt 10} & {\tt ab}  & {\tt -6 5 0}    & {\tt -8 0} & &  \\  %%Defining clause for $p_6$ \\ 
-             & {\tt s}   & {\tt 7 1 6}   & {\tt 9 0}  & & Declare $s_7 = x_1 \por p_6$ \\
-    {\tt 11} & {\tt ab}  & {\tt -7 1 6 0}  & {\tt 0}    & & Defining clauses for $s_7$ \\ 
-    {\tt 12} & {\tt ab}  & {\tt  7 -1 0}    & {\tt -12 0} & &  \\  %%Defining clause for $s_7$ \\ 
-    {\tt 13} & {\tt ab}  & {\tt  7 -6 0}    & {\tt -12 0} & &  \\  %%Defining clause for $s_7$ \\ 
-    {\tt 14} & {\tt ar}  & {\tt 7 0} & {\tt 12 13 7 6 2 1 0} & & Assert unit clause $[s_7]$ \\
-             & {\tt dr}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
+    \makebox[5mm][l]{\tt 1} & \makebox[7mm]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause}\\
+    {\tt 2}        & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand x_3$ \\
+    {\tt 5}        & {\tt s}   & {\tt 5 2 4}   & {\tt 3 0}  & & Declare $s_5 = x_2 \por p_4$ \\
+    {\tt 8}        & {\tt p}   & {\tt 6 -1 5}  &            & & Declare $p_6 = \obar{x}_1 \pand s_5$ \\
+    {\tt 11}         & {\tt s}   & {\tt 7 1 6}   & {\tt 9 0}  & & Declare $s_7 = x_1 \por p_6$ \\
+    {\tt 14} & {\tt a}  & {\tt 7 0} & {\tt 12 13 7 6 2 1 0} & & Assert unit clause $[s_7]$ \\
+             & {\tt d}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
   \end{tabular}
-  }
-  \caption{CRAT Proof \#1 for Formula $x_1 \lor x_2 \lor x_3$}
+  \end{center}
+B). Proof Clauses
+    \begin{center}
+  \begin{tabular}{lcllll}
+    \multicolumn{4}{c}{Clause} & & \multicolumn{1}{c}{Explanation} \\
+\midrule
+    \makebox[5mm][l]{\tt 1} & \makebox[7mm]{}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause}\\
+    {\tt 2} &     & {\tt 4  2 -3 0}  &     & & Defining clauses for $p_4$ \\ 
+    {\tt 3} &     & {\tt -4 -2 0}    & & & \\ %%Defining clause for $p_4$ \\ 
+    {\tt 4} &     & {\tt -4 3 0}    &  & & \\ %%Defining clause for $p_4$ \\ 
+            &     & {\tt -2 -4 0}   & {\tt 3 0}  & &  Mutual exclusion proof for $s_5$ \\
+    {\tt 5} &     & {\tt -5 2 4 0}  &     & & Defining clauses for $s_5$ \\ 
+    {\tt 6} &     & {\tt  5 -2 0}    &  &  \\  %%Defining clause for $s_5$ \\ 
+    {\tt 7} &     & {\tt  5 -4 0}    &  & &  \\  %%Defining clause for $s_5$ \\ 
+    {\tt 8} &     & {\tt 6  1 -5 0}  &    & & Defining clauses for $p_6$ \\ 
+    {\tt 9} &     & {\tt -6 -1 0}    &  & &  \\  %%Defining clause for $p_6$ \\ 
+    {\tt 10} &     & {\tt -6 5 0}    &  & &  \\  %%Defining clause for $p_6$ \\ 
+            &     & {\tt -1 -6 0}   & {\tt 9 0}  & &  Mutual exclusion proof for $s_7$ \\
+    {\tt 11} &     & {\tt -7 1 6 0}  &  & & Defining clauses for $s_7$ \\ 
+    {\tt 12} &     & {\tt  7 -1 0}     & &  \\  %%Defining clause for $s_7$ \\ 
+    {\tt 13} &     & {\tt  7 -6 0}     & &  \\  %%Defining clause for $s_7$ \\ 
+    {\tt 14} &     & {\tt 7 0} & {\tt 12 13 7 6 2 1 0} & & Assert unit clause $[s_7]$ \\
+             & {\tt d}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
+  \end{tabular}
+  \end{center}
+  \caption{CRAT file \#1 for formula $x_1 \lor x_2 \lor x_3$, and the resulting set of proof clauses}
   \label{fig:c3:crat}
 \end{figure}
     
@@ -570,13 +610,13 @@ illustrated in Figure~\ref{fig:c3:schema}B\@.  Note how the Boolean
 negations become $\oneminus$ operations.  This formula is valid for
 any cost function.
 
-Figure~\ref{fig:c3:crat} shows an annotated version of the CRAT proof
-for this example.  Clause \#1
-is the input clause, and
-clauses \#2--\#13 are the defining clauses for the four operations.
-Each of the two sum operations lists one of the earlier defining
-clauses as a proof that its arguments are mutually exclusive.
-Proof clause \#14 adds the unit clause for the extension variable $s_7$.
+Figure~\ref{fig:c3:crat}A shows an annotated version of the CRAT file
+for this example, while \ref{fig:c3:crat}B shows the sequence of clauses that constitute the proof, including those defined implicitly, and those required for mutual exclusion checks.
+   Clause 1
+is the input clause.
+Clauses 2--13 are added explcitly as the defining clauses for the four operations.
+Also shown are the required mutual exclusion proofs for the two sum operations.
+Proof clause 14 adds the unit clause for the extension variable $s_7$.
 We refer to the literal representing formula $\phi_1$ as $t_1$,
 and we therefore have $t_1 = s_7$.
 The unit clause indicates that extension variable $s_7$ will evaluate to
@@ -607,39 +647,60 @@ equivalent to the input formula.
 
 
 \begin{figure}
-  \centering{
-  \begin{tabular}{llllll}
+  A).  CRAT File Contents
+  \begin{center}
+  \begin{tabular}{lcllll}
     \multicolumn{4}{c}{Proof line} & & \multicolumn{1}{c}{Explanation} \\
 \midrule
-    \makebox[5mm][l]{\tt 1} & \makebox[7mm][l]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[15mm]{}          & \makebox[5mm]{} & \makebox[20mm][l]{Input clause $C_1$}\\
 
+    \makebox[5mm][l]{\tt 1} & \makebox[7mm]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
     {\tt 2} & {\tt i}   & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
-            & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
-    {\tt 3} & {\tt ab}  & {\tt 4 2 3 0} & {\tt 0}    & & Defining clauses for $p_4$ \\
-    {\tt 4} & {\tt ab}  & {\tt -4 -2 0} & {\tt -2 0}    & & \\
-    {\tt 5} & {\tt ab}  & {\tt -4 -3 0} & {\tt -2 0}    & & \\
-            & {\tt p}   & {\tt 5 -1 4}  &             & & Declare $p_5 = \obar{x}_1 \pand p_4 = \obar{x}_1 \pand \obar{x}_2 \pand \obar{x}_3$ \\
-    {\tt 6} & {\tt ab}  & {\tt 5 1 -4 0} & {\tt 0}    & & Defining clauses for $p_5$ \\
-    {\tt 7} & {\tt ab}  & {\tt -5 -1 0} & {\tt -6 0}    & & \\
-    {\tt 8} & {\tt ab}  & {\tt -5 4 0} & {\tt -6 0}    & & \\
-    {\tt 9} & {\tt ar}  & {\tt -5 0} & {\tt 7 8 4 5 1 0} & & Assert $t_1 = \obar{p}_5 = x_1 \lor x_2 \lor x_3$ \\
-            & {\tt dr}  & {\tt 1 } & {\tt 3 6 7 0} & & Delete clause $C_1$\\
-            & {\tt p}   & {\tt 6 1 -2} &              & & Declare $p_6 = x_1 \pand \obar{x}_2$ \\    
-    {\tt 10} & {\tt ab}  & {\tt 6 -1 2 0}  & {\tt 0}    & & Defining clauses for $p_6$ \\ 
-    {\tt 11} & {\tt ab}  & {\tt -6 1 0}    & {\tt -10 0} & & \\
-    {\tt 12} & {\tt ab}  & {\tt -6 -2 0}    & {\tt -10 0} & & \\ 
-    {\tt 13} & {\tt ar} & {\tt -6 0} & {\tt 11 12 2 0}  & & Assert $t_2 = \obar{p}_6 = \obar{x}_1 \lor x_2$ \\
-            & {\tt dr}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
-            & {\tt s}   & {\tt 7 5 6}   & {\tt 7 11 0}  & & Declare $s_7 = \obar{t}_1 \por \obar{t}_2$ \\
-    {\tt 14} & {\tt ab}  & {\tt -7 5 6 0}  & {\tt 0}    & & Defining clauses for $s_7$ \\ 
-    {\tt 15} & {\tt ab}  & {\tt  7 -5 0}    & {\tt -14 0} &  \\  
-    {\tt 16} & {\tt ab}  & {\tt  7 -6 0}    & {\tt -14 0} & &  \\
-    {\tt 17} & {\tt ar}  & {\tt -7 0}       & {\tt 9 13 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
-             & {\tt dr}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
-             & {\tt dr}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
+    {\tt 3} & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
+    {\tt 6} & {\tt p}   & {\tt 5 -1 4}  &             & & Declare $p_5 = \obar{x}_1 \pand p_4 = \obar{x}_1 \pand \obar{x}_2 \pand \obar{x}_3$ \\
+    {\tt 9} & {\tt a}  & {\tt -5 0} & {\tt 7 8 4 5 1 0} & & Assert $t_1 = \obar{p}_5 = x_1 \lor x_2 \lor x_3$ \\
+            & {\tt d}  & {\tt 1 } & {\tt 3 6 7 0} & & Delete clause $C_1$\\
+    {\tt 10} & {\tt p}   & {\tt 6 1 -2} &              & & Declare $p_6 = x_1 \pand \obar{x}_2$ \\    
+    {\tt 13} & {\tt a} & {\tt -6 0} & {\tt 11 12 2 0}  & & Assert $t_2 = \obar{p}_6 = \obar{x}_1 \lor x_2$ \\
+            & {\tt d}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
+    {\tt 14} & {\tt s}   & {\tt 7 5 6}   & {\tt 7 11 0}  & & Declare $s_7 = \obar{t}_1 \por \obar{t}_2$ \\
+    {\tt 17} & {\tt a}  & {\tt -7 0}       & {\tt 9 13 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
+             & {\tt d}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
+             & {\tt d}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
   \end{tabular}
-}  
-  \caption{CRAT Proof \#2A for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$}
+  \end{center}  
+B). Proof Clauses
+  \begin{center}
+  \begin{tabular}{lcllll}
+    \multicolumn{4}{c}{Clause} & & \multicolumn{1}{c}{Explanation} \\
+\midrule
+    \makebox[5mm][l]{\tt 1} & \makebox[7mm]{}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
+    {\tt 2} &    & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
+    {\tt 3} &   & {\tt 4 2 3 0} &     & & Defining clauses for $p_4$ \\
+    {\tt 4} &   & {\tt -4 -2 0} &     & & \\
+    {\tt 5} &   & {\tt -4 -3 0} &     & & \\
+
+    {\tt 6} &   & {\tt 5 1 -4 0} &    & & Defining clauses for $p_5$ \\
+    {\tt 7} &   & {\tt -5 -1 0} &     & & \\
+    {\tt 8} &   & {\tt -5 4 0} &      & & \\
+
+    {\tt 9} &   & {\tt -5 0} & {\tt 7 8 4 5 1 0} & & Assert $t_1 = \obar{p}_5 = x_1 \lor x_2 \lor x_3$ \\
+            & {\tt d}  & {\tt 1 } & {\tt 3 6 7 0} & & Delete clause $C_1$\\
+
+    {\tt 10} &   & {\tt 6 -1 2 0}  &    & & Defining clauses for $p_6$ \\ 
+    {\tt 11} &   & {\tt -6 1 0}    &  & & \\
+    {\tt 12} &   & {\tt -6 -2 0}    &  & & \\ 
+    {\tt 13} &  & {\tt -6 0} & {\tt 11 12 2 0}  & & Assert $t_2 = \obar{p}_6 = \obar{x}_1 \lor x_2$ \\
+            & {\tt d}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
+             &          & {\tt -5 -6 0} & {\tt 7 11 0}  & & Mutual exclusion proof for $s_7$ \\
+    {\tt 14} &   & {\tt -7 5 6 0}  &     & & Defining clauses for $s_7$ \\ 
+    {\tt 15} &   & {\tt  7 -5 0}    &  &  \\  
+    {\tt 16} &   & {\tt  7 -6 0}    &  & &  \\
+    {\tt 17} &   & {\tt -7 0}       & {\tt 9 13 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
+             & {\tt d}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
+             & {\tt d}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
+  \end{tabular}
+  \end{center}  
+  \caption{CRAT file \#2A for formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$, and the resulting set of proof clauses}
   \label{fig:p2-bdd:crat}
 \end{figure}
 
@@ -651,7 +712,7 @@ similar to the use of these laws when encoding ITE operations in
 Table~\ref{tab:ite}.
 
 Figure~\ref{fig:p2-bdd:schema} shows a schema representing the formula,
-and Figure~\ref{fig:p2-bdd:crat} shows the associated CRAT proof.  This
+and Figure~\ref{fig:p2-bdd:crat} shows the associated CRAT file and proof clauses.  This
 proof was generated via a bottom-up strategy, such as would be created
 using BDDs.  It creates schematic representations of the input
 clauses and then forms their conjunction.  In the proof, unit
@@ -697,39 +758,54 @@ computation shown in Figure~\ref{fig:p2-bdd:schema}B\@.
 
 
 \begin{figure}
-  \centering{
+  A).  CRAT File Contents
+  \begin{center}
   \begin{tabular}{llllll}
-    \multicolumn{4}{c}{Proof line} & & \multicolumn{1}{c}{Explanation} \\
+    \multicolumn{4}{c}{File line} & & \multicolumn{1}{c}{Explanation} \\
 \midrule
-    \makebox[5mm][l]{\tt 1} & \makebox[7mm][l]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[15mm]{}          & \makebox[5mm]{} & \makebox[20mm][l]{Input clause $C_1$}\\
-
+    \makebox[5mm][l]{\tt 1} & \makebox[7mm]{}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
     {\tt 2} & {\tt i}   & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
-            & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
-    {\tt 3} & {\tt ab}  & {\tt 4 2 3 0} & {\tt 0}    & & Defining clauses for $p_4$ \\
-    {\tt 4} & {\tt ab}  & {\tt -4 -2 0} & {\tt -2 0}    & & \\
-    {\tt 5} & {\tt ab}  & {\tt -4 -3 0} & {\tt -2 0}    & & \\
-            & {\tt p}   & {\tt 5 -1 -4}  &             & & Declare $p_5 = \obar{x}_1 \pand \obar{p_4}$ \\
-    {\tt 6} & {\tt ab}  & {\tt 5 1 4 0} & {\tt 0}    & & Defining clauses for $p_5$ \\
-    {\tt 7} & {\tt ab}  & {\tt -5 -1 0} & {\tt -6 0}    & & \\
-    {\tt 8} & {\tt ab}  & {\tt -5 -4 0} & {\tt -6 0}    & & \\
-            & {\tt p}   & {\tt 6 1 2} &              & & Declare $p_6 = x_1 \pand x_2$ \\    
-    {\tt 9} & {\tt ab}  & {\tt 6 -1 -2 0}  & {\tt 0}    & & Defining clauses for $p_6$ \\ 
-    {\tt 10} & {\tt ab}  & {\tt -6 1 0}    & {\tt -9 0} & & \\
-    {\tt 11} & {\tt ab}  & {\tt -6 2 0}    & {\tt -9 0} & & \\ 
-            & {\tt s}   & {\tt 7 5 6}   & {\tt 7 10 0}  & & Declare $s_7 = p_5 \por p_6$ \\
-    {\tt 12} & {\tt ab}  & {\tt -7 5 6 0}  & {\tt 0}    & & Defining clauses for $s_7$ \\ 
-    {\tt 13} & {\tt ab}  & {\tt  7 -5 0}    & {\tt -12 0} & & \\  
-    {\tt 14} & {\tt ab}  & {\tt  7 -6 0}    & {\tt -12 0} & & \\
-
-    {\tt 15} & {\tt ar}  & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p_4}$ \\
-    {\tt 16} & {\tt ar}  & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
-    {\tt 17} & {\tt ar}  & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
-    {\tt 18} & {\tt ar}  & {\tt 7 0}       & {\tt 16 17 0}  & & Justify unit clause $t = s_7$ \\
-             & {\tt dr}  & {\tt 1}         & {\tt 3 8 10 12 18 0} & & Delete $C_1$\\
-             & {\tt dr}  & {\tt 2}         & {\tt 11 7 12 18 0} & & Delete $C_2$\\
+    {\tt 3} & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
+    {\tt 6} & {\tt p}   & {\tt 5 -1 -4}  &             & & Declare $p_5 = \obar{x}_1 \pand \obar{p_4}$ \\
+    {\tt 9} & {\tt p}   & {\tt 6 1 2} &              & & Declare $p_6 = x_1 \pand x_2$ \\    
+    {\tt 12} & {\tt s}   & {\tt 7 5 6}   & {\tt 7 10 0}  & & Declare $s_7 = p_5 \por p_6$ \\
+    {\tt 15} & {\tt a}  & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p_4}$ \\
+    {\tt 16} & {\tt a}  & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
+    {\tt 17} & {\tt a}  & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
+    {\tt 18} & {\tt a}  & {\tt 7 0}       & {\tt 16 17 0}  & & Justify unit clause $t = s_7$ \\
+             & {\tt d}  & {\tt 1}         & {\tt 3 8 10 12 18 0} & & Delete $C_1$\\
+             & {\tt d}  & {\tt 2}         & {\tt 11 7 12 18 0} & & Delete $C_2$\\
   \end{tabular}
-}  
-  \caption{CRAT Proof \#2B for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$}
+  \end{center}  
+B). Proof Clauses
+  \begin{center}
+  \begin{tabular}{llllll}
+    \multicolumn{4}{c}{File line} & & \multicolumn{1}{c}{Explanation} \\
+\midrule
+    \makebox[5mm][l]{\tt 1} & \makebox[7mm]{}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
+    {\tt 2} &    & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
+    {\tt 3} &   & {\tt 4 2 3 0} &     & & Defining clauses for $p_4$ \\
+    {\tt 4} &   & {\tt -4 -2 0} &     & & \\
+    {\tt 5} &   & {\tt -4 -3 0} &     & & \\
+    {\tt 6} &   & {\tt 5 1 4 0} &     & & Defining clauses for $p_5$ \\
+    {\tt 7} &   & {\tt -5 -1 0} &     & & \\
+    {\tt 8} &   & {\tt -5 -4 0} &     & & \\
+    {\tt 9} &   & {\tt 6 -1 -2 0}&     & & Defining clauses for $p_6$ \\ 
+    {\tt 10} &   & {\tt -6 1 0}    &  & & \\
+    {\tt 11} &   & {\tt -6 2 0}    &  & & \\ 
+     &           & {\tt -5 -6}   & {\tt 7 10 0}  & & Mutual exclusion proof for $s_7$ \\
+    {\tt 12} &   & {\tt -7 5 6 0}  &     & & Defining clauses for $s_7$ \\ 
+    {\tt 13} &   & {\tt  7 -5 0}    &  & & \\  
+    {\tt 14} &   & {\tt  7 -6 0}    &  & & \\
+    {\tt 15} &   & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p_4}$ \\
+    {\tt 16} &   & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
+    {\tt 17} &   & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
+    {\tt 18} &   & {\tt 7 0}       & {\tt 16 17 0}  & & Justify unit clause $t = s_7$ \\
+             & {\tt d}  & {\tt 1}         & {\tt 3 8 10 12 18 0} & & Delete $C_1$\\
+             & {\tt d}  & {\tt 2}         & {\tt 11 7 12 18 0} & & Delete $C_2$\\
+  \end{tabular}
+  \end{center}  
+  \caption{CRAT file \#2B for formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$, and the resulting set of proof clauses}
   \label{fig:p2-cdcl:crat}
 \end{figure}
 
