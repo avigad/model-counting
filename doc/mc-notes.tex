@@ -766,10 +766,10 @@ computation shown in Figure~\ref{fig:p2-bdd:schema}B\@.
     \makebox[5mm][l]{\tt 1} & \makebox[7mm]{}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
     {\tt 2} & {\tt i}   & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
     {\tt 3} & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
-    {\tt 6} & {\tt p}   & {\tt 5 -1 -4}  &             & & Declare $p_5 = \obar{x}_1 \pand \obar{p_4}$ \\
+    {\tt 6} & {\tt p}   & {\tt 5 -1 -4}  &             & & Declare $p_5 = \obar{x}_1 \pand \obar{p}_4$ \\
     {\tt 9} & {\tt p}   & {\tt 6 1 2} &              & & Declare $p_6 = x_1 \pand x_2$ \\    
     {\tt 12} & {\tt s}   & {\tt 7 5 6}   & {\tt 7 10 0}  & & Declare $s_7 = p_5 \por p_6$ \\
-    {\tt 15} & {\tt a}  & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p_4}$ \\
+    {\tt 15} & {\tt a}  & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p}_4$ \\
     {\tt 16} & {\tt a}  & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
     {\tt 17} & {\tt a}  & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
     {\tt 18} & {\tt a}  & {\tt 7 0}       & {\tt 16 17 0}  & & Justify unit clause $t = s_7$ \\
@@ -797,7 +797,7 @@ B). Proof Clauses
     {\tt 12} &   & {\tt -7 5 6 0}  &     & & Defining clauses for $s_7$ \\ 
     {\tt 13} &   & {\tt  7 -5 0}    &  & & \\  
     {\tt 14} &   & {\tt  7 -6 0}    &  & & \\
-    {\tt 15} &   & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p_4}$ \\
+    {\tt 15} &   & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p}_4$ \\
     {\tt 16} &   & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
     {\tt 17} &   & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
     {\tt 18} &   & {\tt 7 0}       & {\tt 16 17 0}  & & Justify unit clause $t = s_7$ \\
@@ -821,7 +821,7 @@ $x_1$ is assigned $\nil$, and clause $C_1$ becomes $C'_1 = x_2 \lor
 x_3$.  Clause $C'_1$ can be represented schematically as
 $\neg[\obar{x}_2 \pand \obar{x}_3]$, with this operation labeled $p_4$
 in Figure~\ref{fig:p2-cdcl:schema}A\@.  The splitting on variable
-$x_1$ can be rejoined as $\ite(x_1, x_2, \obar{p_4})$, and this ITE
+$x_1$ can be rejoined as $\ite(x_1, x_2, \obar{p}_4)$, and this ITE
 operation can be expressed using the product operations $p_5$ and
 $p_6$, joined by the sum operation $t = s_7$.
 
