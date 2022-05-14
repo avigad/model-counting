@@ -114,7 +114,7 @@ def getIndex(prefix, candidates):
     # Shouldn't get here
     return None
 
-class ParseException:
+class ParseException(BaseException):
     line = ""
     info = ""
 
