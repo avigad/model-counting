@@ -150,7 +150,7 @@ $\cost(f) = \sum_{\interp \in \interpset{f}} \cost(\interp)$.
 
 For ring elemement $a$, we use the notation $\oneminus a$ to denote $1 - a$.
 
-{\bf Example 1}: Let $\ring$ be the set of rational numbers of the form $a\cdot 2^b$ where $a$ and $b$ are integers.
+{\bf Example 1a}: Let $\ring$ be the set of rational numbers of the form $a\cdot 2^b$ where $a$ and $b$ are integers.
 Let $\cost(x_i) = 1/2$ for all variables $x_i$.  The cost of every
 assignment is then $1/2^{n}$, and the cost of a function is its
 {\em density}, denoted $\density(f)$.  That is, the density of $f$, for which
@@ -162,17 +162,29 @@ $|\interpset{f}|$.  This is the core task of model counting.  Using
 density as the metric, rather than the number of models, has the advantage that it does not vary when the
 function is embedded in a larger domain $X' \supseteq X$.  
 
-{\bf Example 2}: Let $\ring$ be the set of rational numbers.  Assign a
-{\em weight} $w_i$ to each variable $x_i$ such that $0 \leq w_i \leq
-1$ and let $\cost(x_i) = w_i$.  This implements {\em weighted model counting}
+{\bf Example 1b}: Let $\ring$ be the set of rational numbers.  Assign a
+{\em weight} $w(x_i)$ to each variable $x_i$ such that
+$0 \leq w(x_i) \leq 1$
+and let $\cost(x_i) = w(x_i)$.  This implements {\em weighted model counting}
 under the restrictions that: 
 1) the
 weight of an assignment equals the product of the weights of its
 literals, and 2) the weight of a variable $x_i$ and its negation
 $\obar{x}_i$ sum to 1.
 
+{\bf Example 1c}: Let $\ring$ be the set of rational numbers.  Assign
+{\em weights} to each literal.  In particular, for each variable
+$x_i$, define weights $w(x_i)$ and $w(\obar{x}_i)$, such that
+$\beta(x_i) \doteq w(x_i) + w(\obar{x}_i) \not = 0$.  We can convert
+this to the formulation of Example 1b by using weight $w'(x_i) =
+w(x_i)/\beta(x_i)$ and then scaling the final result by $\prod_{1 \leq
+  i \leq n} \beta(x_i)$.  Scaling eliminates the need to have the weight
+of each variable and its negation sum to 1.  This form is sufficiently general
+to handle the benchmarks used in weighted model counting track of the Model Counting Competition.
+Using $w(x_i) = w(\obar{x}_i) = 1$ for each variable $x_i$,
+gives the standard model counting of Example 1a.
 
-{\bf Example 3}: Let $\ring$ be a finite field with $z = |\ring| \geq 2n$,
+{\bf Example 2}: Let $\ring$ be a finite field with $z = |\ring| \geq 2n$,
 and let $\hashset$ be the set of functions
 mapping elements of $X$ to elements of $\ring$.  For
 two distinct functions $f_1$ and $f_2$ and a randomly chosen $\fhash
@@ -237,20 +249,22 @@ Representing formulas as a graph enables sharing subformulas, yielding a more co
 \subsection{Schema Definition}
 
 \begin{table}
-  \caption{Recursive Definition of Separable Schemas}
+  \caption{Recursive Definition of Separable Schemas and their Costs}
   \label{tab:schema}
 %%A) Basic Operations\\
 \begin{center}
-\begin{tabular}{cccc}
+\begin{tabular}{ccccc}
 \toprule
-  \makebox[15mm]{$S$}           & \makebox[30mm]{Restrictions} & \makebox[30mm]{$D(S)$} & \makebox[30mm]{$\interpset{S}$}\\
+  \makebox[15mm]{$S$}  & \makebox[30mm]{Restrictions} & \makebox[30mm]{$D(S)$} & \makebox[30mm]{$\interpset{S}$} & \makebox[25mm]{$\cost(S)$}\\
 \midrule
-  $\nil$  & None  & $\emptyset$    & $\emptyset$ \\
-  $\tautology$        & None  & $\emptyset$    & $\uinterp$ \\
-$x_i$           & None  & $\{ x_i \}$    & $\{ \interp | \interp(x_i) = \tautology \}$ \\
-$\neg S_1$      & None  & $\depend(S_1)$ & $\uinterp - \interpset{S_1}$ \\
-$S_1 \pand S_2$ & $\depend(S_1) \cap \depend(S_2) = \emptyset$ & $\depend(S_1) \cup \depend(S_2)$ & $\interpset{S_1} \cap \interpset{S_2}$ \\
-$S_1 \por S_2$  & $\interpset{S_1} \cap \interpset{S_2} = \emptyset$ &  $\depend(S_1) \cup \depend(S_2)$ &  $\interpset{S_1} \cup \interpset{S_2}$ \\
+  $\nil$  & None  & $\emptyset$    & $\emptyset$  & $0$\\
+  $\tautology$        & None  & $\emptyset$    & $\uinterp$ & $1$ \\
+$x_i$           & None  & $\{ x_i \}$    & $\{ \interp | \interp(x_i) = \tautology \}$ & $\cost(x_i)$ \\
+$\neg S_1$      & None  & $\depend(S_1)$ & $\uinterp - \interpset{S_1}$ & $\oneminus\cost(S)$ \\
+$S_1 \pand S_2$ & $\depend(S_1) \cap \depend(S_2) = \emptyset$ & $\depend(S_1) \cup \depend(S_2)$ & $\interpset{S_1} \cap \interpset{S_2}$
+& $\cost(S_1) \cdot \cost(S_2)$\\
+$S_1 \por S_2$  & $\interpset{S_1} \cap \interpset{S_2} = \emptyset$ &  $\depend(S_1) \cup \depend(S_2)$ &  $\interpset{S_1} \cup \interpset{S_2}$
+& $\cost(S_1) + \cost(S_2)$\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -275,11 +289,10 @@ $\depend(S)$ and an associated set of models $\interpset{S}$.
 %% divide the operations into {\em basic} ones that are fundamental to
 %% the representation, and {\em composite} ones that can be constructed
 %% from basic operations.  The latter category consists of just the $\pite$ operation.
-    
 A key property of a Boolean formula represented by separable schema
 $S$ is that, for any separable cost function $\cost$, the cost of the
 formula $\cost(S)$ can be computed with a linear number of ring
-operations.
+operations, as is shown in the final column of Table~\ref{tab:schema}.
 
 \subsection{Schema Normalization}
 
@@ -434,13 +447,15 @@ quantified Boolean formulas (QBF).  The following are its key properties:
     \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\tt i}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Input clause} \\
     $C$ & {\tt a} & $L^{*}$ {\tt 0} & $C^{+}$  {\tt 0} & Add RUP clause.  Explicit hint \\
     $C$ & {\tt a} & $L^{*}$ {\tt 0} &  {\tt * 0} & Add RUP clause.  Inferred hint \\
-     & {\tt d} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause.  Explicit hint \\
-     & {\tt d} & $C$             & {\tt * 0} & Delete RUP clause.  Inferred hint \\
+     & {\tt dc} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause.  Explicit hint \\
+     & {\tt dc} & $C$             & {\tt * 0} & Delete RUP clause.  Inferred hint \\
     \midrule
     $C$    & {\tt p} & $V \; L \; L$    &                  & Declare $\pand$ operation \\
     $C$    & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation.  Explicit hint \\ 
     $C$    & {\tt s} & $V \; L \; L$    & {\tt * 0}  & Declare $\por$ operation.  Inferred hint \\ 
 %%        & {\tt ite} & $V \; L \; L\; L$    &                  & Declare $\pite$ operation \\
+     & {\tt do} & $V$             &  & Delete operation. \\
+
   \end{tabular}
   }
 \end{table}
@@ -462,7 +477,7 @@ proofs.  Our syntax optionally allows input clauses to be listed with
 a rule of type {\tt i}.  Clauses can be added via RUP addition
 (command {\tt a}), with the sequence of antecedent clauses (the
 ``hint'') either provided explicitly or to be inferred (indicated by the character `{\tt *}') by the proof
-checker.  Similarly for clause deletion (command {\tt d}).
+checker.  Similarly for clause deletion (command {\tt dc}).
 
 The declaration of a $\pand$ operation has the form:
 \begin{center}
@@ -496,7 +511,6 @@ not correspond to any previous variable, and $l_1$ and $l_2$ are
 signed integers representing literals of existing variables.  Hint $H$
 can consist either of the single character \texttt{*}, or it can be a
 sequence of clause IDs.
-
 This declaration implicitly causes three clauses to be added to the proof:
 \begin{center}
 \begin{tabular}{cccc}
@@ -507,6 +521,12 @@ This declaration implicitly causes three clauses to be added to the proof:
 \end{tabular}
 \end{center}
 The explicit or implied hints must provide a RUP proof of the clause $-l_1 \lor -l_2$.
+
+Finally, operator deletion ({\tt do}) specifies which operator to
+delete via the extension variable associated with the operator.  Doing
+so for operator $v$ requires 1) there is no (undeleted) operator $u$
+having a literal of $v$ as one of its inputs, and 2) there is no
+(undeleted) RUP clause containing a literal of $v$.
 
 \subsection{Semantics}
 
@@ -554,7 +574,7 @@ extracted from the CRAT file.
     {\tt 8}        & {\tt p}   & {\tt 6 -1 5}  &            & & Declare $p_6 = \obar{x}_1 \pand s_5$ \\
     {\tt 11}         & {\tt s}   & {\tt 7 1 6}   & {\tt 9 0}  & & Declare $s_7 = x_1 \por p_6$ \\
     {\tt 14} & {\tt a}  & {\tt 7 0} & {\tt 12 13 7 6 2 1 0} & & Assert unit clause $[s_7]$ \\
-             & {\tt d}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
+             & {\tt dc}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
   \end{tabular}
   \end{center}
 B). Proof Clauses
@@ -578,7 +598,7 @@ B). Proof Clauses
     {\tt 12} &     & {\tt  7 -1 0}     & &  \\  %%Defining clause for $s_7$ \\ 
     {\tt 13} &     & {\tt  7 -6 0}     & &  \\  %%Defining clause for $s_7$ \\ 
     {\tt 14} &     & {\tt 7 0} & {\tt 12 13 7 6 2 1 0} & & Assert unit clause $[s_7]$ \\
-             & {\tt d}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
+             & {\tt dc}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
   \end{tabular}
   \end{center}
   \caption{CRAT file \#1 for formula $x_1 \lor x_2 \lor x_3$, and the resulting set of proof clauses}
@@ -658,14 +678,14 @@ equivalent to the input formula.
     {\tt 3} & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
     {\tt 6} & {\tt p}   & {\tt 5 -1 4}  &             & & Declare $p_5 = \obar{x}_1 \pand p_4 = \obar{x}_1 \pand \obar{x}_2 \pand \obar{x}_3$ \\
     {\tt 9} & {\tt a}  & {\tt -5 0} & {\tt 7 8 4 5 1 0} & & Assert $t_1 = \obar{p}_5 = x_1 \lor x_2 \lor x_3$ \\
-            & {\tt d}  & {\tt 1 } & {\tt 3 6 7 0} & & Delete clause $C_1$\\
+            & {\tt dc}  & {\tt 1 } & {\tt 3 6 7 0} & & Delete clause $C_1$\\
     {\tt 10} & {\tt p}   & {\tt 6 1 -2} &              & & Declare $p_6 = x_1 \pand \obar{x}_2$ \\    
     {\tt 13} & {\tt a} & {\tt -6 0} & {\tt 11 12 2 0}  & & Assert $t_2 = \obar{p}_6 = \obar{x}_1 \lor x_2$ \\
-            & {\tt d}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
+            & {\tt dc}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
     {\tt 14} & {\tt s}   & {\tt 7 5 6}   & {\tt 7 11 0}  & & Declare $s_7 = \obar{t}_1 \por \obar{t}_2$ \\
     {\tt 17} & {\tt a}  & {\tt -7 0}       & {\tt 9 13 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
-             & {\tt d}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
-             & {\tt d}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
+             & {\tt dc}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
+             & {\tt dc}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
   \end{tabular}
   \end{center}  
 B). Proof Clauses
@@ -684,20 +704,20 @@ B). Proof Clauses
     {\tt 8} &   & {\tt -5 4 0} &      & & \\
 
     {\tt 9} &   & {\tt -5 0} & {\tt 7 8 4 5 1 0} & & Assert $t_1 = \obar{p}_5 = x_1 \lor x_2 \lor x_3$ \\
-            & {\tt d}  & {\tt 1 } & {\tt 3 6 7 0} & & Delete clause $C_1$\\
+            & {\tt dc}  & {\tt 1 } & {\tt 3 6 7 0} & & Delete clause $C_1$\\
 
     {\tt 10} &   & {\tt 6 -1 2 0}  &    & & Defining clauses for $p_6$ \\ 
     {\tt 11} &   & {\tt -6 1 0}    &  & & \\
     {\tt 12} &   & {\tt -6 -2 0}    &  & & \\ 
     {\tt 13} &  & {\tt -6 0} & {\tt 11 12 2 0}  & & Assert $t_2 = \obar{p}_6 = \obar{x}_1 \lor x_2$ \\
-            & {\tt d}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
+            & {\tt dc}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
              &          & {\tt -5 -6 0} & {\tt 7 11 0}  & & Mutual exclusion proof for $s_7$ \\
     {\tt 14} &   & {\tt -7 5 6 0}  &     & & Defining clauses for $s_7$ \\ 
     {\tt 15} &   & {\tt  7 -5 0}    &  &  \\  
     {\tt 16} &   & {\tt  7 -6 0}    &  & &  \\
     {\tt 17} &   & {\tt -7 0}       & {\tt 9 13 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
-             & {\tt d}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
-             & {\tt d}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
+             & {\tt dc}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
+             & {\tt dc}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
   \end{tabular}
   \end{center}  
   \caption{CRAT file \#2A for formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$, and the resulting set of proof clauses}
@@ -773,8 +793,8 @@ computation shown in Figure~\ref{fig:p2-bdd:schema}B\@.
     {\tt 16} & {\tt a}  & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
     {\tt 17} & {\tt a}  & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
     {\tt 18} & {\tt a}  & {\tt 7 0}       & {\tt 16 17 0}  & & Justify unit clause $t = s_7$ \\
-             & {\tt d}  & {\tt 1}         & {\tt 3 8 10 12 18 0} & & Delete $C_1$\\
-             & {\tt d}  & {\tt 2}         & {\tt 11 7 12 18 0} & & Delete $C_2$\\
+             & {\tt dc}  & {\tt 1}         & {\tt 3 8 10 12 18 0} & & Delete $C_1$\\
+             & {\tt dc}  & {\tt 2}         & {\tt 11 7 12 18 0} & & Delete $C_2$\\
   \end{tabular}
   \end{center}  
 B). Proof Clauses
@@ -801,8 +821,8 @@ B). Proof Clauses
     {\tt 16} &   & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
     {\tt 17} &   & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
     {\tt 18} &   & {\tt 7 0}       & {\tt 16 17 0}  & & Justify unit clause $t = s_7$ \\
-             & {\tt d}  & {\tt 1}         & {\tt 3 8 10 12 18 0} & & Delete $C_1$\\
-             & {\tt d}  & {\tt 2}         & {\tt 11 7 12 18 0} & & Delete $C_2$\\
+             & {\tt dc}  & {\tt 1}         & {\tt 3 8 10 12 18 0} & & Delete $C_1$\\
+             & {\tt dc}  & {\tt 2}         & {\tt 11 7 12 18 0} & & Delete $C_2$\\
   \end{tabular}
   \end{center}  
   \caption{CRAT file \#2B for formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$, and the resulting set of proof clauses}
