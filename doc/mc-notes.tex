@@ -889,7 +889,17 @@ more sets over disjoint variables.  Then the schema for each of these
 partitions can be generated separately, and these are joined via the $\pand$
 operation.
 
+%% \subsection{Tseitin Variable Optimization}
 
+%% Many problems cannot be directly encoded in CNF without an exponential
+%% blowup.  This can be avoided by introducing auxilliary variables.  A
+%% particular approach to these encodings makes use of {\em Tseitin}
+%% variables.  The general scheme with these is to let a variable $z$
+%% encode a subformula $F$ over input and prior Tseitin variables by
+%% adding clauses encoding $z \leftrightarrow F$.  A particular property
+%% of this encoding is that if we let ${\cal C}_z$ (respectively ${\cal
+%%   C}_{\obar{z}}$) denote the clauses in which literal $z$ (resp.,
+%% $\obar{z}$) occcurs
 
 \subsection{TO-DO List}
 
