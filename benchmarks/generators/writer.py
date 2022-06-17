@@ -348,60 +348,84 @@ class OrderWriter(Writer):
 
 class CratWriter(Writer):
     variableCount = 0
+    clauseDict = []
     stepCount = 0
 
     def __init__(self, variableCount, clauseList, froot, verbose = False):
         Writer.__init__(self, variableCount, froot, suffix="crat", verbose=verbose, isNull=False)
-        self.doComment("Input clauses")
-        for lits in clauseList:
-            self.doStep(['i'] + lits + [0])
+        if len(clauseList) > 0:
+            self.doComment("Input clauses")
         self.variableCount = variableCount
+        self.stepCount = 0
+        self.clauseDict = {}
+        for s in range(1, len(clauseList)+1):
+            lits = clauseList[s-1]
+            self.doLine([s, 'i'] + lits + [0])
+            self.addClause(s, lits)
 
-    def doStep(self, items):
-        self.stepCount += 1
-        slist = [str(self.stepCount)] + [str(i) for i in items]
-        self.show(" ".join(slist))
-        return self.stepCount
+    def addClause(self, step, lits):
+        self.clauseDict[step] = lits
 
-    def doNoStep(self, items):
+    def deleteClause(self, step):
+        del self.clauseDict[step]
+
+    def doLine(self, items):
         slist = [str(i) for i in items]
-        self.show(" " + " ".join(slist))
+        self.show(" ".join(slist))
 
     def doComment(self, line):
         self.show("c " + line)
         
     def doAnd(self, i1, i2):
         self.variableCount += 1
+        self.stepCount += 1
         v = self.variableCount
-        s = self.doStep(['p', v, i1, i2, 0])
+        s = self.stepCount
+        self.doLine([s, 'p', v, i1, i2])
+        self.addClause(s, [v, -i1, -i2])
+        self.addClause(s+1, [-v, i1])        
+        self.addClause(s+2, [-v, i2])
         if self.verbose:
             self.doComment("Implicit declarations:")
             self.doComment("%d a %d %d %d 0" % (s, v, -i1, -i2))
             self.doComment("%d a %d %d 0" % (s+1, -v, i1))
             self.doComment("%d a %d %d 0" % (s+2, -v, i2))
         self.stepCount += 2
-        return self.variableCount
+        return v
 
     def doOr(self, i1, i2, hints = ['*']):
         self.variableCount += 1
+        self.stepCount += 1
         v = self.variableCount
-        s = self.doStep(['s', v, i1, i2] + hints +  [0])
+        s = self.stepCount
+        self.doLine([s, 's', v, i1, i2] + hints + [0])
+        self.addClause(s, [-v, i1, i2])
+        self.addClause(s+1, [v, -i1])        
+        self.addClause(s+2, [v, -i2])
         if self.verbose:
             self.doComment("Implicit declarations:")
             self.doComment("%d a %d %d %d 0" % (s, -v, i1, i2))
             self.doComment("%d a %d %d 0" % (s+1, v, -i1))
             self.doComment("%d a %d %d 0" % (s+2, v, -i2))
         self.stepCount += 2
-        return self.variableCount
+        return v
         
     def doClause(self, lits, hints = ['*']):
-        self.doStep(['a'] + lits + [0] + hints + [0])
+        self.stepCount += 1
+        s = self.stepCount
+        self.doLine([s, 'a'] + lits + [0] + hints + [0])
+        self.addClause(s, lits)
+        return s
         
     def doDeleteClause(self, id, hints=['*']):
-        self.doNoStep(['dc', id] + hints + [0])
+        self.doLine(['dc', id] + hints + [0])
+        self.deleteClause(id)
 
-    def doDeleteOperation(self):
-        self.doNoStep(['do', id])
+    def doDeleteOperation(self, exvar, clauseId):
+        self.doLine(['do', exvar])
+        for i in range(3):
+            self.deleteClause(clauseId+i)
+        
         
     def finish(self):
         print("c File '%s.crat' has %d variables and %d steps" % (self.froot, self.variableCount, self.stepCount))
