@@ -27,8 +27,10 @@ import getopt
 import datetime
 
 def usage(name):
-    print("Usage: %s [-v] -i FILE.cnf -p FILE.crat" % name)
-    print("   -v        Print more helpful diagnostic information if there is an error")
+    print("Usage: %s [-v] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn]" % name)
+    print("   -v         Print more helpful diagnostic information if there is an error")
+    print("   -w WEIGHTS Provide colon-separated set of input weights.")
+    print("              Each should be between 0 and 100 (will be scaled by 1/100)")
 
 ######################################################################################
 # CRAT Syntax
@@ -340,8 +342,9 @@ class ClauseManager:
 
 class OperationManager:
     conjunction, disjunction = range(2)
-    typeName = ["p", "s"]
-
+    
+    # Number of input variables
+    inputVariableCount = 0
     # Operation indexed by output variable.  Each entry of form (op, arg1, arg2, id)
     operationDict = {}
     # For each variable, the variables on which it depends
@@ -352,6 +355,7 @@ class OperationManager:
     verbose = False
 
     def __init__(self, cmgr, varCount):
+        self.inputVariableCount = varCount
         self.cmgr = cmgr
         self.verbose = cmgr.verbose
         self.operationDict = {}
@@ -415,6 +419,32 @@ class OperationManager:
         del self.dependencySetDict[outVar]
         return (True, "")
 
+    # Optionally provide dictionary of weights.  Otherwise assume unweighted
+    def count(self, root, weights = None):
+        if weights is None:
+            weights = {}
+        beta = 1.0
+        for v in range(1, self.inputVariableCount+1):
+            if v not in weights:
+                weights[v] = 0.5
+                beta *= 2.0
+        for outVar in sorted(self.operationDict.keys()):
+            (op, arg1, arg2, cid) = self.operationDict[outVar]
+            var1 = abs(arg1)
+            val1 = weights[var1]
+            if arg1 < 0:
+                val1 = 1.0 - val1
+            var2 = abs(arg2)
+            val2 = weights[var2]
+            if arg2 < 0:
+                val2 = 1.0 - val2
+            result = val1 * val2 if op == self.conjunction else val1 + val2
+            weights[outVar] = result
+        rootVar = abs(root)
+        rval = weights[rootVar]
+        if root < 0:
+            rval = 1.0 - rval
+        return rval * beta
 
 class ProofException(Exception):
     def __init__(self, value, lineNumber = None):
@@ -532,6 +562,13 @@ class Prover:
         pfile.close()
         self.checkProof()
             
+    def count(self, weights = None):
+        root = self.cmgr.root
+        if root is None:
+            print("Can't determine count.  Don't know root")
+            return 0.0
+        return self.omgr.count(self.cmgr.root, weights)
+
     def invalidCommand(self, cmd):
         self.flagError("Invalid command '%s' in proof" % cmd)
 
@@ -681,7 +718,8 @@ def run(name, args):
     cnfName = None
     proofName = None
     verbose = False
-    optList, args = getopt.getopt(args, "hvi:p:")
+    weights = None
+    optList, args = getopt.getopt(args, "hvi:p:w:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -692,6 +730,14 @@ def run(name, args):
             cnfName = val
         elif opt == '-p':
             proofName = val
+        elif opt == '-w':
+            wlist = val.split(":")
+            try:
+                weights = { v : int(wlist[v-1])/100.0 for v in range(1, len(wlist)+1) }
+            except:
+                print("Couldn't extract weights from '%s'." % val)
+                usage(name)
+                return
         else:
             usage(name)
             return
@@ -712,6 +758,11 @@ def run(name, args):
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     print("Elapsed time for check: %.2f seconds" % seconds)
+    count = prover.count(weights)
+    if weights is None:
+        print("Unweighted count = %.0f" % count)
+    else:
+        print("Weighted count = %.5f" % count)
     
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
