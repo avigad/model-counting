@@ -40,7 +40,7 @@ def proofGen(froot, n, verbose):
         arg2 = args[-1]
         downSteps += [step]
         upSteps += [step+1, step+2]
-        v = pwriter.doAnd(arg1, arg2)
+        (v, s) = pwriter.doAnd(arg1, arg2)
         args = args[:-2] + [v]
     # Assert unit clause for root
     root = -args[0]

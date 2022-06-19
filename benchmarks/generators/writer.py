@@ -31,15 +31,15 @@ class WriterException(Exception):
 class Writer:
     outfile = None
     suffix = None
-    verbose = False
+    verbLevel = 1
     expectedVariableCount = None
     isNull = False
     froot = ""
 
-    def __init__(self, count, froot, suffix = None, verbose = False, isNull = False):
+    def __init__(self, count, froot, suffix = None, verbLevel = 1, isNull = False):
         self.expectedVariableCount = count
         self.froot = froot
-        self.verbose = verbose
+        self.verbLevel = verbLevel
         self.isNull = isNull
         if isNull:
             return
@@ -64,7 +64,7 @@ class Writer:
         if self.isNull:
             return
         line = self.trim(line)
-        if self.verbose:
+        if self.verbLevel > 2:
             print(line)
         if self.outfile is not None:
             self.outfile.write(line + '\n')
@@ -85,8 +85,8 @@ class CnfWriter(Writer):
     clauseCount = 0
     outputList = []
 
-    def __init__(self, count, froot, verbose = False):
-        Writer.__init__(self, count, froot, suffix = "cnf", verbose = verbose)
+    def __init__(self, count, froot, verbLevel = 1):
+        Writer.__init__(self, count, froot, suffix = "cnf", verbLevel = verbLevel)
         self.clauseCount = 0
         self.outputList = []
 
@@ -168,15 +168,15 @@ class LazyCnfWriter:
     # item: list of literals for clause, string for comment
     items = []
     froot = ""
-    verbose = False
+    verbLevel = 1
     permuter = None
 
-    def __init__(self, froot, permuter = None, verbose = False):
+    def __init__(self, froot, permuter = None, verbLevel = 1):
         self.variableCount = 0
         self.items = []
         self.froot = froot
         self.permuter = permuter
-        self.verbose = verbose
+        self.verbLevel = verbLevel
 
 
     def newVariable(self):
@@ -206,7 +206,7 @@ class LazyCnfWriter:
         return clist
 
     def finish(self):
-        writer = CnfWriter(self.variableCount, self.froot, self.verbose)
+        writer = CnfWriter(self.variableCount, self.froot, self.verbLevel)
         for (isClause, value) in self.items:
             if isClause:
                 writer.doClause(value)
@@ -221,8 +221,8 @@ class LratWriter(Writer):
     # Must initialize this to the number of clauses in the original CNF file
     clauseCount = 0
 
-    def __init__(self, clauseCount, froot, verbose = False):
-        Writer.__init__(self, None, froot, suffix = "lrat", verbose = verbose)
+    def __init__(self, clauseCount, froot, verbLevel = 1):
+        Writer.__init__(self, None, froot, suffix = "lrat", verbLevel = verbLevel)
         self.clauseCount = clauseCount
 
     def doComment(self, line):
@@ -241,8 +241,8 @@ class ScheduleWriter(Writer):
     decrementAnd = False
     expectedFinal = 1
 
-    def __init__(self, count, froot, verbose = False, isNull = False):
-        Writer.__init__(self, count, froot, suffix = "schedule", verbose = verbose, isNull = isNull)
+    def __init__(self, count, froot, verbLevel = 1, isNull = False):
+        Writer.__init__(self, count, froot, suffix = "schedule", verbLevel = verbLevel, isNull = isNull)
         self.stackDepth = 0
         self.decrementAnd = False
     
@@ -318,10 +318,10 @@ class ScheduleWriter(Writer):
 class OrderWriter(Writer):
     variableList = []
 
-    def __init__(self, count, froot, verbose = False, suffix = None, isNull = False):
+    def __init__(self, count, froot, verbLevel = 1, suffix = None, isNull = False):
         if suffix is None:
             suffix = "order"
-        Writer.__init__(self, count, froot, suffix = suffix, verbose = verbose, isNull = isNull)
+        Writer.__init__(self, count, froot, suffix = suffix, verbLevel = verbLevel, isNull = isNull)
         self.variableList = []
 
     def doOrder(self, vlist):
@@ -351,12 +351,12 @@ class CratWriter(Writer):
     clauseDict = []
     stepCount = 0
 
-    def __init__(self, variableCount, clauseList, froot, verbose = False):
-        Writer.__init__(self, variableCount, froot, suffix="crat", verbose=verbose, isNull=False)
+    def __init__(self, variableCount, clauseList, froot, verbLevel = 1):
+        Writer.__init__(self, variableCount, froot, suffix="crat", verbLevel=verbLevel, isNull=False)
         if len(clauseList) > 0:
             self.doComment("Input clauses")
         self.variableCount = variableCount
-        self.stepCount = 0
+        self.stepCount = len(clauseList)
         self.clauseDict = {}
         for s in range(1, len(clauseList)+1):
             lits = clauseList[s-1]
@@ -385,13 +385,13 @@ class CratWriter(Writer):
         self.addClause(s, [v, -i1, -i2])
         self.addClause(s+1, [-v, i1])        
         self.addClause(s+2, [-v, i2])
-        if self.verbose:
+        if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
             self.doComment("%d a %d %d %d 0" % (s, v, -i1, -i2))
             self.doComment("%d a %d %d 0" % (s+1, -v, i1))
             self.doComment("%d a %d %d 0" % (s+2, -v, i2))
         self.stepCount += 2
-        return v
+        return (v, s)
 
     def doOr(self, i1, i2, hints = ['*']):
         self.variableCount += 1
@@ -402,13 +402,13 @@ class CratWriter(Writer):
         self.addClause(s, [-v, i1, i2])
         self.addClause(s+1, [v, -i1])        
         self.addClause(s+2, [v, -i2])
-        if self.verbose:
+        if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
             self.doComment("%d a %d %d %d 0" % (s, -v, i1, i2))
             self.doComment("%d a %d %d 0" % (s+1, v, -i1))
             self.doComment("%d a %d %d 0" % (s+2, v, -i2))
         self.stepCount += 2
-        return v
+        return (v, s)
         
     def doClause(self, lits, hints = ['*']):
         self.stepCount += 1
