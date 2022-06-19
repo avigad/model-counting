@@ -524,9 +524,11 @@ The explicit or implied hints must provide a RUP proof of the clause $-l_1 \lor 
 
 Finally, operator deletion ({\tt do}) specifies which operator to
 delete via the extension variable associated with the operator.  Doing
-so for operator $v$ requires 1) there is no (undeleted) operator $u$
-having a literal of $v$ as one of its inputs, and 2) there is no
+so for operator $v$ requires that there is no
 (undeleted) RUP clause containing a literal of $v$.
+Implicitly, that means
+that there is no (undeleted) operator $u$
+having a literal of $v$ as one of its inputs.  The defining clauses for the operation are also deleted.
 
 \subsection{Semantics}
 
