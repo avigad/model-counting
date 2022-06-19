@@ -188,6 +188,8 @@ class CnfReader():
 
 # Clause processing
 class ClauseManager:
+    # Number of input clauses
+    inputClauseCount = 0
     # Mapping from Id to clause.  Deleted clauses represented by None
     clauseDict = {}
     # For each literal, count of clauses containing it
@@ -204,8 +206,11 @@ class ClauseManager:
     maxClauseId = 0
     # Clauses that haven't been deleted (only in verbose mode)
     liveClauseSet = set([])
+    # Final root node
+    root = None
 
-    def __init__(self, verbose):
+    def __init__(self, verbose, clauseCount):
+        self.inputClauseCount = clauseCount
         self.verbose = verbose
         self.clauseDict = {}
         self.literalCountDict = {}
@@ -215,6 +220,7 @@ class ClauseManager:
         self.maxLiveClauseCount = 0
         self.totalClauseCount = 0
         self.liveClauseSet = set([])
+        self.root = None
 
     def findClause(self, id):
         if id not in self.clauseDict:
@@ -278,25 +284,59 @@ class ClauseManager:
             fullProof = False
             return (True, "")
         unitSet = set([-lit for lit in clause])
+        history = "INIT:"
+        for lit in clause:
+            history += " %d" % -lit
+        history += ". "
         for id in hints:
             rclause, msg = self.findClause(id)
             if rclause is None:
                 return (False, "RUP failed: %s" % msg)
             ulit = None
+            history += "#%d=%s:" % (id, str(rclause))
             for lit in rclause:
                 if -lit not in unitSet:
                     if lit in unitSet:
-                        return (False, "RUP failed: Literal %d true in clause #%d" % (lit, id))
+                        return (False, "RUP failed: Literal %d true in clause #%d (history = %s)" % (lit, id, history))
                     elif ulit is None:
                         ulit = lit
                     else:
-                        return (False, "RUP failed: No unit literal found in clause #%d" % id)
+                        return (False, "RUP failed: No unit literal found in clause #%d %s (history = %s)" % (id, showClause(rclause), history))
             if ulit is None:
                 return (True, "")
             unitSet.add(ulit)
-        return (False, "RUP failed: No conflict found")
+            history += " %d. " % ulit 
+        return (False, "RUP failed: No conflict found (history = %s)" % history)
 
-      
+    def checkFinal(self):
+        # All input clauses should have been deleted
+        neverDefined = []
+        notDeleted = []
+        for id in range(1, self.inputClauseCount+1):
+            if id in self.clauseDict:
+                if self.clauseDict[id] is not None:
+                    notDeleted.append(id)
+            else:
+                neverDefined.append(id)
+        if len(neverDefined) > 0:
+            return (False, "Input clauses %s never defined" % str(neverDefined))
+        if len(notDeleted) > 0:
+            return (False, "Input clauses %s not deleted" % str(notDeleted))
+        # Should only be one unit clause
+        self.root = None
+        for id in sorted(self.clauseDict.keys()):
+            entry = self.clauseDict[id]
+            if entry is None:
+                continue
+            if len(entry) == 1:
+                nroot = entry[0]
+                if self.root is not None:
+                    return (False, "At least two possible root nodes: %d, %d" % (root, nroot))
+                self.root = nroot
+        if self.root is None:
+            return (False, "No root node found")
+        print("Root node %d" % self.root)
+        return (True, "")
 
 class OperationManager:
     conjunction, disjunction = range(2)
@@ -397,7 +437,7 @@ class Prover:
     def __init__(self, creader, verbose = False):
         self.verbose = verbose
         self.lineNumber = 0
-        self.cmgr = ClauseManager(verbose)
+        self.cmgr = ClauseManager(verbose, len(creader.clauses))
         self.omgr = OperationManager(self.cmgr, creader.nvar)
         self.failed = False
         self.subsetOK = False
@@ -486,6 +526,9 @@ class Prover:
             if self.failed:
                 break
             self.ruleCounters[cmd] += 1
+        (ok, msg) = self.cmgr.checkFinal()
+        if not ok:
+            self.flagError(msg)
         pfile.close()
         self.checkProof()
             
