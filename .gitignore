@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+lean_packages/
+!lean_packages/manifest.json
+
 # C extensions
 *.so
 
