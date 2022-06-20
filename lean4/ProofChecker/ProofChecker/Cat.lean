@@ -153,9 +153,11 @@ structure CheckerState where
   clauseDb : Std.HashMap Nat (Clause Nat) := {}
   -- which clauses a given literal occurs in
   occurs : Std.HashMap (Lit Nat) (Array Nat) := {}
-  -- which variables an extension variable depends on
+  /-- Which variables an extension variable transitively depends on. -/
   -- invariant: extension variable is in `depends` iff it has been introduced
   depends : Std.HashMap Nat (Std.RBTree Nat compare) := {}
+  /-- Which extension variables directly depend on a variable. -/
+  revDeps : Std.HashMap Nat (Std.RBTree Nat compare) := {}
   /-- The first clause of the three clauses defining an extension variable. -/
   extDefClauses : Std.HashMap Nat Nat := {}
   scheme : CountingScheme.Graph Nat := CountingScheme.Graph.empty
@@ -176,6 +178,7 @@ inductive CheckerError where
   | hintNotUnit (idx : Nat)
   | upNoContradiction (τ : PropAssignment Nat)
   | varNotExtension (x : Nat)
+  | varHasRevDeps (x : Nat)
   | missingHint (idx : Nat) (pivot : Lit Nat)
   | duplicateExtVar (x : Nat)
   | unknownExtVar (x : Nat)
@@ -191,6 +194,7 @@ instance : ToString CheckerError where
     | hintNotUnit idx => s!"hinted clause at {idx} did not become unit"
     | upNoContradiction τ => s!"unit propagation did not derive contradiction (final assignment {τ})"
     | varNotExtension x => s!"variable '{x}' is not an extension variable"
+    | varHasRevDeps x => s!"variable '{x}' cannot be removed as others depend on it"
     | missingHint idx pivot => s!"missing hint for clause {idx} resolved on '{pivot}'"
     | duplicateExtVar x => s!"extension variable '{x}' already introduced"
     | unknownExtVar x => s!"unknown extension variable '{x}'"
@@ -260,7 +264,25 @@ def addExtVar (x : Nat) (d₁ d₂ : Nat) (ensureDisjoint := false) : CheckerM U
   if ensureDisjoint ∧ depends₁.any (depends₂.contains ·) then
     throw <| .sumNotDisjoint d₁ d₂
   let allDeps := depends₂.fold (init := depends₁) fun acc x => acc.insert x
-  set { st with depends := st.depends.insert x allDeps }
+    |>.insert d₁ |>.insert d₂
+
+  let revDeps₁ := st.revDeps.find? d₁ |>.getD {} |>.insert x
+  let revDeps₂ := st.revDeps.find? d₂ |>.getD {} |>.insert x
+  set { st with
+    depends := st.depends.insert x allDeps
+    revDeps := st.revDeps.insert d₁ revDeps₁ |>.insert d₂ revDeps₂
+  }
+
+def delExtVar (x : Nat) : CheckerM Unit := do
+  let st ← get
+  if x ≤ st.originalVars then
+    throw <| .varNotExtension x
+  if !(st.revDeps.find? x |>.getD {} |>.isEmpty) then
+    throw <| .varHasRevDeps x
+  set { st with
+    depends := st.depends.erase x
+    revDeps := st.revDeps.erase x
+  }
 
 /-- Propagate units starting from the given assignment. The clauses in `hints` are expected to become
 unit in the order provided, as seen in LRAT. Return the extended assignment, or `none` if a contradiction was found. -/
@@ -378,17 +400,11 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
       match (← get).extDefClauses.find? x with
       | none => throw <| .unknownExtVar x
       | some idx =>
+        delExtVar x
         delClause idx
         delClause (idx+1)
         delClause (idx+2)
-        -- TODO remove from downstream depends sets and check
-        -- let deps := (← get).depends.find! x
-        -- if deps.size != 0 then
-        --    throw <| .nonemptyDependents x
-        modify fun st => { st with
-          extDefClauses := st.extDefClauses.erase x
-          depends := st.depends.erase x
-        }
+        modify fun st => { st with extDefClauses := st.extDefClauses.erase x }
         updateGraph step
 
 def check (cnf : CnfForm Nat) (pf : List (CatStep Nat Nat)) : IO Bool := do
