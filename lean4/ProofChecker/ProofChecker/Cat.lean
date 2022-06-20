@@ -39,7 +39,7 @@ open Dimacs in
 def ofDimacs (tks : List Token) : Except String (CatStep Nat Nat) := do
   let toUpHints (tks : List Token) : Except String (List Nat) := do
     if let [.str "*"] := tks then return []
-    tks.dropLast.mapM (·.getInt? |> Except.ofOption "expected int" |>.map Int.natAbs)
+    tks.mapM (·.getInt? |> Except.ofOption "expected int" |>.map Int.natAbs)
   let posInt (x : Int) : Except String Nat := do
     if x < 0 then throw s!"expected positive int {x}"
     return x.natAbs
@@ -286,7 +286,7 @@ def delExtVar (x : Nat) : CheckerM Unit := do
 
 /-- Propagate units starting from the given assignment. The clauses in `hints` are expected to become
 unit in the order provided, as seen in LRAT. Return the extended assignment, or `none` if a contradiction was found. -/
-def propagateWithHints (τ : PropAssignment Nat) (hints : Array Nat) : CheckerM (Option (PropAssignment Nat)) := do
+def propagateWithHints (τ : PropAssignment Nat) (hints : List Nat) : CheckerM (Option (PropAssignment Nat)) := do
   let mut τ := τ
   for hint in hints do
     let some C' ← reduceClause hint τ | throw <| .hintNotUnit hint
@@ -295,10 +295,17 @@ def propagateWithHints (τ : PropAssignment Nat) (hints : Array Nat) : CheckerM 
     τ := τ.extend l
   return some τ
 
+def checkAtWithHints (C : Clause Nat) (hints : List Nat) : CheckerM Unit := do
+  let notC := PropAssignment.mk (C.map Lit.negate)
+  let some τ ← propagateWithHints notC hints | do
+    log s!"({C}) implied by UP"
+    return
+  throw <| .upNoContradiction τ
+
 /-- Check that `C` is either implied by UP, or is a RAT on its first literal, the *pivot*.
 For CRAT we also ensure that the pivot is an extension variable.
 `posHints` and `negHints` are as in LRAT -/
-def checkRat (C : Clause Nat) (posHints : Array Nat) (negHints : Array (Nat × Array Nat)) : CheckerM Unit := do
+def checkRat (C : Clause Nat) (posHints : List Nat) (negHints : List (Nat × List Nat)) : CheckerM Unit := do
   let notC := PropAssignment.mk (C.map Lit.negate)
   let some τ ← propagateWithHints notC posHints | do
     log s!"({C}) implied by UP"
@@ -371,14 +378,16 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
     | .addInput idx C =>
       -- TODO check that it belongs to input CNF, and that all of input CNF is introduced
       addClause idx C
-    | .addAt idx C _ =>
-      checkAtWithoutHints C
+    | .addAt idx C pf =>
+      if !pf.isEmpty then checkAtWithHints C pf
+      else checkAtWithoutHints C
       addClause idx C
-    | .delAt idx _ =>
+    | .delAt idx pf =>
       let C ← getClause idx
       -- The clause must be AT by everything except itself.
       delClause idx
-      checkAtWithoutHints C
+      if !pf.isEmpty then checkAtWithHints C pf
+      else checkAtWithoutHints C
     | step@(.prod idx x l₁ l₂) =>
       addExtVar x l₁.var l₂.var (ensureDisjoint := true)
       let lx := Lit.ofInt x
@@ -387,8 +396,10 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
       addClause (idx+2) (Clause.mk [-lx, l₂])
       modify fun st => { st with extDefClauses := st.extDefClauses.insert x idx }
       updateGraph step
-    | step@(.sum idx x l₁ l₂ _) =>
-      checkAtWithoutHints <| Clause.mk [l₁.negate, l₂.negate]
+    | step@(.sum idx x l₁ l₂ pf) =>
+      let C := Clause.mk [l₁.negate, l₂.negate]
+      if !pf.isEmpty then checkAtWithHints C pf
+      else checkAtWithoutHints C
       addExtVar x l₁.var l₂.var
       let lx := Lit.ofInt x
       addClause idx (Clause.mk [-lx, l₁, l₂])
