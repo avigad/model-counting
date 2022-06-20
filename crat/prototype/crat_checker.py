@@ -107,7 +107,7 @@ def testClauseEquality(clause1, clause2):
             return False
     return True
 
-class P2Exception(Exception):
+class PNumException(Exception):
     msg = ""
 
     def __init__(self, msg):
@@ -117,54 +117,61 @@ class P2Exception(Exception):
         return "P2 Number exception %s" % self.msg
 
 
-# Represent numbers of form a * 2^b, where a is odd integer and b is integer
-class P2Num:
+# Represent numbers of form a * base^b, where a is odd integer and b is integer
+# Default base = 2
+class PNum:
     a = 1
     b = 0
 
-    def __init__(self, a, b=0):
+    def __init__(self, a, b=0, base=2):
         if type(a) != type(1):
-            raise P2Exception("Nonintegral a (%s)" % str(a))
+            raise PNumException("Nonintegral a (%s)" % str(a))
         if type(b) != type(1):
-            raise P2Exception("Nonintegral b (%s)" % str(a))
+            raise PNumException("Nonintegral b (%s)" % str(b))
+        if type(base) != type(1):
+            raise PNumException("Nonintegral base (%s)" % str(base))
+        if base == 0:
+            raise PNumException("Zero base (%s)" % str(base))
+        self.base = base
         if a == 0:
             self.a = 0
             self.b = 0
             return
-        while a % 2 == 0:
-            a = a//2
+        while a % base == 0:
+            a = a//base
             b += 1
         self.a = a
         self.b = b
 
     def __str__(self):
-        return "%d*2^(%d)" % (self.a, self.b)
+        return "%d*%d^(%d)" % (self.a, self.base, self.b)
 
     def num(self):
-        p2 = 2**self.b
-        val = p2 * self.a
+        p = self.base**self.b
+        val = p * self.a
         return val
 
 
     def neg(self):
-        result = P2Num(-self.a, self.b)
-#        print("- %s --> %s" % (str(self), str(result)))
+        result = PNum(-self.a, self.b, self.base)
         return result
 
     def oneminus(self):
-        one = P2Num(1, 0)
+        one = PNum(1, 0, self.base)
         result = one.add(self.neg())
-#        print("1- %s --> %s" % (str(self), str(result)))
         return result
 
     def mul(self, other):
+        if self.base != other.base:
+            raise PNumException("Mismatched bases: %d != %d" % (self.base, other.base))
         na = self.a * other.a 
         nb = self.b + other.b
-        result =  P2Num(na, nb)
-#        print("%s * %s --> %s" % (str(self), str(other), str(result)))
+        result =  PNum(na, nb, self.base)
         return result
 
     def add(self, other):
+        if self.base != other.base:
+            raise PNumException("Mismatched bases: %d != %d" % (self.base, other.base))
         a1 = self.a
         b1 = self.b
         a2 = other.a
@@ -173,16 +180,33 @@ class P2Num:
             a1,a2 = a2,a1
             b1,b2 = b2,b1
         # Guarantee b2 >= b1
-        p2 = 2 ** (b2-b1)
-        a2 *= p2
+        p = self.base ** (b2-b1)
+        a2 *= p
         na = a1 + a2
         nb = b1
-        result = P2Num(na, nb)
-#        print("%s + %s --> %s" % (str(self), str(other), str(result)))
+        result = PNum(na, nb, self.base)
         return result
 
-    def p2scale(self, p2):
-        return P2Num(self.a, p2+self.b)
+    def pscale(self, p):
+        return PNum(self.a, p+self.b, self.base)
+
+    def render(self):
+        if self.base != 10:
+            return str(self.num())
+        if self.a < 0:
+            sval = "-"
+            digits = str(-self.a)
+        else:
+            sval = ""
+            digits = str(self.a)
+        pt = len(digits)
+        if self.b >= 0:
+            sval = digits + "0" * self.b
+        elif pt + self.b > 0:
+            sval += digits[:pt+self.b] + "." + digits[pt+self.b:]
+        else:
+            sval += "0." + "0" * (self.b - pt) + digits
+        return sval
 
 # Read CNF file.
 # Save list of clauses, each is a list of literals (zero at end removed)
@@ -564,8 +588,7 @@ class OperationManager:
         del self.dependencySetDict[outVar]
         return (True, "")
 
-    def unweightedCount(self, root):
-        weights = { v : P2Num(1,-1) for v in range(1, self.inputVariableCount+1) }
+    def pnumCount(self, root, weights, finalScale = None):
         for outVar in sorted(self.operationDict.keys()):
             (op, arg1, arg2, cid) = self.operationDict[outVar]
             var1 = abs(arg1)
@@ -582,20 +605,11 @@ class OperationManager:
         rval = weights[rootVar]
         if root < 0:
             rval = rval.oneminus()
-        sval = rval.p2scale(self.inputVariableCount)
-        return sval.num()
-
-
-    # Optionally provide dictionary of weights.  Otherwise assume unweighted
-    def count(self, root, weights = None):
-        if weights is None:
-            print("Precise count    = %s" % str(self.unweightedCount(root)))
-            weights = {}
-        beta = 1.0
-        for v in range(1, self.inputVariableCount+1):
-            if v not in weights:
-                weights[v] = 0.5
-                beta *= 2.0
+        if finalScale is not None:
+            rval = rval.mul(finalScale)
+        return rval
+    
+    def floatCount(self, root, weights, finalScale = None):
         for outVar in sorted(self.operationDict.keys()):
             (op, arg1, arg2, cid) = self.operationDict[outVar]
             var1 = abs(arg1)
@@ -612,7 +626,23 @@ class OperationManager:
         rval = weights[rootVar]
         if root < 0:
             rval = 1.0 - rval
-        return rval * beta
+        if finalScale is not None:
+            rval *= finalScale
+        return rval
+
+
+    # Optionally provide dictionary of weights.  Otherwise assume unweighted
+    def count(self, root, weights = None, finalScale = None):
+        if weights is None:
+            weights = { v : PNum(1,-1,2) for v in range(1, self.inputVariableCount+1) }
+            finalScale = PNum(1, self.inputVariableCount, 2)
+        pval = self.pnumCount(root, weights, finalScale)
+        fweights = { v : weights[v].num() for v in weights.keys() }
+        fscale = finalScale if finalScale is None else finalScale.num()
+        rval = self.floatCount(root, fweights, fscale)
+        print("Precise count = %s" % pval.render())
+        print("Float count   = %s" % str(rval)) 
+        return pval.num()
 
 class ProofException(Exception):
     def __init__(self, value, lineNumber = None):
@@ -902,9 +932,9 @@ def run(name, args):
         elif opt == '-w':
             wlist = val.split(":")
             try:
-                weights = { v : int(wlist[v-1])/100.0 for v in range(1, len(wlist)+1) }
-            except:
-                print("Couldn't extract weights from '%s'." % val)
+                weights = { v : PNum(int(wlist[v-1]), -2, 10) for v in range(1, len(wlist)+1) }
+            except Exception as ex:
+                print("Couldn't extract weights from '%s' (%s)" % (val, str(ex)))
                 usage(name)
                 return
         else:
@@ -921,6 +951,9 @@ def run(name, args):
     if creader.failed:
         print("Error reading CNF file: %s" % creader.errorMessage)
         print("PROOF FAILED")
+        return
+    if weights is not None and len(weights) != creader.nvar:
+        print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
         return
     prover = Prover(creader, verbose)
     prover.prove(proofName)
