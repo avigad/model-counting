@@ -205,7 +205,7 @@ class PNum:
         elif pt + self.b > 0:
             sval += digits[:pt+self.b] + "." + digits[pt+self.b:]
         else:
-            sval += "0." + "0" * (self.b - pt) + digits
+            sval += "0." + "0" * -(pt + self.b) + digits
         return sval
 
 # Read CNF file.
@@ -964,7 +964,7 @@ def run(name, args):
     if weights is None:
         print("Unweighted count = %.0f" % count)
     else:
-        print("Weighted count = %.5f" % count)
+        print("Weighted count = %s" % str(count))
     
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
