@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
 #####################################################################################
-# Copyright (c) 2021 Marijn Heule, Randal E. Bryant, Carnegie Mellon University
-# Last edit: Feb. 16, 2021
+# Copyright (c) 2022 Randal E. Bryant, Carnegie Mellon University
+# Last edit: June 19, 2022
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 # associated documentation files (the "Software"), to deal in the Software without restriction,
