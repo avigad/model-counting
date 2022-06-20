@@ -590,7 +590,6 @@ class OperationManager:
     def count(self, root, weights = None):
         if weights is None:
             print("Precise count    = %s" % str(self.unweightedCount(root)))
-#            print("I think the count = %s" % str(self.unweightedCount(root)))
             weights = {}
         beta = 1.0
         for v in range(1, self.inputVariableCount+1):
