@@ -52,10 +52,6 @@ def usage(name):
 
 ######################################################################################
 
-# Global variable.  Set to False if cut corners in check
-fullProof = True
-
-
 def trim(s):
     while len(s) > 0 and s[-1] in ' \r\n\t':
         s = s[:-1]
@@ -893,10 +889,7 @@ class Prover:
         if self.failed:
             self.failProof("")
         else:
-            if fullProof:
-                print("PROOF SUCCESSFUL")
-            else:
-                print("PROOF PARTIALLY VERIFIED")
+            print("PROOF SUCCESSFUL")
         self.summarize()
             
     def summarize(self):
