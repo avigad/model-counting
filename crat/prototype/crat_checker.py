@@ -312,7 +312,7 @@ class ClauseManager:
     maxClauseId = 0
     # Clauses that haven't been deleted (only in verbose mode)
     liveClauseSet = set([])
-    # Final root node
+    # Final root 
     root = None
 
     def __init__(self, verbose, clauseCount):
@@ -503,10 +503,10 @@ class ClauseManager:
             if len(entry) == 1:
                 nroot = entry[0]
                 if self.root is not None:
-                    return (False, "At least two possible root nodes: %d, %d" % (root, nroot))
+                    return (False, "At least two possible roots: %d, %d" % (self.root, nroot))
                 self.root = nroot
         if self.root is None:
-            return (False, "No root node found")
+            return (False, "No root found")
         return (True, "")
 
 class OperationManager:
