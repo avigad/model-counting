@@ -61,6 +61,7 @@ def trim(s):
         s = s[:-1]
     return s
 
+
 # Clean up clause.
 # Remove duplicates
 # Sort in reverse order of variable number
@@ -105,6 +106,83 @@ def testClauseEquality(clause1, clause2):
         if l1 != l2:
             return False
     return True
+
+class P2Exception(Exception):
+    msg = ""
+
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return "P2 Number exception %s" % self.msg
+
+
+# Represent numbers of form a * 2^b, where a is odd integer and b is integer
+class P2Num:
+    a = 1
+    b = 0
+
+    def __init__(self, a, b=0):
+        if type(a) != type(1):
+            raise P2Exception("Nonintegral a (%s)" % str(a))
+        if type(b) != type(1):
+            raise P2Exception("Nonintegral b (%s)" % str(a))
+        if a == 0:
+            self.a = 0
+            self.b = 0
+            return
+        while a % 2 == 0:
+            a = a//2
+            b += 1
+        self.a = a
+        self.b = b
+
+    def __str__(self):
+        return "%d*2^(%d)" % (self.a, self.b)
+
+    def num(self):
+        p2 = 2**self.b
+        val = p2 * self.a
+        return val
+
+
+    def neg(self):
+        result = P2Num(-self.a, self.b)
+#        print("- %s --> %s" % (str(self), str(result)))
+        return result
+
+    def oneminus(self):
+        one = P2Num(1, 0)
+        result = one.add(self.neg())
+#        print("1- %s --> %s" % (str(self), str(result)))
+        return result
+
+    def mul(self, other):
+        na = self.a * other.a 
+        nb = self.b + other.b
+        result =  P2Num(na, nb)
+#        print("%s * %s --> %s" % (str(self), str(other), str(result)))
+        return result
+
+    def add(self, other):
+        a1 = self.a
+        b1 = self.b
+        a2 = other.a
+        b2 = other.b
+        if b1 > b2:
+            a1,a2 = a2,a1
+            b1,b2 = b2,b1
+        # Guarantee b2 >= b1
+        p2 = 2 ** (b2-b1)
+        a2 *= p2
+        na = a1 + a2
+        nb = b1
+        result = P2Num(na, nb)
+#        print("%s + %s --> %s" % (str(self), str(other), str(result)))
+        return result
+
+    def p2scale(self, p2):
+        return P2Num(self.a, p2+self.b)
 
 # Read CNF file.
 # Save list of clauses, each is a list of literals (zero at end removed)
@@ -486,9 +564,33 @@ class OperationManager:
         del self.dependencySetDict[outVar]
         return (True, "")
 
+    def unweightedCount(self, root):
+        weights = { v : P2Num(1,-1) for v in range(1, self.inputVariableCount+1) }
+        for outVar in sorted(self.operationDict.keys()):
+            (op, arg1, arg2, cid) = self.operationDict[outVar]
+            var1 = abs(arg1)
+            val1 = weights[var1]
+            if arg1 < 0:
+                val1 = val1.oneminus()
+            var2 = abs(arg2)
+            val2 = weights[var2]
+            if arg2 < 0:
+                val2 = val2.oneminus()
+            result = val1.mul(val2) if op == self.conjunction else val1.add(val2)
+            weights[outVar] = result
+        rootVar = abs(root)
+        rval = weights[rootVar]
+        if root < 0:
+            rval = rval.oneminus()
+        sval = rval.p2scale(self.inputVariableCount)
+        return sval.num()
+
+
     # Optionally provide dictionary of weights.  Otherwise assume unweighted
     def count(self, root, weights = None):
         if weights is None:
+            print("Precise count    = %s" % str(self.unweightedCount(root)))
+#            print("I think the count = %s" % str(self.unweightedCount(root)))
             weights = {}
         beta = 1.0
         for v in range(1, self.inputVariableCount+1):
