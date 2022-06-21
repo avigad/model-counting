@@ -92,8 +92,7 @@ inductive Node ν
 
 structure Graph (ν : Type) [BEq ν] [Hashable ν] where
   /--
-  `nodes x = y` when x ↔ y
-  In particular, by convention every original variable has nodes x = x
+  `nodes x = y` when x ↔ y, i.e. the node `y` defines the extension variable `x`
   -/
   nodes : Std.HashMap ν (Node ν)
 
