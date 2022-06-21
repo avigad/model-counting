@@ -580,7 +580,7 @@ class OperationManager:
         (ok, msg) = self.cmgr.deleteClause(id+2)
         if not ok:
             return (False, "Could not delete defining clause for operation %d: %s" % (outVar, msg))
-        lcount = self.cmgr.literalCountDict[outVar]
+        lcount = self.cmgr.literalCountDict[outVar] + self.cmgr.literalCountDict[-outVar]
         if lcount > 0:
             return (False, "Could not delete operation %d: %d clauses still reference it." % (outvar, vcount))
         del self.operationDict[outVar]
