@@ -89,6 +89,9 @@ class Node:
             self.litSet |= c.litSet
             self.varSet |= c.varSet
 
+    def clone(self, nid):
+        return self
+
     def cstring(self):
         slist = ["N%d" % c.id for c in self.children]
         return '(' + ", ".join(slist) + ')'
@@ -111,8 +114,13 @@ class AndNode(Node):
             else:
                 nchildren.append(c)
         Node.__init__(self, NodeType.conjunction, id, lchildren + nchildren)
-
         self.getVars()
+        
+    def clone(self, nid):
+        nchildren = list(self.children)
+        nnode = AndNode(nid, nchildren)
+        return nnode
+
 
 # Attempt optimizations
 def optAndNode(id, children):
@@ -136,6 +144,12 @@ class OrNode(Node):
         self.splitVar = splitVar
         self.getVars()
 
+    def clone(self, nid):
+        nchildren = list(self.children)
+        nnode = OrNode(nid, nchildren, self.splitVar)
+        return nnode
+
+
 def optOrNode(id, children, splitVar):
     if len(children) == 0:
         return ConstantNode(id, 0)
@@ -152,6 +166,9 @@ class LeafNode(Node):
         self.litSet = set([lit])
         self.varSet = set([abs(lit)])
         
+    def clone(self, nid):
+        return LeafNode(self, nid, self.lit)
+
     def cstring(self):
         return '(' + str(self.lit) + ')'
 
@@ -161,6 +178,9 @@ class ConstantNode(Node):
     def __init__(self, id, val):
         Node.__init__(self, NodeType.constant, id, [])
         self.val = val
+
+    def clone(self, nid):
+        return ConstantNode(self, nid, self.val)
 
     def cstring(self):
         return str(self.val)
@@ -183,12 +203,10 @@ class IteNode(Node):
 class Nnf:
     verbose = False
     inputCount = 0
-    rootId = None
     nodes = []
 
     def __init__(self, verbose = False):
         self.inputCount = 0
-        self.rootId = None
         self.nodes = []
 
     def nodeCount(self):
@@ -291,19 +309,15 @@ class Nnf:
         if not gotHeader:
             print("No header found")
             return False
-        self.rootId = len(self.nodes)-1
         return True
 
     def show(self):
         for n in self.nodes:
             if n is not None:
-                if n.id == self.rootId:
-                    sys.stdout.write("Root: ")
                 n.show()
 
     def findIte(self):
         newNodes = list(self.nodes)
-        rootId = len(self.nodes)-1
         remap = {}
         for id in range(len(self.nodes)):
             node = self.nodes[id]
@@ -362,14 +376,20 @@ class Nnf:
             if tnode is not None and fnode is not None:
                 nid = len(newNodes)
                 nnode = IteNode(nid, [tnode, fnode], splitVar)
+                remap[nid] = nid
                 remap[node.id] = nid
                 newNodes.append(nnode)
-        return self.streamline(newNodes, remap[self.rootId])
+        rootId = remap[len(self.nodes)-1]
+        if rootId < len(newNodes)-1:
+            nid = len(newNodes)
+            nroot = newNodes[rootId].clone(nid)
+            newNodes.append(nroot)
+        return self.streamline(newNodes)
 
-    def streamline(self, nodes, rootId):
+    def streamline(self, nodes):
         # Mark reachable nodes
         marked = set([])
-        check = set([rootId])
+        check = set([len(nodes)-1])
         while len(check) > 0:
             id = check.pop()
             marked.add(id)
@@ -382,7 +402,6 @@ class Nnf:
         # Create new version of nodes
         ndag = Nnf(self.verbose)
         ndag.inputCount = self.inputCount
-        ndag.rootId = rootId
         for node in nodes:
             if node is None or len(ndag.nodes) not in marked:
                 ndag.nodes.append(None)
