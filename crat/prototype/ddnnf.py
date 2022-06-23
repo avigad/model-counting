@@ -86,7 +86,6 @@ class Node:
         self.litSet = set([])
         self.varSet = set([])
         for c in self.children:
-            c.getVars()
             self.litSet |= c.litSet
             self.varSet |= c.varSet
 
@@ -103,17 +102,46 @@ class Node:
 class AndNode(Node):
     
     def __init__(self, id, children):
-        Node.__init__(self, NodeType.conjunction, id, children)
+        # Put literal children before others
+        lchildren = []
+        nchildren = []
+        for c in children:
+            if c.ntype == NodeType.leaf:
+                lchildren.append(c)
+            else:
+                nchildren.append(c)
+        Node.__init__(self, NodeType.conjunction, id, lchildren + nchildren)
+
         self.getVars()
+
+# Attempt optimizations
+def optAndNode(id, children):
+    # Look for simplifications
+    if len(children) == 0:
+        return ConstantNode(id, 1)
+    if len(children) == 1:
+        return children[0]
+    return AndNode(id, children)
+
 
 class OrNode(Node):
 
     splitVar = None
 
     def __init__(self, id, children, splitVar):
+        # Put tchild first:
+        if -splitVar in children[0].litSet:
+            children.reverse()
         Node.__init__(self, NodeType.disjunction, id, children)
         self.splitVar = splitVar
         self.getVars()
+
+def optOrNode(id, children, splitVar):
+    if len(children) == 0:
+        return ConstantNode(id, 0)
+    if len(children) == 1:
+        return children[0]
+    return OrNode(id, children, splitVar)
 
 class LeafNode(Node):
     
@@ -155,12 +183,14 @@ class IteNode(Node):
 class Nnf:
     verbose = False
     inputCount = 0
+    rootId = None
     nodes = []
 
     def __init__(self, verbose = False):
         self.inputCount = 0
+        self.rootId = None
         self.nodes = []
-    
+
     def nodeCount(self):
         count = 0
         for node in self.nodes:
@@ -173,6 +203,8 @@ class Nnf:
         gotHeader = False
         ncount = 0
         ecount = 0
+        # Will perform some optimizations.  Prepare to have some get remapped
+        remap = {}
         self.nodes = []
         for line in infile:
             line = trim(line)
@@ -205,7 +237,10 @@ class Nnf:
                 if var < 1 or var > self.inputCount:
                     print("Line #%d (%s).  Out of range literal" % (lineNumber, line))
                     return False
-                self.nodes.append(LeafNode(len(self.nodes), lit))
+                id = len(self.nodes)
+                nnode = LeafNode(id, lit)
+                remap[id] = id
+                self.nodes.append(nnode)
                 
             elif fields[0] == 'A':
                 try:
@@ -216,15 +251,19 @@ class Nnf:
                 if len(vals) == 0 or vals[0] != len(vals)-1:
                     print("Line #%d (%s).  Incorrect number of arguments" % (lineNumber, line))
                     return False
-                if vals[0] == 0:
-                    self.nodes.append(ConstantNode(len(self.nodes), 1))
+                id = len(self.nodes)
+                try:
+                    children = [self.nodes[remap[i]] for i in vals[1:]]
+                except:
+                    print("Line #%d (%s) Invalid argument specifier" % (lineNumber, line))
+                    return False
+                nnode = optAndNode(id, children)
+                nid = nnode.id
+                remap[id] = nid
+                if id == nid:
+                    self.nodes.append(nnode)
                 else:
-                    try:
-                        children = [self.nodes[i] for i in vals[1:]]
-                    except:
-                        print("Line #%d (%s) Invalid argument specifier" % (lineNumber, line))
-                        return False
-                    self.nodes.append(AndNode(len(self.nodes), children))
+                    self.nodes.append(None)
             elif fields[0] == 'O':
                 try:
                     vals = [int(f) for f in fields[1:]]
@@ -236,79 +275,101 @@ class Nnf:
                     return False
                 nnode = None
                 splitVar = vals[0]
-                if vals[1] == 0:
-                    nnode = ConstantNode(len(self.nodes), 0)
+                try:
+                    children = [self.nodes[remap[i]] for i in vals[2:]]
+                except:
+                    print("Line #%d (%s) Invalid argument specifier" % (lineNumber, line))
+                    return False
+                id = len(self.nodes)
+                nnode = optOrNode(id, children, splitVar)
+                nid = nnode.id
+                remap[id] = nid
+                if id == nid:
+                    self.nodes.append(nnode)
                 else:
-                    try:
-                        children = [self.nodes[i] for i in vals[2:]]
-                    except:
-                        print("Line #%d (%s) Invalid argument specifier" % (lineNumber, line))
-                        return False
-                    nnode = OrNode(len(self.nodes), children, splitVar)
-                self.nodes.append(nnode)
+                    self.nodes.append(None)                
         if not gotHeader:
             print("No header found")
-            return True
+            return False
+        self.rootId = len(self.nodes)-1
         return True
 
     def show(self):
         for n in self.nodes:
             if n is not None:
+                if n.id == self.rootId:
+                    sys.stdout.write("Root: ")
                 n.show()
 
     def findIte(self):
-        newNodes = []
+        newNodes = list(self.nodes)
+        rootId = len(self.nodes)-1
+        remap = {}
         for id in range(len(self.nodes)):
             node = self.nodes[id]
-            if node is None or node.ntype != NodeType.disjunction:
-                newNodes.append(node)
+            if node is None:
+                continue
+            node.children = [newNodes[remap[child.id]] for child in node.children]
+            if node.ntype != NodeType.disjunction:
+                id = node.id
+                remap[id] = id
                 continue
             splitVar = node.splitVar
-            if splitVar in node.children[0].litSet:
-                tchild, fchild = newNodes[node.children[0].id], newNodes[node.children[1].id] 
-            else:
-                tchild, fchild = newNodes[node.children[1].id], newNodes[node.children[0].id] 
+            tchild, fchild = newNodes[node.children[0].id], newNodes[node.children[1].id] 
             tnode = None
             fnode = None
             if tchild.ntype == NodeType.leaf:
-                tnode = ConstantNode(tchild.id, 1)
+                if tchild.lit != splitVar:
+                    print("WARNING: Expected literal %d in ITE argument %s" % (splitVar, str(tchild)))
+                else:
+                    nid = len(newNodes)
+                    tnode = ConstantNode(nid, 1)
+                    newNodes.append(tnode)
             elif tchild.ntype == NodeType.conjunction:
-                newArgs = []
+                nchildren = []
                 for c in tchild.children:
-                    if c.ntype == NodeType.leaf or abs(c.lit) != splitVar:
-                        newArgs.append(c)
-                tnode = AndNode(tchild.id, newArgs)
+                    if c.ntype != NodeType.leaf or abs(c.lit) != splitVar:
+                        nchildren.append(c)
+                if len(nchildren) == 1:
+                    tnode = nchildren[0]
+                elif len(nchildren) != len(tchild.children)-1:
+                    print("WARNING: Didn't find literal %d in ITE argument %s" % (splitVar, str(tchild)))
+                    print("nchildren = %s" % str([str(c) for c in nchildren]))
+                else:
+                    nid = len(newNodes)
+                    tnode = AndNode(nid, newArgs)
+                    newNodes.append(tnode)
             if fchild.ntype == NodeType.leaf:
-                fnode = ConstantNode(fchild.id, 0)
+                if fchild.lit != -splitVar:
+                    print("WARNING: Expected literal %d in ITE argument %s" % (-splitVar, str(fchild)))
+                else:
+                    nid = len(newNodes)
+                    fnode = ConstantNode(nid, 0)
+                    newNodes.append(fnode)
             elif fchild.ntype == NodeType.conjunction:
-                newArgs = []
+                nchildren = []
                 for c in fchild.children:
-                    if c.ntype == NodeType.leaf or abs(c.lit) != splitVar:
-                        newArgs.append(c)
-                fnode = AndNode(fchild.id, newArgs)
+                    if c.ntype != NodeType.leaf or abs(c.lit) != splitVar:
+                        nchildren.append(c)
+                if len(nchildren) == 1:
+                    fnode = nchildren[0]
+                elif len(nchildren) != len(fchild.children)-1:
+                    print("WARNING: Didn't find literal %d in ITE argument %s" % (-splitVar, str(fchild)))
+                else:
+                    nid = len(newNodes)
+                    fnode = AndNode(nid, newArgs)
+                    newNodes.append(fnode)
             if tnode is not None and fnode is not None:
-                node = IteNode(node.id, [tnode, fnode], splitVar)
-            newNodes.append(node)
-        return self.streamline(newNodes)
+                nid = len(newNodes)
+                nnode = IteNode(nid, [tnode, fnode], splitVar)
+                remap[node.id] = nid
+                newNodes.append(nnode)
+        return self.streamline(newNodes, remap[self.rootId])
 
-    def streamline(self, nodes):
-        # Step 1: Remove single-argument Ands
-        remap = {}
-        for node in nodes:
-            if node is None:
-                continue
-            elif node.ntype == NodeType.conjunction and len(node.children) == 1:
-                remap[node.id] = node.children.id
-            else:
-                remap[node.id] = node.id
-            newChildren = []
-            for c in node.children:
-                newChildren.append(nodes[remap[c.id]])
-            node.children = newChildren
-
-        # Step 2: Remove unreachable nodes
+    def streamline(self, nodes, rootId):
+        # Mark reachable nodes
         marked = set([])
-        check = set([len(nodes)-1])
+        check = set([rootId])
         while len(check) > 0:
             id = check.pop()
             marked.add(id)
@@ -318,9 +379,10 @@ class Nnf:
                 if cid not in marked and cid not in check:
                     check.add(cid)
 
-        # Step 3: Create new version of nodes
+        # Create new version of nodes
         ndag = Nnf(self.verbose)
         ndag.inputCount = self.inputCount
+        ndag.rootId = rootId
         for node in nodes:
             if node is None or len(ndag.nodes) not in marked:
                 ndag.nodes.append(None)
@@ -368,6 +430,7 @@ def run(name, args):
     if verbose:
         dag.show()
     dag = dag.findIte()
+    print("")
     print("Streamlined DAG has %d nodes" % (dag.nodeCount()))
     if verbose:
         dag.show()
