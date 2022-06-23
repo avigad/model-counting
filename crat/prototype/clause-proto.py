@@ -2,7 +2,7 @@
 
 import sys
 import getopt
-import writer
+import readwrite
 import schema
 
 
@@ -20,7 +20,7 @@ clauseList = []
 
 def cnfGen(froot, n, verbose):
     global literals, clauseList
-    cwriter = writer.LazyCnfWriter(froot)
+    cwriter = readwrite.LazyCnfWriter(froot)
     if verbose:
         cwriter.doComment("CNF file consisting of single clause with %d literals" % n)
     vars = cwriter.newVariables(n)

@@ -4,7 +4,7 @@
 from functools import total_ordering
 
 import sys
-import writer
+import readwrite
 
 tautologyId = 1000 * 1000 * 1000
 
@@ -122,7 +122,7 @@ class Schema:
     def __init__(self, variableCount, clauseList, froot, verbLevel = 1):
         self.verbLevel = verbLevel
         self.uniqueTable = {}
-        self.cwriter = writer.CratWriter(variableCount, clauseList, froot, verbLevel)
+        self.cwriter = readwrite.CratWriter(variableCount, clauseList, froot, verbLevel)
         self.leaf1 = One()
         self.store(self.leaf1)
         self.leaf0 = Negation(self.leaf1)
