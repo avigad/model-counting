@@ -5,8 +5,8 @@ from functools import total_ordering
 
 import sys
 import writer
-import logic
 
+tautologyId = 1000 * 1000 * 1000
 
 class SchemaException(Exception):
 
@@ -20,7 +20,6 @@ class SchemaException(Exception):
 class NodeType:
     tautology, variable, negation, conjunction, disjunction = range(5)
     typeName = ["taut", "var", "neg", "conjunct", "disjunct"]
-
 
 
 # Prototype node.  Used for unique table lookup
@@ -60,36 +59,21 @@ class Node(ProtoNode):
     def __eq__(self, other):
         return self.xlit == other.xlit
 
-    def key(self):
-        return tuple([self.ntype] + [child.xlit for child in self.children])
-
-@total_ordering
 class Variable(Node):
     level = 1  # For ordering
 
-    def __init__(self, id, level=None):
+    def __init__(self, id):
         Node.__init__(self, id, NodeType.variable, [])
-        self.level = id if level is None else level
-
-    def __ne__(self, other):
-        return self.level != other.level
-
-    def __lt__(self, other):
-        return self.level < other.level
 
     def key(self):
         return (self.ntype, self.xlit)
 
-    def __str__(self):
-        return "V" + str(self.xlit)
-
 class One(Node):
     def __init__(self):
-        Node.__init__(self, logic.tautologyId, NodeType.tautology, [])
+        Node.__init__(self, tautologyId, NodeType.tautology, [])
 
     def __str__(self):
         return "TAUT"
-
 
 class Negation(Node):
     
@@ -122,7 +106,7 @@ class Disjunction(Node):
 # Represent overall schema
 class Schema:
     
-    # List of variables, ordered by level
+    # List of variables, ordered by id
     variables = []
     # Constant Nodes
     leaf1 = None
@@ -135,7 +119,7 @@ class Schema:
     verbLevel = 1
     cwriter = None
     
-    def __init__(self, variableCount, clauseList, froot, variableOrder = None, verbLevel = 1):
+    def __init__(self, variableCount, clauseList, froot, verbLevel = 1):
         self.verbLevel = verbLevel
         self.uniqueTable = {}
         self.cwriter = writer.CratWriter(variableCount, clauseList, froot, verbLevel)
@@ -145,11 +129,9 @@ class Schema:
         self.store(self.leaf0)
         self.variables = []
         for i in range(1, variableCount+1):
-            self.addVariable(i)
-        if variableOrder is not None:
-            for level in range(1, variableCount+1):
-                id = variableOrder[level-1]
-                self.variables[id-1].level = level
+            v = Variable(i)
+            self.variables.append(v)
+            self.store(v)
 
     def lookup(self, ntype, children):
         n = ProtoNode(ntype, children)
@@ -166,11 +148,6 @@ class Schema:
         self.uniqueTable[key] = node
 #        print("UniqueTable[%s] = %s" % (str(key), str(node)))
         self.nodes.append(node)
-
-    def addVariable(self, id):
-        v = Variable(id)
-        self.variables.append(v)
-        self.store(v)
 
     def addNegation(self, child):
         if child.ntype == NodeType.negation:
@@ -195,7 +172,7 @@ class Schema:
             self.store(n)
         return n
 
-    def addDisjunction(self, child1, child2, hints = ['*']):
+    def addDisjunction(self, child1, child2, hints = None):
         if child1.isOne() or child2.isOne():
             return self.leaf1
         if child1.isZero():

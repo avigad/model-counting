@@ -393,7 +393,9 @@ class CratWriter(Writer):
         self.stepCount += 2
         return (v, s)
 
-    def doOr(self, i1, i2, hints = ['*']):
+    def doOr(self, i1, i2, hints = None):
+        if hints is None:
+            hints = ['*']
         self.variableCount += 1
         self.stepCount += 1
         v = self.variableCount
