@@ -6,8 +6,6 @@ from functools import total_ordering
 import sys
 import readwrite
 
-tautologyId = 1000 * 1000 * 1000
-
 class SchemaException(Exception):
 
     def __init__(self, value):
@@ -45,10 +43,13 @@ class ProtoNode:
 
 class Node(ProtoNode):
     xlit = None
+    # Information used during proof generation.  Holdover from when node represented ITE
+    iteVar = None
  
     def __init__(self, xlit, ntype, children):
         ProtoNode.__init__(self, ntype, children)
         self.xlit = xlit
+        self.iteVar = None
     
     def __hash__(self):
         return self.xlit
@@ -70,7 +71,7 @@ class Variable(Node):
 
 class One(Node):
     def __init__(self):
-        Node.__init__(self, tautologyId, NodeType.tautology, [])
+        Node.__init__(self, readwrite.tautologyId, NodeType.tautology, [])
 
     def __str__(self):
         return "TAUT"

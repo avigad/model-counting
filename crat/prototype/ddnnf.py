@@ -72,6 +72,8 @@ class Node:
     children = []
     litSet = set([])
     varSet = set([])
+    # Corresponding schema node
+    snode = None
 
     def __init__(self, ntype, id, children):
         self.ntype = ntype
@@ -79,6 +81,7 @@ class Node:
         self.children = children
         self.litSet = set([])
         self.varSet = set([])
+        self.snode = None
         
     def getVars(self):
         if len(self.children) == 0:
@@ -408,6 +411,33 @@ class Nnf:
             else:
                 ndag.nodes.append(node)
         return ndag
+
+
+    def schematize(self, clauseList, froot):
+        sch = schema.Schema(self.inputCount, clauseList, froot, verbLevel == 3 if self.verbose else 1)
+        for node in self.nodes:
+            schildren = [child.snode for child in node.children]
+            if node.ntype == NodeType.constant:
+                node.snode = sch.leaf1 if node.val == 1 else sch.leaf0
+            elif node.ntype == NodeType.leaf:
+                var = abs(node.lit)
+                svar = sch.getVariable(var)
+                node.snode = svar if var > 0 else sch.addNegation(svar)
+            elif node.ntype == NodeType.conjunction:
+                # Build linear chain.   Keep literals at top
+                schildren.reverse()
+                nroot = schildren[0]
+                for c in schildren[1:]:
+                    nroot = sch.addConjunction(c, nroot)
+                node.snode = nroot
+            elif node.ntype == NodeType.disjunction:
+                node.snode = sch.addDisjunction(schildren[0], schildren[1])
+            elif node.ntype == NodeType.ite:
+                svar = sch.getVariable(node.splitVar)
+                node.snode = sch.addIte(svar, schildren[0], schildren[1])
+                # Label for proof generation
+                node.snode.iteVar = node.splitVar
+        return sch
                 
 def run(name, args):
     verbose = False
@@ -430,9 +460,9 @@ def run(name, args):
         else:
             print("Invalid option '%s'" % (opt))
             return
-#    if cnfName is None:
-#        print("Must give name of CNF file")
-#        return
+    if cnfName is None:
+        print("Must give name of CNF file")
+        return
     if nnfName is None:
         print("Must give name of NNF file")
         return
