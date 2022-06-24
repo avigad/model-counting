@@ -82,7 +82,7 @@ class Negation(Node):
         Node.__init__(self, -child.xlit, NodeType.negation, [child])
 
     def __str__(self):
-        return "!" + str(self.children[0])
+        return "-" + str(self.children[0])
 
 class Conjunction(Node):
     clauseId = None
@@ -119,10 +119,12 @@ class Schema:
     # Verbosity level
     verbLevel = 1
     cwriter = None
+    clauseList = []
     
     def __init__(self, variableCount, clauseList, froot, verbLevel = 1):
         self.verbLevel = verbLevel
         self.uniqueTable = {}
+        self.clauseList = clauseList
         self.cwriter = readwrite.CratWriter(variableCount, clauseList, froot, verbLevel)
         self.leaf1 = One()
         self.store(self.leaf1)
@@ -147,7 +149,6 @@ class Schema:
     def store(self, node):
         key = node.key()
         self.uniqueTable[key] = node
-#        print("UniqueTable[%s] = %s" % (str(key), str(node)))
         self.nodes.append(node)
 
     def addNegation(self, child):
@@ -212,9 +213,9 @@ class Schema:
             ntrue = self.addConjunction(nif, nthen)
             nfalse = self.addConjunction(self.addNegation(nif), nelse)
             hints = [ntrue.clauseId+1, nfalse.clauseId+1]
-            n = self.addDisjunction(ntrue, nelse, hints)
+            n = self.addDisjunction(ntrue, nfalse, hints)
             result = n
-#        print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
+        print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
         return result
 
     # hlist can be clauseId or (node, offset), where 0 <= offset < 3
@@ -235,12 +236,32 @@ class Schema:
     def addComment(self, s):
         self.cwriter.doComment(s)
 
-    def deleteClause(self, id):
-        self.cwriter.doDeleteClause(id)
+    def deleteClause(self, id, hlist = None):
+        self.cwriter.doDeleteClause(id, hlist)
 
     def deleteOperation(self, node):
         self.cwriter.doDeleteOperation(node.xlit, node.clauseId)
         
-        
+    def doValidate(self):
+        root = self.nodes[-1]
+        if self.verbLevel >= 1:
+            self.addComment("Assert unit clause for root")
+        self.addClause([root])
+        if self.verbLevel >= 1:
+            self.addComment("Delete input clauses")
+        for cid in range(1, len(self.clauseList)+1):
+            self.deleteClause(cid)
+            
+
+    def show(self):
+        for node in self.nodes:
+            if node.ntype != NodeType.negation:
+                outs = str(node)
+                schildren = [str(c) for c in node.children]
+                if len(schildren) > 0:
+                    outs += " (" + ", ".join(schildren) + ")"
+                print(outs)
+        print("Root = %s" % str(self.nodes[-1]))
+            
         
         

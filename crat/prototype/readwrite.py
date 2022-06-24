@@ -559,7 +559,9 @@ class CratWriter(Writer):
         self.addClause(s, lits)
         return s
         
-    def doDeleteClause(self, id, hints=['*']):
+    def doDeleteClause(self, id, hints=None):
+        if hints is None:
+            hints = ['*']
         self.doLine(['dc', id] + hints + [0])
         self.deleteClause(id)
 

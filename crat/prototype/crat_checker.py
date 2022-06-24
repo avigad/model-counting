@@ -27,8 +27,9 @@ import getopt
 import datetime
 
 def usage(name):
-    print("Usage: %s [-v] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn]" % name)
+    print("Usage: %s [-v] [-L] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn]" % name)
     print("   -v         Print more helpful diagnostic information if there is an error")
+    print("   -L         Lax mode: Don't attempt validation of *'ed hints")
     print("   -w WEIGHTS Provide colon-separated set of input weights.")
     print("              Each should be between 0 and 100 (will be scaled by 1/100)")
 
@@ -310,10 +311,15 @@ class ClauseManager:
     liveClauseSet = set([])
     # Final root 
     root = None
+    verbose = False
+    laxMode = False
+    uncheckedCount = 0
 
-    def __init__(self, verbose, clauseCount):
+    def __init__(self, clauseCount, verbose, laxMode):
         self.inputClauseCount = clauseCount
         self.verbose = verbose
+        self.laxMode = laxMode
+        self.uncheckedCount = 0
         self.clauseDict = {}
         self.unitClauseSet = set([])
         self.literalCountDict = {}
@@ -459,6 +465,9 @@ class ClauseManager:
     # Return (T/F, Reason)
     def checkRup(self, clause, hints):
         if len(hints) == 1 and hints[0] == '*':
+            if self.laxMode:
+                self.uncheckedCount += 1
+                return (True, "")
             hints = self.findRup(clause)
             if hints is None:
                 return (False, "RUP failed for clause %s: Couldn't generate hints" % (showClause(clause)))
@@ -666,10 +675,10 @@ class Prover:
     omgr = None
     failed = False
 
-    def __init__(self, creader, verbose = False):
+    def __init__(self, creader, verbose = False, laxMode = False):
         self.verbose = verbose
         self.lineNumber = 0
-        self.cmgr = ClauseManager(verbose, len(creader.clauses))
+        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode)
         self.omgr = OperationManager(self.cmgr, creader.nvar)
         self.failed = False
         self.subsetOK = False
@@ -897,7 +906,10 @@ class Prover:
         if self.failed:
             self.failProof("")
         else:
-            print("PROOF SUCCESSFUL")
+            if self.cmgr.uncheckedCount == 0:
+                print("PROOF SUCCESSFUL")
+            else:
+                print("PROOF UNVERIFIED (%d unchecked hints)" % self.cmgr.uncheckedCount)
         self.summarize()
             
     def summarize(self):
@@ -918,14 +930,17 @@ def run(name, args):
     cnfName = None
     proofName = None
     verbose = False
+    laxMode = False
     weights = None
-    optList, args = getopt.getopt(args, "hvi:p:w:")
+    optList, args = getopt.getopt(args, "hvLi:p:w:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
         elif opt == '-v':
             verbose = True
+        elif opt == '-L':
+            laxMode = True
         elif opt == '-i':
             cnfName = val
         elif opt == '-p':
@@ -956,7 +971,7 @@ def run(name, args):
     if weights is not None and len(weights) != creader.nvar:
         print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
         return
-    prover = Prover(creader, verbose)
+    prover = Prover(creader, verbose, laxMode)
     prover.prove(proofName)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
