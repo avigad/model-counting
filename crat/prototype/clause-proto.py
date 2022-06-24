@@ -7,20 +7,20 @@ import schema
 
 
 def usage(name):
-    print("Usage: %s [-h] [-v] [-p] -n N [-r ROOT]")
-    print(" -h      Print this message")
-    print(" -v      Add comments to files")
-    print(" -p      Generate CRAT proof")
-    print(" -n N    Set number of literals")
-    print(" -r ROOT Set file root name (default = clause-proto-NNN)")
+    print("Usage: %s [-h] [-v] -n N [-o FILE.cnf] [-p FILE.crat]")
+    print(" -h           Print this message")
+    print(" -v           Add comments to files")
+    print(" -n N         Set number of literals")
+    print(" -o FILE.cnf  CNF file name (default = clause-proto-NNN.cnf)")
+    print(" -p FILE.crat CRAT file name (default = clause-proto-NNN.cnf)")
 
 # Generate CNF and CRAT consisting of single clause with N literals
 literals = []
 clauseList = []
 
-def cnfGen(froot, n, verbose):
+def cnfGen(fname, n, verbose):
     global literals, clauseList
-    cwriter = readwrite.LazyCnfWriter(froot)
+    cwriter = readwrite.LazyCnfWriter(fname)
     if verbose:
         cwriter.doComment("CNF file consisting of single clause with %d literals" % n)
     vars = cwriter.newVariables(n)
@@ -29,8 +29,8 @@ def cnfGen(froot, n, verbose):
     clauseList = cwriter.clauseList()
     cwriter.finish()
 
-def proofGen(froot, n, verbose):
-    sch = schema.Schema(n, clauseList, froot, verbLevel = 3 if verbose else 1)
+def proofGen(fname, n, verbose):
+    sch = schema.Schema(n, clauseList, fname, verbLevel = 3 if verbose else 1)
     cwriter = sch.cwriter
     zero = sch.leaf0
     one = sch.leaf1
@@ -51,10 +51,11 @@ def proofGen(froot, n, verbose):
 
 def run(name, args):
     verbose = False
-    proof = False
+    cnfName = None
+    cratName =None
     sn = None
     root = None
-    optlist, args = getopt.getopt(args, 'hvpn:r:')
+    optlist, args = getopt.getopt(args, 'hvp:n:o:')
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
@@ -62,21 +63,22 @@ def run(name, args):
         elif opt == '-v':
             verbose = True
         elif opt == '-p':
-            proof = True
+            cratName = None
         elif opt == '-n':
             sn = val
-        elif opt == '-r':
-            root = val
+        elif opt == '-o':
+            cnfName = val
     if sn is None:
         print("Must provide value of n")
         usage(name)
         return
     n = int(sn)
-    if root is None:
-        root = "clause-proto-" + sn
-    cnfGen(root, n, verbose)
-    if proof:
-        proofGen(root, n, verbose)
+    if cnfName is None:
+        cnfName = "clause-proto-" + sn + ".cnf"
+    if cratName is None:
+        cratName = "clause-proto-" + sn + ".crat"
+    cnfGen(cnfName, n, verbose)
+    proofGen(cratName, n, verbose)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])

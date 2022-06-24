@@ -24,6 +24,57 @@ def trim(s):
         s = s[:-1]
     return s
 
+tautologyId = 1000 * 1000 * 1000
+
+# Clean up clause.
+# Remove duplicates
+# Sort in reverse order of variable number
+# Don't allow clause to have opposite literals (returns tautologyId)
+def cleanClause(literalList):
+    slist = sorted(literalList, key = lambda v: -abs(v))
+    if len(slist) == 0:
+        return slist
+    if slist[0] == tautologyId:
+        return tautologyId
+    if slist[0] == -tautologyId:
+        slist = slist[1:]
+        if slist[0] == tautologyId:
+            return tautologyId
+    if len(slist) == 1:
+        return slist
+    nlist = [slist[0]]
+    for i in range(1, len(slist)):
+        if slist[i-1] == slist[i]:
+            continue
+        if slist[i-1] == -slist[i]:
+            return tautologyId
+        nlist.append(slist[i])
+    return nlist
+
+def regularClause(clause):
+    return clause is not None
+
+def showClause(clause):
+    if clause is None:
+        return "NONE"
+    return str(clause)
+
+
+# Eliminate any falsified literals
+# If some literal satisfied, return tautology
+# Assumes clause processed by cleanClause
+def unitReduce(clause, unitSet):
+    if clause == tautologyId:
+        return clause
+    nclause = []
+    for lit in clause:
+        if lit in unitSet:
+            return tautologyId
+        elif -lit not in unitSet:
+            nclause.append(lit)
+    return nclause
+
+
 class CnfException(Exception):
 
     def __init__(self, value):
@@ -117,22 +168,19 @@ class CnfReader():
 # Generic writer
 class Writer:
     outfile = None
-    suffix = None
     verbLevel = 1
     expectedVariableCount = None
     isNull = False
-    froot = ""
+    fname = ""
 
-    def __init__(self, count, froot, suffix = None, verbLevel = 1, isNull = False):
+    def __init__(self, count, fname, verbLevel = 1, isNull = False):
         self.expectedVariableCount = count
-        self.froot = froot
+        self.fname = fname
         self.verbLevel = verbLevel
         self.isNull = isNull
+        self.fname = fname
         if isNull:
             return
-        if suffix is not None:
-            self.suffix = suffix 
-            fname = froot if self.suffix is None else froot + "." + self.suffix
         try:
             self.outfile = open(fname, 'w')
         except:
@@ -179,8 +227,8 @@ class CnfWriter(Writer):
     clauseCount = 0
     outputList = []
 
-    def __init__(self, count, froot, verbLevel = 1):
-        Writer.__init__(self, count, froot, suffix = "cnf", verbLevel = verbLevel)
+    def __init__(self, count, fname, verbLevel = 1):
+        Writer.__init__(self, count, fname, verbLevel = verbLevel)
         self.clauseCount = 0
         self.outputList = []
 
@@ -261,14 +309,14 @@ class LazyCnfWriter:
     # Boolean T for clause F for comment
     # item: list of literals for clause, string for comment
     items = []
-    froot = ""
+    fname = ""
     verbLevel = 1
     permuter = None
 
-    def __init__(self, froot, permuter = None, verbLevel = 1):
+    def __init__(self, fname, permuter = None, verbLevel = 1):
         self.variableCount = 0
         self.items = []
-        self.froot = froot
+        self.fname = fname
         self.permuter = permuter
         self.verbLevel = verbLevel
 
@@ -300,14 +348,14 @@ class LazyCnfWriter:
         return clist
 
     def finish(self):
-        writer = CnfWriter(self.variableCount, self.froot, self.verbLevel)
+        writer = CnfWriter(self.variableCount, self.fname, self.verbLevel)
         for (isClause, value) in self.items:
             if isClause:
                 writer.doClause(value)
             else:
                 writer.doComment(value)
         writer.finish()
-        print("c File '%s.cnf' has %d variables and %d clauses" % (self.froot, self.variableCount, writer.clauseCount))
+        print("c File '%s' has %d variables and %d clauses" % (self.fname, self.variableCount, writer.clauseCount))
 
 # Creating LRAT proof
 class LratWriter(Writer):
@@ -315,8 +363,8 @@ class LratWriter(Writer):
     # Must initialize this to the number of clauses in the original CNF file
     clauseCount = 0
 
-    def __init__(self, clauseCount, froot, verbLevel = 1):
-        Writer.__init__(self, None, froot, suffix = "lrat", verbLevel = verbLevel)
+    def __init__(self, clauseCount, fname, verbLevel = 1):
+        Writer.__init__(self, None, fname, verbLevel = verbLevel)
         self.clauseCount = clauseCount
 
     def doComment(self, line):
@@ -335,8 +383,8 @@ class ScheduleWriter(Writer):
     decrementAnd = False
     expectedFinal = 1
 
-    def __init__(self, count, froot, verbLevel = 1, isNull = False):
-        Writer.__init__(self, count, froot, suffix = "schedule", verbLevel = verbLevel, isNull = isNull)
+    def __init__(self, count, fname, verbLevel = 1, isNull = False):
+        Writer.__init__(self, count, fname, verbLevel = verbLevel, isNull = isNull)
         self.stackDepth = 0
         self.decrementAnd = False
     
@@ -412,10 +460,8 @@ class ScheduleWriter(Writer):
 class OrderWriter(Writer):
     variableList = []
 
-    def __init__(self, count, froot, verbLevel = 1, suffix = None, isNull = False):
-        if suffix is None:
-            suffix = "order"
-        Writer.__init__(self, count, froot, suffix = suffix, verbLevel = verbLevel, isNull = isNull)
+    def __init__(self, count, fname, verbLevel = 1, isNull = False):
+        Writer.__init__(self, count, fname, verbLevel = verbLevel, isNull = isNull)
         self.variableList = []
 
     def doOrder(self, vlist):
@@ -436,7 +482,7 @@ class OrderWriter(Writer):
         for (e, a) in zip(expected, self.variableList):
             if e != a:
                raise WriterException("Mismatch in ordering.  Expected %d.  Got %d" % (e, a))
-        print("c File '%s.order' written" % (self.froot))
+        print("c File '%s' written" % (self.fname))
         Writer.finish(self)
 
 
@@ -445,8 +491,8 @@ class CratWriter(Writer):
     clauseDict = []
     stepCount = 0
 
-    def __init__(self, variableCount, clauseList, froot, verbLevel = 1):
-        Writer.__init__(self, variableCount, froot, suffix="crat", verbLevel=verbLevel, isNull=False)
+    def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
+        Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
         if len(clauseList) > 0:
             self.doComment("Input clauses")
         self.variableCount = variableCount
@@ -524,6 +570,6 @@ class CratWriter(Writer):
         
         
     def finish(self):
-        print("c File '%s.crat' has %d variables and %d steps" % (self.froot, self.variableCount, self.stepCount))
+        print("c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, self.stepCount))
         Writer.finish(self)
 
