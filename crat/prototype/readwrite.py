@@ -187,18 +187,13 @@ class Writer:
             print("Couldn't open file '%s'. Aborting" % fname)
             sys.exit(1)
 
-    def trim(self, line):
-        while len(line) > 0 and line[-1] == '\n':
-            line = line[:-1]
-        return line
-
     def vcount(self):
         return self.expectedVariableCount
 
     def show(self, line):
         if self.isNull:
             return
-        line = self.trim(line)
+        line = trim(line)
         if self.verbLevel > 2:
             print(line)
         if self.outfile is not None:

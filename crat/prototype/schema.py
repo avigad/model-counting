@@ -252,6 +252,25 @@ class Schema:
         for cid in range(1, len(self.clauseList)+1):
             self.deleteClause(cid)
             
+    def doMark(self, root, markSet):
+        if root.xlit in markSet:
+            return
+        markSet.add(root.xlit)
+        for c in root.children:
+            self.doMark(c, markSet)
+        
+
+    def compress(self):
+        markSet = set([])
+        root = self.nodes[-1]
+        self.doMark(root, markSet)
+        nnodes = []
+        for node in self.nodes:
+            if node.xlit in markSet:
+                nnodes.append(node)
+        if self.verbLevel >= 2:
+            print("Compressed schema from %d to %d nodes" % (len(self.nodes), len(nnodes)))
+        self.nodes = nnodes
 
     def show(self):
         for node in self.nodes:

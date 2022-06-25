@@ -53,10 +53,13 @@ def usage(name):
     print(" -n FILE.nnf  Input NNF")
     print(" -p FILE.crat Output CRAT")
 
-def trim(line):
-    while len(line) > 0 and line[-1] == '\n':
-        line = line[:-1]
-    return line
+class NnfException(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return "Nnf Exception: " + str(self.value)
 
 class NodeType:
     conjunction, disjunction, leaf, constant, ite = range(5)
@@ -71,8 +74,6 @@ class Node:
     ntype = None
     id = None
     children = []
-    litSet = set([])
-    varSet = set([])
     # Corresponding schema node
     snode = None
 
@@ -80,22 +81,8 @@ class Node:
         self.ntype = ntype
         self.id = id
         self.children = children
-        self.litSet = set([])
-        self.varSet = set([])
         self.snode = None
         
-    def getVars(self):
-        if len(self.children) == 0:
-            return
-        self.litSet = set([])
-        self.varSet = set([])
-        for c in self.children:
-            self.litSet |= c.litSet
-            self.varSet |= c.varSet
-
-    def clone(self, nid):
-        return self
-
     def cstring(self):
         slist = ["N%d" % c.id for c in self.children]
         return '(' + ", ".join(slist) + ')'
@@ -104,7 +91,10 @@ class Node:
         return "N%d:%s%s" % (self.id, NodeType.name(self.ntype), self.cstring())
 
     def show(self):
-        print("%s  Lits = %s, Vars = %s" % (str(self), str(self.litSet), str(self.varSet)))
+        print(str(self))
+
+    def findLit(self, var):
+        return None
 
 class AndNode(Node):
     
@@ -118,12 +108,13 @@ class AndNode(Node):
             else:
                 nchildren.append(c)
         Node.__init__(self, NodeType.conjunction, id, lchildren + nchildren)
-        self.getVars()
         
-    def clone(self, nid):
-        nchildren = list(self.children)
-        nnode = AndNode(nid, nchildren)
-        return nnode
+    def findLit(self, var):
+        for c in self.children:
+            lit = c.findLit(var)
+            if lit is not None:
+                return lit
+        return None
 
 
 # Attempt optimizations
@@ -142,17 +133,13 @@ class OrNode(Node):
 
     def __init__(self, id, children, splitVar):
         # Put tchild first:
-        if -splitVar in children[0].litSet:
+        lit0 = children[0].findLit(splitVar)
+        if lit0 is None:
+            raise(NnfException("Couldn't find literal of variable %d in %s" % (splitVar, str(self))))
+        if lit0 == -splitVar:
             children.reverse()
         Node.__init__(self, NodeType.disjunction, id, children)
         self.splitVar = splitVar
-        self.getVars()
-
-    def clone(self, nid):
-        nchildren = list(self.children)
-        nnode = OrNode(nid, nchildren, self.splitVar)
-        return nnode
-
 
 def optOrNode(id, children, splitVar):
     if len(children) == 0:
@@ -167,14 +154,14 @@ class LeafNode(Node):
     def __init__(self, id, lit):
         Node.__init__(self, NodeType.leaf, id, [])
         self.lit = lit
-        self.litSet = set([lit])
-        self.varSet = set([abs(lit)])
-        
-    def clone(self, nid):
-        return LeafNode(self, nid, self.lit)
 
     def cstring(self):
         return '(' + str(self.lit) + ')'
+
+    def findLit(self, var):
+        if abs(self.lit) == var:
+            return self.lit
+        return None
 
 class ConstantNode(Node):
 
@@ -182,9 +169,6 @@ class ConstantNode(Node):
     def __init__(self, id, val):
         Node.__init__(self, NodeType.constant, id, [])
         self.val = val
-
-    def clone(self, nid):
-        return ConstantNode(self, nid, self.val)
 
     def cstring(self):
         return str(self.val)
@@ -196,9 +180,6 @@ class IteNode(Node):
     def __init__(self, id, children, splitVar):
         Node.__init__(self, NodeType.ite, id, children)
         self.splitVar = splitVar
-        self.getVars()
-        self.litSet |= set([splitVar, -splitVar])
-        self.varSet |= set([splitVar])
 
     def cstring(self):
         s = Node.cstring(self)
@@ -230,7 +211,7 @@ class Nnf:
         # but will maintain topological order
         nodeDict = {}
         for line in infile:
-            line = trim(line)
+            line = readwrite.trim(line)
             lineNumber += 1
             fields = line.split()
             if len(fields) == 0:
@@ -308,6 +289,9 @@ class Nnf:
             node = nodeDict[id]
             if id == node.id:
                 self.nodes.append(node)
+            else:
+                key = node.key()
+                del self.uniqueTable[key]
         root = nodeDict[len(nodeDict)-1]
         self.topoSort(root)
         return True
@@ -402,6 +386,8 @@ class Nnf:
                 remap[nid] = nid
                 remap[node.id] = nid
                 nodeDict[nid] = nnode
+            else:
+                raise NnfException("Couldn't convert node %s into ITE" % (node))
         # Compress into list
         root = nodeDict[remap[self.nodes[-1].id]]
         self.nodes = []
@@ -437,7 +423,7 @@ class Nnf:
                 node.snode = sch.addIte(svar, schildren[0], schildren[1])
                 # Label for proof generation
                 node.snode.iteVar = node.splitVar
-#            print("NNF node %s --> schema node %s" % (str(node), str(node.snode)))
+        sch.compress()
         return sch
                 
 def run(name, args):
@@ -476,6 +462,7 @@ def run(name, args):
         nfile = open(nnfName, 'r')
     except:
         print("Couldn't open NNF file %s" % nnfName)
+        return
     
     dag = Nnf(verbose)
     if not dag.read(nfile):
@@ -493,6 +480,8 @@ def run(name, args):
     if cratName is not None:
         sch = dag.schematize(creader.clauses, cratName)
         if verbose:
+            print("")
+            print("Generated schema has %d nodes:" % len(sch.nodes))
             sch.show()
         sch.doValidate()
 
