@@ -60,6 +60,9 @@ class Node(ProtoNode):
     def __eq__(self, other):
         return self.xlit == other.xlit
 
+    def getLit(self):
+        return None
+
 class Variable(Node):
     level = 1  # For ordering
 
@@ -68,6 +71,9 @@ class Variable(Node):
 
     def key(self):
         return (self.ntype, self.xlit)
+
+    def getLit(self):
+        return self.xlit
 
 class One(Node):
     def __init__(self):
@@ -83,6 +89,10 @@ class Negation(Node):
 
     def __str__(self):
         return "-" + str(self.children[0])
+
+    def getLit(self):
+        clit = self.children[0].getLit()
+        return clit if clit is None else -clit
 
 class Conjunction(Node):
     clauseId = None
@@ -171,6 +181,8 @@ class Schema:
         if n is None:
             xlit, clauseId = self.cwriter.doAnd(child1.xlit, child2.xlit)
             n = Conjunction(child1, child2, xlit, clauseId)
+            if self.verbLevel >= 2:
+                self.addComment("Node %s = AND(%s, %s)" % (str(n), str(child1), str(child2)))
             self.store(n)
         return n
 
@@ -185,6 +197,8 @@ class Schema:
         if n is None:
             xlit, clauseId = self.cwriter.doOr(child1.xlit, child2.xlit, hints)
             n = Disjunction(child1, child2, xlit, clauseId)
+            if self.verbLevel >= 2:
+                self.addComment("Node %s = OR(%s, %s)" % (str(n), str(child1), str(child2)))
             self.store(n)
         return n
 
@@ -199,8 +213,6 @@ class Schema:
             result = nif
         elif nthen.isZero() and nelse.isOne():
             result = self.addNegation(nif)
-        elif (nthen.ntype == NodeType.negation or nthen.isConstant()) and (nelse.ntype == NodeType.negation or nelse.isConstant()):
-            result = self.addNegation(self.addIte(nif, self.addNegation(nthen), self.addNegation(nelse)))
         elif nthen.isOne():
             result = self.addNegation(self.addConjunction(self.addNegation(nif), self.addNegation(nelse)))
         elif nthen.isZero():
@@ -217,6 +229,39 @@ class Schema:
             result = n
         print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
         return result
+
+    def addIteUnopt(self, nif, nthen, nelse):
+        if nif.isOne():
+            result = nthen
+        elif nif.isZero():
+            result = nelse
+        elif nthen == nelse:
+            result = nthen
+        elif nthen.isOne() and nelse.isZero():
+            result = nif
+        elif nthen.isZero() and nelse.isOne():
+            result = self.addNegation(nif)
+        elif nthen.isZero():
+            result = self.addConjunction(self.addNegation(nif), nelse)
+        elif nelse.isZero():
+            result = self.addConjunction(nif, nthen)
+        else:
+            hints = []
+            if nthen.isOne():
+                ntrue = nif
+            else:
+                ntrue = self.addConjunction(nif, nthen)
+                hints += [ntrue.clauseId+1]
+            if nelse.isOne():
+                nfalse = self.addNegation(nif)
+            else:
+                nfalse = self.addConjunction(self.addNegation(nif), nelse)
+                hints += [nfalse.clauseId+1]
+            n = self.addDisjunction(ntrue, nfalse, hints)
+            result = n
+        print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
+        return result
+
 
     # hlist can be clauseId or (node, offset), where 0 <= offset < 3
     def addClause(self, nodes, hlist = None):
@@ -242,11 +287,65 @@ class Schema:
     def deleteOperation(self, node):
         self.cwriter.doDeleteOperation(node.xlit, node.clauseId)
         
+    # Generating justification of root nodes
+    # negatedContext is list of literals that invert the current context
+    # Returns list of unit clauses that should be deleted
+    def validateUp(self, root, negatedContext, isRoot = False):
+        rstring = " (root)" if isRoot else ""
+        extraUnits = []
+        if root.ntype == NodeType.disjunction:
+            # Set up children
+            extraUnits += self.validateUp(root.children[0], negatedContext, False)
+            extraUnits += self.validateUp(root.children[1], negatedContext, False)
+            if root.iteVar is None:
+                raise SchemaException("Don't know how to validate OR node %s that is not from ITE" % str(root))
+            # Assert extension literal in both contexts
+            if self.verbLevel >= 2:
+                self.addComment("Assert ITE at node %s%s" % (str(root), rstring))
+                clause = [root.xlit, root.iteVar] + negatedContext
+                self.cwriter.doClause(clause)
+                clause = [root.xlit, -root.iteVar] + negatedContext
+                self.cwriter.doClause(clause)
+                clause = [root.xlit] + negatedContext
+                cid = self.cwriter.doClause(clause)
+                if not isRoot and len(negatedContext) == 0:
+                    extraUnits.append(cid)
+        elif root.ntype == NodeType.conjunction:
+            lnc = []
+            vcount = 0
+            for c in root.children:
+                clit = c.getLit()
+                if clit is None:
+                    extraUnits += self.validateUp(c, negatedContext + lnc, False)
+                    vcount += 1
+                else:
+                    lnc += [-clit]
+            if vcount > 1:
+                # Assert extension literal
+                if self.verbLevel >= 2:
+                    self.addComment("Assert unit clause for AND node %s%s" % (str(root), rstring))
+                clause = [root.xlit] + negatedContext
+                cid = self.cwriter.doClause(clause)
+                if not isRoot and len(negatedContext) == 0:
+                    extraUnits.append(cid)
+        else:
+            if root.iteVar is not None:
+                # This node was generated from an ITE.
+                if self.verbLevel >= 2:
+                    self.addComment("Assert clause for root of ITE %s" % rstring)
+                clause = [root.xlit] + negatedContext
+                cid = self.cwriter.doClause(clause)
+                if not isRoot and len(negatedContext) == 0:
+                    extraUnits.append(cid)
+        return extraUnits
+                
     def doValidate(self):
         root = self.nodes[-1]
-        if self.verbLevel >= 1:
-            self.addComment("Assert unit clause for root")
-        self.addClause([root])
+        extraUnits = self.validateUp(root, [], isRoot = True)
+        if self.verbLevel >= 1 and len(extraUnits) > 0:
+            self.addComment("Delete extra unit clauses")
+        for cid in extraUnits:
+            self.deleteClause(cid)
         if self.verbLevel >= 1:
             self.addComment("Delete input clauses")
         for cid in range(1, len(self.clauseList)+1):

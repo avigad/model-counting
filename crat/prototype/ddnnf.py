@@ -46,9 +46,9 @@ import schema
 
 
 def usage(name):
-    print("Usage: %s [-h] [-v] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
+    print("Usage: %s [-h] [-v VLEVEL] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
     print(" -h           Print this message")
-    print(" -v           Add comments to files")
+    print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
     print(" -p FILE.crat Output CRAT")
@@ -186,16 +186,17 @@ class IteNode(Node):
         return '(V' + str(self.splitVar) + ', ' + s[1:]
 
 class Nnf:
-    verbose = False
+    verbLevel = 1
     inputCount = 0
     # Nodes are topologically ordered but their ids don't necessarily
     # match position in the array, nor are they necessarily in
     # ascending order
     nodes = []
 
-    def __init__(self, verbose = False):
+    def __init__(self, verbLevel = 1):
         self.inputCount = 0
         self.nodes = []
+        self.verbLevel = verbLevel
 
     def nodeCount(self):
         count = 0
@@ -303,9 +304,9 @@ class Nnf:
         markSet = set([])
         self.topoTraverse(root, nodeList, markSet)
         self.nodes = nodeList
-        if self.verbose:
+        if self.verbLevel >= 3:
             print("Topological sort:")
-            self.nodes.show()
+            self.show()
         
     # Traverse nodes for topological sorting
     def topoTraverse(self, root, nodeList, markSet):
@@ -398,17 +399,15 @@ class Nnf:
         self.topoSort(root)
 
     def schematize(self, clauseList, fname):
-        sch = schema.Schema(self.inputCount, clauseList, fname, verbLevel == 3 if self.verbose else 1)
+        sch = schema.Schema(self.inputCount, clauseList, fname, self.verbLevel)
         for node in self.nodes:
-            if node is None:
-                continue
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
                 node.snode = sch.leaf1 if node.val == 1 else sch.leaf0
             elif node.ntype == NodeType.leaf:
                 var = abs(node.lit)
                 svar = sch.getVariable(var)
-                node.snode = svar if var > 0 else sch.addNegation(svar)
+                node.snode = svar if node.lit > 0 else sch.addNegation(svar)
             elif node.ntype == NodeType.conjunction:
                 # Build linear chain.   Keep literals at top
                 schildren.reverse()
@@ -423,21 +422,22 @@ class Nnf:
                 node.snode = sch.addIte(svar, schildren[0], schildren[1])
                 # Label for proof generation
                 node.snode.iteVar = node.splitVar
+            print("NNF node %s --> Schema node %s" % (str(node), str(node.snode)))
         sch.compress()
         return sch
                 
 def run(name, args):
-    verbose = False
+    verbLevel = 1
     cnfName = None
     nnfName = None
     cratName = None
-    optlist, args = getopt.getopt(args, 'hvi:n:p:')
+    optlist, args = getopt.getopt(args, 'hv:i:n:p:')
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
             return
         elif opt == '-v':
-            verbose = True
+            verbLevel = int(val)
         elif opt == '-i':
             cnfName = val
         elif opt == '-n':
@@ -454,7 +454,7 @@ def run(name, args):
         cnffile = open(cnfName, 'r')
     except:
         print("Couldn't open CNF file %s" % cnfName)
-    creader = readwrite.CnfReader(cnfName, verbLevel = 3 if verbose else 1)
+    creader = readwrite.CnfReader(cnfName, verbLevel = 3)
     if nnfName is None:
         print("Must give name of NNF file")
         return
@@ -464,24 +464,28 @@ def run(name, args):
         print("Couldn't open NNF file %s" % nnfName)
         return
     
-    dag = Nnf(verbose)
+    dag = Nnf(verbLevel)
     if not dag.read(nfile):
         print("Read failed")
-    else:
-        print("DAG has %d inputs, %d nodes" % (dag.inputCount, dag.nodeCount()))
-    if verbose:
+        return
+    elif verbLevel >= 1: 
+       print("Input NNF DAG has %d inputs, %d nodes" % (dag.inputCount, dag.nodeCount()))
+    if verbLevel >= 3:
         dag.show()
+    if verbLevel >= 1:
         print("")
         print("ITE extraction:")
     dag.findIte()
-    print("Resulting DAG has %d nodes" % (dag.nodeCount()))
-    if verbose:
+    if verbLevel >= 1:
+        print("NNF DAG with ITEs has %d nodes" % (dag.nodeCount()))
+    if verbLevel >= 2:
         dag.show()
     if cratName is not None:
         sch = dag.schematize(creader.clauses, cratName)
-        if verbose:
+        if verbLevel >= 1:
             print("")
             print("Generated schema has %d nodes:" % len(sch.nodes))
+        if verbLevel >= 2:
             sch.show()
         sch.doValidate()
 
