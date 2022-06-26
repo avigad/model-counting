@@ -1,6 +1,6 @@
 INTERP = python3
 DSHARP = ~/repos/dsharp/dsharp
-VERB = -v
+VLEVEL = 2
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 LAX = -L
@@ -11,7 +11,7 @@ LAX = -L
 	$(DSHARP) -Fnnf $@ $<
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ $(VERB)
+	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL)
 
 .crat.data:
-	$(INTERP) $(CHECK) $(VERB) $(LAX) -i $*.cnf -p $< | tee $@
+	$(INTERP) $(CHECK) -v $(VLEVEL) $(LAX) -i $*.cnf -p $< | tee $@
