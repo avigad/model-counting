@@ -15,6 +15,106 @@ class SchemaException(Exception):
         return "Schema Exception: " + str(self.value)
 
 
+# Manage set of literals
+class LiteralSet:
+    litSet = set([])
+    # Maintain list of lists of additions, so that can revert back to earlier version
+    epochs = [[]]
+
+    def __init__(self):
+        self.litSet = ([])
+        self.epochs = [[]]
+
+    def startEpoch(self):
+        self.epochs.append([])
+
+    def revertEpoch(self):
+        last = self.epochs[-1]
+        self.epochs = self.epochs[:-1]
+        for lit in last:
+            litSet.remove(lit)
+
+    def add(self, lit):
+        if lit in self.litSet:
+            raise SchemaExeption("Attempted to add literal %d to set.  Already member")
+        if -lit in self.litSet:
+            raise SchemaExeption("Attempted to add literal %d to set.  Negation already member")
+        self.litSet.add(lit)
+        self.epochs[-1].append(lit)
+
+    def __contains__(self, val):
+        return val in self.litSet
+
+    def show(self):
+        print("Units:")
+        for e in self.epochs:
+            print("   " + str(e))
+
+    
+class Reasoner(self):
+    clauseList = []
+    unitSet = None
+
+    def __init__(self):
+        self.clauseList = []
+        self.unitSet = LiteralSet()
+
+    def addClauses(clist):
+        clauseList += clist
+
+    def startEpoch(self):
+        self.unitSet.startEpoch()
+
+    def revertEpoch(self):
+        self.unitSet.revertEpoch()
+
+    # Attempt unit propagation on clause
+    # Return: ("unit", ulit), ("conflict", None), ("satisfied", lit), ("none", None)
+    def unitPropClause(self, clause):
+        ulit = None
+        for lit in clause:
+            if lit in self.unitSet:
+                return ("satisfied", lit)
+            if -lit not in self.unitSet:
+                if ulit is None:
+                    ulit = lit
+                else:
+                    # No unit literal found
+                    return ("none", None)
+        if ulit is None:
+            return ("conflict", None)
+        unitSet.add(ulit)
+        return ("unit", ulit)
+
+    # Perform unit propagation on set of clauses.
+    # Return True if encounter conflict
+    def unitProp(self):
+        changed = True
+        while changed:
+            changed = False
+            for clause in self.clauseList:
+                (res, ulit) = self.unitPropClause(clause)
+                if res == "conflict":
+                    return True
+                elif res == "unit":
+                    changed = True
+        return False
+                
+    def rupCheck(self, clause):
+        self.startEpoch()
+        for lit in clause:
+            self.unitSet.add(-lit)
+        result = self.unitProp()
+        self.revertEpoch()
+        return result
+
+    # See if literal among current units
+    def isUnit(self, lit):
+        return lit in self.unitSet
+    
+    def addUnit(self, lit):
+        return self.unitSet.add(lit)
+
 class NodeType:
     tautology, variable, negation, conjunction, disjunction = range(5)
     typeName = ["taut", "var", "neg", "conjunct", "disjunct"]
@@ -130,13 +230,15 @@ class Schema:
     verbLevel = 1
     cwriter = None
     clauseList = []
-    root = None
+    reasoner = None
     
     def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
         self.verbLevel = verbLevel
         self.uniqueTable = {}
         self.clauseList = clauseList
         self.cwriter = readwrite.CratWriter(variableCount, clauseList, fname, verbLevel)
+        self.reasoner = Reasoner()
+        self.reasoner.addClauses(clauseList)
         self.leaf1 = One()
         self.store(self.leaf1)
         self.leaf0 = Negation(self.leaf1)
@@ -146,7 +248,6 @@ class Schema:
             v = Variable(i)
             self.variables.append(v)
             self.store(v)
-        self.root = None
 
     def lookup(self, ntype, children):
         n = ProtoNode(ntype, children)
@@ -290,54 +391,88 @@ class Schema:
         self.cwriter.doDeleteOperation(node.xlit, node.clauseId)
         
     # Generating justification of root nodes
-    # negatedContext is list of literals that invert the current context
+    # context is list of literals that are assigned in the current context
     # Returns list of unit clauses that should be deleted
-    def validateUp(self, root, negatedContext, isRoot = False):
-        rstring = " (root)" if isRoot else ""
+    def validateUp(self, root, context, parent = None):
+        rstring = " (root)" if parent is None else ""
         extraUnits = []
         if root.ntype == NodeType.disjunction:
             # Set up children
-            extraUnits += self.validateUp(root.children[0], negatedContext, False)
-            extraUnits += self.validateUp(root.children[1], negatedContext, False)
+            extraUnits += self.validateUp(root.children[0], context, root)
+            extraUnits += self.validateUp(root.children[1], context, root)
             if root.iteVar is None:
                 raise SchemaException("Don't know how to validate OR node %s that is not from ITE" % str(root))
-            # Assert extension literal in both contexts
+            # Assert extension literal.  Requires two steps to get both sides of disjunction
             if self.verbLevel >= 2:
                 self.addComment("Assert ITE at node %s%s" % (str(root), rstring))
-                clause = [root.xlit, root.iteVar] + negatedContext
-                self.cwriter.doClause(clause)
-                clause = [root.xlit, -root.iteVar] + negatedContext
-                self.cwriter.doClause(clause)
-                clause = [root.xlit] + negatedContext
-                cid = self.cwriter.doClause(clause)
-                if not isRoot and len(negatedContext) == 0:
-                    extraUnits.append(cid)
+            icontext = readwrite.invertClause(context)
+            clause = [root.iteVar, root.xlit] + icontext
+            if not self.reasoner.rupCheck(clause):
+                print("RUP Failure justifying node %s" % (str(root)))
+                if verbLevel >= 2:
+                    print("Trying to justify clause %s in context %s" % (str(clause), str(context)))
+                raise SchemaException("RUP failure at disjunction #1")
+            self.cwriter.doClause(clause)
+            clause = clause[1:]
+            if not self.reasoner.rupCheck(clause):
+                print("RUP Failure justifying node %s" % (str(root)))
+                if verbLevel >= 2:
+                    print("Trying to justify clause %s in context %s" % (str(clause), str(context)))
+                raise SchemaException("RUP failure at disjunction #2")
+            cid = self.cwriter.doClause(clause)
+            if parent is not None and len(context) == 0:
+                extraUnits.append(cid)
         elif root.ntype == NodeType.conjunction:
-            lnc = []
+            if parent is None or parent.ntype != NodeType.conjunction:
+                self.reasoner.startEpoch()
             vcount = 0
             for c in root.children:
                 clit = c.getLit()
                 if clit is None:
-                    extraUnits += self.validateUp(c, negatedContext + lnc, False)
+                    extraUnits += self.validateUp(c, context, root)
                     vcount += 1
-                else:
-                    lnc += [-clit]
+                elif not self.reasoner.isUnit(clit):
+                    pclause = readwrite.invertClause(context)
+                    pclause.append(clit)
+                    if not self.reasoner.rupCheck(pclause):
+                        print("RUP failure.  Couldn't justify literal %d in node  %s" % (clit, str(root)))
+                        if verbLevel >= 2:
+                            print("Context %s" % (str(context)))
+                        raise SchemaException("RUP failure at conjunction #1")
+                    if self.verbLevel >= 3:
+                        print("Justified literal %d in context %s" % (clit, str(context)))
+                    if self.verbLevel >= 2:
+                        self.cwriter.addComment("Justify literal %d" % clit)
+                    self.cwriter.doClause(pclause)
+                    self.reasoner.addUnit(clit)
             if vcount > 1:
                 # Assert extension literal
                 if self.verbLevel >= 2:
                     self.addComment("Assert unit clause for AND node %s%s" % (str(root), rstring))
-                clause = [root.xlit] + negatedContext
+                clause = [root.xlit] + readwrite.invertClause(context)
+                if not self.reasoner.rupCheck(clause):
+                    print("RUP Failure justifying node %s" % (str(root)))
+                    if verbLevel >= 2:
+                        print("Trying to justify clause %s in context %s" % (str(clause), str(context)))
+                    raise SchemaException("RUP failure at conjunction #2")
                 cid = self.cwriter.doClause(clause)
-                if not isRoot and len(negatedContext) == 0:
+                if parent is not None and len(context) == 0:
                     extraUnits.append(cid)
+            if parent is None or parent.ntype != NodeType.conjunction:
+                self.reasoner.revertEpoch()
         else:
             if root.iteVar is not None:
                 # This node was generated from an ITE.
                 if self.verbLevel >= 2:
                     self.addComment("Assert clause for root of ITE %s" % rstring)
-                clause = [root.xlit] + negatedContext
+                clause = [root.xlit] + readwrite.invertClause(context)
+                if not self.reasoner.rupCheck(clause):
+                    print("RUP Failure justifying node %s" % (str(root)))
+                    if verbLevel >= 2:
+                        print("Trying to justify clause %s in context %s" % (str(clause), str(context)))
+                    raise SchemaException("RUP failure at other node type")
                 cid = self.cwriter.doClause(clause)
-                if not isRoot and len(negatedContext) == 0:
+                if parent is not None and len(context) == 0:
                     extraUnits.append(cid)
         return extraUnits
                 
