@@ -130,12 +130,13 @@ class Schema:
     verbLevel = 1
     cwriter = None
     clauseList = []
+    root = None
     
-    def __init__(self, variableCount, clauseList, froot, verbLevel = 1):
+    def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
         self.verbLevel = verbLevel
         self.uniqueTable = {}
         self.clauseList = clauseList
-        self.cwriter = readwrite.CratWriter(variableCount, clauseList, froot, verbLevel)
+        self.cwriter = readwrite.CratWriter(variableCount, clauseList, fname, verbLevel)
         self.leaf1 = One()
         self.store(self.leaf1)
         self.leaf0 = Negation(self.leaf1)
@@ -145,6 +146,7 @@ class Schema:
             v = Variable(i)
             self.variables.append(v)
             self.store(v)
+        self.root = None
 
     def lookup(self, ntype, children):
         n = ProtoNode(ntype, children)
