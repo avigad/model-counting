@@ -1,9 +1,10 @@
-INTERP = python3
+INTERP = python3.9
 DSHARP = ~/repos/dsharp/dsharp
-VLEVEL = 2
+VLEVEL = 3
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
-LAX = -L
+#LAX = -L
+LAX =
 
 .SUFFIXES: .cnf .nnf .crat .data
 
