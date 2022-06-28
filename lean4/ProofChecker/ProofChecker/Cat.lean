@@ -147,7 +147,11 @@ def Graph.toMermaidChart [ToString ν] (g : Graph ν) : String := Id.run do
 end CountingScheme
 
 structure CheckerState where
+  /-- The actual input CNF. -/
   inputCnf : CnfForm Nat := CnfForm.mk []
+  /-- Input clauses which were introduced by the proof. -/
+  proofInputCnf : CnfForm Nat := CnfForm.mk []
+  inputIdsInDb : Std.HashSet Nat := {}
   originalVars : Nat := inputCnf.maxVar?.getD 0
   clauseDb : Std.HashMap Nat (Clause Nat) := {}
   -- which clauses a given literal occurs in
@@ -182,6 +186,12 @@ inductive CheckerError where
   | duplicateExtVar (x : Nat)
   | unknownExtVar (x : Nat)
   | sumNotDisjoint (x y : Nat)
+  | finalStateIncorrectInput
+  | finalStateInputNotDeleted (C : Clause Nat)
+  | finalStateNotOneUnit (n : Nat)
+  -- TODO(WN): do we need this check? Leftover trees in the forest do not falsify the count,
+  -- but they might complicate the proof.
+  | finalStateUnitNotRoot (x : Int)
 
 namespace CheckerError
 
@@ -198,6 +208,10 @@ instance : ToString CheckerError where
     | duplicateExtVar x => s!"extension variable '{x}' already introduced"
     | unknownExtVar x => s!"unknown extension variable '{x}'"
     | sumNotDisjoint x y => s!"variables '{x}' and '{y}' have intersecting dependency sets"
+    | finalStateIncorrectInput => s!"proof done but input CNF was not introduced correctly"
+    | finalStateInputNotDeleted C => s!"proof done but input clause {C} was not deleted"
+    | finalStateNotOneUnit n => s!"proof done but {n} unit clauses left, expected 1"
+    | finalStateUnitNotRoot x => s!"proof done but unit clause ({x}) is not the counting schema root"
 
 end CheckerError
 
@@ -370,13 +384,15 @@ def updateGraph (step : CatStep Nat Nat) : CheckerM Unit := do
   | .ok g => set { st with scheme := g }
   | .error e => throw <| .graphUpdateError e
 
--- TODO check and use hints
 def update (step : CatStep Nat Nat) : CheckerM Unit :=
   withTraces (fun ts => s!"{step}:\n\t" ++ ("\n\t".intercalate ts.toList)) do
     match step with
     | .addInput idx C =>
-      -- TODO check that it belongs to input CNF, and that all of input CNF is introduced
       addClause idx C
+      modify fun st => { st with
+        proofInputCnf := C :: st.proofInputCnf
+        inputIdsInDb := st.inputIdsInDb.insert idx
+      }
     | .addAt idx C pf =>
       if !pf.isEmpty then checkAtWithHints C pf
       else checkAtWithoutHints C
@@ -387,6 +403,7 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
       delClause idx
       if !pf.isEmpty then checkAtWithHints C pf
       else checkAtWithoutHints C
+      modify fun st => { st with inputIdsInDb := st.inputIdsInDb.erase idx }
     | step@(.prod idx x l₁ l₂) =>
       addExtVar x l₁.var l₂.var (ensureDisjoint := true)
       let lx := Lit.ofInt x
@@ -417,28 +434,44 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
         modify fun st => { st with extDefClauses := st.extDefClauses.erase x }
         updateGraph step
 
-def check (cnf : CnfForm Nat) (pf : List (CatStep Nat Nat)) : IO Bool := do
-  let mut st : CheckerState := { inputCnf := cnf }
-  for step in pf do
-    match update step |>.run.run st with
-    | (.error e, _) =>
-      IO.println s!"\n\t{e}\n\tclauses: {st.clauseDb.toList}"
-      return false
-    | (.ok _, st') => st := st'
-  return true
+def checkFinalState : CheckerM Unit := do
+  let st ← get
+  log s!"final clauses:\n\t{st.clauseDb.toList}"
 
-def checkWithTraces (cnf : CnfForm Nat) (pf : List (CatStep Nat Nat)) : IO Bool := do
-  let mut st : CheckerState := { inputCnf := cnf }
-  for step in pf do
-    match update step |>.run.run st with
-    | (.error e, st') =>
-      for t in st'.trace do
-        IO.println t
-      IO.println s!"\n\t{e}\n\tclauses: {st.clauseDb.toList}"
-      return false
-    | (.ok _, st') => st := st'
-  for t in st.trace do
-    IO.println t
-  return true
+  -- Check that the "actual" input CNF and the introduced clauses are equal as sets.
+  -- HACK(WN): horrible quadratic checks
+  for C in st.proofInputCnf do
+    if !st.inputCnf.contains C then
+      throw <| .finalStateIncorrectInput
+  for C in st.inputCnf do
+    if !st.proofInputCnf.contains C then
+      throw <| .finalStateIncorrectInput
+
+  if !st.inputIdsInDb.isEmpty then
+    let C ← getClause st.inputIdsInDb.toList.head!
+    throw <| .finalStateInputNotDeleted C
+
+  let mut nUnits := 0
+  for (_, cls) in st.clauseDb.toList do
+    if cls.length == 1 then
+      nUnits := nUnits + 1
+  if nUnits != 1 then
+    throw <| .finalStateNotOneUnit nUnits
+
+def check (cnf : CnfForm Nat) (pf : List (CatStep Nat Nat)) (traces := false) : IO Bool := do
+  let st : CheckerState := { inputCnf := cnf }
+  let (ret, st') := (do
+    for step in pf do
+      update step
+    checkFinalState
+    : CheckerM Unit).run st |>.run
+  if traces then
+    for t in st'.trace do
+      IO.println t
+  match ret with
+  | .error e =>
+    IO.println s!"\n\t{e}\n\tclauses: {st'.clauseDb.toList}"
+    return false
+  | .ok _ => return true
 
 end CheckerState
