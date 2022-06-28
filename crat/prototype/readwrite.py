@@ -59,6 +59,13 @@ def showClause(clause):
         return "NONE"
     return str(clause)
 
+# Return inverted set of literals
+def invertClause(literalList):
+    if literalList == tautologyId:
+        return []
+    else:
+        return [-lit for lit in literalList]
+
 
 # Eliminate any falsified literals
 # If some literal satisfied, return tautology

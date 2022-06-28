@@ -28,7 +28,7 @@ import datetime
 
 def usage(name):
     print("Usage: %s [-v] [-L] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn]" % name)
-    print("   -v         Print more helpful diagnostic information if there is an error")
+    print("   -v VLEVEL  Set verbosity level (0-3)")
     print("   -L         Lax mode: Don't attempt validation of *'ed hints")
     print("   -w WEIGHTS Provide colon-separated set of input weights.")
     print("              Each should be between 0 and 100 (will be scaled by 1/100)")
@@ -805,6 +805,8 @@ class Prover:
         if len(rest) > 0:
             self.flagError("Coudn't add clause #%d: Items beyond terminating 0" % (id))
             return
+        if self.verbose:
+            print("AddRup step #%d.  Lits = %s" % (id, str(lits)))
         clause = cleanClause(lits)
         (ok, msg) = self.cmgr.checkRup(clause, hints)
         if not ok:
@@ -929,16 +931,16 @@ class Prover:
 def run(name, args):
     cnfName = None
     proofName = None
-    verbose = False
+    verbLevel = 1
     laxMode = False
     weights = None
-    optList, args = getopt.getopt(args, "hvLi:p:w:")
+    optList, args = getopt.getopt(args, "hv:Li:p:w:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
         elif opt == '-v':
-            verbose = True
+            verbLevel = int(val)
         elif opt == '-L':
             laxMode = True
         elif opt == '-i':
@@ -971,6 +973,7 @@ def run(name, args):
     if weights is not None and len(weights) != creader.nvar:
         print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
         return
+    verbose = verbLevel > 1
     prover = Prover(creader, verbose, laxMode)
     prover.prove(proofName)
     delta = datetime.datetime.now() - start
