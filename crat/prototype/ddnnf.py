@@ -4,6 +4,7 @@
 
 import sys
 import getopt
+import datetime
 import readwrite
 import schema
 
@@ -224,23 +225,23 @@ class Nnf:
                 try:
                     ncount, ecount, self.inputCount = [int(f) for f in fields[1:]]
                 except:
-                    print("Line #%d (%s).  Invalid header" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s).  Invalid header" % (lineNumber, line))
                     return False
             elif not gotHeader:
-                print("Line #%d.  No header found" % (lineNumber))
+                print("ERROR:Line #%d.  No header found" % (lineNumber))
             elif fields[0] == 'L':
                 lit = 0
                 if len(fields) != 2:
-                    print("Line #%d (%s).  Literal declaration should contain one argument" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s).  Literal declaration should contain one argument" % (lineNumber, line))
                     return False
                 try:
                     lit = int(fields[1])
                 except:
-                    print("Line #%d (%s).  Invalid literal" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s).  Invalid literal" % (lineNumber, line))
                     return False
                 var = abs(lit)
                 if var < 1 or var > self.inputCount:
-                    print("Line #%d (%s).  Out of range literal" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s).  Out of range literal" % (lineNumber, line))
                     return False
                 id = len(nodeDict)
                 nnode = LeafNode(id, lit)
@@ -249,15 +250,15 @@ class Nnf:
                 try:
                     vals = [int(f) for f in fields[1:]]
                 except:
-                    print("Line #%d (%s).  Nonnumeric argument" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s).  Nonnumeric argument" % (lineNumber, line))
                     return False
                 if len(vals) == 0 or vals[0] != len(vals)-1:
-                    print("Line #%d (%s).  Incorrect number of arguments" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s).  Incorrect number of arguments" % (lineNumber, line))
                     return False
                 try:
                     children = [nodeDict[i] for i in vals[1:]]
                 except:
-                    print("Line #%d (%s) Invalid argument specifier" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s) Invalid argument specifier" % (lineNumber, line))
                     return False
                 id = len(nodeDict)
                 nnode = optAndNode(id, children)
@@ -266,23 +267,23 @@ class Nnf:
                 try:
                     vals = [int(f) for f in fields[1:]]
                 except:
-                    print("Line #%d (%s).  Nonnumeric argument" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s).  Nonnumeric argument" % (lineNumber, line))
                     return False
                 if len(vals) < 2 or vals[1] != len(vals)-2:
-                    print("Line #%d (%s).  Incorrect number of arguments (%d)" % (lineNumber, line, len(vals)))
+                    print("ERROR:Line #%d (%s).  Incorrect number of arguments (%d)" % (lineNumber, line, len(vals)))
                     return False
                 nnode = None
                 splitVar = vals[0]
                 try:
                     children = [nodeDict[i] for i in vals[2:]]
                 except:
-                    print("Line #%d (%s) Invalid argument specifier" % (lineNumber, line))
+                    print("ERROR:Line #%d (%s) Invalid argument specifier" % (lineNumber, line))
                     return False
                 id = len(nodeDict)
                 nnode = optOrNode(id, children, splitVar)
                 nodeDict[id] = nnode
         if not gotHeader:
-            print("No header found")
+            print("ERROR:No header found")
             return False
         # Compress into list
         self.nodes = []
@@ -422,7 +423,8 @@ class Nnf:
                 node.snode = sch.addIte(svar, schildren[0], schildren[1])
                 # Label for proof generation
                 node.snode.iteVar = node.splitVar
-            print("NNF node %s --> Schema node %s" % (str(node), str(node.snode)))
+            if self.verbLevel >= 3:
+                print("NNF node %s --> Schema node %s" % (str(node), str(node.snode)))
         sch.compress()
         return sch
                 
@@ -464,6 +466,7 @@ def run(name, args):
         print("Couldn't open NNF file %s" % nnfName)
         return
     
+    start = datetime.datetime.now()
     dag = Nnf(verbLevel)
     if not dag.read(nfile):
         print("Read failed")
@@ -488,6 +491,9 @@ def run(name, args):
         if verbLevel >= 2:
             sch.show()
         sch.doValidate()
+    delta = datetime.datetime.now() - start
+    seconds = delta.seconds + 1e-6 * delta.microseconds
+    print("Elapsed time for generation: %.2f seconds" % seconds)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])

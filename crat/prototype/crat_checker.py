@@ -805,6 +805,8 @@ class Prover:
         if len(rest) > 0:
             self.flagError("Coudn't add clause #%d: Items beyond terminating 0" % (id))
             return
+        if self.verbose:
+            print("AddRup step #%d.  Lits = %s" % (id, str(lits)))
         clause = cleanClause(lits)
         (ok, msg) = self.cmgr.checkRup(clause, hints)
         if not ok:

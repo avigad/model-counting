@@ -156,6 +156,8 @@ class Reasoner:
                 break
             print("JUSTIFY UNIT:Adding proof clause %s" % str(clause))
             clauses.append(clause)
+        # Added as extra assertion
+        clauses.append(pclause)
         self.addUnit(lit)
         return clauses
 
@@ -377,7 +379,8 @@ class Schema:
             hints = [ntrue.clauseId+1, nfalse.clauseId+1]
             n = self.addDisjunction(ntrue, nfalse, hints)
             result = n
-        print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
+        if self.verbLevel >= 3:
+            print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
         return result
 
     # hlist members can be clauseId or (node, offset), where 0 <= offset < 3
