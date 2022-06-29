@@ -301,29 +301,29 @@ class DualReasoner:
 class Reasoner:
     solver = None
     # Caching of last results
-    lastAssumptions = None
-    lastPropagate = None
-    lastLiterals = None
+    cacheSize = 5
+    # Cache results of unit propagation, using assumptions as key
+    # Each entry is tuple of form (key, prop, lits)
+    propagateCache = []
 
     def __init__(self):
         self.solver = Solver(solverId, with_proof = True)
         self.killCache()
 
     def killCache(self):
-        self.lastAssumptions = None
-        self.lastPropagate = None
-        self.lastLiterals = None
+        self.propagateCache = []
 
     def propagate(self, assumptions):
         ta = tuple(assumptions)
-        if self.lastAssumptions == ta:
-            return self.lastPropagate, self.lastLiterals
-        else:
-            prop, lits = self.solver.propagate(assumptions)
-            self.lastAssumptions = tuple(assumptions)
-            self.lastPropagate = prop
-            self.lastLiterals = lits
-            return prop, lits
+        for key,prop,lits in self.propagateCache:
+            if ta == key:
+                return (prop,lits)
+        # Didn't find anything
+        prop, lits = self.solver.propagate(assumptions)
+        self.propagateCache.append((ta,prop,lits))
+        if len(self.propagateCache) > self.cacheSize:
+            self.propagateCache = self.propagateCache[1:]
+        return prop, lits
 
     def addClauses(self, clist):
         self.solver.append_formula(clist)
