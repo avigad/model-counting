@@ -472,25 +472,27 @@ def run(name, args):
         print("Read failed")
         return
     elif verbLevel >= 1: 
-       print("Input NNF DAG has %d inputs, %d nodes" % (dag.inputCount, dag.nodeCount()))
+       print("c Input NNF DAG has %d inputs, %d nodes" % (dag.inputCount, dag.nodeCount()))
     if verbLevel >= 3:
         dag.show()
-    if verbLevel >= 1:
+    if verbLevel >= 2:
         print("")
-        print("ITE extraction:")
+        print("c ITE extraction:")
     dag.findIte()
     if verbLevel >= 1:
-        print("NNF DAG with ITEs has %d nodes" % (dag.nodeCount()))
+        print("c NNF DAG with ITEs has %d nodes" % (dag.nodeCount()))
     if verbLevel >= 2:
         dag.show()
     if cratName is not None:
         sch = dag.schematize(creader.clauses, cratName)
-        if verbLevel >= 1:
-            print("")
-            print("Generated schema has %d nodes:" % len(sch.nodes))
+        if verbLevel == 1:
+            print("c Generated schema has %d nodes" % len(sch.nodes))
         if verbLevel >= 2:
+            print("")
+            print("c Generated schema has %d nodes:" % len(sch.nodes))
             sch.show()
         sch.doValidate()
+        sch.finish()
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     print("Elapsed time for generation: %.2f seconds" % seconds)
