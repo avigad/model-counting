@@ -292,6 +292,8 @@ class Schema:
     # Statistics:
     # Count of each node by type
     nodeCounts = []
+    # Traverses of nodes by type
+    nodeVisits = []
     # Added RUP clause counts, indexed by number of clauses to justify single literal
     literalClauseCounts = {}
     # Added RUP clause counts, indexed by node type
@@ -318,6 +320,7 @@ class Schema:
             self.store(v)
         # Reset so that constant nodes are not included
         self.nodeCounts = [0] * NodeType.tcount
+        self.nodeVisits = [0] * NodeType.tcount
         
     def lookup(self, ntype, children):
         n = ProtoNode(ntype, children)
@@ -433,6 +436,7 @@ class Schema:
     # context is list of literals that are assigned in the current context
     # Returns list of unit clauses that should be deleted
     def validateUp(self, root, context, parent = None):
+        self.nodeVisits[root.ntype] += 1
         rstring = " (root)" if parent is None else ""
         extraUnits = []
         if root.ntype == NodeType.disjunction:
@@ -460,8 +464,6 @@ class Schema:
             if parent is not None and len(context) == 0:
                 extraUnits.append(cid)
         elif root.ntype == NodeType.conjunction:
-#            if parent is None or parent.ntype != NodeType.conjunction:
-#                self.reasoner.startEpoch()
             vcount = 0
             for c in root.children:
                 clit = c.getLit()
@@ -493,8 +495,6 @@ class Schema:
                 self.nodeClauseCounts[root.ntype] += 1
                 if parent is not None and len(context) == 0:
                     extraUnits.append(cid)
-#            if parent is None or parent.ntype != NodeType.conjunction:
-#                self.reasoner.revertEpoch()
         else:
             if root.iteVar is not None:
                 # This node was generated from an ITE.
@@ -533,6 +533,14 @@ class Schema:
                 ndclause += NodeType.definingClauseCount[t] * self.nodeCounts[t]
             print("c    TOTAL: %d" % nnode)
             print("c Total defining clauses: %d" % ndclause)
+            nvnode = 0
+            print("c Node visits during proof generation (by node type)")
+            for t in range(NodeType.tcount):
+                if self.nodeVisits[t] == 0:
+                    continue
+                print("c    %s: %d" % (NodeType.typeName[t], self.nodeVisits[t]))
+                nvnode += self.nodeVisits[t]
+            print("c    TOTAL: %d" % nvnode)
             nlclause = 0
             print("c Literal justification clause counts (by number of clauses in justification:")
             for count in sorted(self.literalClauseCounts.keys()):
