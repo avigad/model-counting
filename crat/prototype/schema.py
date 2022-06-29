@@ -319,7 +319,7 @@ class Reasoner:
             if ta == key:
                 return (prop,lits)
         # Didn't find anything
-        prop, lits = self.solver.propagate(assumptions)
+        prop, lits = self.solver.propagate(ta)
         self.propagateCache.append((ta,prop,lits))
         if len(self.propagateCache) > self.cacheSize:
             self.propagateCache = self.propagateCache[1:]

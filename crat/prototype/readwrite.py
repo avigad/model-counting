@@ -495,14 +495,15 @@ class CratWriter(Writer):
 
     def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
         Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
-        if len(clauseList) > 0:
-            self.doComment("Input clauses")
         self.variableCount = variableCount
         self.stepCount = len(clauseList)
         self.clauseDict = {}
+        if verbLevel >= 2 and len(clauseList) > 0:
+            self.doComment("Input clauses")
         for s in range(1, len(clauseList)+1):
             lits = clauseList[s-1]
-            self.doLine([s, 'i'] + lits + [0])
+            if verbLevel >= 2:
+                self.doLine([s, 'i'] + lits + [0])
             self.addClause(s, lits)
 
     def addClause(self, step, lits):
