@@ -27,11 +27,13 @@ import getopt
 import datetime
 
 def usage(name):
-    print("Usage: %s [-v] [-L] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn]" % name)
-    print("   -v VLEVEL  Set verbosity level (0-3)")
-    print("   -L         Lax mode: Don't attempt validation of *'ed hints")
-    print("   -w WEIGHTS Provide colon-separated set of input weights.")
-    print("              Each should be between 0 and 100 (will be scaled by 1/100)")
+    print("Usage: %s [-v] [-L] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn] [-o FILE.crat]" % name)
+    print("   -v VLEVEL    Set verbosity level (0-3)")
+    print("   -L           Lax mode: Don't attempt validation of *'ed hints")
+    print("   -w WEIGHTS   Provide colon-separated set of input weights.")
+    print("                Each should be between 0 and 100 (will be scaled by 1/100)")
+    print("   -o FILE.crat Produce CRAT output file with all hints present")
+
 
 ######################################################################################
 # CRAT Syntax
@@ -286,6 +288,138 @@ class CnfReader():
             self.fail("Line %d: Got %d clauses.  Expected %d" % (lineNumber, clauseCount, nclause))
             return
 
+# Generic writer
+class Writer:
+    outfile = None
+    verbLevel = 1
+    expectedVariableCount = None
+    isNull = False
+    fname = ""
+
+    def __init__(self, count, fname, verbLevel = 1, isNull = False):
+        self.expectedVariableCount = count
+        self.fname = fname
+        self.verbLevel = verbLevel
+        self.isNull = isNull
+        self.fname = fname
+        if isNull:
+            return
+        try:
+            self.outfile = open(fname, 'w')
+        except:
+            print("Couldn't open file '%s'. Aborting" % fname)
+            sys.exit(1)
+
+    def vcount(self):
+        return self.expectedVariableCount
+
+    def show(self, line):
+        if self.isNull:
+            return
+        line = trim(line)
+        if self.verbLevel > 2:
+            print(line)
+        if self.outfile is not None:
+            self.outfile.write(line + '\n')
+
+    def finish(self):
+        if self.isNull:
+            return
+        if self.outfile is None:
+            return
+        self.outfile.close()
+        self.outfile = None
+
+class CratWriter(Writer):
+    variableCount = 0
+    clauseDict = []
+    stepCount = 0
+
+    def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
+        Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
+        self.variableCount = variableCount
+        self.stepCount = len(clauseList)
+        self.clauseDict = {}
+        if verbLevel >= 2 and len(clauseList) > 0:
+            self.doComment("Input clauses")
+        for s in range(1, len(clauseList)+1):
+            lits = clauseList[s-1]
+            if verbLevel >= 2:
+                self.doLine([s, 'i'] + lits + [0])
+            self.addClause(s, lits)
+
+    def addClause(self, step, lits):
+        self.clauseDict[step] = lits
+
+    def deleteClause(self, step):
+        del self.clauseDict[step]
+
+    def doLine(self, items):
+        slist = [str(i) for i in items]
+        self.show(" ".join(slist))
+
+    def doComment(self, line):
+        self.show("c " + line)
+        
+    def doAnd(self, i1, i2, xvar = None, id = None):
+        self.variableCount += 1
+        self.stepCount += 1
+        v = self.variableCount if xvar is None else xvar
+        s = self.stepCount if id is None else id
+        self.doLine([s, 'p', v, i1, i2])
+        self.addClause(s, [v, -i1, -i2])
+        self.addClause(s+1, [-v, i1])        
+        self.addClause(s+2, [-v, i2])
+        if self.verbLevel >= 2:
+            self.doComment("Implicit declarations:")
+            self.doComment("%d a %d %d %d 0" % (s, v, -i1, -i2))
+            self.doComment("%d a %d %d 0" % (s+1, -v, i1))
+            self.doComment("%d a %d %d 0" % (s+2, -v, i2))
+        self.stepCount += 2
+        return (v, s)
+
+    def doOr(self, i1, i2, hints = None, xvar = None, id = None):
+        if hints is None:
+            hints = ['*']
+        self.variableCount += 1
+        self.stepCount += 1
+        v = self.variableCount if xvar is None else xvar
+        s = self.stepCount if id is None else id
+        self.doLine([s, 's', v, i1, i2] + hints + [0])
+        self.addClause(s, [-v, i1, i2])
+        self.addClause(s+1, [v, -i1])        
+        self.addClause(s+2, [v, -i2])
+        if self.verbLevel >= 2:
+            self.doComment("Implicit declarations:")
+            self.doComment("%d a %d %d %d 0" % (s, -v, i1, i2))
+            self.doComment("%d a %d %d 0" % (s+1, v, -i1))
+            self.doComment("%d a %d %d 0" % (s+2, v, -i2))
+        self.stepCount += 2
+        return (v, s)
+        
+    def doClause(self, lits, hints = ['*'], id = None):
+        self.stepCount += 1
+        s = self.stepCount if id is None else id
+        self.doLine([s, 'a'] + lits + [0] + hints + [0])
+        self.addClause(s, lits)
+        return s
+        
+    def doDeleteClause(self, id, hints=None):
+        if hints is None:
+            hints = ['*']
+        self.doLine(['dc', id] + hints + [0])
+        self.deleteClause(id)
+
+    def doDeleteOperation(self, exvar, clauseId):
+        self.doLine(['do', exvar])
+        for i in range(3):
+            self.deleteClause(clauseId+i)
+        
+        
+    def finish(self):
+        print("c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, self.stepCount))
+        Writer.finish(self)
+
 
 # Clause processing
 class ClauseManager:
@@ -409,9 +543,12 @@ class ClauseManager:
     def findRup(self, tclause):
         # List of clause Ids that have been used in unit propagation
         propClauses = []
+        # Set of clause Ids that have been used in unit propagation
+        propSet = set([])
+        # Set of clause Ids that are satisfied during unit propagation
+        satSet = set([])
         # For each variable unit literal, either id of generating clause or None when comes from target
         generatorDict = {}
-#        print("Find RUP.  Target clause = %s" % tclause)
         # Set of unit literals
         unitSet = set([])
         for lit in tclause:
@@ -422,19 +559,20 @@ class ClauseManager:
         while propagated and not found:
             propagated = False
             for id in self.clauseDict.keys():
-                if id not in propClauses:
+                if id not in propSet and id not in satSet:
                     clause, msg = self.findClause(id)
                     if clause is None:
                         continue
                     (uresult, ulit) = self.unitProp(clause, unitSet)
-                    if uresult == "unit":
+                    if uresult == "satisfied":
+                        satSet.add(id)
+                    elif uresult == "unit":
                         propagated = True
                         propClauses.append(id)
+                        propSet.add(id)
                         generatorDict[abs(ulit)] = id
-#                        print("Clause %d %s.  Added unit %d" % (id, clause, ulit))
                     elif uresult == "conflict":
                         propClauses.append(id)
-#                        print("Clause %d %s.  Conflict" % (id, clause))
                         found = True
                         break
         if found:
@@ -462,7 +600,7 @@ class ClauseManager:
 
     # Check that clause is generated by set of antecedents
     # Assumes clause has been processed by cleanClause
-    # Return (T/F, Reason)
+    # Return (T/F, Reason, hints)
     def checkRup(self, clause, hints):
         if len(hints) == 1 and hints[0] == '*':
             if self.laxMode:
@@ -470,20 +608,20 @@ class ClauseManager:
                 return (True, "")
             hints = self.findRup(clause)
             if hints is None:
-                return (False, "RUP failed for clause %s: Couldn't generate hints" % (showClause(clause)))
+                return (False, "RUP failed for clause %s: Couldn't generate hints" % (showClause(clause)), hints)
         unitSet = set([-lit for lit in clause])
         for id in hints:
             rclause, msg = self.findClause(id)
             if rclause is None:
-                return (False, "RUP failed: %s" % msg)
+                return (False, "RUP failed: %s" % msg, hints)
             uresult, ulit = self.unitProp(rclause, unitSet)
             if uresult == "none":
-                return (False, "RUP failed for clause %s: No unit literal found in clause #%d %s" % (showClause(clause) ,id, showClause(rclause)))
+                return (False, "RUP failed for clause %s: No unit literal found in clause #%d %s" % (showClause(clause) ,id, showClause(rclause)), hints)
             elif uresult == "satisfied":
-                return (False, "RUP failed for clause %s: Literal %s true in clause #%d %s" % (showClause(clause), ulit, id, showClause(rclause)))
+                return (False, "RUP failed for clause %s: Literal %s true in clause #%d %s" % (showClause(clause), ulit, id, showClause(rclause)), hints)
             elif uresult == "conflict":
-                return (True, "")
-        return (False, "RUP failed: No conflict found")
+                return (True, "", hints)
+        return (False, "RUP failed: No conflict found", hints)
 
     def checkFinal(self):
         # All input clauses should have been deleted
@@ -674,12 +812,16 @@ class Prover:
     # Operation Manager
     omgr = None
     failed = False
+    # Make copy of CRAT file with hints
+    cratWriter = None
 
-    def __init__(self, creader, verbose = False, laxMode = False):
+
+    def __init__(self, creader, verbose = False, laxMode = False, cratWriter=None):
         self.verbose = verbose
         self.lineNumber = 0
         self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode)
         self.omgr = OperationManager(self.cmgr, creader.nvar)
+        self.cratWriter = cratWriter
         self.failed = False
         self.subsetOK = False
         self.ruleCounters = { 'i' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0 }
@@ -808,14 +950,15 @@ class Prover:
         if self.verbose:
             print("AddRup step #%d.  Lits = %s" % (id, str(lits)))
         clause = cleanClause(lits)
-        (ok, msg) = self.cmgr.checkRup(clause, hints)
+        (ok, msg, hints) = self.cmgr.checkRup(clause, hints)
         if not ok:
             self.flagError("Couldn't add clause #%d: %s" % (id, msg))
             return
         (ok, msg) = self.cmgr.addClause(clause, id)
         if not ok:
             self.flagError("Couldn't add clause #%d: %s" % (id, msg))
-        
+        if self.cratWriter is not None:
+            self.cratWriter.doClause(lits, hints, id = id)
 
     def doDeleteRup(self, id, rest):
         if len(rest) < 1:
@@ -841,10 +984,12 @@ class Prover:
         if not ok:
             self.flagError("Couldn't delete clause #%d: %s" % (id, msg))
             return
-        (ok, msg) = self.cmgr.checkRup(clause, hints)
+        (ok, msg, hints) = self.cmgr.checkRup(clause, hints)
         if not ok:
             self.flagError("Couldn't delete clause #%d: %s" % (id, msg))
             return
+        if self.cratWriter is not None:
+            self.cratWriter.doDeleteClause(id, hints)
         
     def doProduct(self, id, rest):
         if len(rest) != 3:
@@ -858,6 +1003,8 @@ class Prover:
         (ok, msg) = self.omgr.addOperation(self.omgr.conjunction, args[0], args[1], args[2], id)
         if not ok:
             self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
+        if self.cratWriter is not None:
+            self.cratWriter.doAnd(args[1], args[2], xvar=args[0], id=id)
 
     def doSum(self, id, rest):
         if len(rest) < 3:
@@ -879,10 +1026,12 @@ class Prover:
         if len(rest) > 0:
             self.flagError("Couldn't add operation with clause #%d: Items beyond terminating 0" % (id))
             return
-        (ok, msg) = self.omgr.checkDisjunction(args[1], args[2], hints)
+        (ok, msg, hints) = self.omgr.checkDisjunction(args[1], args[2], hints)
         if not ok:
             self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
             return
+        if self.cratWriter is not None:
+            self.cratWriter.doOr(args[1], args[2], hints = hints, xvar=args[0], id=id)
 
     def doDeleteOperation(self, id, rest):
         if len(rest) != 1:
@@ -931,10 +1080,11 @@ class Prover:
 def run(name, args):
     cnfName = None
     proofName = None
+    cratName = None
     verbLevel = 1
     laxMode = False
     weights = None
-    optList, args = getopt.getopt(args, "hv:Li:p:w:")
+    optList, args = getopt.getopt(args, "hv:Li:p:w:o:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -947,6 +1097,8 @@ def run(name, args):
             cnfName = val
         elif opt == '-p':
             proofName = val
+        elif opt == '-o':
+            cratName = val
         elif opt == '-w':
             wlist = val.split(":")
             try:
@@ -974,7 +1126,10 @@ def run(name, args):
         print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
         return
     verbose = verbLevel > 1
-    prover = Prover(creader, verbose, laxMode)
+    cratWriter = None
+    if cratName is not None:
+        cratWriter = CratWriter(creader.nvar, creader.clauses, cratName, verbLevel)
+    prover = Prover(creader, verbose, laxMode, cratWriter)
     prover.prove(proofName)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
