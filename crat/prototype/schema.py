@@ -152,13 +152,14 @@ class LocalReasoner:
             return clauses
         slist = self.solver.get_proof()
         for sclause in slist:
-            if len(sclause) > 0 and sclause[0] == 'd':
+            sfields = sclause.split()
+            if len(sfields) > 0 and sfields[0] == 'd':
                 # Ignore deletions
                 continue
             try:
-                fields = [int(s) for s in sclause.split()]
+                fields = [int(s) for s in sfields]
             except:
-                raise SchemaException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
+                raise SchemaException("Proof failure.  SAT solver returned invalid proof clause %s (first entry = '%s')" % (sclause, sfields[0]))
             if len(fields) == 0 or fields[-1] != 0:
                 raise SchemaException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
             clause = fields[:-1]
@@ -172,133 +173,6 @@ class LocalReasoner:
             raise SchemaException("Proof failure.  Added SAT clauses %s, but still don't have unit literal %s in context %s" % (str(clauses), lit, str(context)))
         return clauses
 
-# Version of reasoner that uses both local unit prop + solver
-class DualReasoner:
-    clauseList = []
-    unitSet = None
-    solver = None
-
-    def __init__(self):
-        self.clauseList = []
-        self.unitSet = LiteralSet()
-        self.solver = Solver(solverId, with_proof = True)
-
-    def addClauses(self, clist):
-        self.clauseList += clist
-        self.solver.append_formula(clist)
-        self.unitProp()
-
-    def startEpoch(self):
-        self.unitSet.startEpoch()
-
-    def revertEpoch(self):
-        self.unitSet.revertEpoch()
-        # Might have added some clauses that can propagate
-        self.unitProp()
-
-    # Attempt unit propagation on clause
-    # Return: ("unit", ulit), ("conflict", None), ("satisfied", lit), ("none", None)
-    def unitPropClause(self, clause):
-        ulit = None
-        for lit in clause:
-            if lit in self.unitSet:
-                return ("satisfied", lit)
-            if -lit not in self.unitSet:
-                if ulit is None:
-                    ulit = lit
-                else:
-                    # No unit literal found
-                    return ("none", None)
-        if ulit is None:
-            return ("conflict", None)
-        self.unitSet.add(ulit)
-        return ("unit", ulit)
-
-    # Perform unit propagation on set of clauses.
-    # Return True if encounter conflict
-    def unitProp(self):
-        changed = True
-        while changed:
-            changed = False
-            for clause in self.clauseList:
-                (res, ulit) = self.unitPropClause(clause)
-                if res == "conflict":
-                    return True
-                elif res == "unit":
-                    changed = True
-        return False
-                
-    def rupCheck(self, clause, context, failOK = False):
-        self.startEpoch()
-        for lit in clause:
-            self.unitSet.add(-lit)
-        result = self.unitProp()
-        if not result and not failOK:
-            print("UH-OH RUP check failed.  Clause = %s" % (str(clause)))
-            self.show()
-        self.revertEpoch()
-        assumptions = context + readwrite.invertClause(clause)
-        sprop, slits = self.solver.propagate(assumptions=assumptions)
-        sresult = not sprop
-        if sresult != result:
-            print("WARNING.  Got different results from local vs. solver RUP Check.  Context = %s.  Clause = %s.  Lits=%s" % (str(context), str(clause), str(slits)))
-        return result
-
-    # See if literal among current units
-    def isUnit(self, lit, context):
-        lval = lit in self.unitSet
-        # Compare to value from solver
-        ok, lits = self.solver.propagate(assumptions=context)
-        sval = ok and lit in lits
-        if sval != lval:
-            print("WARNING.  Got different results from local vs. solver unit propagation.  Lit = %d.  Context = %s.  Lits=%s" % (lit, str(context), str(lits)))
-        return lval
-    
-    def addUnit(self, lit):
-        self.unitSet.add(lit)
-        self.unitProp()
-
-    def show(self):
-        self.unitSet.show()
-
-    def justifyUnit(self, lit, context):
-        clauses =  []
-        if self.isUnit(lit, context):
-            return clauses
-        pclause = readwrite.invertClause(context)
-        pclause.append(lit)
-        if self.rupCheck(pclause, context, failOK=True):
-            clauses.append(pclause)
-            self.addClauses([pclause])
-            # Sanity check
-            if not self.isUnit(lit, context):
-                print("WARNING.  Added RUP clause %s, but still don't have unit literal %s in context %s" % (str(pclause), lit, str(context)))
-                raise SchemaException("Proof failure.  Added RUP clause %s, but still don't have unit literal %s in context %s" % (str(pclause), lit, str(context)))
-            return clauses
-        # Bring out the big guns!
-        sstate = self.solver.solve(assumptions=context + [-lit])
-        if sstate == True:
-            print("WARNING. Proof failure. Couldn't justify literal %d with context  %s" % (lit, str(context)))
-            raise SchemaException("Proof failure. Couldn't justify literal %d with context  %s" % (lit, str(context)))
-            return clauses
-        slist = self.solver.get_proof()
-        for sclause in slist:
-            try:
-                fields = [int(s) for s in sclause.split()]
-            except:
-                raise SchemaException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
-            if len(fields) == 0 or fields[-1] != 0:
-                raise SchemaException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
-            clause = fields[:-1]
-            if len(clause) ==  0:
-                continue
-            clauses.append(clause)
-        self.addClauses(clauses)
-        # Sanity check
-        if not self.isUnit(lit, context):
-            print("WARNING.  Added SAT clauses %s, but still don't have unit literal %s in context %s" % (str(clauses), lit, str(context)))
-            raise SchemaException("Proof failure.  Added SAT clauses %s, but still don't have unit literal %s in context %s" % (str(clauses), lit, str(context)))
-        return clauses
 
 # Version of reasoner that relies purely on SAT solver
 class Reasoner:
@@ -378,8 +252,12 @@ class Reasoner:
             return clauses
         slist = self.solver.get_proof()
         for sclause in slist:
+            sfields = sclause.split()
+            if len(sfields) > 0 and sfields[0] == 'd':
+                # Ignore deletions
+                continue
             try:
-                fields = [int(s) for s in sclause.split()]
+                fields = [int(s) for s in sfields]
             except:
                 raise SchemaException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
             if len(fields) == 0 or fields[-1] != 0:
@@ -656,10 +534,102 @@ class Schema:
     def deleteOperation(self, node):
         self.cwriter.doDeleteOperation(node.xlit, node.clauseId)
         
+    def validateDisjunction(self, root, context, parent):
+        rstring = " (root)" if parent is None else ""
+        extraUnits = []
+        if root.iteVar is None:
+            raise SchemaException("Don't know how to validate OR node %s that is not from ITE" % str(root))
+        svar = root.iteVar
+        # Set up children
+        self.reasoner.startEpoch()
+        self.reasoner.addUnit(svar)
+        extraUnits += self.validateUp(root.children[0], context + [svar], root)
+        self.reasoner.revertEpoch()
+        self.reasoner.startEpoch()
+        self.reasoner.addUnit(-svar)
+        extraUnits += self.validateUp(root.children[1], context + [-svar], root)
+        self.reasoner.revertEpoch()
+        # Assert extension literal.  Requires two steps to get both sides of disjunction
+        if self.verbLevel >= 2:
+            self.addComment("Assert ITE at node %s%s" % (str(root), rstring))
+        icontext = readwrite.invertClause(context)
+        clause = [root.iteVar, root.xlit] + icontext
+        self.cwriter.doClause(clause)
+        clause = clause[1:]
+        cid = self.cwriter.doClause(clause)
+        self.nodeClauseCounts[root.ntype] += 2
+        if parent is not None and len(context) == 0:
+            extraUnits.append(cid)
+        return extraUnits
+
+    def validateConjunction(self, root, context, parent):
+        rstring = " (root)" if parent is None else ""
+        extraUnits = []
+        vcount = 0
+        for c in root.children:
+            clit = c.getLit()
+            if clit is None:
+                extraUnits += self.validateUp(c, context, root)
+                vcount += 1
+            else:
+                clauses = self.reasoner.justifyUnit(clit, context)
+                if len(clauses) == 0:
+                    if self.verbLevel >= 3:
+                        print("Found unit literal %d in context %s" % (clit, str(context)))
+                elif self.verbLevel >= 2:
+                    self.addComment("Justify literal %d in context %s " % (clit, str(context)))
+                    if self.verbLevel >= 3:
+                        print("Justified unit literal %d in context %s with %d proof steps" % (clit, str(context), len(clauses)))
+                for clause in clauses:
+                    self.cwriter.doClause(clause)
+                nc = len(clauses)
+                if nc in self.literalClauseCounts:
+                    self.literalClauseCounts[nc] += 1
+                else:
+                    self.literalClauseCounts[nc] = 1
+        if vcount > 1:
+            # Assert extension literal
+            if self.verbLevel >= 2:
+                self.addComment("Assert unit clause for AND node %s%s" % (str(root), rstring))
+            clause = [root.xlit] + readwrite.invertClause(context)
+            cid = self.cwriter.doClause(clause)
+            self.nodeClauseCounts[root.ntype] += 1
+            if parent is not None and len(context) == 0:
+                extraUnits.append(cid)
+        return extraUnits
+
+    def validateOther(self, root, context, parent):
+        rstring = " (root)" if parent is None else ""
+        extraUnits = []
+        if root.iteVar is not None:
+            # This node was generated from an ITE.
+            if self.verbLevel >= 2:
+                self.addComment("Assert clause for root of ITE %s" % rstring)
+            clause = [root.xlit] + readwrite.invertClause(context)
+            cid = self.cwriter.doClause(clause)
+            self.nodeClauseCounts[root.ntype] += 1
+            if parent is not None and len(context) == 0:
+                extraUnits.append(cid)
+        else:
+            raise SchemaException("Don't know how to validate node %s" % str(root))
+        return extraUnits
+
     # Generate justification of root nodes
     # context is list of literals that are assigned in the current context
     # Returns list of unit clauses that should be deleted
     def validateUp(self, root, context, parent = None):
+        self.nodeVisits[root.ntype] += 1
+        if root.ntype == NodeType.disjunction:
+            return self.validateDisjunction(root, context, parent)
+        elif root.ntype == NodeType.conjunction:
+            return self.validateConjunction(root, context, parent)
+        else:
+            return self.validateOther(root, context, parent)
+
+    # Generate justification of root nodes
+    # context is list of literals that are assigned in the current context
+    # Returns list of unit clauses that should be deleted
+    def validateUpOld(self, root, context, parent = None):
         self.nodeVisits[root.ntype] += 1
         rstring = " (root)" if parent is None else ""
         extraUnits = []
