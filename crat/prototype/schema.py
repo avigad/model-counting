@@ -152,6 +152,9 @@ class LocalReasoner:
             return clauses
         slist = self.solver.get_proof()
         for sclause in slist:
+            if len(sclause) > 0 and sclause[0] == 'd':
+                # Ignore deletions
+                continue
             try:
                 fields = [int(s) for s in sclause.split()]
             except:
