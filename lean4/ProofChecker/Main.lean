@@ -7,10 +7,7 @@ def runCheckCmd (p : Cli.Parsed) : IO UInt32 := do
   let cratFname := p.positionalArg! "crat"
   let cnf ← CnfForm.readDimacsFile cnfFname.value
   let pf ← CatStep.readDimacsFile cratFname.value
-  let ret ← if p.hasFlag "verbose" then
-    CheckerState.checkWithTraces cnf pf.toList
-  else
-    CheckerState.check cnf pf.toList
+  let ret ← CheckerState.check cnf pf.toList (traces := p.hasFlag "verbose")
   return if ret then 0 else 1
 
 def checkCmd : Cli.Cmd := `[Cli|
