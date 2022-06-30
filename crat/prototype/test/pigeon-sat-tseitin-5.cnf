@@ -1,0 +1,103 @@
+p cnf 40 70
+c Encoding of pigeonhole problem for 5 holes and 5 pigeons
+c Use linear encoding of at-most-one constraints
+c At-least-one constraint
+1 6 11 16 21 0
+c At-least-one constraint
+2 7 12 17 22 0
+c At-least-one constraint
+3 8 13 18 23 0
+c At-least-one constraint
+4 9 14 19 24 0
+c At-least-one constraint
+5 10 15 20 25 0
+c Linear encoding of at-most-one constraint for literals [1, 2, 3, 4, 5]
+c Left constraint for variables [1, 2, 26]
+-1 26 0
+-2 26 0
+-1 -2 0
+1 2 -26 0
+c Left constraint for variables [26, 3, 27]
+-26 27 0
+-3 27 0
+-26 -3 0
+26 3 -27 0
+c Left constraint for variables [27, 4, 28]
+-27 28 0
+-4 28 0
+-27 -4 0
+27 4 -28 0
+c Right constraint for variables [28, 5]
+-28 -5 0
+c Linear encoding of at-most-one constraint for literals [6, 7, 8, 9, 10]
+c Left constraint for variables [6, 7, 29]
+-6 29 0
+-7 29 0
+-6 -7 0
+6 7 -29 0
+c Left constraint for variables [29, 8, 30]
+-29 30 0
+-8 30 0
+-29 -8 0
+29 8 -30 0
+c Left constraint for variables [30, 9, 31]
+-30 31 0
+-9 31 0
+-30 -9 0
+30 9 -31 0
+c Right constraint for variables [31, 10]
+-31 -10 0
+c Linear encoding of at-most-one constraint for literals [11, 12, 13, 14, 15]
+c Left constraint for variables [11, 12, 32]
+-11 32 0
+-12 32 0
+-11 -12 0
+11 12 -32 0
+c Left constraint for variables [32, 13, 33]
+-32 33 0
+-13 33 0
+-32 -13 0
+32 13 -33 0
+c Left constraint for variables [33, 14, 34]
+-33 34 0
+-14 34 0
+-33 -14 0
+33 14 -34 0
+c Right constraint for variables [34, 15]
+-34 -15 0
+c Linear encoding of at-most-one constraint for literals [16, 17, 18, 19, 20]
+c Left constraint for variables [16, 17, 35]
+-16 35 0
+-17 35 0
+-16 -17 0
+16 17 -35 0
+c Left constraint for variables [35, 18, 36]
+-35 36 0
+-18 36 0
+-35 -18 0
+35 18 -36 0
+c Left constraint for variables [36, 19, 37]
+-36 37 0
+-19 37 0
+-36 -19 0
+36 19 -37 0
+c Right constraint for variables [37, 20]
+-37 -20 0
+c Linear encoding of at-most-one constraint for literals [21, 22, 23, 24, 25]
+c Left constraint for variables [21, 22, 38]
+-21 38 0
+-22 38 0
+-21 -22 0
+21 22 -38 0
+c Left constraint for variables [38, 23, 39]
+-38 39 0
+-23 39 0
+-38 -23 0
+38 23 -39 0
+c Left constraint for variables [39, 24, 40]
+-39 40 0
+-24 40 0
+-39 -24 0
+39 24 -40 0
+c Right constraint for variables [40, 25]
+-40 -25 0

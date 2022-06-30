@@ -1,0 +1,63 @@
+p cnf 24 40
+c Encoding of pigeonhole problem for 4 holes and 4 pigeons
+c Use linear encoding of at-most-one constraints
+c At-least-one constraint
+1 5 9 13 0
+c At-least-one constraint
+2 6 10 14 0
+c At-least-one constraint
+3 7 11 15 0
+c At-least-one constraint
+4 8 12 16 0
+c Linear encoding of at-most-one constraint for literals [1, 2, 3, 4]
+c Left constraint for variables [1, 2, 17]
+-1 17 0
+-2 17 0
+-1 -2 0
+1 2 -17 0
+c Left constraint for variables [17, 3, 18]
+-17 18 0
+-3 18 0
+-17 -3 0
+17 3 -18 0
+c Right constraint for variables [18, 4]
+-18 -4 0
+c Linear encoding of at-most-one constraint for literals [5, 6, 7, 8]
+c Left constraint for variables [5, 6, 19]
+-5 19 0
+-6 19 0
+-5 -6 0
+5 6 -19 0
+c Left constraint for variables [19, 7, 20]
+-19 20 0
+-7 20 0
+-19 -7 0
+19 7 -20 0
+c Right constraint for variables [20, 8]
+-20 -8 0
+c Linear encoding of at-most-one constraint for literals [9, 10, 11, 12]
+c Left constraint for variables [9, 10, 21]
+-9 21 0
+-10 21 0
+-9 -10 0
+9 10 -21 0
+c Left constraint for variables [21, 11, 22]
+-21 22 0
+-11 22 0
+-21 -11 0
+21 11 -22 0
+c Right constraint for variables [22, 12]
+-22 -12 0
+c Linear encoding of at-most-one constraint for literals [13, 14, 15, 16]
+c Left constraint for variables [13, 14, 23]
+-13 23 0
+-14 23 0
+-13 -14 0
+13 14 -23 0
+c Left constraint for variables [23, 15, 24]
+-23 24 0
+-15 24 0
+-23 -15 0
+23 15 -24 0
+c Right constraint for variables [24, 16]
+-24 -16 0
