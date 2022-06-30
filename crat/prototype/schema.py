@@ -386,6 +386,21 @@ class Schema:
             extraUnits.append(cid)
         return extraUnits
 
+    # Create list of arguments to chain of conjunction operations
+    # Also return total number of disjunctions encountered
+    def accumulateOffspring(self, root):
+        if root.ntype == NodeType.disjunction:
+            dcount = 1
+            olist = []
+            for c in root.children:
+                cdcount, colist = self.accumulateOffspring(c)
+                olist += colist
+                dcount += cdcount
+            return (olist, dcount)
+        else:
+            return ([root], 0)
+        
+
     def validateConjunction(self, root, context, parent):
         rstring = " (root)" if parent is None else ""
         extraUnits = []
