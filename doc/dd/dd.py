@@ -114,7 +114,7 @@ def getIndex(prefix, candidates):
     # Shouldn't get here
     return None
 
-class ParseException(BaseException):
+class ParseException(Exception):
     line = ""
     info = ""
 
@@ -558,7 +558,7 @@ class Rectangle(Only):
         outfile.write("%s\\draw %s (%.2f,%.2f) rectangle (%.2f,%.2f);\n" % (self.indent, options, llx,lly,urx,ury))
         self.onlySuffix(outfile)
 
-class GraphException:
+class GraphException(Exception):
     msg = ""
 
     def __init__(self, msg):

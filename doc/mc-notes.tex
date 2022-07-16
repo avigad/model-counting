@@ -450,7 +450,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
      & {\tt dc} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause.  Explicit hint \\
      & {\tt dc} & $C$             & {\tt * 0} & Delete RUP clause.  Inferred hint \\
     \midrule
-    $C$    & {\tt p} & $V \; L \; L$    &                  & Declare $\pand$ operation \\
+    $C$    & {\tt p} & $V \; L^{2+}$ {\tt 0}    &                  & Declare $\pand$ operation \\
     $C$    & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation.  Explicit hint \\ 
     $C$    & {\tt s} & $V \; L \; L$    & {\tt * 0}  & Declare $\por$ operation.  Inferred hint \\ 
 %%        & {\tt ite} & $V \; L \; L\; L$    &                  & Declare $\pite$ operation \\
@@ -469,8 +469,8 @@ is represented by a signed integer, with $-v$ being the complement of
 variable $v$.  Each clause is indicated by a positive integer
 identifier $C$, with the first ones being the IDs of the input clauses and successive
 ones being the IDs of added clauses.  Clause identifiers must be totally ordered,
-such that clause $C$ can only reference clauses $C'$ such that $C' <
-C$.  Clause identifiers need not be consecutive.
+such that clause $C$ can only reference clauses $C'$ such that $C' < C$.
+Clause identifiers need not be consecutive.
 
 The first set of proof rules are similar to those in other clausal
 proofs.  Our syntax optionally allows input clauses to be listed with
@@ -481,23 +481,26 @@ checker.  Similarly for clause deletion (command {\tt dc}).
 
 The declaration of a $\pand$ operation has the form:
 \begin{center}
-\begin{tabular}{ccccc}
-  \makebox[5mm]{$i$} & \makebox[5mm]{{\tt p}} & \makebox[5mm]{$v$} & \makebox[5mm]{$l_1$} & \makebox[5mm]{$l_2$} \\
+\begin{tabular}{ccccccccc}
+  \makebox[5mm]{$i$} & \makebox[5mm]{{\tt p}} & \makebox[5mm]{$v$} & \makebox[5mm]{$l_1$} & \makebox[5mm]{$l_2$} &
+  \makebox[5mm]{$\cdots$} & \makebox[5mm]{$l_k$} & \makebox[5mm]{\tt 0} \\
 \end{tabular}
 \end{center}
 where $i$ is a new clause ID, $v$ is a positive integer that does not
-correspond to any previous variable, and $l_1$ and $l_2$ are signed
-integers representing literals of existing variables.
-This declaration implicitly causes three clauses to be added to the proof:
+correspond to any previous variable, and $l_1, l_2, \ldots, l_k$ is a sequence of $k$  ($k \geq 2$)
+integers representing literals of existing variables.  
+This declaration implicitly causes $k+1$ clauses to be added to the proof:
 \begin{center}
-\begin{tabular}{cccc}
-\makebox[10mm]{ID} & \multicolumn{3}{c}{Clause} \\
-  $i$ & $v$ & $-l_1$ & $-l_2$ \\
-  $i\!+\!1$ & $-v$ & $l_1$ & \\
-  $i\!+\!2$ & $-v$ & $l_2$ & \\
+\begin{tabular}{cccccc}
+\makebox[10mm]{ID} & \multicolumn{5}{c}{Clause} \\
+  $i$ & $v$ & $-l_1$ & $-l_2$ & $\cdots$ & $-l_k$\\
+  $i\!+\!1$ & $-v$ & $l_1$  \\
+  $i\!+\!2$ & $-v$ & $l_2$  \\
+  & $\ldots$ \\
+  $i\!+\!k$ & $-v$ & $l_k$  \\
 \end{tabular}
 \end{center}
-The dependency sets for the arguments represented by literals $l_1$ and $l_2$ must be disjoint.
+The dependency sets for the arguments represented each pair of literals $l_{j_1}$ and $l_{j_2}$, for $1 \leq j_1 < j_2 \leq k$, must be disjoint.
 
 The declaration of a $\por$ operation has the form:
 \begin{center}
@@ -571,9 +574,9 @@ extracted from the CRAT file.
     \multicolumn{4}{c}{File line} & & \multicolumn{1}{c}{Explanation} \\
 \midrule
     \makebox[5mm][l]{\tt 1} & \makebox[7mm]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause}\\
-    {\tt 2}        & {\tt p}   & {\tt 4 -2 3}  &            & & Declare $p_4 = \obar{x}_2 \pand x_3$ \\
+    {\tt 2}        & {\tt p}   & {\tt 4 -2 3 0}  &            & & Declare $p_4 = \obar{x}_2 \pand x_3$ \\
     {\tt 5}        & {\tt s}   & {\tt 5 2 4}   & {\tt 3 0}  & & Declare $s_5 = x_2 \por p_4$ \\
-    {\tt 8}        & {\tt p}   & {\tt 6 -1 5}  &            & & Declare $p_6 = \obar{x}_1 \pand s_5$ \\
+    {\tt 8}        & {\tt p}   & {\tt 6 -1 5 0}  &            & & Declare $p_6 = \obar{x}_1 \pand s_5$ \\
     {\tt 11}         & {\tt s}   & {\tt 7 1 6}   & {\tt 9 0}  & & Declare $s_7 = x_1 \por p_6$ \\
     {\tt 14} & {\tt a}  & {\tt 7 0} & {\tt 13 12 8 7 6 2 1 0} & & Assert unit clause $[s_7]$ \\
              & {\tt dc}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
@@ -677,17 +680,16 @@ equivalent to the input formula.
 
     \makebox[5mm][l]{\tt 1} & \makebox[7mm]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
     {\tt 2} & {\tt i}   & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
-    {\tt 3} & {\tt p}   & {\tt 4 -2 -3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
-    {\tt 6} & {\tt p}   & {\tt 5 -1 4}  &             & & Declare $p_5 = \obar{x}_1 \pand p_4 = \obar{x}_1 \pand \obar{x}_2 \pand \obar{x}_3$ \\
-    {\tt 9} & {\tt a}  & {\tt -5 0} & {\tt 7 8 5 4 1 0} & & Assert $t_1 = \obar{p}_5 = x_1 \lor x_2 \lor x_3$ \\
+    {\tt 3} & {\tt p}   & {\tt 4 -1 -2 -3 0}  &            & & Declare $p_4 = \obar{x}_1 \pand \obar{x}_2 \pand \obar{x}_3$ \\
+    {\tt 7} & {\tt a}  & {\tt -4 0} & {\tt 7 8 5 4 1 0} & & Assert $t_1 = \obar{p}_4 = x_1 \lor x_2 \lor x_3$ \\
             & {\tt dc}  & {\tt 1 } & {\tt 3 6 9 0} & & Delete clause $C_1$\\
-    {\tt 10} & {\tt p}   & {\tt 6 1 -2} &              & & Declare $p_6 = x_1 \pand \obar{x}_2$ \\    
-    {\tt 13} & {\tt a} & {\tt -6 0} & {\tt 12 11 2 0}  & & Assert $t_2 = \obar{p}_6 = \obar{x}_1 \lor x_2$ \\
+    {\tt 8} & {\tt p}   & {\tt 5 1 -2} &              & & Declare $p_5 = x_1 \pand \obar{x}_2$ \\    
+    {\tt 11} & {\tt a} & {\tt -5 0} & {\tt 12 11 2 0}  & & Assert $t_2 = \obar{p}_5 = \obar{x}_1 \lor x_2$ \\
             & {\tt dc}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
-    {\tt 14} & {\tt s}   & {\tt 7 5 6}   & {\tt 7 11 0}  & & Declare $s_7 = \obar{t}_1 \por \obar{t}_2$ \\
-    {\tt 17} & {\tt a}  & {\tt -7 0}       & {\tt 9 13 14 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
-             & {\tt dc}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
-             & {\tt dc}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
+    {\tt 12} & {\tt s}   & {\tt 6 4 5}   & {\tt 7 11 0}  & & Declare $s_6 = \obar{t}_1 \por \obar{t}_2$ \\
+    {\tt 15} & {\tt a}  & {\tt -6 0}       & {\tt 9 13 14 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
+             & {\tt dc}  & {\tt 7}          & {\tt 15 17 0} & & Delete $t_1$\\
+             & {\tt dc}  & {\tt 11}         & {\tt 16 17 0} & & Delete $t_2$\\
   \end{tabular}
   \end{center}  
 B). Proof Clauses
@@ -697,16 +699,12 @@ B). Proof Clauses
 \midrule
     \makebox[5mm][l]{\tt 1} & \makebox[7mm]{}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
     {\tt 2} &    & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
-    {\tt 3} &   & {\tt 4 2 3 0} &     & & Defining clauses for $p_4$ \\
-    {\tt 4} &   & {\tt -4 -2 0} &     & & \\
-    {\tt 5} &   & {\tt -4 -3 0} &     & & \\
-
-    {\tt 6} &   & {\tt 5 1 -4 0} &    & & Defining clauses for $p_5$ \\
-    {\tt 7} &   & {\tt -5 -1 0} &     & & \\
-    {\tt 8} &   & {\tt -5 4 0} &      & & \\
-
-    {\tt 9} &   & {\tt -5 0} & {\tt 7 8 5 4 1 0} & & Assert $t_1 = \obar{p}_5 = x_1 \lor x_2 \lor x_3$ \\
-            & {\tt dc}  & {\tt 1 } & {\tt 3 6 9 0} & & Delete clause $C_1$\\
+    {\tt 3} &   & {\tt 4 1 2 3 0} &     & & Defining clauses for $p_4$ \\
+    {\tt 4} &   & {\tt -4 -1 0} &     & & \\
+    {\tt 5} &   & {\tt -4 -2 0} &     & & \\
+    {\tt 6} &   & {\tt -4 -3 0} &     & & \\
+    {\tt 7} &   & {\tt -4 0} & {\tt 6 5 4 1 0} & & Assert $t_1 = \obar{p}_4 = x_1 \lor x_2 \lor x_3$ \\
+            & {\tt dc}  & {\tt 1 } & {\tt 3 7 0} & & Delete clause $C_1$\\
 
     {\tt 10} &   & {\tt 6 -1 2 0}  &    & & Defining clauses for $p_6$ \\ 
     {\tt 11} &   & {\tt -6 1 0}    &  & & \\

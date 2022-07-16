@@ -5,10 +5,9 @@ n s7  75   300 t=b      l=$\lor_{\textrm{a}}$
 n p5   0   200 t=b      l=$\land_{\textrm{v}}$
 n p6 150   200 t=b      l=$\land_{\textrm{v}}$
 n p4   0   100 t=b      l=$\land_{\textrm{v}}$
-n jx1 75   150 t=r r=0
+n jx1 150   50 t=r r=0
 n jx2 75    50 t=r r=0
-n rx2 150  100 t=r r=0
-n x1  75   100 t=r r=20 e=fillcolor f=fillcolor l=$x_1$
+n x1  150    0 t=r r=20 e=fillcolor f=fillcolor l=$x_1$
 n x2  75     0 t=r r=20 e=fillcolor f=fillcolor l=$x_2$
 n x3   0     0 t=r r=20 e=fillcolor f=fillcolor l=$x_3$
 # Edges
@@ -18,11 +17,10 @@ e s7 p6 t=n
 e p5 jx1 t=n m=b
 e p5 p4 t=n m=b
 e p6 jx1 t=n
-e p6 rx2 t=n
+e p6 jx2 t=n
 e jx1 x1 t=n
 e p4 x3 t=n m=b
 e p4 jx2 t=n m=b
-e rx2 jx2 t=n 
 e jx2 x2 t=n
 # Tags
 t s7 $s_7$ p=r off=0
