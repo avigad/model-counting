@@ -32,18 +32,16 @@ def cnfGen(fname, n, verbose):
 def proofGen(fname, n, verbose):
     sch = schema.Schema(n, clauseList, fname, verbLevel = 3 if verbose else 1)
     cwriter = sch.cwriter
-    zero = sch.leaf0
-    one = sch.leaf1
-    literals.reverse()
-    # Represent clause as stack of ITEs.  Should get converted to conjunctions
-    root = zero
+    children = []
     for lit in literals:
-        var = sch.getVariable(abs(lit))
+        child = sch.getVariable(abs(lit))
         if lit > 0:
-            root = sch.addIte(var, one, root)
-        else:
-            root = sch.addIte(var, root, one)
-    sch.addComment("Assert unit clause for root")
+            child = sch.addNegation(child)
+        children.append(child)
+    sch.addComment("Form conjunction of negated literals")
+    negroot = sch.addConjunction(children)
+    root = sch.addNegation(negroot)
+    sch.addComment("Assert unit clause for negated root")
     sch.addClause([root])
     sch.addComment("Delete input clause")
     sch.deleteClause(1)

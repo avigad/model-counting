@@ -519,21 +519,23 @@ class CratWriter(Writer):
     def doComment(self, line):
         self.show("c " + line)
         
-    def doAnd(self, i1, i2):
+    def doAnd(self, ilist):
         self.variableCount += 1
         self.stepCount += 1
         v = self.variableCount
         s = self.stepCount
-        self.doLine([s, 'p', v, i1, i2])
-        self.addClause(s, [v, -i1, -i2])
-        self.addClause(s+1, [-v, i1])        
-        self.addClause(s+2, [-v, i2])
+        self.doLine([s, 'p', v] + ilist + [0])
+        cpos = [v] + [-i for i in ilist]
+        self.addClause(s, cpos)
         if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
-            self.doComment("%d a %d %d %d 0" % (s, v, -i1, -i2))
-            self.doComment("%d a %d %d 0" % (s+1, -v, i1))
-            self.doComment("%d a %d %d 0" % (s+2, -v, i2))
-        self.stepCount += 2
+            slist = [str(lit) for lit in cpos]
+            self.doComment("%d a %s 0" % (s, " ".join(slist)))
+        for idx in range(len(ilist)):
+            self.addClause(s+idx, [-v, ilist[idx]])
+            if self.verbLevel >= 2:
+                self.doComment("%d a %d %d 0" % (s+1+idx, -v, ilist[idx]))
+        self.stepCount += len(ilist)
         return (v, s)
 
     def doOr(self, i1, i2, hints = None):

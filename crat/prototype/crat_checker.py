@@ -49,7 +49,7 @@ def usage(name):
 # Id  i [Lit*] 0             -- Input clause
 # Id  a [Lit*] 0    HINT 0   -- RUP clause addition
 #    dc Id          HINT 0   -- RUP clause deletion
-# Id  p Var Lit Lit          -- And operation
+# Id  p Var Lit Lit+     0   -- And operation
 # Id  a Var Lit Lit HINT 0   -- Or operation
 #    do Var                  -- Operation deletion
 
@@ -657,7 +657,7 @@ class OperationManager:
     
     # Number of input variables
     inputVariableCount = 0
-    # Operation indexed by output variable.  Each entry of form (op, arg1, arg2, id)
+    # Operation indexed by output variable.  Each entry of form (id, op, arg1, arg2, ...)
     operationDict = {}
     # For each variable, the variables on which it depends
     dependencySetDict = {}
@@ -673,42 +673,48 @@ class OperationManager:
         self.operationDict = {}
         self.dependencySetDict = { v : set([v]) for v in range(1, varCount+1) }
 
-    def addOperation(self, op, outVar, inLit1, inLit2, id):
+    def addOperation(self, op, outVar, inLits, id):
+        if op == self.disjunction:
+            if len(inLits) != 2:
+                return (False, "Cannot have %d arguments for disjunction" % len(inLits))
+        elif op == self.conjunction:
+            if len(inLits) < 2:
+                return (False, "Cannot have %d arguments for conjunction" % len(inLits))
         if outVar in self.dependencySetDict:
             return (False, "Operator output variable %d already in use" % outVar)
-        inVar1 = abs(inLit1)
-        inVar2 = abs(inLit2)
-        if inVar1 not in self.dependencySetDict:
-            return (False, "Operator input literal %d undefined" % inLit1)            
-        if inVar2 not in self.dependencySetDict:
-            return (False, "Operator input literal %d undefined" % inLit2)
-
-        dset1 = self.dependencySetDict[inVar1]
-        dset2 = self.dependencySetDict[inVar2]
-        if op == self.conjunction and not dset1.isdisjoint(dset2):
-            return (False, "Dependency sets of conjunction operation inputs %s and %s are not disjoint" % (inLit1, inLit2))
-        self.dependencySetDict[outVar] = dset1.union(dset2)
+        dset = set([])
+        for lit in inLits:
+            var = abs(lit)
+            if var not in self.dependencySetDict:
+                return (False, "Operator input literal %d undefined" % lit)
+            adset = self.dependencySetDict[var]
+            if op == self.conjunction and not adset.isdisjoint(dset):
+                return (False, "Overlapping dependency sets for conjunction operation")
+            dset = dset.union(adset)
+        self.dependencySetDict[outVar] = dset
         if op == self.conjunction:
-            (ok, msg) = self.cmgr.addClause([outVar, -inLit1, -inLit2], id)
+            (ok, msg) = self.cmgr.addClause([outVar] + [-lit for lit in inLits], id)
             if not ok:
                 return (ok, msg)
-            (ok, msg) = self.cmgr.addClause([-outVar, inLit1], id+1)
-            if not ok:
-                return (ok, msg)
-            (ok, msg) = self.cmgr.addClause([-outVar, inLit2], id+2)            
-            if not ok:
-                return (ok, msg)
+            nextId = id+1
+            for lit in inLits:
+                (ok, msg) = self.cmgr.addClause([-outVar, lit], nextId)
+                nextId += 1
+                if not ok:
+                    return (ok, msg)
         elif op == self.disjunction:
-            (ok, msg) = self.cmgr.addClause([-outVar, inLit1, inLit2], id)
+            (ok, msg) = self.cmgr.addClause([-outVar] + inLits, id)
             if not ok:
                 return (ok, msg)
-            (ok, msg) = self.cmgr.addClause([outVar, -inLit1], id+1)
+            nextId = id+1
+            for lit in inLits:
+                (ok, msg) = self.cmgr.addClause([outVar, -lit], nextId)
+                nextId += 1
+                if not ok:
+                    return (ok, msg)
             if not ok:
                 return (ok, msg)
-            (ok, msg) = self.cmgr.addClause([outVar, -inLit2], id+2)
-            if not ok:
-                return (ok, msg)
-        self.operationDict[outVar] = (op, inLit1, inLit2, id)
+        self.operationDict[outVar] = tuple([id, op] + inLits)
         return (True, "")
 
     def checkDisjunction(self, inLit1, inLit2, hints):
@@ -717,16 +723,14 @@ class OperationManager:
     def deleteOperation(self, outVar):
         if outVar not in self.operationDict:
             return (False, "Operator %d undefined" % outVar)
-        (op, inLit1, inLit2, id) = self.operationDict[outVar]
-        (ok, msg) = self.cmgr.deleteClause(id)
-        if not ok:
-            return (False, "Could not delete defining clause for operation %d: %s" % (outVar, msg))
-        (ok, msg) = self.cmgr.deleteClause(id+1)
-        if not ok:
-            return (False, "Could not delete defining clause for operation %d: %s" % (outVar, msg))
-        (ok, msg) = self.cmgr.deleteClause(id+2)
-        if not ok:
-            return (False, "Could not delete defining clause for operation %d: %s" % (outVar, msg))
+        entry = self.operationDict[outVar]
+        id = entry[0]
+        op = entry[1]
+        args in entry[2:]
+        for i in range(len(args)+1):
+            (ok, msg) = self.cmgr.deleteClause(id+i)
+            if not ok:
+                return (False, "Could not delete defining clause #%d for operation %d: %s" % (id+i, outVar, msg))
         lcount = self.cmgr.literalCountDict[outVar] + self.cmgr.literalCountDict[-outVar]
         if lcount > 0:
             if self.verbose:
@@ -741,16 +745,20 @@ class OperationManager:
 
     def pnumCount(self, root, weights, finalScale = None):
         for outVar in sorted(self.operationDict.keys()):
-            (op, arg1, arg2, cid) = self.operationDict[outVar]
-            var1 = abs(arg1)
-            val1 = weights[var1]
-            if arg1 < 0:
-                val1 = val1.oneminus()
-            var2 = abs(arg2)
-            val2 = weights[var2]
-            if arg2 < 0:
-                val2 = val2.oneminus()
-            result = val1.mul(val2) if op == self.conjunction else val1.add(val2)
+            entry = self.operationDict[outVar]
+            id = entry[0]
+            op = entry[1]
+            args = entry[2:]
+            wts = []
+            for arg in args:
+                var = abs(arg)
+                val = weights[var]
+                if arg < 0:
+                    val = val.oneminus()
+                wts.append(val)
+            result = wts[0]
+            for w in wts[1:]:
+                result = result.mul(w) if op == self.conjunction else result.add(w)
             weights[outVar] = result
         rootVar = abs(root)
         rval = weights[rootVar]
@@ -762,16 +770,20 @@ class OperationManager:
     
     def floatCount(self, root, weights, finalScale = None):
         for outVar in sorted(self.operationDict.keys()):
-            (op, arg1, arg2, cid) = self.operationDict[outVar]
-            var1 = abs(arg1)
-            val1 = weights[var1]
-            if arg1 < 0:
-                val1 = 1.0 - val1
-            var2 = abs(arg2)
-            val2 = weights[var2]
-            if arg2 < 0:
-                val2 = 1.0 - val2
-            result = val1 * val2 if op == self.conjunction else val1 + val2
+            entry = self.operationDict[outVar]
+            id = entry[0]
+            op = entry[1]
+            args = entry[2:]
+            wts = []
+            for arg in args:
+                var = abs(arg)
+                val = weights[var]
+                if arg < 0:
+                    val = 1.0 - val
+                wts.append(val)
+            result = wts[0]
+            for w in wts[1:]:
+                result = result * w if op == self.conjunction else result + w
             weights[outVar] = result
         rootVar = abs(root)
         rval = weights[rootVar]
@@ -992,23 +1004,27 @@ class Prover:
             self.cratWriter.doDeleteClause(id, hints)
         
     def doProduct(self, id, rest):
-        if len(rest) != 3:
-            self.flagError("Couldn't add operation with clause #%d: Invalid number of operands" % (id))
+        if len(rest) < 4:
+            self.flagError("Couldn't add product operation with clause #%d: Invalid number of operands" % (id))
             return
         try:
             args = [int(field) for field in rest]
         except:
             self.flagError("Couldn't add operation with clause #%d: Non-integer arguments" % (id))
             return
-        (ok, msg) = self.omgr.addOperation(self.omgr.conjunction, args[0], args[1], args[2], id)
+        if args[-1] != 0:
+            self.flagError("Couldn't add operation with clause #%d: No terminating 0 found" % (id))
+            return
+        args = args[:-1]
+        (ok, msg) = self.omgr.addOperation(self.omgr.conjunction, args[0], args[1:], id)
         if not ok:
             self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
         if self.cratWriter is not None:
-            self.cratWriter.doAnd(args[1], args[2], xvar=args[0], id=id)
+            self.cratWriter.doAnd(args[1:], xvar=args[0], id=id)
 
     def doSum(self, id, rest):
         if len(rest) < 3:
-            self.flagError("Couldn't add operation with clause #%d: Invalid number of operands" % (id))
+            self.flagError("Couldn't add sum operation with clause #%d: Invalid number of operands" % (id))
             return
         try:
             args = [int(field) for field in rest[:3]]
@@ -1019,7 +1035,7 @@ class Prover:
         (hints, rest) = self.findList(rest, starOk = True)
         if self.failed:
             return
-        (ok, msg) = self.omgr.addOperation(self.omgr.disjunction, args[0], args[1], args[2], id)
+        (ok, msg) = self.omgr.addOperation(self.omgr.disjunction, args[0], [args[1], args[2]], id)
         if not ok:
             self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
             return

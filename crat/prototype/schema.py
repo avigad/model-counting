@@ -187,8 +187,8 @@ class Negation(Node):
 class Conjunction(Node):
     clauseId = None
 
-    def __init__(self, child1, child2, xlit, clauseId):
-        Node.__init__(self, xlit, NodeType.conjunction, [child1, child2])
+    def __init__(self, children, xlit, clauseId):
+        Node.__init__(self, xlit, NodeType.conjunction, children)
         self.clauseId = clauseId
 
     def __str__(self):
@@ -279,19 +279,37 @@ class Schema:
             self.store(n)
         return n
 
-    def addConjunction(self, child1, child2):
-        if child1.isZero() or child2.isZero():
+    # For all nodes to be combined via conjunction
+    # Returns leaf0 or list of arguments
+    def mergeConjunction(self, root, sofar = []):
+        if type(sofar) == type(self.leaf0) and sofar == self.leaf0:
+            return sofar
+        if root.isZero():
             return self.leaf0
-        if child1.isOne():
-            return child2
-        if child2.isOne():
-            return child1
-        n = self.lookup(NodeType.conjunction, [child1, child2])
+        elif root.isOne():
+            return sofar
+        elif root.ntype == NodeType.conjunction:
+            for child in root.children:
+                sofar = self.mergeConjunction(child, sofar)
+            return sofar
+        else:
+            sofar.append(root)
+            return sofar
+
+    def addConjunction(self, children):
+        nchildren = []
+        for child in children:
+            nchildren = self.mergeConjunction(child, nchildren)
+        if type(nchildren) == type(self.leaf0) and nchildren == self.leaf0:
+            return nchildren
+        children = sorted(nchildren, key = lambda c: abs(c.xlit))
+        n = self.lookup(NodeType.conjunction, children)
         if n is None:
-            xlit, clauseId = self.cwriter.doAnd(child1.xlit, child2.xlit)
-            n = Conjunction(child1, child2, xlit, clauseId)
+            xlit, clauseId = self.cwriter.doAnd([child.xlit for child in children])
+            n = Conjunction(children, xlit, clauseId)
             if self.verbLevel >= 2:
-                self.addComment("Node %s = AND(%s, %s)" % (str(n), str(child1), str(child2)))
+                slist = [str(child) for child in children]
+                self.addComment("Node %s = AND(%s)" % (str(n), ", ".join(slist)))
             self.store(n)
         return n
 
@@ -311,6 +329,16 @@ class Schema:
             self.store(n)
         return n
 
+    # Find defining clauses that can be used in mutual exclusion proof
+    def findHintClause(self, node, var):
+        if node.ntype != NodeType.conjunction:
+            return None
+        for idx in range(len(node.children)):
+            child = node.children[idx]
+            if abs(child.xlit) == var:
+                return node.clauseId+idx+1
+        return None
+
     def addIte(self, nif, nthen, nelse):
         if nif.isOne():
             result = nthen
@@ -323,17 +351,22 @@ class Schema:
         elif nthen.isZero() and nelse.isOne():
             result = self.addNegation(nif)
         elif nthen.isOne():
-            result = self.addNegation(self.addConjunction(self.addNegation(nif), self.addNegation(nelse)))
+            result = self.addNegation(self.addConjunction([self.addNegation(nif), self.addNegation(nelse)]))
         elif nthen.isZero():
             result = self.addConjunction(self.addNegation(nif), nelse)
         elif nelse.isOne():
-            result = self.addNegation(self.addConjunction(nif, self.addNegation(nthen)))
+            result = self.addNegation(self.addConjunction([nif, self.addNegation(nthen)]))
         elif nelse.isZero():
-            result = self.addConjunction(nif, nthen)
+            result = self.addConjunction([nif, nthen])
         else:
-            ntrue = self.addConjunction(nif, nthen)
-            nfalse = self.addConjunction(self.addNegation(nif), nelse)
-            hints = [ntrue.clauseId+1, nfalse.clauseId+1]
+            ntrue = self.addConjunction([nif, nthen])
+            nfalse = self.addConjunction([self.addNegation(nif), nelse])
+            hint1 = self.findHintClause(ntrue, nif.xlit)
+            hint2 = self.findHintClause(nfalse, nif.xlit)
+            if hint1 is None or hint2 is None:
+                hints = None
+            else:
+                hints = [hint1, hint2]
             n = self.addDisjunction(ntrue, nfalse, hints)
             result = n
         if self.verbLevel >= 3:
@@ -385,21 +418,6 @@ class Schema:
         if parent is not None and len(context) == 0:
             extraUnits.append(cid)
         return extraUnits
-
-    # Create list of arguments to chain of conjunction operations
-    # Also return total number of disjunctions encountered
-    def accumulateOffspring(self, root):
-        if root.ntype == NodeType.disjunction:
-            dcount = 1
-            olist = []
-            for c in root.children:
-                cdcount, colist = self.accumulateOffspring(c)
-                olist += colist
-                dcount += cdcount
-            return (olist, dcount)
-        else:
-            return ([root], 0)
-        
 
     def validateConjunction(self, root, context, parent):
         rstring = " (root)" if parent is None else ""
