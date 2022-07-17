@@ -1,10 +1,6 @@
-c Input clauses
-1 i -1 2 -3 4 -5 0
-2 p 6 -4 5
-5 p 7 3 6
-8 p 8 -2 7
-11 p 9 1 8
-c Assert unit clause for root
-14 a -9 0 * 0
+c Form conjunction of negated literals
+2 p 6 1 -2 3 -4 5 0
+c Assert unit clause for negated root
+8 a -6 0 * 0
 c Delete input clause
 dc 1 * 0
