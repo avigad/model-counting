@@ -683,7 +683,7 @@ equivalent to the input formula.
     {\tt 3} & {\tt p}   & {\tt 4 -1 -2 -3 0}  &            & & Declare $p_4 = \obar{x}_1 \pand \obar{x}_2 \pand \obar{x}_3$ \\
     {\tt 7} & {\tt a}  & {\tt -4 0} & {\tt 6 5 4 1 0} & & Assert $t_1 = \obar{p}_4 = x_1 \lor x_2 \lor x_3$ \\
             & {\tt dc}  & {\tt 1 } & {\tt 3 7 0} & & Delete clause $C_1$\\
-    {\tt 8} & {\tt p}   & {\tt 5 1 -2} &              & & Declare $p_5 = x_1 \pand \obar{x}_2$ \\    
+    {\tt 8} & {\tt p}   & {\tt 5 1 -2 0} &              & & Declare $p_5 = x_1 \pand \obar{x}_2$ \\    
     {\tt 11} & {\tt a} & {\tt -5 0} & {\tt 10 9 2 0}  & & Assert $t_2 = \obar{p}_5 = \obar{x}_1 \lor x_2$ \\
             & {\tt dc}  & {\tt 2 } & {\tt 8 11 0} & & Delete clause $C_2$\\
     {\tt 12} & {\tt s}   & {\tt 6 4 5}   & {\tt 4 9 0}  & & Declare $s_6 = \obar{t}_1 \por \obar{t}_2$ \\
@@ -785,9 +785,9 @@ computation shown in Figure~\ref{fig:p2-bdd:schema}B\@.
 \midrule
     \makebox[5mm][l]{\tt 1} & \makebox[7mm]{}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
             {\tt 2} & {\tt i}   & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
-            {\tt 3} & {\tt p}   & {\tt 4 -2 -3}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
-    {\tt 6} & {\tt p}   & {\tt 5 -1 -4}  &             & & Declare $p_5 = \obar{x}_1 \pand \obar{p}_4$ \\
-    {\tt 9} & {\tt p}   & {\tt 6 1 2} &              & & Declare $p_6 = x_1 \pand x_2$ \\    
+            {\tt 3} & {\tt p}   & {\tt 4 -2 -3 0}  &            & & Declare $p_4 = \obar{x}_2 \pand \obar{x}_3$ \\
+    {\tt 6} & {\tt p}   & {\tt 5 -1 -4 0}  &             & & Declare $p_5 = \obar{x}_1 \pand \obar{p}_4$ \\
+    {\tt 9} & {\tt p}   & {\tt 6 1 2 0} &              & & Declare $p_6 = x_1 \pand x_2$ \\    
     {\tt 12} & {\tt s}   & {\tt 7 5 6}   & {\tt 7 10 0}  & & Declare $s_7 = p_5 \por p_6$ \\
     {\tt 15} & {\tt a}  & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p}_4$ \\
     {\tt 16} & {\tt a}  & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
