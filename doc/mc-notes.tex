@@ -681,15 +681,15 @@ equivalent to the input formula.
     \makebox[5mm][l]{\tt 1} & \makebox[7mm]{\tt i}   & \makebox[20mm][l]{\tt 1 2 3 0}   &  \makebox[30mm]{}          & \makebox[5mm]{} & \makebox[40mm][l]{Input clause $C_1$}\\
     {\tt 2} & {\tt i}   & {\tt -1 2 0}  &            & & Input clause $C_2$ \\
     {\tt 3} & {\tt p}   & {\tt 4 -1 -2 -3 0}  &            & & Declare $p_4 = \obar{x}_1 \pand \obar{x}_2 \pand \obar{x}_3$ \\
-    {\tt 7} & {\tt a}  & {\tt -4 0} & {\tt 7 8 5 4 1 0} & & Assert $t_1 = \obar{p}_4 = x_1 \lor x_2 \lor x_3$ \\
-            & {\tt dc}  & {\tt 1 } & {\tt 3 6 9 0} & & Delete clause $C_1$\\
+    {\tt 7} & {\tt a}  & {\tt -4 0} & {\tt 6 5 4 1 0} & & Assert $t_1 = \obar{p}_4 = x_1 \lor x_2 \lor x_3$ \\
+            & {\tt dc}  & {\tt 1 } & {\tt 3 7 0} & & Delete clause $C_1$\\
     {\tt 8} & {\tt p}   & {\tt 5 1 -2} &              & & Declare $p_5 = x_1 \pand \obar{x}_2$ \\    
-    {\tt 11} & {\tt a} & {\tt -5 0} & {\tt 12 11 2 0}  & & Assert $t_2 = \obar{p}_5 = \obar{x}_1 \lor x_2$ \\
-            & {\tt dc}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
-    {\tt 12} & {\tt s}   & {\tt 6 4 5}   & {\tt 7 11 0}  & & Declare $s_6 = \obar{t}_1 \por \obar{t}_2$ \\
-    {\tt 15} & {\tt a}  & {\tt -6 0}       & {\tt 9 13 14 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
-             & {\tt dc}  & {\tt 7}          & {\tt 15 17 0} & & Delete $t_1$\\
-             & {\tt dc}  & {\tt 11}         & {\tt 16 17 0} & & Delete $t_2$\\
+    {\tt 11} & {\tt a} & {\tt -5 0} & {\tt 10 9 2 0}  & & Assert $t_2 = \obar{p}_5 = \obar{x}_1 \lor x_2$ \\
+            & {\tt dc}  & {\tt 2 } & {\tt 8 11 0} & & Delete clause $C_2$\\
+    {\tt 12} & {\tt s}   & {\tt 6 4 5}   & {\tt 4 9 0}  & & Declare $s_6 = \obar{t}_1 \por \obar{t}_2$ \\
+    {\tt 15} & {\tt a}  & {\tt -6 0}       & {\tt 7 11 12 0} & & Assert $t_3 = \obar{s}_6 = t_1 \land t_2$ \\
+             & {\tt dc}  & {\tt 7}          & {\tt 13 15 0} & & Delete $t_1$\\
+             & {\tt dc}  & {\tt 11}         & {\tt 14 15 0} & & Delete $t_2$\\
   \end{tabular}
   \end{center}  
 B). Proof Clauses
@@ -706,18 +706,18 @@ B). Proof Clauses
     {\tt 7} &   & {\tt -4 0} & {\tt 6 5 4 1 0} & & Assert $t_1 = \obar{p}_4 = x_1 \lor x_2 \lor x_3$ \\
             & {\tt dc}  & {\tt 1 } & {\tt 3 7 0} & & Delete clause $C_1$\\
 
-    {\tt 10} &   & {\tt 6 -1 2 0}  &    & & Defining clauses for $p_6$ \\ 
-    {\tt 11} &   & {\tt -6 1 0}    &  & & \\
-    {\tt 12} &   & {\tt -6 -2 0}    &  & & \\ 
-    {\tt 13} &  & {\tt -6 0} & {\tt 12 11 2 0}  & & Assert $t_2 = \obar{p}_6 = \obar{x}_1 \lor x_2$ \\
-            & {\tt dc}  & {\tt 2 } & {\tt 10 13 0} & & Delete clause $C_2$\\
-             &          & {\tt -5 -6 0} & {\tt 7 11 0}  & & Mutual exclusion proof for $s_7$ \\
-    {\tt 14} &   & {\tt -7 5 6 0}  &     & & Defining clauses for $s_7$ \\ 
-    {\tt 15} &   & {\tt  7 -5 0}    &  &  \\  
-    {\tt 16} &   & {\tt  7 -6 0}    &  & &  \\
-    {\tt 17} &   & {\tt -7 0}       & {\tt 9 13 0} & & Assert $t_3 = \obar{s}_7 = t_1 \land t_2$ \\
-             & {\tt dc}  & {\tt 9}          & {\tt 15 17 0} & & Delete $t_1$\\
-             & {\tt dc}  & {\tt 13}         & {\tt 16 17 0} & & Delete $t_2$\\
+    {\tt 8} &   & {\tt 5 -1 2 0}  &    & & Defining clauses for $p_5$ \\ 
+    {\tt 9} &   & {\tt -5 1 0}    &  & & \\
+    {\tt 10} &   & {\tt -5 -2 0}    &  & & \\ 
+    {\tt 11} &  & {\tt -5 0} & {\tt 10 9 2 0}  & & Assert $t_2 = \obar{p}_5 = \obar{x}_1 \lor x_2$ \\
+             & {\tt dc}  & {\tt 2 } & {\tt 8 11 0} & & Delete clause $C_2$\\
+             &          & {\tt -4 -5 0} & {\tt 4 9 0}  & & Mutual exclusion proof for $s_6$ \\
+    {\tt 12} &   & {\tt -6 4 5 0}  &     & & Defining clauses for $s_6$ \\ 
+    {\tt 13} &   & {\tt  6 -4 0}    &  &  \\  
+    {\tt 14} &   & {\tt  6 -5 0}    &  & &  \\
+    {\tt 15} &   & {\tt -6 0}       & {\tt 7 11 12 0} & & Assert $t_3 = \obar{s}_6 = t_1 \land t_2$ \\
+             & {\tt dc}  & {\tt 7}          & {\tt 13 15 0} & & Delete $t_1$\\
+             & {\tt dc}  & {\tt 11}         & {\tt 14 15 0} & & Delete $t_2$\\
   \end{tabular}
   \end{center}  
   \caption{CRAT file \#2A for formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$, and the resulting set of proof clauses}
@@ -743,18 +743,18 @@ they are deleted.
 
 Using DeMorgan's Laws, $C_1$ can be written as 
 $t_1 = \neg [\obar{x}_1\land \obar{x}_2\land \obar{x}_3]$, and this can be
-expressed using $\pand$ operations $s_4$ and $s_5$, shown in
+expressed using the $\pand$ operation $p_4$, shown in
 Figure~\ref{fig:p2-bdd:schema}A\@.  (Note that $t_1$ in this case is
 logically equivalent to root $t_1$ in the schema of
 Figure~\ref{fig:c3:schema}A, but the use of negation enables it to be
-represented with two operations rather than four.)  Similarly, $C_2$
+represented with one operation rather than four.)  Similarly, $C_2$
 can be written as $t_2 = \neg [x_1\land \obar{x}_2]$, and this can be
-represented by $\pand$ operation $p_6$.
-Terms $t_1$ and $t_2$ are asserted as unit clauses on proof lines 9 and 13,
+represented by $\pand$ operation $p_5$.
+Terms $t_1$ and $t_2$ are asserted as unit clauses on proof lines 7 and 11,
 allowing the input clauses to be deleted.
 The conjunction $t_1 \land t_2$
-can be written as $t_3 = \neg[\obar{t_1} \lor \obar{t_2}]$, represented by $\por$ operation $s_7$.
-Term $t_3$ is asserted as a unit clause on proof line 17.
+can be written as $t_3 = \neg[\obar{t_1} \lor \obar{t_2}]$, represented by $\por$ operation $s_6$.
+Term $t_3$ is asserted as a unit clause on proof line 15.
 Based on this, the unit clauses for terms $t_1$ and
 $t_2$ can be deleted.  Term $t_3$ then becomes the unique root of the cost
 computation shown in Figure~\ref{fig:p2-bdd:schema}B\@.
