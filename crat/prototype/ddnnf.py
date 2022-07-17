@@ -411,10 +411,7 @@ class Nnf:
                 node.snode = svar if node.lit > 0 else sch.addNegation(svar)
             elif node.ntype == NodeType.conjunction:
                 # Build linear chain.   Keep literals at top
-                schildren.reverse()
-                nroot = schildren[0]
-                for c in schildren[1:]:
-                    nroot = sch.addConjunction(c, nroot)
+                nroot = sch.addConjunction(schildren)
                 node.snode = nroot
             elif node.ntype == NodeType.disjunction:
                 node.snode = sch.addDisjunction(schildren[0], schildren[1])

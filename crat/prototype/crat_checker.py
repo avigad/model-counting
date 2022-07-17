@@ -361,21 +361,24 @@ class CratWriter(Writer):
     def doComment(self, line):
         self.show("c " + line)
         
-    def doAnd(self, i1, i2, xvar = None, id = None):
+    def doAnd(self, args, xvar = None, id = None):
         self.variableCount += 1
         self.stepCount += 1
         v = self.variableCount if xvar is None else xvar
         s = self.stepCount if id is None else id
-        self.doLine([s, 'p', v, i1, i2])
-        self.addClause(s, [v, -i1, -i2])
-        self.addClause(s+1, [-v, i1])        
-        self.addClause(s+2, [-v, i2])
+
+        self.doLine([s, 'p', v] + args + [0])
+        cpos = [v] + [-i for i in args]
+        self.addClause(s, cpos)
         if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
-            self.doComment("%d a %d %d %d 0" % (s, v, -i1, -i2))
-            self.doComment("%d a %d %d 0" % (s+1, -v, i1))
-            self.doComment("%d a %d %d 0" % (s+2, -v, i2))
-        self.stepCount += 2
+            slist = [str(lit) for lit in cpos]
+            self.doComment("%d a %s 0" % (s, " ".join(slist)))
+        for idx in range(len(args)):
+            self.addClause(s+idx, [-v, args[idx]])
+            if self.verbLevel >= 2:
+                self.doComment("%d a %d %d 0" % (s+1+idx, -v, args[idx]))
+        self.stepCount += len(args)
         return (v, s)
 
     def doOr(self, i1, i2, hints = None, xvar = None, id = None):
@@ -726,7 +729,7 @@ class OperationManager:
         entry = self.operationDict[outVar]
         id = entry[0]
         op = entry[1]
-        args in entry[2:]
+        args = entry[2:]
         for i in range(len(args)+1):
             (ok, msg) = self.cmgr.deleteClause(id+i)
             if not ok:
