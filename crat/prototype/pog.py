@@ -1,4 +1,4 @@
-# Quasi-canonical representation of a counting schema
+# Quasi-canonical representation of a POG
 # For use by both top-down and bottom-up schema generators
 
 import sys
@@ -8,13 +8,13 @@ import readwrite
 # Use glucose4 as solver
 solverId = 'g4'
 
-class SchemaException(Exception):
+class PogException(Exception):
 
     def __init__(self, value):
         self.value = value
 
     def __str__(self):
-        return "Schema Exception: " + str(self.value)
+        return "Pog Exception: " + str(self.value)
 
 # Version of reasoner that relies purely on SAT solver
 class Reasoner:
@@ -72,13 +72,13 @@ class Reasoner:
             # Sanity check
             if not self.isUnit(lit, context):
                 print("WARNING.  Added RUP clause %s, but still don't have unit literal %s in context %s" % (str(pclause), lit, str(context)))
-                raise SchemaException("Proof failure.  Added RUP clause %s, but still don't have unit literal %s in context %s" % (str(pclause), lit, str(context)))
+                raise PogException("Proof failure.  Added RUP clause %s, but still don't have unit literal %s in context %s" % (str(pclause), lit, str(context)))
             return clauses
         # Bring out the big guns!
         sstate = self.solver.solve(assumptions=context + [-lit])
         if sstate == True:
             print("WARNING. Proof failure. Couldn't justify literal %d with context  %s" % (lit, str(context)))
-            raise SchemaException("Proof failure. Couldn't justify literal %d with context  %s" % (lit, str(context)))
+            raise PogException("Proof failure. Couldn't justify literal %d with context  %s" % (lit, str(context)))
             return clauses
         slist = self.solver.get_proof()
         for sclause in slist:
@@ -89,9 +89,9 @@ class Reasoner:
             try:
                 fields = [int(s) for s in sfields]
             except:
-                raise SchemaException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
+                raise PogException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
             if len(fields) == 0 or fields[-1] != 0:
-                raise SchemaException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
+                raise PogException("Proof failure.  SAT solver returned invalid proof clause %s" % sclause)
             clause = fields[:-1]
             if len(clause) ==  0:
                 continue
@@ -100,7 +100,7 @@ class Reasoner:
         # Sanity check
         if not self.isUnit(lit, context):
             print("WARNING.  Added SAT clauses %s, but still don't have unit literal %s in context %s" % (str(clauses), lit, str(context)))
-            raise SchemaException("Proof failure.  Added SAT clauses %s, but still don't have unit literal %s in context %s" % (str(clauses), lit, str(context)))
+            raise PogException("Proof failure.  Added SAT clauses %s, but still don't have unit literal %s in context %s" % (str(clauses), lit, str(context)))
         return clauses
     
 
@@ -204,8 +204,8 @@ class Disjunction(Node):
     def __str__(self):
         return "S%d" % self.xlit
 
-# Represent overall schema
-class Schema:
+# Represent overall POG
+class Pog:
     
     # List of variables, ordered by id
     variables = []
@@ -401,7 +401,7 @@ class Schema:
         rstring = " (root)" if parent is None else ""
         extraUnits = []
         if root.iteVar is None:
-            raise SchemaException("Don't know how to validate OR node %s that is not from ITE" % str(root))
+            raise PogException("Don't know how to validate OR node %s that is not from ITE" % str(root))
         svar = root.iteVar
         # Recursively validate children
         extraUnits += self.validateUp(root.children[0], context + [svar], root)
@@ -468,7 +468,7 @@ class Schema:
             if parent is not None and len(context) == 0:
                 extraUnits.append(cid)
         else:
-            raise SchemaException("Don't know how to validate node %s" % str(root))
+            raise PogException("Don't know how to validate node %s" % str(root))
         return extraUnits
 
     # Generate justification of root nodes
@@ -559,7 +559,7 @@ class Schema:
             if node.xlit in markSet:
                 nnodes.append(node)
         if self.verbLevel >= 2:
-            print("Compressed schema from %d to %d nodes" % (len(self.nodes), len(nnodes)))
+            print("Compressed POG from %d to %d nodes" % (len(self.nodes), len(nnodes)))
         self.nodes = nnodes
 
     def show(self):

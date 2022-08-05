@@ -21,7 +21,7 @@
 ########################################################################################
 
 
-# Checker for CRAT schema.
+# Checker for CRAT POG.
 import sys
 import getopt
 import datetime

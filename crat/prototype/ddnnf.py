@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
-# Convert DNNF representation of Boolean formula into a counting schema
+# Convert DNNF representation of Boolean formula into a POG
 
 import sys
 import getopt
 import datetime
 import readwrite
-import schema
+import pog
 
 # Format documentation: http://www.cril.univ-artois.fr/kc/d-DNNF-reasoner.html
 # Input/output format:
@@ -75,7 +75,7 @@ class Node:
     ntype = None
     id = None
     children = []
-    # Corresponding schema node
+    # Corresponding POG node
     snode = None
 
     def __init__(self, ntype, id, children):
@@ -399,8 +399,8 @@ class Nnf:
                 self.nodes.append(node)
         self.topoSort(root)
 
-    def schematize(self, clauseList, fname):
-        sch = schema.Schema(self.inputCount, clauseList, fname, self.verbLevel)
+    def makePog(self, clauseList, fname):
+        sch = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel)
         for node in self.nodes:
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
@@ -421,7 +421,7 @@ class Nnf:
                 # Label for proof generation
                 node.snode.iteVar = node.splitVar
             if self.verbLevel >= 3:
-                print("NNF node %s --> Schema node %s" % (str(node), str(node.snode)))
+                print("NNF node %s --> POG node %s" % (str(node), str(node.snode)))
         sch.compress()
         return sch
                 
@@ -481,12 +481,12 @@ def run(name, args):
     if verbLevel >= 2:
         dag.show()
     if cratName is not None:
-        sch = dag.schematize(creader.clauses, cratName)
+        sch = dag.makePog(creader.clauses, cratName)
         if verbLevel == 1:
-            print("c Generated schema has %d nodes" % len(sch.nodes))
+            print("c Generated POG has %d nodes" % len(sch.nodes))
         if verbLevel >= 2:
             print("")
-            print("c Generated schema has %d nodes:" % len(sch.nodes))
+            print("c Generated POG has %d nodes:" % len(sch.nodes))
             sch.show()
         sch.doValidate()
         sch.finish()
