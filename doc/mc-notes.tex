@@ -294,6 +294,26 @@ $P$ is that, for any separable cost function $\cost$, the cost of the
 formula $\cost(P)$ can be computed with a linear number of ring
 operations, as is shown in the final column of Table~\ref{tab:pog}.
 
+POGs are inspired by the DDNNF graphs devised by
+Darwiche for encoding Boolean functions, a process he refers to as
+``knowledge compilation.''
+POGs generalize DDNNF in two ways:
+\begin{itemize}
+\item It allows negation of arbitrary nodes in the graph, not just
+  variables.  It is therefore not a negation-normal form.  We will see
+  examples where this allows a more compact representation.
+\item It allows arbitrary arguments to a $\por$ operation, as long as
+  they have disjoint satisfying assignments.  By contrast, for each
+  disjunction node in a DDNNF, there must be a variable $x$ such that
+  the assignments for one argument have $x=1$ while those for
+  the other argument to have $x=0$.
+\end{itemize}
+  Both of these generalizations allow more flexibility in the POG
+  representation while maintaining the ability to easily compute their
+  cost for separable cost functions.
+
+
+
 \subsection{POG Normalization}
 
 \begin{table}
