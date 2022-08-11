@@ -118,23 +118,23 @@ class AndNode(Node):
 
 # Attempt optimizations
 def optAndNode(id, children):
-    schildren = [str(child) for child in children]
-    print("Processing conjunction of %s" % " ".join(schildren))
-
     # Get rid of constant children
     nchildren = []
-    for child in nchildren:
+    for child in children:
         if child.ntype == NodeType.constant:
             if child.val == 0:
-                return child
+                nchildren = [child]
+                break
         else:
             nchildren.append(child)
     # Look for simplifications
     if len(nchildren) == 0:
-        return ConstantNode(id, 1)
-    if len(nchildren) == 1:
-        return nchildren[0]
-    return AndNode(id, nchildren)
+        result = ConstantNode(id, 1)
+    elif len(nchildren) == 1:
+        result = nchildren[0]
+    else:
+        result = AndNode(id, nchildren)
+    return result
 
 class OrNode(Node):
     splitVar = None
@@ -531,7 +531,7 @@ class D4Reader:
     # Then add literals
     def buildBase(self):
         # Create constant nodes
-        for val in range(1):
+        for val in range(2):
             id = self.getConstantId(val)
             self.nnf.nodes.append(ConstantNode(id, val))
         # Create nodes for all input literals
@@ -540,6 +540,12 @@ class D4Reader:
             self.nnf.nodes.append(LeafNode(posid, v))
             negid = self.getLiteralId(-v)
             self.nnf.nodes.append(LeafNode(negid, -v))
+        if self.nnf.verbLevel >= 3:
+            print("Base nodes:")
+            for idx in range(len(self.nnf.nodes)):
+                print("  NNF node #%d: %s" % (idx, str(self.nnf.nodes[idx])))
+
+
 
     def processFalse(self, pid, pchildren):
         id = self.getConstantId(0)
@@ -598,7 +604,7 @@ class D4Reader:
         else:
             print("Or Operation #%d.  Can't have operation with %d arguments" % (pid, len(achildren)))
             return False
-        if self.nnf.verbLevel >= 3:
+        if self.nnf.verbLevel >= 4:
             print("Processed Or operation #%d.  Result = POG operation %s" % (pid, str(self.pidMap[pid])))
         return True
 
@@ -629,7 +635,7 @@ class D4Reader:
             if not ok:
                 print("Operation #%d.  Generation of NNF graph failed." % pid)
                 break
-            if self.nnf.verbLevel >= 3:
+            if self.nnf.verbLevel >= 4:
                 print("Processed operation #%d.  Symbol=%s" % (pid, symbol))
         return ok
         
