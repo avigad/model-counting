@@ -402,6 +402,8 @@ class Nnf:
                 remap[nid] = nid
                 remap[node.id] = nid
                 nodeDict[nid] = nnode
+                if self.verbLevel >= 3:
+                    print("Created Node #%d ITE(%d, %s, %s)" % (nid, splitVar, str(tnode), str(fnode)))
             else:
                 raise NnfException("Couldn't convert node %s into ITE" % (node))
         # Compress into list
