@@ -338,6 +338,10 @@ class Nnf:
 
     def findIte(self):
         idList = [node.id for node in self.nodes]
+        if len(idList) > 0:
+            nextId = max(idList) + 1
+        else:
+            nextId = 1
         nodeDict = { node.id  : node for node in self.nodes }
         # Mapping from old Id to new one for nodes that are replaced
         remap = {}
@@ -356,7 +360,8 @@ class Nnf:
                 if tchild.lit != splitVar:
                     print("WARNING: Expected literal %d in ITE argument %s" % (splitVar, str(tchild)))
                 else:
-                    nid = len(nodeDict)
+                    nid = nextId
+                    nextId += 1
                     tnode = ConstantNode(nid, 1)
                     nodeDict[nid] = tnode
                     remap[nid] = nid
@@ -370,7 +375,8 @@ class Nnf:
                 elif len(nchildren) != len(tchild.children)-1:
                     print("WARNING: Didn't find literal %d in ITE argument %s" % (splitVar, str(tchild)))
                 else:
-                    nid = len(nodeDict)
+                    nid = nextId
+                    nextId += 1
                     tnode = AndNode(nid, nchildren)
                     nodeDict[nid] = tnode
                     remap[nid] = nid
@@ -378,7 +384,8 @@ class Nnf:
                 if fchild.lit != -splitVar:
                     print("WARNING: Expected literal %d in ITE argument %s" % (-splitVar, str(fchild)))
                 else:
-                    nid = len(nodeDict)
+                    nid = nextId
+                    nextId += 1
                     fnode = ConstantNode(nid, 1)
                     nodeDict[nid] = fnode
                     remap[nid] = nid
@@ -392,12 +399,14 @@ class Nnf:
                 elif len(nchildren) != len(fchild.children)-1:
                     print("WARNING: Didn't find literal %d in ITE argument %s" % (-splitVar, str(fchild)))
                 else:
-                    nid = len(nodeDict)
+                    nid = nextId
+                    nextId += 1
                     fnode = AndNode(nid, nchildren)
                     nodeDict[nid] = fnode
                     remap[nid] = nid
             if tnode is not None and fnode is not None:
-                nid = len(nodeDict)
+                nid = nextId
+                nextId += 1
                 nnode = IteNode(nid, [tnode, fnode], splitVar)
                 remap[nid] = nid
                 remap[node.id] = nid
