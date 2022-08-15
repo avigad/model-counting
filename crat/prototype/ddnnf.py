@@ -337,6 +337,8 @@ class Nnf:
             n.show()
 
     def findIte(self):
+        # Look for constant 1 node
+        k1 = None
         idList = [node.id for node in self.nodes]
         if len(idList) > 0:
             nextId = max(idList) + 1
@@ -347,6 +349,8 @@ class Nnf:
         remap = {}
         for id in idList:
             node = nodeDict[id]
+            if node.ntype == NodeType.constant and node.val == 1:
+                k1 = node
             node.children = [nodeDict[remap[child.id]] for child in node.children]
             if node.ntype != NodeType.disjunction:
                 id = node.id
@@ -362,7 +366,9 @@ class Nnf:
                 else:
                     nid = nextId
                     nextId += 1
-                    tnode = ConstantNode(nid, 1)
+                    if k1 is None:
+                        k1 = ConstantNode(nid, 1)
+                    tnode = k1
                     nodeDict[nid] = tnode
                     remap[nid] = nid
             elif tchild.ntype == NodeType.conjunction:
@@ -386,7 +392,9 @@ class Nnf:
                 else:
                     nid = nextId
                     nextId += 1
-                    fnode = ConstantNode(nid, 1)
+                    if k1 is None:
+                        k1 = ConstantNode(nid, 1)
+                    fnode = k1
                     nodeDict[nid] = fnode
                     remap[nid] = nid
             elif fchild.ntype == NodeType.conjunction:
@@ -461,14 +469,11 @@ class D4Reader:
     prototypes = {}
     # Mapping from operator IDs in file to Ids in network
     pidMap = {}
-    # Keep track of maximum input variable
-    maxVar = 0
 
     def __init__(self, nnf):
         self.nnf = nnf
         self.prototypes = {}
         self.pidMap = {}
-        self.maxVar = 0
 
     def showPrototype(self):
         pidList = sorted(self.prototypes.keys())
@@ -507,7 +512,7 @@ class D4Reader:
                 pchild = ifields[1]
                 lits = ifields[2:]
                 if len(lits) > 0:
-                    self.maxVar = max(self.maxVar, max([abs(lit) for lit in lits]))
+                    self.nnf.inputCount = max(self.nnf.inputCount, max([abs(lit) for lit in lits]))
                 if parent not in self.prototypes or pchild not in self.prototypes:
                     print("Line %d.  Unknown operator ID")
                     return False
@@ -546,7 +551,7 @@ class D4Reader:
             id = self.getConstantId(val)
             self.nnf.nodes.append(ConstantNode(id, val))
         # Create nodes for all input literals
-        for v in range(1, self.maxVar+1):
+        for v in range(1, self.nnf.inputCount+1):
             posid = self.getLiteralId(v)
             self.nnf.nodes.append(LeafNode(posid, v))
             negid = self.getLiteralId(-v)
@@ -555,8 +560,6 @@ class D4Reader:
             print("Base nodes:")
             for idx in range(len(self.nnf.nodes)):
                 print("  NNF node #%d: %s" % (idx, str(self.nnf.nodes[idx])))
-
-
 
     def processFalse(self, pid, pchildren):
         id = self.getConstantId(0)
@@ -628,27 +631,43 @@ class D4Reader:
         self.pidMap[pid] = op
         return True
 
+    # Add one more node.
+    # Most, but not all are in topological order
+    def buildNode(self, pid):
+        if pid in self.pidMap:
+            return True
+        ok = True
+        symbol, pchildren = self.prototypes[pid]
+        for pchild in pchildren:
+            cpid, lits = pchild
+            if not self.buildNode(cpid):
+                return False
+        if symbol == 't':
+            ok = self.processTrue(pid, pchildren)
+        elif symbol == 'f':
+            ok = self.processFalse(pid, pchildren)
+        elif symbol == 'o':
+            ok = self.processOr(pid, pchildren)
+        else:
+            # 'a'
+            ok = self.processAnd(pid, pchildren)
+        if not ok:
+            print("Operation #%d.  Generation of NNF graph failed." % pid)
+            return False
+        if self.nnf.verbLevel >= 4:
+            print("Processed operation #%d.  Symbol=%s" % (pid, symbol))
+        return True
+
+
     def build(self):
         self.buildBase()
         pidList = sorted(self.prototypes.keys())
         pidList.reverse()
         for pid in pidList:
-            symbol, pchildren = self.prototypes[pid]
-            ok = True
-            if symbol == 't':
-                ok = self.processTrue(pid, pchildren)
-            elif symbol == 'f':
-                ok = self.processFalse(pid, pchildren)
-            elif symbol == 'o':
-                ok = self.processOr(pid, pchildren)
-            else:
-                ok = self.processAnd(pid, pchildren)
-            if not ok:
-                print("Operation #%d.  Generation of NNF graph failed." % pid)
-                break
-            if self.nnf.verbLevel >= 4:
-                print("Processed operation #%d.  Symbol=%s" % (pid, symbol))
-        return ok
+            if not self.buildNode(pid):
+                return False
+        return True
+        
         
 def run(name, args):
     verbLevel = 1

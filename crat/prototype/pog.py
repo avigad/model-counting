@@ -562,6 +562,7 @@ class Pog:
             print("Compressed POG from %d to %d nodes" % (len(self.nodes), len(nnodes)))
         self.nodes = nnodes
 
+
     def show(self):
         for node in self.nodes:
             if node.ntype != NodeType.negation:
