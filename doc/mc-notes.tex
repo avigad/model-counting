@@ -357,15 +357,16 @@ $f_3$.
   \begin{tabular}{ccc}
     ITE Form & & Encoding \\
     \midrule
-     $\ite(S_1, S_2, S_3)$ & $$ & $(S_1 \pand S_2) \por (\neg S_1 \land S_3)$ \\
-     $\ite(\tautology, S_2, S_3)$ & $$ & $S_2$ \\
-     $\ite(\nil, S_2, S_3)$ & $$ & $S_3$ \\
-     $\ite(S_1, \tautology, \nil)$ & $$ & $S_1$ \\
-     $\ite(S_1, \nil, \tautology)$ & $$ & $\neg S_1$ \\
-     $\ite(S_1, S_2, \nil)$ & $$ & $S_1 \pand S_2$ \\
-     $\ite(S_1, \nil, S_3)$ & $$ & $\neg S_1 \pand S_3$ \\
-     $\ite(S_1, \tautology, S_3)$ & $$ & $\neg (\neg S_1 \pand \neg S_3)$ \\
-     $\ite(S_1, S_2, \tautology)$ & $$ & $\neg (S_1 \pand \neg S_2)$ \\
+     $\ite(S_1, S_2, S_3)$ & $\;$ & $(S_1 \pand S_2) \por (\neg S_1 \land S_3)$ \\
+     $\ite(\tautology, S_2, S_3)$ & $\;$ & $S_2$ \\
+     $\ite(\nil, S_2, S_3)$ & $\;$ & $S_3$ \\
+     $\ite(S_1, S_2, S_2)$  & $\;$ & $S_2$ \\
+     $\ite(S_1, \tautology, \nil)$ & $\;$ & $S_1$ \\
+     $\ite(S_1, \nil, \tautology)$ & $\;$ & $\neg S_1$ \\
+     $\ite(S_1, S_2, \nil)$ & $\;$ & $S_1 \pand S_2$ \\
+     $\ite(S_1, \nil, S_3)$ & $\;$ & $\neg S_1 \pand S_3$ \\
+     $\ite(S_1, \tautology, S_3)$ & $\;$ & $\neg (\neg S_1 \pand \neg S_3)$ \\
+     $\ite(S_1, S_2, \tautology)$ & $\;$ & $\neg (S_1 \pand \neg S_2)$ \\
   \end{tabular}
   \end{center}
 \end{table}
