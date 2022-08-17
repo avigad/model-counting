@@ -10,7 +10,9 @@ cat $CRAT | awk '/ p / {$1=""; print $0}' | sed 's| p ||' > p-lines
 
 cat $CRAT | awk '/ a / {$1=""; print $0}' | sed 's| a ||' | sed 's| \* 0||' > a-lines
 
-cat $CNF  | awk '/ 0/ {print "d "$0; print $0; print "d "$0}' > d-lines
+cat $CNF  | awk '/ 0/ {print "d "$0;}' > d-lines
+cat $CNF  | awk '/ 0/ {print $0; print "d "$0;}' >> d-lines
+#cat $CNF  | awk '/ 0/ {print "d "$0; print $0; print "d "$0;}' > d-lines
 
 ./expand p-lines > $DRAT
 cat a-lines d-lines >> $DRAT

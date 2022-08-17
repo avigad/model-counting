@@ -21,7 +21,7 @@
 ########################################################################################
 
 
-# Checker for CRAT schema.
+# Checker for CRAT POG.
 import sys
 import getopt
 import datetime
@@ -113,100 +113,150 @@ class PNumException(Exception):
         self.msg = msg
 
     def __str__(self):
-        return "P2 Number exception %s" % self.msg
+        return "P52 Number exception %s" % self.msg
 
 
-# Represent numbers of form a * base^b, where a is odd integer and b is integer
-# Default base = 2
-class PNum:
+
+# Represent numbers of form a * 2**m2 + 5**m5
+class P52:
     a = 1
-    b = 0
+    m2 = 0
+    m5 = 0
 
-    def __init__(self, a, b=0, base=2):
+    def __init__(self, a=0, m2=0, m5=0):
         if type(a) != type(1):
             raise PNumException("Nonintegral a (%s)" % str(a))
-        if type(b) != type(1):
-            raise PNumException("Nonintegral b (%s)" % str(b))
-        if type(base) != type(1):
-            raise PNumException("Nonintegral base (%s)" % str(base))
-        if base == 0:
-            raise PNumException("Zero base (%s)" % str(base))
-        self.base = base
+        if type(m2) != type(1):
+            raise PNumException("Nonintegral m2 (%s)" % str(m2))
+        if type(m5) != type(1):
+            raise PNumException("Nonintegral m5 (%s)" % str(m5))
         if a == 0:
-            self.a = 0
-            self.b = 0
+            self.a = a
+            self.m2 = 0
+            self.m5 = 0
             return
-        while a % base == 0:
-            a = a//base
-            b += 1
+        while a % 2 == 0:
+            a = a//2
+            m2 += 1
+        while a % 5 == 0:
+            a = a//5
+            m5 += 1
         self.a = a
-        self.b = b
+        self.m2 = m2
+        self.m5 = m5
 
     def __str__(self):
-        return "%d*%d^(%d)" % (self.a, self.base, self.b)
+        return "%d*2^(%d)5^(%d)" % (self.a, self.m2, self.m5)
 
     def num(self):
-        p = self.base**self.b
-        val = p * self.a
+        p2 = 2**self.m2
+        p5 = 5**self.m5
+        val = self.a * p2 * p5
         return val
 
 
     def neg(self):
-        result = PNum(-self.a, self.b, self.base)
+        result = P52(-self.a, self.m2, self.m5)
         return result
 
     def oneminus(self):
-        one = PNum(1, 0, self.base)
+        one = P52(1)
         result = one.add(self.neg())
         return result
 
     def mul(self, other):
-        if self.base != other.base:
-            raise PNumException("Mismatched bases: %d != %d" % (self.base, other.base))
         na = self.a * other.a 
-        nb = self.b + other.b
-        result =  PNum(na, nb, self.base)
+        nm2 = self.m2 + other.m2
+        nm5 = self.m5 + other.m5
+        result =  P52(na, nm2, nm5)
         return result
 
     def add(self, other):
-        if self.base != other.base:
-            raise PNumException("Mismatched bases: %d != %d" % (self.base, other.base))
-        a1 = self.a
-        b1 = self.b
-        a2 = other.a
-        b2 = other.b
-        if b1 > b2:
-            a1,a2 = a2,a1
-            b1,b2 = b2,b1
-        # Guarantee b2 >= b1
-        p = self.base ** (b2-b1)
-        a2 *= p
-        na = a1 + a2
-        nb = b1
-        result = PNum(na, nb, self.base)
+        ax = self.a
+        ay = other.a
+        m2x = self.m2
+        m2y = other.m2
+        m5x = self.m5
+        m5y = other.m5
+        if m2y > m2x:
+            d2 = m2y-m2x
+            ay *= 2**d2
+            m2n = m2x
+        else:
+            d2 = m2x-m2y
+            ax *= 2**d2
+            m2n = m2y
+        if m5y > m5x:
+            d5 = m5y-m5x
+            ay *= 5**d5
+            m5n = m5x
+        else:
+            d5 = m5x-m5y
+            ax *= 5**d5
+            m5n = m5y
+        an = ax+ay
+        result = P52(an, m2n, m5n)
         return result
 
-    def pscale(self, p):
-        return PNum(self.a, p+self.b, self.base)
+    def scale2(self, x):
+        return P52(self.a, self.m2+x, self.m5)
+    def scale5(self, x):
+        return P52(self.a, self.m2, self.m5+x)
+    def scale10(self, x):
+        return P52(self.a, self.m2+x, self.m5+x)
+
+    def parse(self, s):
+        if len(s) == 0:
+            raise PNumException("Invalid number '%s'" % s)
+        negative = s[0] == '-'
+        if negative:
+            s = s[1:]
+        fields = s.split('.')
+        if len(fields) == 1:
+            try:
+                ival = int(fields[0])
+                if negative:
+                    ival = -ival
+            except:
+                raise PNumException("Invalid number '%s'" % s)
+            return P52(ival)
+        elif len(fields) == 2:
+            try:
+                h = int(fields[0]) if len(fields[0]) > 0 else 0
+                l = int(fields[1]) if len(fields[1]) > 0 else 0
+                if negative:
+                    h = -h
+                    l = -l
+            except:
+                raise PNumException("Invalid number '%s'" % s)
+            wt = len(fields[1])
+            return P52(h).add(P52(l,-wt,-wt))
+        else:
+            raise PNumException("Invalid number '%s'" % s)
 
     def render(self):
-        if self.base != 10:
-            return str(self.num())
         if self.a < 0:
-            sval = "-"
-            digits = str(-self.a)
+            sign = "-"
+            ival = -self.a
         else:
-            sval = ""
-            digits = str(self.a)
-        pt = len(digits)
-        if self.b >= 0:
-            sval = digits + "0" * self.b
-        elif pt + self.b > 0:
-            sval += digits[:pt+self.b] + "." + digits[pt+self.b:]
+            sign = ""
+            ival = self.a
+        p10 = min(self.m2, self.m5)
+        if self.m2 > p10:
+            ival *= 2**(self.m2 - p10)
+        elif self.m5 > p10:
+            ival *= 5**(self.m5 - p10)
+        sval = str(ival)
+        if p10 >= 0:
+            sval += '0' * p10
+        elif -p10 >= len(sval):
+            sval = '0.' + '0' * -(p10+len(sval)) + sval
         else:
-            sval += "0." + "0" * -(pt + self.b) + digits
-        return sval
+            pos = len(sval) + p10
+            sval = sval[:pos] + '.' + sval[pos:]
+        return sign+sval
 
+    
 # Read CNF file.
 # Save list of clauses, each is a list of literals (zero at end removed)
 class CnfReader():
@@ -771,44 +821,14 @@ class OperationManager:
             rval = rval.mul(finalScale)
         return rval
     
-    def floatCount(self, root, weights, finalScale = None):
-        for outVar in sorted(self.operationDict.keys()):
-            entry = self.operationDict[outVar]
-            id = entry[0]
-            op = entry[1]
-            args = entry[2:]
-            wts = []
-            for arg in args:
-                var = abs(arg)
-                val = weights[var]
-                if arg < 0:
-                    val = 1.0 - val
-                wts.append(val)
-            result = wts[0]
-            for w in wts[1:]:
-                result = result * w if op == self.conjunction else result + w
-            weights[outVar] = result
-        rootVar = abs(root)
-        rval = weights[rootVar]
-        if root < 0:
-            rval = 1.0 - rval
-        if finalScale is not None:
-            rval *= finalScale
-        return rval
-
 
     # Optionally provide dictionary of weights.  Otherwise assume unweighted
     def count(self, root, weights = None, finalScale = None):
         if weights is None:
-            weights = { v : PNum(1,-1,2) for v in range(1, self.inputVariableCount+1) }
-            finalScale = PNum(1, self.inputVariableCount, 2)
+            weights = { v : P52(1,-1,0) for v in range(1, self.inputVariableCount+1) }
+            finalScale = P52(1, self.inputVariableCount, 0)
         pval = self.pnumCount(root, weights, finalScale)
-        fweights = { v : weights[v].num() for v in weights.keys() }
-        fscale = finalScale if finalScale is None else finalScale.num()
-        rval = self.floatCount(root, fweights, fscale)
-        print("Precise count = %s" % pval.render())
-        print("Float count   = %s" % str(rval)) 
-        return pval.num()
+        return pval
 
 class ProofException(Exception):
     def __init__(self, value, lineNumber = None):
@@ -1121,7 +1141,7 @@ def run(name, args):
         elif opt == '-w':
             wlist = val.split(":")
             try:
-                weights = { v : PNum(int(wlist[v-1]), -2, 10) for v in range(1, len(wlist)+1) }
+                weights = { v : P52(int(wlist[v-1]), -2, -2) for v in range(1, len(wlist)+1) }
             except Exception as ex:
                 print("Couldn't extract weights from '%s' (%s)" % (val, str(ex)))
                 usage(name)
@@ -1155,9 +1175,9 @@ def run(name, args):
     print("Elapsed time for check: %.2f seconds" % seconds)
     count = prover.count(weights)
     if weights is None:
-        print("Unweighted count = %.0f" % count)
+        print("Unweighted count = %s" % count.render())
     else:
-        print("Weighted count = %s" % str(count))
+        print("Weighted count = %s" % count.render())
     
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])

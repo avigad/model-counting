@@ -148,7 +148,7 @@ $\cost(\interp) = \prod_{l_i \in \interp} \cost(l_i)$,
 and the cost of a function $f$ as
 $\cost(f) = \sum_{\interp \in \interpset{f}} \cost(\interp)$.
 
-For ring elemement $a$, we use the notation $\oneminus a$ to denote $1 - a$.
+For ring element $a$, we use the notation $\oneminus a$ to denote $1 - a$.
 
 {\bf Example 1a}: Let $\ring$ be the set of rational numbers of the form $a\cdot 2^b$ where $a$ and $b$ are integers.
 Let $\cost(x_i) = 1/2$ for all variables $x_i$.  The cost of every
@@ -237,34 +237,34 @@ condition that $f_1$ and $f_2$ hold for mutually exclusive assignments.
 %% $\depend(f_1) \cap \depend(f_2) = \emptyset$ and
 %% $\depend(f_1) \cap \depend(f_3) = \emptyset$.
 
-\section{Separable Schemas}
+\section{Partitioned-Operation Graphs (POGs)}
 
 Computing the cost function for a Boolean formula becomes
 straightforward when the formula contains only the operations
 $\pand$, $\por$, and $\neg$, as is demonstrated by
-Propositions~\ref{prop:negation}--\ref{prop:disjunction}.  We define {\em separable schemas}
+Propositions~\ref{prop:negation}--\ref{prop:disjunction}.  We define a {\em partitioned-operation graph} (POG)
 as a direct-acyclic graph representation of such formulas.
 Representing formulas as a graph enables sharing subformulas, yielding a more compact representation.
 
-\subsection{Schema Definition}
+\subsection{POG Definition}
 
 \begin{table}
-  \caption{Recursive Definition of Separable Schemas and their Costs}
-  \label{tab:schema}
+  \caption{Recursive Definition of POGs and their Costs}
+  \label{tab:pog}
 %%A) Basic Operations\\
 \begin{center}
 \begin{tabular}{ccccc}
 \toprule
-  \makebox[15mm]{$S$}  & \makebox[30mm]{Restrictions} & \makebox[30mm]{$D(S)$} & \makebox[30mm]{$\interpset{S}$} & \makebox[25mm]{$\cost(S)$}\\
+  \makebox[15mm]{$P$}  & \makebox[30mm]{Restrictions} & \makebox[30mm]{$D(P)$} & \makebox[30mm]{$\interpset{P}$} & \makebox[25mm]{$\cost(P)$}\\
 \midrule
   $\nil$  & None  & $\emptyset$    & $\emptyset$  & $0$\\
   $\tautology$        & None  & $\emptyset$    & $\uinterp$ & $1$ \\
 $x_i$           & None  & $\{ x_i \}$    & $\{ \interp | \interp(x_i) = \tautology \}$ & $\cost(x_i)$ \\
-$\neg S_1$      & None  & $\depend(S_1)$ & $\uinterp - \interpset{S_1}$ & $\oneminus\cost(S)$ \\
-$S_1 \pand S_2$ & $\depend(S_1) \cap \depend(S_2) = \emptyset$ & $\depend(S_1) \cup \depend(S_2)$ & $\interpset{S_1} \cap \interpset{S_2}$
-& $\cost(S_1) \cdot \cost(S_2)$\\
-$S_1 \por S_2$  & $\interpset{S_1} \cap \interpset{S_2} = \emptyset$ &  $\depend(S_1) \cup \depend(S_2)$ &  $\interpset{S_1} \cup \interpset{S_2}$
-& $\cost(S_1) + \cost(S_2)$\\
+$\neg P_1$      & None  & $\depend(P_1)$ & $\uinterp - \interpset{P_1}$ & $\oneminus\cost(P)$ \\
+$P_1 \pand P_2$ & $\depend(P_1) \cap \depend(P_2) = \emptyset$ & $\depend(P_1) \cup \depend(P_2)$ & $\interpset{P_1} \cap \interpset{P_2}$
+& $\cost(P_1) \cdot \cost(P_2)$\\
+$P_1 \por P_2$  & $\interpset{P_1} \cap \interpset{P_2} = \emptyset$ &  $\depend(P_1) \cup \depend(P_2)$ &  $\interpset{P_1} \cup \interpset{P_2}$
+& $\cost(P_1) + \cost(P_2)$\\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -272,29 +272,49 @@ $S_1 \por S_2$  & $\interpset{S_1} \cap \interpset{S_2} = \emptyset$ &  $\depend
 %% \begin{center}
 %% \begin{tabular}{cc}
 %% \toprule
-%%   $S$           & Definition \\
+%%   $P$           & Definition \\
 %% \midrule
-%% \makebox[30mm]{$\pite(S_1, S_2, S_3)$} & \makebox[40mm]{$[S_1 \pand S_2] \por [\neg S_1 \pand S_2]$}\\
+%% \makebox[30mm]{$\pite(P_1, P_2, P_3)$} & \makebox[40mm]{$[P_1 \pand P_2] \por [\neg P_1 \pand P_2]$}\\
 %% \bottomrule
 %% \end{tabular}
 %% \end{center}
 \end{table}
 
-The set of schemas over a set of variables
+The set of POGs over a set of variables
 $\{x_1, x_2, \ldots, x_n\}$
 can be defined recursively, as is shown in Table
-\ref{tab:schema}.  Each schema $S$ has an associated dependency set
-$\depend(S)$ and an associated set of models $\interpset{S}$.
+\ref{tab:pog}.  Each POG $P$ has an associated dependency set
+$\depend(P)$ and an associated set of models $\interpset{P}$.
 %% We
 %% divide the operations into {\em basic} ones that are fundamental to
 %% the representation, and {\em composite} ones that can be constructed
 %% from basic operations.  The latter category consists of just the $\pite$ operation.
-A key property of a Boolean formula represented by separable schema
-$S$ is that, for any separable cost function $\cost$, the cost of the
-formula $\cost(S)$ can be computed with a linear number of ring
-operations, as is shown in the final column of Table~\ref{tab:schema}.
+A key property of a Boolean formula represented by POG
+$P$ is that, for any separable cost function $\cost$, the cost of the
+formula $\cost(P)$ can be computed with a linear number of ring
+operations, as is shown in the final column of Table~\ref{tab:pog}.
 
-\subsection{Schema Normalization}
+POGs are inspired by the DDNNF graphs devised by
+Darwiche for encoding Boolean functions, a process he refers to as
+``knowledge compilation.''
+POGs generalize DDNNF in two ways:
+\begin{itemize}
+\item It allows negation of arbitrary nodes in the graph, not just
+  variables.  It is therefore not a negation-normal form.  We will see
+  examples where this allows a more compact representation.
+\item It allows arbitrary arguments to a $\por$ operation, as long as
+  they have disjoint satisfying assignments.  By contrast, for each
+  disjunction node in a DDNNF, there must be a variable $x$ such that
+  the assignments for one argument have $x=1$ while those for
+  the other argument to have $x=0$.
+\end{itemize}
+  Both of these generalizations allow more flexibility in the POG
+  representation while maintaining the ability to easily compute their
+  cost for separable cost functions.
+
+
+
+\subsection{POG Normalization}
 
 \begin{table}
   \caption{Normalization Rules}
@@ -303,40 +323,40 @@ operations, as is shown in the final column of Table~\ref{tab:schema}.
   \begin{tabular}{ccccccc}
     \makebox[20mm]{$\neg \nil$} & \makebox[5mm]{$\rightarrow$} & \makebox[20mm]{$\tautology$} & \makebox[15mm]{} &
     \makebox[20mm]{$\neg \tautology$} & \makebox[5mm]{$\rightarrow$} & \makebox[20mm]{$\nil$} \\
-    $\neg \neg S$ & $\rightarrow$ & $S$ \\
-    $S \pand \nil$ & $\rightarrow$ & $\nil$ && $\nil \pand S$ & $\rightarrow$ & $\nil$ \\
-    $S \pand \tautology$ & $\rightarrow$ & $S$ && $\tautology \pand S$ & $\rightarrow$ & $S$ \\
-    $S \por \nil$ & $\rightarrow$ & $S$ && $\nil \por S$ & $\rightarrow$ & $S$ \\
-    $S \por \tautology$ & $\rightarrow$ & $\tautology$ && $\tautology \por S$ & $\rightarrow$ & $\tautology$ \\
-%%     $\pite(\neg S_1, S_2, S_3)$ & $\rightarrow$ & $\pite(S_1, S_3, S_2)$ \\
-%%     $\pite(\tautology, S_2, S_3)$ & $\rightarrow$ & $S_2$ & &
-%%     $\pite(\nil, S_2, S_3)$ & $\rightarrow$ & $S_3$ \\
-%%     $\pite(S_1, \tautology, \nil)$ & $\rightarrow$ & $S_1$ &&
-%%     $\pite(S_1, \nil, \tautology)$ & $\rightarrow$ & $\neg S_1$ \\
-%%     $\pite(S_1, S_2, \nil)$ & $\rightarrow$ & $S_1 \pand S_2$ & &
-%%     $\pite(S_1, \nil, S_3)$ & $\rightarrow$ & $\neg S_1 \pand S_3$ \\
-%%     $\pite(S_1, S_2, \tautology)$ & $\rightarrow$ & $\neg [S_1 \pand \neg S_2]$ & &
-%%     $\pite(S_1, \tautology, S_3)$ & $\rightarrow$ & $\neg [\neg S_1 \pand \neg S_3]$ \\
+    $\neg \neg P$ & $\rightarrow$ & $P$ \\
+    $P \pand \nil$ & $\rightarrow$ & $\nil$ && $\nil \pand P$ & $\rightarrow$ & $\nil$ \\
+    $P \pand \tautology$ & $\rightarrow$ & $P$ && $\tautology \pand P$ & $\rightarrow$ & $P$ \\
+    $P \por \nil$ & $\rightarrow$ & $P$ && $\nil \por P$ & $\rightarrow$ & $P$ \\
+    $P \por \tautology$ & $\rightarrow$ & $\tautology$ && $\tautology \por P$ & $\rightarrow$ & $\tautology$ \\
+%%     $\pite(\neg P_1, P_2, P_3)$ & $\rightarrow$ & $\pite(P_1, P_3, P_2)$ \\
+%%     $\pite(\tautology, P_2, P_3)$ & $\rightarrow$ & $P_2$ & &
+%%     $\pite(\nil, P_2, P_3)$ & $\rightarrow$ & $P_3$ \\
+%%     $\pite(P_1, \tautology, \nil)$ & $\rightarrow$ & $P_1$ &&
+%%     $\pite(P_1, \nil, \tautology)$ & $\rightarrow$ & $\neg P_1$ \\
+%%     $\pite(P_1, P_2, \nil)$ & $\rightarrow$ & $P_1 \pand P_2$ & &
+%%     $\pite(P_1, \nil, P_3)$ & $\rightarrow$ & $\neg P_1 \pand P_3$ \\
+%%     $\pite(P_1, P_2, \tautology)$ & $\rightarrow$ & $\neg [P_1 \pand \neg P_2]$ & &
+%%     $\pite(P_1, \tautology, P_3)$ & $\rightarrow$ & $\neg [\neg P_1 \pand \neg P_3]$ \\
   \end{tabular}
   \end{center}
 \end{table}
 
 Table~\ref{tab:normalize} shows a list of {\em normalizing}
-transformations to simplify a separable schema.  These 
+transformations to simplify a POG\@.  These 
 eliminate extra negations and remove constant
-terms, such that constants only occur in schemas when representing constant functions $\zero$ and $\one$.
+terms, such that constants only occur in POGs when representing constant functions $\zero$ and $\one$.
 %% The most interesting are the two bottom rules, which
 %% use DeMorgan's Laws to simplify an $\pite$ operation when one of
 %% the arguments is $\tautology$ into a $\pand$ operation.  We will make use of this
 %% transformation when using BDDs to convert a set of clauses into a
-%% separable schema.
+%%  POG\@.
 
 \subsection{Encoding the ITE Operation}
 \label{sec:ite}
 
 
-The if-then-else (ITE) operation arises when converting the CNF
-representation of a formula into a separable schema, both for
+The if-then-else (ITE) operation arises when converting the CNF representation
+of a formula into a  POG, both for
 bottom-up approaches based on decision diagrams, and for top-down
 approaches based on CDCL\@.  For functions $f_1$, $f_2$, and $f_3$, we
 define
@@ -346,7 +366,7 @@ the requirements for $\por$, since the first argument can only yield
 $\tautology$ for assignments that yield $\tautology$ for $f_1$, while
 the second can only yield $\tautology$ for assignments that yield
 $\nil$ for $f_1$.  Therefore, the only condition imposed on an
-expansion of $\ite$ into the allowed schema operations is that the
+expansion of $\ite$ into the allowed POG operations is that the
 dependency set for $f_1$ must be disjoint from those of $f_2$ and
 $f_3$.
 
@@ -357,24 +377,25 @@ $f_3$.
   \begin{tabular}{ccc}
     ITE Form & & Encoding \\
     \midrule
-     $\ite(S_1, S_2, S_3)$ & $\;$ & $(S_1 \pand S_2) \por (\neg S_1 \land S_3)$ \\
-     $\ite(\tautology, S_2, S_3)$ & $\;$ & $S_2$ \\
-     $\ite(\nil, S_2, S_3)$ & $\;$ & $S_3$ \\
-     $\ite(S_1, S_2, S_2)$  & $\;$ & $S_2$ \\
-     $\ite(S_1, \tautology, \nil)$ & $\;$ & $S_1$ \\
-     $\ite(S_1, \nil, \tautology)$ & $\;$ & $\neg S_1$ \\
-     $\ite(S_1, S_2, \nil)$ & $\;$ & $S_1 \pand S_2$ \\
-     $\ite(S_1, \nil, S_3)$ & $\;$ & $\neg S_1 \pand S_3$ \\
-     $\ite(S_1, \tautology, S_3)$ & $\;$ & $\neg (\neg S_1 \pand \neg S_3)$ \\
-     $\ite(S_1, S_2, \tautology)$ & $\;$ & $\neg (S_1 \pand \neg S_2)$ \\
+     $\ite(P_1, P_2, P_3)$ & $\;$ & $(P_1 \pand P_2) \por (\neg P_1 \land P_3)$ \\
+     $\ite(\tautology, P_2, P_3)$ & $\;$ & $P_2$ \\
+     $\ite(\nil, P_2, P_3)$ & $\;$ & $P_3$ \\
+     $\ite(P_1, P_2, P_2)$  & $\;$ & $P_2$ \\
+     $\ite(P_1, \tautology, \nil)$ & $\;$ & $P_1$ \\
+     $\ite(P_1, \nil, \tautology)$ & $\;$ & $\neg P_1$ \\
+     $\ite(P_1, P_2, \nil)$ & $\;$ & $P_1 \pand P_2$ \\
+     $\ite(P_1, \nil, P_3)$ & $\;$ & $\neg P_1 \pand P_3$ \\
+     $\ite(P_1, \tautology, P_3)$ & $\;$ & $\neg (\neg P_1 \pand \neg P_3)$ \\
+     $\ite(P_1, P_2, \tautology)$ & $\;$ & $\neg (P_1 \pand \neg P_2)$ \\
+
   \end{tabular}
   \end{center}
 \end{table}
 
 Table~\ref{tab:ite} shows different ways to encode an ITE operation
-into schema operations.  All of these require the dependency set of
-the argument $S_1$ to be disjoint from those of arguments $S_2$ and
-$S_3$.  The first row shows the most general case, requiring one
+into POG operations.  All of these require the dependency set of
+the argument $P_1$ to be disjoint from those of arguments $P_2$ and
+$P_3$.  The first row shows the most general case, requiring one
 $\por$ and two $\pand$ operations.  The other rows show special cases,
 where one or more argument is a constant.  Of these, the final two
 rows are particularly noteworthy.  They make use of DeMorgan's Laws to
@@ -390,8 +411,8 @@ disjoint dependency sets.
 
 The CRAT clausal proof framework provides a means to express a
 checkable proof that a Boolean formula, given in conjunctive normal
-form, is logically equivalent to a separable schema.  Once this
-equivalence has been established, the schema can form the basis
+form, is logically equivalent to a POG\@.  Once this
+equivalence has been established, the POG can form the basis
 for computations enabled by the
 representation, including trusted model counting 
 
@@ -461,8 +482,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
   }
 \end{table}
 
-Table~\ref{tab:crat:syntax} shows the set of proof rules for the CRAT
-format.
+Table~\ref{tab:crat:syntax} shows the declarations that can occur in a CRAT file.
 As with other clausal proof formats, a variable is
 represented by a positive integer $v$, with the first ones being input
 variables and successive ones being extension variables.  Literal $l$
@@ -547,8 +567,8 @@ clauses must have been deleted, and among the remaining clauses there
 must be only a single unit clause consisting of some variable or its
 complement.  Except for trivial cases, the final literal will be an
 extension variable or its complement.  That literal will indicate the
-root of the schema as the (possibly negated) output of a schema
-operation.  Working from that root backward, the schema can be
+root of the POG as the (possibly negated) output of a POG
+operation.  Working from that root backward, the POG can be
 extracted from the CRAT file.
 
 \subsection{Example 1}
@@ -556,7 +576,7 @@ extracted from the CRAT file.
 \begin{figure}
   \centering{
     \begin{minipage}{0.4\textwidth}
-      A) Schema   \\[2ex]
+      A) POG   \\[2ex]
     \centering{\input{dd/c3}}
     \end{minipage}
     \begin{minipage}{0.4\textwidth}
@@ -564,8 +584,8 @@ extracted from the CRAT file.
     \centering{\input{dd/c3-eval}}
     \end{minipage}
   }
-\caption{Schema \#1 for Formula $\phi_1 = x_1 \lor x_2 \lor x_3$ and its Cost Computation}
-\label{fig:c3:schema}
+\caption{POG \#1 for Formula $\phi_1 = x_1 \lor x_2 \lor x_3$ and its Cost Computation}
+\label{fig:c3:pog}
 \end{figure}
 
 \begin{figure}
@@ -617,7 +637,7 @@ represented by a single clause.  We cannot directly use the
 $\por$ operation to form these disjunctions, since the sets of assignments
 satisfying the individual literals are not disjoint.  Instead, we must
 decompose this formula into a sequence of operations.
-Figure~\ref{fig:c3:schema}A shows one such decomposition.
+Figure~\ref{fig:c3:pog}A shows one such decomposition.
 The subscripts of the variables and the operator labels correspond to
 the numbers of the input and extension variables in the CRAT proof.
 Edges marked with dots indicate Boolean negation.
@@ -632,7 +652,7 @@ disjunction $x_1 \lor x_2 \lor x_3$ by first forming the product $p_6
 The logical representation can readily be converted into a formula for
 computing $\cost(\phi_1)$, the cost of formula $\phi_1$, given a weight
 $w_i$ for each variable $x_i$ for $1 \leq i \leq 3$.  This is
-illustrated in Figure~\ref{fig:c3:schema}B\@.  Note how the Boolean
+illustrated in Figure~\ref{fig:c3:pog}B\@.  Note how the Boolean
 negations become $\oneminus$ operations.  This formula is valid for
 any cost function.
 
@@ -659,7 +679,7 @@ equivalent to the input formula.
 \begin{figure}
   \centering{
     \begin{minipage}{0.4\textwidth}
-      A) Schema   \\[2ex]
+      A) POG   \\[2ex]
     \centering{\input{dd/p2-bdd}}
     \end{minipage}
     \begin{minipage}{0.4\textwidth}
@@ -667,8 +687,8 @@ equivalent to the input formula.
     \centering{\input{dd/p2-bdd-eval}}
     \end{minipage}
   }
-  \caption{Schema \#2A for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
-\label{fig:p2-bdd:schema}
+  \caption{POG \#2A for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
+\label{fig:p2-bdd:pog}
 \end{figure}
 
 
@@ -732,10 +752,10 @@ of DeMorgan's Laws to provide a more compact encoding of the formula,
 similar to the use of these laws when encoding ITE operations in
 Table~\ref{tab:ite}.
 
-Figure~\ref{fig:p2-bdd:schema} shows a schema representing the formula,
+Figure~\ref{fig:p2-bdd:pog} shows a POG representing the formula,
 and Figure~\ref{fig:p2-bdd:crat} shows the associated CRAT file and proof clauses.  This
 proof was generated via a bottom-up strategy, such as would be created
-using BDDs.  It creates schematic representations of the input
+using BDDs.  It creates POG representations of the input
 clauses and then forms their conjunction.  In the proof, unit
 clauses are generated for the representations of the input clauses,
 and then the input clauses are deleted.  These intermediate unit
@@ -745,9 +765,9 @@ they are deleted.
 Using DeMorgan's Laws, $C_1$ can be written as 
 $t_1 = \neg [\obar{x}_1\land \obar{x}_2\land \obar{x}_3]$, and this can be
 expressed using the $\pand$ operation $p_4$, shown in
-Figure~\ref{fig:p2-bdd:schema}A\@.  (Note that $t_1$ in this case is
-logically equivalent to root $t_1$ in the schema of
-Figure~\ref{fig:c3:schema}A, but the use of negation enables it to be
+Figure~\ref{fig:p2-bdd:pog}A\@.  (Note that $t_1$ in this case is
+logically equivalent to root $t_1$ in the POG of
+Figure~\ref{fig:c3:pog}A, but the use of negation enables it to be
 represented with one operation rather than four.)  Similarly, $C_2$
 can be written as $t_2 = \neg [x_1\land \obar{x}_2]$, and this can be
 represented by $\pand$ operation $p_5$.
@@ -758,14 +778,14 @@ can be written as $t_3 = \neg[\obar{t_1} \lor \obar{t_2}]$, represented by $\por
 Term $t_3$ is asserted as a unit clause on proof line 15.
 Based on this, the unit clauses for terms $t_1$ and
 $t_2$ can be deleted.  Term $t_3$ then becomes the unique root of the cost
-computation shown in Figure~\ref{fig:p2-bdd:schema}B\@.
+computation shown in Figure~\ref{fig:p2-bdd:pog}B\@.
 
 \subsection{Example 2B}
 
 \begin{figure}
   \centering{
     \begin{minipage}{0.4\textwidth}
-      A) Schema   \\[2ex]
+      A) POG   \\[2ex]
     \centering{\input{dd/p2-cdcl}}
     \end{minipage}
     \begin{minipage}{0.4\textwidth}
@@ -773,8 +793,8 @@ computation shown in Figure~\ref{fig:p2-bdd:schema}B\@.
     \centering{\input{dd/p2-cdcl-eval}}
     \end{minipage}
   }
-\caption{Schema \#2B for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
-\label{fig:p2-cdcl:schema}
+\caption{POG \#2B for Formula $\phi_2 = (x_1 \lor x_2 \lor x_3) \land (\obar{x}_1 \lor x_2)$ and its Cost Computation}
+\label{fig:p2-cdcl:pog}
 \end{figure}
 
 
@@ -830,7 +850,7 @@ B). Proof Clauses
   \label{fig:p2-cdcl:crat}
 \end{figure}
 
-Figure~\ref{fig:p2-cdcl:schema} shows an alternate schema representing
+Figure~\ref{fig:p2-cdcl:pog} shows an alternate POG representing
 the same formula $\phi_2$ as in Example~2A, and
 Figure~\ref{fig:p2-cdcl:crat} shows the associated CRAT proof.  This
 proof was generated via a top-down strategy, such as would be created
@@ -839,18 +859,18 @@ variable $x_1$.  Clause $C_1$ is trivially satisfied when $x_1$ is
 assigned $\tautology$, and clause $C_2$ becomes the clause $C'_2 =
 x_2$.  On the other hand, clause $C_2$ is trivially satisfied when
 $x_1$ is assigned $\nil$, and clause $C_1$ becomes $C'_1 = x_2 \lor
-x_3$.  Clause $C'_1$ can be represented schematically as
+x_3$.  Clause $C'_1$ can be represented by POG operation
 $\neg[\obar{x}_2 \pand \obar{x}_3]$, with this operation labeled $p_4$
-in Figure~\ref{fig:p2-cdcl:schema}A\@.  The splitting on variable
+in Figure~\ref{fig:p2-cdcl:pog}A\@.  The splitting on variable
 $x_1$ can be rejoined as $\ite(x_1, x_2, \obar{p}_4)$, and this ITE
 operation can be expressed using the product operations $p_5$ and
 $p_6$, joined by the sum operation $t = s_7$.
 
-The two schemas shown in Figures~\ref{fig:p2-bdd:schema}A and
-\ref{fig:p2-cdcl:schema}A have similar structure.  They have very
+The two POGs shown in Figures~\ref{fig:p2-bdd:pog}A and
+\ref{fig:p2-cdcl:pog}A have similar structure.  They have very
 different negation patterns, but they are logically equivalent.  Their
-associated cost computations (Figures~\ref{fig:p2-bdd:schema}B and
-\ref{fig:p2-cdcl:schema}B) also yield the same results for arbitrary
+associated cost computations (Figures~\ref{fig:p2-bdd:pog}B and
+\ref{fig:p2-cdcl:pog}B) also yield the same results for arbitrary
 weights $w_1$, $w_2$, and $w_3$.
 
 The CRAT proof for the top-down approach follows a different pattern than does the proof based on a bottom-up construction.
@@ -870,7 +890,7 @@ Given this unit clause, the two input clauses can then be deleted.
 \subsection{Implementing Certified Counters}
 
 Given an arbitrary CNF formula, we can use BDD operations to generate
-a schematic representation.  The proof generation can follow the
+a POG representation.  The proof generation can follow the
 methods we have used for generating unsatisfiability proofs of Boolean
 formulas~\cite{bryant:tacas:2021} and dual proofs of quantified
 Boolean formulas~\cite{bryant:cade:2021}.
@@ -879,14 +899,14 @@ make use of the encodings shown in Table~\ref{tab:ite}.
 
 A second class of model counters proceeds top-down, based on the CDCL
 framework.  These choose a splitting variable $x$ and recursively
-construct schemas $S_1$ and $S_0$ for the two assignments to the
-variable.  These are combined as $\ite(x, S_1, S_0)$, using one of the
+construct POGs $P_1$ and $P_0$ for the two assignments to the
+variable.  These are combined as $\ite(x, P_1, P_0)$, using one of the
 encodings of $\ite$ shown in Table~\ref{tab:ite}.  Like CDCL, the
 top-down algorithm can make use of unit propagation, conflict
 detection, and clause learning.  It can also make use of {\em
   variable} partitioning.  That is, suppose for some partial
 assignment to the variables, the input clauses decompose into two or
-more sets over disjoint variables.  Then the schema for each of these
+more sets over disjoint variables.  Then the POG for each of these
 partitions can be generated separately, and these are joined via the $\pand$
 operation.
 

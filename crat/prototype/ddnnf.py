@@ -1,17 +1,15 @@
 #!/usr/bin/python3
 
-# Convert DNNF representation of Boolean formula into a counting schema
+# Convert DNNF representation of Boolean formula into a POG
 
 import sys
 import getopt
 import datetime
 import readwrite
-import schema
+import pog
 
 # Format documentation: http://www.cril.univ-artois.fr/kc/d-DNNF-reasoner.html
-# Input/output format:
-
-
+# Standard Input/output format:
 # A d-DNNF representation is encoded using the format used by the c2d
 # compiler. According to the compiler language specification, a d-DNNF
 # representation is encoded as follows:
@@ -45,10 +43,10 @@ import schema
 #     O 0 0 for the false node.
 
 
-
 def usage(name):
-    print("Usage: %s [-h] [-v VLEVEL] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
+    print("Usage: %s [-h] [-d] [-v VLEVEL] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
     print(" -h           Print this message")
+    print(" -d           Use NNF format defined for D4 model counter")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
@@ -75,7 +73,7 @@ class Node:
     ntype = None
     id = None
     children = []
-    # Corresponding schema node
+    # Corresponding POG node
     snode = None
 
     def __init__(self, ntype, id, children):
@@ -120,16 +118,25 @@ class AndNode(Node):
 
 # Attempt optimizations
 def optAndNode(id, children):
+    # Get rid of constant children
+    nchildren = []
+    for child in children:
+        if child.ntype == NodeType.constant:
+            if child.val == 0:
+                nchildren = [child]
+                break
+        else:
+            nchildren.append(child)
     # Look for simplifications
-    if len(children) == 0:
-        return ConstantNode(id, 1)
-    if len(children) == 1:
-        return children[0]
-    return AndNode(id, children)
-
+    if len(nchildren) == 0:
+        result = ConstantNode(id, 1)
+    elif len(nchildren) == 1:
+        result = nchildren[0]
+    else:
+        result = AndNode(id, nchildren)
+    return result
 
 class OrNode(Node):
-
     splitVar = None
 
     def __init__(self, id, children, splitVar):
@@ -143,11 +150,18 @@ class OrNode(Node):
         self.splitVar = splitVar
 
 def optOrNode(id, children, splitVar):
-    if len(children) == 0:
+    nchildren = []
+    for child in children:
+        if child.ntype == NodeType.constant:
+            if child.val == 1:
+                return child
+        else:
+            nchildren.append(child)
+    if len(nchildren) == 0:
         return ConstantNode(id, 0)
-    if len(children) == 1:
-        return children[0]
-    return OrNode(id, children, splitVar)
+    if len(nchildren) == 1:
+        return nchildren[0]
+    return OrNode(id, nchildren, splitVar)
 
 class LeafNode(Node):
     
@@ -323,12 +337,20 @@ class Nnf:
             n.show()
 
     def findIte(self):
+        # Look for constant 1 node
+        k1 = None
         idList = [node.id for node in self.nodes]
+        if len(idList) > 0:
+            nextId = max(idList) + 1
+        else:
+            nextId = 1
         nodeDict = { node.id  : node for node in self.nodes }
         # Mapping from old Id to new one for nodes that are replaced
         remap = {}
         for id in idList:
             node = nodeDict[id]
+            if node.ntype == NodeType.constant and node.val == 1:
+                k1 = node
             node.children = [nodeDict[remap[child.id]] for child in node.children]
             if node.ntype != NodeType.disjunction:
                 id = node.id
@@ -342,8 +364,11 @@ class Nnf:
                 if tchild.lit != splitVar:
                     print("WARNING: Expected literal %d in ITE argument %s" % (splitVar, str(tchild)))
                 else:
-                    nid = len(nodeDict)
-                    tnode = ConstantNode(nid, 1)
+                    nid = nextId
+                    nextId += 1
+                    if k1 is None:
+                        k1 = ConstantNode(nid, 1)
+                    tnode = k1
                     nodeDict[nid] = tnode
                     remap[nid] = nid
             elif tchild.ntype == NodeType.conjunction:
@@ -356,7 +381,8 @@ class Nnf:
                 elif len(nchildren) != len(tchild.children)-1:
                     print("WARNING: Didn't find literal %d in ITE argument %s" % (splitVar, str(tchild)))
                 else:
-                    nid = len(nodeDict)
+                    nid = nextId
+                    nextId += 1
                     tnode = AndNode(nid, nchildren)
                     nodeDict[nid] = tnode
                     remap[nid] = nid
@@ -364,8 +390,11 @@ class Nnf:
                 if fchild.lit != -splitVar:
                     print("WARNING: Expected literal %d in ITE argument %s" % (-splitVar, str(fchild)))
                 else:
-                    nid = len(nodeDict)
-                    fnode = ConstantNode(nid, 1)
+                    nid = nextId
+                    nextId += 1
+                    if k1 is None:
+                        k1 = ConstantNode(nid, 1)
+                    fnode = k1
                     nodeDict[nid] = fnode
                     remap[nid] = nid
             elif fchild.ntype == NodeType.conjunction:
@@ -378,16 +407,20 @@ class Nnf:
                 elif len(nchildren) != len(fchild.children)-1:
                     print("WARNING: Didn't find literal %d in ITE argument %s" % (-splitVar, str(fchild)))
                 else:
-                    nid = len(nodeDict)
+                    nid = nextId
+                    nextId += 1
                     fnode = AndNode(nid, nchildren)
                     nodeDict[nid] = fnode
                     remap[nid] = nid
             if tnode is not None and fnode is not None:
-                nid = len(nodeDict)
+                nid = nextId
+                nextId += 1
                 nnode = IteNode(nid, [tnode, fnode], splitVar)
                 remap[nid] = nid
                 remap[node.id] = nid
                 nodeDict[nid] = nnode
+                if self.verbLevel >= 3:
+                    print("Created Node #%d ITE(%d, %s, %s)" % (nid, splitVar, str(tnode), str(fnode)))
             else:
                 raise NnfException("Couldn't convert node %s into ITE" % (node))
         # Compress into list
@@ -399,8 +432,8 @@ class Nnf:
                 self.nodes.append(node)
         self.topoSort(root)
 
-    def schematize(self, clauseList, fname):
-        sch = schema.Schema(self.inputCount, clauseList, fname, self.verbLevel)
+    def makePog(self, clauseList, fname):
+        sch = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel)
         for node in self.nodes:
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
@@ -421,22 +454,236 @@ class Nnf:
                 # Label for proof generation
                 node.snode.iteVar = node.splitVar
             if self.verbLevel >= 3:
-                print("NNF node %s --> Schema node %s" % (str(node), str(node.snode)))
+                print("NNF node %s --> POG node %s" % (str(node), str(node.snode)))
         sch.compress()
         return sch
                 
+# Read NNF file in format generated by d4
+class D4Reader:
+    # Underlying NNF
+    nnf = None
+    # Dictionary of node prototypes, indexed by prototype ID (pid)
+    # Each is tuple of form (symbol, pchildren)
+    # Each pchild is tuple (other, literals), where literals is set of literals 
+    # that are conjoined as guard
+    prototypes = {}
+    # Mapping from operator IDs in file to Ids in network
+    pidMap = {}
+
+    def __init__(self, nnf):
+        self.nnf = nnf
+        self.prototypes = {}
+        self.pidMap = {}
+
+    def showPrototype(self):
+        pidList = sorted(self.prototypes.keys())
+        for pid in pidList:
+            symbol, pchildren = self.prototypes[pid]
+            print("Prototype operation %d.  Symbol=%s" % (pid, symbol))
+            for other, lits in pchildren:
+                print("   Lits=%s, other=%d" % (str(lits), other))
+
+
+    def read(self, infile):
+        lineNumber = 0
+        for line in infile:
+            line = readwrite.trim(line)
+            lineNumber += 1
+            fields = line.split()
+            if len(fields) == 0:
+                continue
+            if (fields[-1]) != '0':
+                print("Line #%d.  Invalid.  Must terminate with '0'" % lineNumber)
+                return False
+            fields = fields[:-1]
+            if len(fields) < 2:
+                print("Line #%d.  Invalid.  Not enough fields" % lineNumber)
+                return False
+            symbol = fields[0][0] if len(fields[0]) == 1 and fields[0][0] in 'aotf' else None
+            if symbol is not None:
+                fields = fields[1:]
+            try:
+                ifields = [int(f) for f in fields]
+            except:
+                print("Line #%d.  Expected integer argument" % lineNumber)
+                return False
+            if symbol is None:
+                parent = ifields[0]
+                pchild = ifields[1]
+                lits = ifields[2:]
+                if len(lits) > 0:
+                    self.nnf.inputCount = max(self.nnf.inputCount, max([abs(lit) for lit in lits]))
+                if parent not in self.prototypes or pchild not in self.prototypes:
+                    print("Line %d.  Unknown operator ID")
+                    return False
+                tup = (pchild, lits)
+                self.prototypes[parent][1].append(tup)
+            else:
+                id = ifields[0]
+                if id in self.prototypes:
+                    print("Line #%d.  Duplicate node declaration" % lineNumber)
+                    return False
+                self.prototypes[id] = (symbol, [])
+        if self.nnf.verbLevel >= 3:
+            self.showPrototype()
+        return True
+
+    # Position constant and literal nodes with easily determined operator IDs
+
+    def getConstantId(self, val):
+        return val
+
+    def getLiteralId(self, lit):
+        if lit > 0:
+            return 2*lit
+        else:
+            return 2*(-lit) + 1
+
+    def translateLiterals(self, lits):
+        return [self.nnf.nodes[self.getLiteralId(lit)] for lit in lits]
+
+    # Create base components of NNF
+    # Put constant nodes first
+    # Then add literals
+    def buildBase(self):
+        # Create constant nodes
+        for val in range(2):
+            id = self.getConstantId(val)
+            self.nnf.nodes.append(ConstantNode(id, val))
+        # Create nodes for all input literals
+        for v in range(1, self.nnf.inputCount+1):
+            posid = self.getLiteralId(v)
+            self.nnf.nodes.append(LeafNode(posid, v))
+            negid = self.getLiteralId(-v)
+            self.nnf.nodes.append(LeafNode(negid, -v))
+        if self.nnf.verbLevel >= 3:
+            print("Base nodes:")
+            for idx in range(len(self.nnf.nodes)):
+                print("  NNF node #%d: %s" % (idx, str(self.nnf.nodes[idx])))
+
+    def processFalse(self, pid, pchildren):
+        id = self.getConstantId(0)
+        self.pidMap[pid] = self.nnf.nodes[id]
+        return True
+
+    def processTrue(self, pid, pchildren):
+        id = self.getConstantId(1)
+        self.pidMap[pid] = self.nnf.nodes[id]
+        return True
+
+    # Edge consists of list of literals plus operator.
+    # Translate into list of operations
+    def processEdge(self, pchild):
+        cpid, lits = pchild
+        children = self.translateLiterals(lits)
+        children.append(self.pidMap[cpid])
+        return children
+
+    # Tentatively create new operator for disjunction
+    # But may simplify to existing operator
+    def doDisjunction(self, args, splitVar):
+        nextId = len(self.nnf.nodes)+1
+        arg = optOrNode(nextId, args, splitVar)
+        if arg.id == nextId:
+            self.nnf.nodes.append(arg)
+        return arg
+
+    # Tentatively create new operator for conjunction
+    # But may simplify to existing operator
+    def doConjunction(self, args):
+        nextId = len(self.nnf.nodes)+1
+        arg = optAndNode(nextId, args)
+        if arg.id == nextId:
+            self.nnf.nodes.append(arg)
+        return arg
+
+    def processOr(self, pid, pchildren):
+        achildren = []
+        for pchild in pchildren:
+            children = self.processEdge(pchild)
+            arg = self.doConjunction(children)
+            achildren.append(arg)
+        if len(achildren) == 1:
+            self.pidMap[pid] = achildren[0]
+        elif len(achildren) == 2:
+            litsA = pchildren[0][1]
+            litsB = pchildren[1][1]
+            if len(litsA) > 0 and len(litsB) > 0 and litsA[0] == -litsB[0]:
+                splitVar = abs(litsA[0])
+            else:
+                print("Or Operation #%d.  Couldn't find splitting variable" % pid)
+                return False
+            op = self.doDisjunction(achildren, splitVar)
+            self.pidMap[pid] = op
+        else:
+            print("Or Operation #%d.  Can't have operation with %d arguments" % (pid, len(achildren)))
+            return False
+        if self.nnf.verbLevel >= 4:
+            print("Processed Or operation #%d.  Result = POG operation %s" % (pid, str(self.pidMap[pid])))
+        return True
+
+    def processAnd(self, pid, pchildren):
+        achildren = []
+        for pchild in pchildren:
+            children = self.processEdge(pchild)
+            achildren += children
+        op = self.doConjunction(achildren)
+        self.pidMap[pid] = op
+        return True
+
+    # Add one more node.
+    # Most, but not all are in topological order
+    def buildNode(self, pid):
+        if pid in self.pidMap:
+            return True
+        ok = True
+        symbol, pchildren = self.prototypes[pid]
+        for pchild in pchildren:
+            cpid, lits = pchild
+            if not self.buildNode(cpid):
+                return False
+        if symbol == 't':
+            ok = self.processTrue(pid, pchildren)
+        elif symbol == 'f':
+            ok = self.processFalse(pid, pchildren)
+        elif symbol == 'o':
+            ok = self.processOr(pid, pchildren)
+        else:
+            # 'a'
+            ok = self.processAnd(pid, pchildren)
+        if not ok:
+            print("Operation #%d.  Generation of NNF graph failed." % pid)
+            return False
+        if self.nnf.verbLevel >= 4:
+            print("Processed operation #%d.  Symbol=%s" % (pid, symbol))
+        return True
+
+
+    def build(self):
+        self.buildBase()
+        pidList = sorted(self.prototypes.keys())
+        pidList.reverse()
+        for pid in pidList:
+            if not self.buildNode(pid):
+                return False
+        return True
+        
+        
 def run(name, args):
     verbLevel = 1
+    d4 = False
     cnfName = None
     nnfName = None
     cratName = None
-    optlist, args = getopt.getopt(args, 'hv:i:n:p:')
+    optlist, args = getopt.getopt(args, 'hdv:i:n:p:')
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
             return
         elif opt == '-v':
             verbLevel = int(val)
+        elif opt == '-d':
+            d4 = True
         elif opt == '-i':
             cnfName = val
         elif opt == '-n':
@@ -465,7 +712,15 @@ def run(name, args):
     
     start = datetime.datetime.now()
     dag = Nnf(verbLevel)
-    if not dag.read(nfile):
+    if d4:
+        d4reader = D4Reader(dag)
+        if not d4reader.read(nfile):
+            print("Read failed")
+            return
+        if not d4reader.build():
+            print("Build failed")
+            return
+    elif not dag.read(nfile):
         print("Read failed")
         return
     elif verbLevel >= 1: 
@@ -481,12 +736,12 @@ def run(name, args):
     if verbLevel >= 2:
         dag.show()
     if cratName is not None:
-        sch = dag.schematize(creader.clauses, cratName)
+        sch = dag.makePog(creader.clauses, cratName)
         if verbLevel == 1:
-            print("c Generated schema has %d nodes" % len(sch.nodes))
+            print("c Generated POG has %d nodes" % len(sch.nodes))
         if verbLevel >= 2:
             print("")
-            print("c Generated schema has %d nodes:" % len(sch.nodes))
+            print("c Generated POG has %d nodes:" % len(sch.nodes))
             sch.show()
         sch.doValidate()
         sch.finish()
