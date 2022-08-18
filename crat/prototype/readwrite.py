@@ -82,7 +82,7 @@ def unitReduce(clause, unitSet):
     return nclause
 
 
-class CnfException(Exception):
+class ReadWriteException(Exception):
 
     def __init__(self, value):
         self.value = value
@@ -100,7 +100,8 @@ class CnfReader():
     clauses = []
     nvar = 0
     verbLevel = 1
-    
+
+   
     def __init__(self, fname = None, verbLevel = 1):
         self.verbLevel = verbLevel
         if fname is None:
@@ -111,7 +112,7 @@ class CnfReader():
             try:
                 self.file = open(fname, 'r')
             except Exception:
-                raise CnfException("Could not open file '%s'" % fname)
+                raise ReadWriteException("Could not open file '%s'" % fname)
         self.clauses = []
         self.commentLines = []
         try:
@@ -120,6 +121,8 @@ class CnfReader():
             if opened:
                 self.file.close()
             raise ex
+        if opened:
+            self.file.close()
         
     def readCnf(self):
         lineNumber = 0
@@ -140,37 +143,99 @@ class CnfReader():
             elif line[0] == 'p':
                 fields = line[1:].split()
                 if len(fields) != 3 or fields[0] != 'cnf':
-                    raise CnfException("Line %d.  Bad header line '%s'.  Not cnf" % (lineNumber, line))
+                    raise ReadWriteException("Line %d.  Bad header line '%s'.  Not cnf" % (lineNumber, line))
                 try:
                     self.nvar = int(fields[1])
                     nclause = int(fields[2])
                 except Exception:
-                    raise CnfException("Line %d.  Bad header line '%s'.  Invalid number of variables or clauses" % (lineNumber, line))
+                    raise ReadWriteException("Line %d.  Bad header line '%s'.  Invalid number of variables or clauses" % (lineNumber, line))
             else:
                 if nclause == 0:
-                    raise CnfException("Line %d.  No header line.  Not cnf" % (lineNumber))
+                    raise ReadWriteException("Line %d.  No header line.  Not cnf" % (lineNumber))
                 # Check formatting
                 try:
                     lits = [int(s) for s in line.split()]
                 except:
-                    raise CnfException("Line %d.  Non-integer field" % lineNumber)
+                    raise ReadWriteException("Line %d.  Non-integer field" % lineNumber)
                 # Last one should be 0
                 if lits[-1] != 0:
-                    raise CnfException("Line %d.  Clause line should end with 0" % lineNumber)
+                    raise ReadWriteException("Line %d.  Clause line should end with 0" % lineNumber)
                 lits = lits[:-1]
                 vars = sorted([abs(l) for l in lits])
                 if len(vars) == 0:
-                    raise CnfException("Line %d.  Empty clause" % lineNumber)                    
+                    raise ReadWriteException("Line %d.  Empty clause" % lineNumber)                    
                 if vars[-1] > self.nvar or vars[0] == 0:
-                    raise CnfException("Line %d.  Out-of-range literal" % lineNumber)
+                    raise ReadWriteException("Line %d.  Out-of-range literal" % lineNumber)
                 for i in range(len(vars) - 1):
                     if vars[i] == vars[i+1]:
-                        raise CnfException("Line %d.  Opposite or repeated literal" % lineNumber)
+                        raise ReadWriteException("Line %d.  Opposite or repeated literal" % lineNumber)
                 self.clauses.append(lits)
                 clauseCount += 1
         if clauseCount != nclause:
-            raise CnfException("Line %d: Got %d clauses.  Expected %d" % (lineNumber, clauseCount, nclause))
+            raise ReadWriteException("Line %d: Got %d clauses.  Expected %d" % (lineNumber, clauseCount, nclause))
 
+# Grab list of clauses out of file that may contain other info
+# Interesting lines will contain marker and have list of literals following that
+class ClauseReader():
+
+    file = None
+    clauses = []
+    verbLevel = 1
+    marker = ""
+
+    def __init__(self, fname = None, marker = "", verbLevel = 1):
+        self.marker = marker
+        self.verbLevel = verbLevel
+        if fname is None:
+            opened = False
+            self.file = sys.stdin
+        else:
+            opened = True
+            try:
+                self.file = open(fname, 'r')
+            except Exception:
+                raise ReadWriteException("Could not open file '%s'" % fname)
+        self.clauses = []
+        try:
+            self.readClauses()
+        except Exception as ex:
+            if opened:
+                self.file.close()
+            raise ex
+        if opened:
+            self.file.close()
+
+    def readClauses(self):
+        lineNumber = 0
+        for line in self.file:
+            lineNumber += 1
+            if self.marker not in line:
+                continue
+            line = trim(line)
+            fields = line.split()
+            if len(fields) == 0:
+                continue
+            if self.marker != "":
+                pos = -1
+                for ipos in range(len(fields)):
+                    if fields[ipos] == self.marker:
+                        pos = ipos
+                        break
+                if pos < 0:
+                    raise ReadWriteException("Line #%d.  Marker '%s' not isolated in line '%s'" % (lineNumber, self.marker, line))
+                fields = fields[pos+1:]
+            try:
+                lits = [int(f) for f in fields]
+            except:
+                raise ReadWriteException("Line #%d.  Non-integer literal in line '%s'" % (lineNumber, line))
+            if len(lits) == 0:
+                continue
+            if lits[-1] != 0:
+                raise ReadWriteException("Line #%d.  List of literals must be terminated by 0. Line = '%s'" % (lineNumber, line))
+            lits = lits[:-1]
+            self.clauses.append(lits)
+        if self.verbLevel >= 1:
+            print("Clause reader read %d clauses" % len(self.clauses))
 
 # Generic writer
 class Writer:

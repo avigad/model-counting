@@ -231,7 +231,7 @@ class Pog:
     # Added RUP clause counts, indexed by node type
     nodeClauseCounts = []
 
-    def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
+    def __init__(self, variableCount, clauseList, fname, conflictClauseList, verbLevel = 1):
         self.verbLevel = verbLevel
         self.uniqueTable = {}
         self.clauseList = clauseList
@@ -253,6 +253,12 @@ class Pog:
         # Reset so that constant nodes are not included
         self.nodeCounts = [0] * NodeType.tcount
         self.nodeVisits = [0] * NodeType.tcount
+        if len(conflictClauseList) > 0:
+            self.cwriter.doComment("Initial set of conflict clauses")
+            self.reasoner.addClauses(conflictClauseList)
+            for cls in conflictClauseList:
+                self.cwriter.doClause(cls)
+
         
     def lookup(self, ntype, children):
         n = ProtoNode(ntype, children)
