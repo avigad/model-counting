@@ -261,8 +261,8 @@ Representing formulas as a graph enables sharing subformulas, yielding a more co
   $\tautology$        & None  & $\emptyset$    & $\uinterp$ & $1$ \\
 $x_i$           & None  & $\{ x_i \}$    & $\{ \interp | \interp(x_i) = \tautology \}$ & $\cost(x_i)$ \\
 $\neg P_1$      & None  & $\depend(P_1)$ & $\uinterp - \interpset{P_1}$ & $\oneminus\cost(P)$ \\
-$P_1 \pand P_2$ & $\depend(P_1) \cap \depend(P_2) = \emptyset$ & $\depend(P_1) \cup \depend(P_2)$ & $\interpset{P_1} \cap \interpset{P_2}$
-& $\cost(P_1) \cdot \cost(P_2)$\\
+$\pand \{ P_1, \ldots, P_k \}$ & $\depend(P_i) \cap \depend(P_j) = \emptyset$, $1\leq i < j \leq k$ & $\bigcup_{1\leq i \leq k} \depend(P_i)$ & $\bigcap_{1\leq i \leq k} \interpset{P_i}$
+& $\prod_{1 \leq i \leq k} \cost(P_i)$\\
 $P_1 \por P_2$  & $\interpset{P_1} \cap \interpset{P_2} = \emptyset$ &  $\depend(P_1) \cup \depend(P_2)$ &  $\interpset{P_1} \cup \interpset{P_2}$
 & $\cost(P_1) + \cost(P_2)$\\
 \bottomrule

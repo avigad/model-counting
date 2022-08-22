@@ -4746,8 +4746,6 @@ c Justify literal -21 in context [1, -17, -13, 12, -23, -25]
 3167 a 24 25 14 3 13 23 5 15 4 0 * 0
 3168 a -1 17 13 -12 23 25 -21 0 * 0
 c Delete clauses used to justify literal
-dc 3167 * 0
-dc 3166 * 0
 c Justify literal -22 in context [1, -17, -13, 12, -23, -25] 
 3169 a -1 17 13 -12 23 25 -22 0 * 0
 c Assert ITE at node S78
@@ -4904,10 +4902,6 @@ c Justify literal -21 in context [-1, -6, 11, -19, 4, -23, -25]
 3268 a 22 25 5 15 12 2 3 13 23 0 * 0
 3269 a 1 6 -11 19 -4 23 25 -21 0 * 0
 c Delete clauses used to justify literal
-dc 3268 * 0
-dc 3267 * 0
-dc 3266 * 0
-dc 3265 * 0
 c Justify literal 22 in context [-1, -6, 11, -19, 4, -23, -25] 
 3270 a 1 6 -11 19 -4 23 25 22 0 * 0
 c Justify literal -24 in context [-1, -6, 11, -19, 4, -23, -25] 

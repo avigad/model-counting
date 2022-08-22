@@ -1,159 +1,1011 @@
-29 p 17 -5 -6 -7 8 -13 -14 -16 0
-37 p 18 -5 -6 7 -8 -13 -14 16 0
-45 p 19 -5 -6 -7 8 -13 -14 15 -16 0
-54 p 20 -5 -6 7 -8 -13 -14 -15 16 0
-63 s 21 19 20 52 61 0
-66 p 22 -9 -11 -12 21 0
-71 p 23 -5 -6 -8 -9 -11 12 -13 14 -15 -16 0
-82 p 24 -5 6 -8 -9 -11 -13 -14 15 -16 0
-92 p 25 -5 -6 -13 14 -16 0
-98 p 26 -5 6 -13 -14 16 0
-104 p 27 -5 -6 8 -13 14 -16 0
-111 p 28 -5 6 -8 -13 -14 16 0
-118 s 29 27 28 107 114 0
-121 p 30 -9 11 -15 29 0
-126 p 31 -5 6 -8 -9 -11 12 -13 -14 15 -16 0
-137 p 32 -9 11 -12 -15 29 0
-143 s 33 31 32 132 140 0
-146 p 34 -5 -6 7 -8 -9 -11 12 -13 14 -15 -16 0
-158 p 35 -7 33 0
-161 s 36 34 35 149 159 0
-164 p 37 -9 10 -11 -12 21 0
-170 p 38 -10 36 0
-173 s 39 37 38 166 171 0
-176 p 40 -2 -3 -4 39 0
-181 p 41 -2 -4 -13 -14 -15 16 0
-188 p 42 -2 4 -13 -14 15 -16 0
-195 p 43 -2 3 -4 -13 -14 -15 16 0
-203 p 44 -2 -3 4 -13 -14 15 -16 0
-211 s 45 43 44 197 205 0
-214 p 46 -9 -11 -12 45 0
-219 p 47 2 -3 -4 -9 -11 12 -13 -14 -16 0
-229 p 48 2 -3 -4 -9 11 -12 -13 -14 0
-238 p 49 -2 -4 -9 -11 12 -13 14 0
-246 p 50 -2 4 -9 11 -12 -13 14 0
-254 p 51 -2 3 -4 -9 -11 12 -13 14 0
-263 p 52 -2 -3 4 -9 11 -12 -13 14 0
-272 s 53 51 52 256 265 0
-275 p 54 2 -3 -4 -9 11 -12 -13 -14 16 0
-285 p 55 -16 53 0
-288 s 56 54 55 284 286 0
-291 p 57 2 -3 -4 -9 -11 12 -13 -14 15 -16 0
-302 p 58 -15 56 0
-305 s 59 57 58 300 303 0
-308 p 60 -9 10 -11 -12 45 0
-314 p 61 -10 59 0
-317 s 62 60 61 310 315 0
-320 p 63 -6 -7 -8 62 0
-325 p 64 -2 -3 6 -7 -8 0
-331 p 65 2 -3 -6 -7 8 0
-337 p 66 -2 -3 4 6 -7 -8 0
-344 p 67 2 -3 -4 -6 -7 8 0
-351 s 68 66 67 340 347 0
-354 p 69 -13 -14 -16 68 0
-359 p 70 6 -7 -8 -13 -14 0
-365 p 71 -6 -7 8 -13 14 0
-371 p 72 6 -7 -8 -13 -14 16 0
-378 p 73 -6 -7 8 -13 14 -16 0
-385 s 74 72 73 377 384 0
-388 p 75 -2 -4 74 0
-392 p 76 2 -4 -13 -14 0
-397 p 77 -2 4 -13 14 0
-402 p 78 2 -4 -13 -14 16 0
-408 p 79 -2 4 -13 14 -16 0
-414 s 80 78 79 407 413 0
-417 p 81 -6 7 -8 80 0
-422 p 82 -2 3 -4 74 0
-427 p 83 -3 -6 7 -8 80 0
-433 s 84 82 83 424 428 0
-436 p 85 -13 -14 15 -16 68 0
-442 p 86 -15 84 0
-445 s 87 85 86 439 443 0
-448 p 88 -10 -11 -12 87 0
-453 p 89 -6 -8 -10 -11 12 0
-459 p 90 -6 8 -10 11 -12 0
-465 p 91 -6 7 -8 -10 -11 12 0
-472 p 92 -6 -7 8 -10 11 -12 0
-479 s 93 91 92 467 474 0
-482 p 94 -3 -4 93 0
-486 p 95 -4 -11 12 0
-490 p 96 4 11 -12 0
-494 p 97 3 -4 -11 12 0
-499 p 98 -3 4 11 -12 0
-504 s 99 97 98 495 500 0
-507 p 100 -7 -8 -10 99 0
-512 p 101 -4 -7 8 0
-516 p 102 4 7 -8 0
-520 p 103 3 -4 -7 8 0
-525 p 104 -3 4 7 -8 0
-530 s 105 103 104 521 526 0
-533 p 106 10 -11 -12 105 0
-538 p 107 6 -7 -8 -10 99 0
-544 p 108 -6 10 -11 -12 105 0
-550 s 109 107 108 539 545 0
-553 p 110 2 -3 -4 93 0
-558 p 111 -2 109 0
-561 s 112 110 111 554 559 0
-564 p 113 13 -14 -15 -16 112 0
-570 p 114 9 -10 -11 -12 87 0
-576 p 115 -9 13 -14 -15 -16 112 0
-583 s 116 114 115 571 577 0
-586 p 117 5 -6 -7 -8 62 0
-592 p 118 -5 116 0
-595 s 119 117 118 587 593 0
-598 p 120 1 -2 -3 -4 39 0
-604 p 121 -1 119 0
-607 s 122 120 121 599 605 0
-610 a 15 21 -1 -10 0 * 0
-611 a 21 -1 -10 0 * 0
-612 a -1 10 7 12 -9 0 * 0
-613 a -1 10 7 12 11 0 * 0
-614 a -1 10 7 12 -15 0 * 0
-615 a 8 29 -1 10 7 12 0 * 0
-616 a 29 -1 10 7 12 0 * 0
-617 a 12 33 -1 10 7 0 * 0
-618 a 33 -1 10 7 0 * 0
-619 a 7 36 -1 10 0 * 0
-620 a 36 -1 10 0 * 0
-621 a 10 39 -1 0 * 0
-622 a 39 -1 0 * 0
-623 a 3 45 1 -5 -10 0 * 0
-624 a 45 1 -5 -10 0 * 0
-625 a 3 53 1 -5 10 15 16 0 * 0
-626 a 53 1 -5 10 15 16 0 * 0
-627 a 16 56 1 -5 10 15 0 * 0
-628 a 56 1 -5 10 15 0 * 0
-629 a 15 59 1 -5 10 0 * 0
-630 a 59 1 -5 10 0 * 0
-631 a 10 62 1 -5 0 * 0
-632 a 62 1 -5 0 * 0
-633 a 4 68 1 5 -9 -15 0 * 0
-634 a 68 1 5 -9 -15 0 * 0
-635 a 16 74 1 5 -9 15 -3 0 * 0
-636 a 74 1 5 -9 15 -3 0 * 0
-637 a 16 80 1 5 -9 15 3 0 * 0
-638 a 80 1 5 -9 15 3 0 * 0
-639 a 3 84 1 5 -9 15 0 * 0
-640 a 84 1 5 -9 15 0 * 0
-641 a 15 87 1 5 -9 0 * 0
-642 a 87 1 5 -9 0 * 0
-643 a 7 93 1 5 9 -2 0 * 0
-644 a 93 1 5 9 -2 0 * 0
-645 a 1 5 9 2 -6 -10 0 * 0
-646 a 3 99 1 5 9 2 -6 0 * 0
-647 a 99 1 5 9 2 -6 0 * 0
-648 a 3 105 1 5 9 2 6 0 * 0
-649 a 105 1 5 9 2 6 0 * 0
-650 a 6 109 1 5 9 2 0 * 0
-651 a 109 1 5 9 2 0 * 0
-652 a 2 112 1 5 9 0 * 0
-653 a 112 1 5 9 0 * 0
-654 a 9 116 1 5 0 * 0
-655 a 116 1 5 0 * 0
-656 a 5 119 1 0 * 0
-657 a 119 1 0 * 0
-658 a 1 122 0 * 0
-659 a 122 0 * 0
+c Input clauses
+1 i 1 5 9 13 0
+2 i 2 6 10 14 0
+3 i 3 7 11 15 0
+4 i 4 8 12 16 0
+5 i -1 -2 0
+6 i -1 -3 0
+7 i -1 -4 0
+8 i -2 -3 0
+9 i -2 -4 0
+10 i -3 -4 0
+11 i -5 -6 0
+12 i -5 -7 0
+13 i -5 -8 0
+14 i -6 -7 0
+15 i -6 -8 0
+16 i -7 -8 0
+17 i -9 -10 0
+18 i -9 -11 0
+19 i -9 -12 0
+20 i -10 -11 0
+21 i -10 -12 0
+22 i -11 -12 0
+23 i -13 -14 0
+24 i -13 -15 0
+25 i -13 -16 0
+26 i -14 -15 0
+27 i -14 -16 0
+28 i -15 -16 0
+c Initial set of conflict clauses
+29 a 13 15 5 7 -12 0 * 0
+30 a 13 15 5 7 9 10 11 0 * 0
+31 p 17 -5 -6 -7 8 -13 -14 -16 0
+c Implicit declarations:
+c 31 a 17 5 6 7 -8 13 14 16 0
+c 32 a -17 -5 0
+c 33 a -17 -6 0
+c 34 a -17 -7 0
+c 35 a -17 8 0
+c 36 a -17 -13 0
+c 37 a -17 -14 0
+c 38 a -17 -16 0
+c Node P17 = AND(-var-5, -var-6, -var-7, var-8, -var-13, -var-14, -var-16)
+39 p 18 -5 -6 7 -8 -13 -14 16 0
+c Implicit declarations:
+c 39 a 18 5 6 -7 8 13 14 -16 0
+c 40 a -18 -5 0
+c 41 a -18 -6 0
+c 42 a -18 7 0
+c 43 a -18 -8 0
+c 44 a -18 -13 0
+c 45 a -18 -14 0
+c 46 a -18 16 0
+c Node P18 = AND(-var-5, -var-6, var-7, -var-8, -var-13, -var-14, var-16)
+47 p 19 -5 -6 -7 8 -13 -14 15 -16 0
+c Implicit declarations:
+c 47 a 19 5 6 7 -8 13 14 -15 16 0
+c 48 a -19 -5 0
+c 49 a -19 -6 0
+c 50 a -19 -7 0
+c 51 a -19 8 0
+c 52 a -19 -13 0
+c 53 a -19 -14 0
+c 54 a -19 15 0
+c 55 a -19 -16 0
+c Node P19 = AND(-var-5, -var-6, -var-7, var-8, -var-13, -var-14, var-15, -var-16)
+56 p 20 -5 -6 7 -8 -13 -14 -15 16 0
+c Implicit declarations:
+c 56 a 20 5 6 -7 8 13 14 15 -16 0
+c 57 a -20 -5 0
+c 58 a -20 -6 0
+c 59 a -20 7 0
+c 60 a -20 -8 0
+c 61 a -20 -13 0
+c 62 a -20 -14 0
+c 63 a -20 -15 0
+c 64 a -20 16 0
+c Node P20 = AND(-var-5, -var-6, var-7, -var-8, -var-13, -var-14, -var-15, var-16)
+65 s 21 19 20 54 63 0
+c Implicit declarations:
+c 65 a -21 19 20 0
+c 66 a 21 -19 0
+c 67 a 21 -20 0
+c Node S21 = OR(P19, P20)
+68 p 22 -9 -11 -12 21 0
+c Implicit declarations:
+c 68 a 22 9 11 12 -21 0
+c 69 a -22 -9 0
+c 70 a -22 -11 0
+c 71 a -22 -12 0
+c 72 a -22 21 0
+c Node P22 = AND(-var-9, -var-11, -var-12, S21)
+73 p 23 -5 -6 -8 -9 -11 12 -13 14 -15 -16 0
+c Implicit declarations:
+c 73 a 23 5 6 8 9 11 -12 13 -14 15 16 0
+c 74 a -23 -5 0
+c 75 a -23 -6 0
+c 76 a -23 -8 0
+c 77 a -23 -9 0
+c 78 a -23 -11 0
+c 79 a -23 12 0
+c 80 a -23 -13 0
+c 81 a -23 14 0
+c 82 a -23 -15 0
+c 83 a -23 -16 0
+c Node P23 = AND(-var-5, -var-6, -var-8, -var-9, -var-11, var-12, -var-13, var-14, -var-15, -var-16)
+84 p 24 -5 6 -8 -9 -11 -13 -14 15 -16 0
+c Implicit declarations:
+c 84 a 24 5 -6 8 9 11 13 14 -15 16 0
+c 85 a -24 -5 0
+c 86 a -24 6 0
+c 87 a -24 -8 0
+c 88 a -24 -9 0
+c 89 a -24 -11 0
+c 90 a -24 -13 0
+c 91 a -24 -14 0
+c 92 a -24 15 0
+c 93 a -24 -16 0
+c Node P24 = AND(-var-5, var-6, -var-8, -var-9, -var-11, -var-13, -var-14, var-15, -var-16)
+94 p 25 -5 -6 -13 14 -16 0
+c Implicit declarations:
+c 94 a 25 5 6 13 -14 16 0
+c 95 a -25 -5 0
+c 96 a -25 -6 0
+c 97 a -25 -13 0
+c 98 a -25 14 0
+c 99 a -25 -16 0
+c Node P25 = AND(-var-5, -var-6, -var-13, var-14, -var-16)
+100 p 26 -5 6 -13 -14 16 0
+c Implicit declarations:
+c 100 a 26 5 -6 13 14 -16 0
+c 101 a -26 -5 0
+c 102 a -26 6 0
+c 103 a -26 -13 0
+c 104 a -26 -14 0
+c 105 a -26 16 0
+c Node P26 = AND(-var-5, var-6, -var-13, -var-14, var-16)
+106 p 27 -5 -6 8 -13 14 -16 0
+c Implicit declarations:
+c 106 a 27 5 6 -8 13 -14 16 0
+c 107 a -27 -5 0
+c 108 a -27 -6 0
+c 109 a -27 8 0
+c 110 a -27 -13 0
+c 111 a -27 14 0
+c 112 a -27 -16 0
+c Node P27 = AND(-var-5, -var-6, var-8, -var-13, var-14, -var-16)
+113 p 28 -5 6 -8 -13 -14 16 0
+c Implicit declarations:
+c 113 a 28 5 -6 8 13 14 -16 0
+c 114 a -28 -5 0
+c 115 a -28 6 0
+c 116 a -28 -8 0
+c 117 a -28 -13 0
+c 118 a -28 -14 0
+c 119 a -28 16 0
+c Node P28 = AND(-var-5, var-6, -var-8, -var-13, -var-14, var-16)
+120 s 29 27 28 109 116 0
+c Implicit declarations:
+c 120 a -29 27 28 0
+c 121 a 29 -27 0
+c 122 a 29 -28 0
+c Node S29 = OR(P27, P28)
+123 p 30 -9 11 -15 29 0
+c Implicit declarations:
+c 123 a 30 9 -11 15 -29 0
+c 124 a -30 -9 0
+c 125 a -30 11 0
+c 126 a -30 -15 0
+c 127 a -30 29 0
+c Node P30 = AND(-var-9, var-11, -var-15, S29)
+128 p 31 -5 6 -8 -9 -11 12 -13 -14 15 -16 0
+c Implicit declarations:
+c 128 a 31 5 -6 8 9 11 -12 13 14 -15 16 0
+c 129 a -31 -5 0
+c 130 a -31 6 0
+c 131 a -31 -8 0
+c 132 a -31 -9 0
+c 133 a -31 -11 0
+c 134 a -31 12 0
+c 135 a -31 -13 0
+c 136 a -31 -14 0
+c 137 a -31 15 0
+c 138 a -31 -16 0
+c Node P31 = AND(-var-5, var-6, -var-8, -var-9, -var-11, var-12, -var-13, -var-14, var-15, -var-16)
+139 p 32 -9 11 -12 -15 29 0
+c Implicit declarations:
+c 139 a 32 9 -11 12 15 -29 0
+c 140 a -32 -9 0
+c 141 a -32 11 0
+c 142 a -32 -12 0
+c 143 a -32 -15 0
+c 144 a -32 29 0
+c Node P32 = AND(-var-9, var-11, -var-12, -var-15, S29)
+145 s 33 31 32 134 142 0
+c Implicit declarations:
+c 145 a -33 31 32 0
+c 146 a 33 -31 0
+c 147 a 33 -32 0
+c Node S33 = OR(P31, P32)
+148 p 34 -5 -6 7 -8 -9 -11 12 -13 14 -15 -16 0
+c Implicit declarations:
+c 148 a 34 5 6 -7 8 9 11 -12 13 -14 15 16 0
+c 149 a -34 -5 0
+c 150 a -34 -6 0
+c 151 a -34 7 0
+c 152 a -34 -8 0
+c 153 a -34 -9 0
+c 154 a -34 -11 0
+c 155 a -34 12 0
+c 156 a -34 -13 0
+c 157 a -34 14 0
+c 158 a -34 -15 0
+c 159 a -34 -16 0
+c Node P34 = AND(-var-5, -var-6, var-7, -var-8, -var-9, -var-11, var-12, -var-13, var-14, -var-15, -var-16)
+160 p 35 -7 33 0
+c Implicit declarations:
+c 160 a 35 7 -33 0
+c 161 a -35 -7 0
+c 162 a -35 33 0
+c Node P35 = AND(-var-7, S33)
+163 s 36 34 35 151 161 0
+c Implicit declarations:
+c 163 a -36 34 35 0
+c 164 a 36 -34 0
+c 165 a 36 -35 0
+c Node S36 = OR(P34, P35)
+166 p 37 -9 10 -11 -12 21 0
+c Implicit declarations:
+c 166 a 37 9 -10 11 12 -21 0
+c 167 a -37 -9 0
+c 168 a -37 10 0
+c 169 a -37 -11 0
+c 170 a -37 -12 0
+c 171 a -37 21 0
+c Node P37 = AND(-var-9, var-10, -var-11, -var-12, S21)
+172 p 38 -10 36 0
+c Implicit declarations:
+c 172 a 38 10 -36 0
+c 173 a -38 -10 0
+c 174 a -38 36 0
+c Node P38 = AND(-var-10, S36)
+175 s 39 37 38 168 173 0
+c Implicit declarations:
+c 175 a -39 37 38 0
+c 176 a 39 -37 0
+c 177 a 39 -38 0
+c Node S39 = OR(P37, P38)
+178 p 40 -2 -3 -4 39 0
+c Implicit declarations:
+c 178 a 40 2 3 4 -39 0
+c 179 a -40 -2 0
+c 180 a -40 -3 0
+c 181 a -40 -4 0
+c 182 a -40 39 0
+c Node P40 = AND(-var-2, -var-3, -var-4, S39)
+183 p 41 -2 -4 -13 -14 -15 16 0
+c Implicit declarations:
+c 183 a 41 2 4 13 14 15 -16 0
+c 184 a -41 -2 0
+c 185 a -41 -4 0
+c 186 a -41 -13 0
+c 187 a -41 -14 0
+c 188 a -41 -15 0
+c 189 a -41 16 0
+c Node P41 = AND(-var-2, -var-4, -var-13, -var-14, -var-15, var-16)
+190 p 42 -2 4 -13 -14 15 -16 0
+c Implicit declarations:
+c 190 a 42 2 -4 13 14 -15 16 0
+c 191 a -42 -2 0
+c 192 a -42 4 0
+c 193 a -42 -13 0
+c 194 a -42 -14 0
+c 195 a -42 15 0
+c 196 a -42 -16 0
+c Node P42 = AND(-var-2, var-4, -var-13, -var-14, var-15, -var-16)
+197 p 43 -2 3 -4 -13 -14 -15 16 0
+c Implicit declarations:
+c 197 a 43 2 -3 4 13 14 15 -16 0
+c 198 a -43 -2 0
+c 199 a -43 3 0
+c 200 a -43 -4 0
+c 201 a -43 -13 0
+c 202 a -43 -14 0
+c 203 a -43 -15 0
+c 204 a -43 16 0
+c Node P43 = AND(-var-2, var-3, -var-4, -var-13, -var-14, -var-15, var-16)
+205 p 44 -2 -3 4 -13 -14 15 -16 0
+c Implicit declarations:
+c 205 a 44 2 3 -4 13 14 -15 16 0
+c 206 a -44 -2 0
+c 207 a -44 -3 0
+c 208 a -44 4 0
+c 209 a -44 -13 0
+c 210 a -44 -14 0
+c 211 a -44 15 0
+c 212 a -44 -16 0
+c Node P44 = AND(-var-2, -var-3, var-4, -var-13, -var-14, var-15, -var-16)
+213 s 45 43 44 199 207 0
+c Implicit declarations:
+c 213 a -45 43 44 0
+c 214 a 45 -43 0
+c 215 a 45 -44 0
+c Node S45 = OR(P43, P44)
+216 p 46 -9 -11 -12 45 0
+c Implicit declarations:
+c 216 a 46 9 11 12 -45 0
+c 217 a -46 -9 0
+c 218 a -46 -11 0
+c 219 a -46 -12 0
+c 220 a -46 45 0
+c Node P46 = AND(-var-9, -var-11, -var-12, S45)
+221 p 47 2 -3 -4 -9 -11 12 -13 -14 -16 0
+c Implicit declarations:
+c 221 a 47 -2 3 4 9 11 -12 13 14 16 0
+c 222 a -47 2 0
+c 223 a -47 -3 0
+c 224 a -47 -4 0
+c 225 a -47 -9 0
+c 226 a -47 -11 0
+c 227 a -47 12 0
+c 228 a -47 -13 0
+c 229 a -47 -14 0
+c 230 a -47 -16 0
+c Node P47 = AND(var-2, -var-3, -var-4, -var-9, -var-11, var-12, -var-13, -var-14, -var-16)
+231 p 48 2 -3 -4 -9 11 -12 -13 -14 0
+c Implicit declarations:
+c 231 a 48 -2 3 4 9 -11 12 13 14 0
+c 232 a -48 2 0
+c 233 a -48 -3 0
+c 234 a -48 -4 0
+c 235 a -48 -9 0
+c 236 a -48 11 0
+c 237 a -48 -12 0
+c 238 a -48 -13 0
+c 239 a -48 -14 0
+c Node P48 = AND(var-2, -var-3, -var-4, -var-9, var-11, -var-12, -var-13, -var-14)
+240 p 49 -2 -4 -9 -11 12 -13 14 0
+c Implicit declarations:
+c 240 a 49 2 4 9 11 -12 13 -14 0
+c 241 a -49 -2 0
+c 242 a -49 -4 0
+c 243 a -49 -9 0
+c 244 a -49 -11 0
+c 245 a -49 12 0
+c 246 a -49 -13 0
+c 247 a -49 14 0
+c Node P49 = AND(-var-2, -var-4, -var-9, -var-11, var-12, -var-13, var-14)
+248 p 50 -2 4 -9 11 -12 -13 14 0
+c Implicit declarations:
+c 248 a 50 2 -4 9 -11 12 13 -14 0
+c 249 a -50 -2 0
+c 250 a -50 4 0
+c 251 a -50 -9 0
+c 252 a -50 11 0
+c 253 a -50 -12 0
+c 254 a -50 -13 0
+c 255 a -50 14 0
+c Node P50 = AND(-var-2, var-4, -var-9, var-11, -var-12, -var-13, var-14)
+256 p 51 -2 3 -4 -9 -11 12 -13 14 0
+c Implicit declarations:
+c 256 a 51 2 -3 4 9 11 -12 13 -14 0
+c 257 a -51 -2 0
+c 258 a -51 3 0
+c 259 a -51 -4 0
+c 260 a -51 -9 0
+c 261 a -51 -11 0
+c 262 a -51 12 0
+c 263 a -51 -13 0
+c 264 a -51 14 0
+c Node P51 = AND(-var-2, var-3, -var-4, -var-9, -var-11, var-12, -var-13, var-14)
+265 p 52 -2 -3 4 -9 11 -12 -13 14 0
+c Implicit declarations:
+c 265 a 52 2 3 -4 9 -11 12 13 -14 0
+c 266 a -52 -2 0
+c 267 a -52 -3 0
+c 268 a -52 4 0
+c 269 a -52 -9 0
+c 270 a -52 11 0
+c 271 a -52 -12 0
+c 272 a -52 -13 0
+c 273 a -52 14 0
+c Node P52 = AND(-var-2, -var-3, var-4, -var-9, var-11, -var-12, -var-13, var-14)
+274 s 53 51 52 258 267 0
+c Implicit declarations:
+c 274 a -53 51 52 0
+c 275 a 53 -51 0
+c 276 a 53 -52 0
+c Node S53 = OR(P51, P52)
+277 p 54 2 -3 -4 -9 11 -12 -13 -14 16 0
+c Implicit declarations:
+c 277 a 54 -2 3 4 9 -11 12 13 14 -16 0
+c 278 a -54 2 0
+c 279 a -54 -3 0
+c 280 a -54 -4 0
+c 281 a -54 -9 0
+c 282 a -54 11 0
+c 283 a -54 -12 0
+c 284 a -54 -13 0
+c 285 a -54 -14 0
+c 286 a -54 16 0
+c Node P54 = AND(var-2, -var-3, -var-4, -var-9, var-11, -var-12, -var-13, -var-14, var-16)
+287 p 55 -16 53 0
+c Implicit declarations:
+c 287 a 55 16 -53 0
+c 288 a -55 -16 0
+c 289 a -55 53 0
+c Node P55 = AND(-var-16, S53)
+290 s 56 54 55 286 288 0
+c Implicit declarations:
+c 290 a -56 54 55 0
+c 291 a 56 -54 0
+c 292 a 56 -55 0
+c Node S56 = OR(P54, P55)
+293 p 57 2 -3 -4 -9 -11 12 -13 -14 15 -16 0
+c Implicit declarations:
+c 293 a 57 -2 3 4 9 11 -12 13 14 -15 16 0
+c 294 a -57 2 0
+c 295 a -57 -3 0
+c 296 a -57 -4 0
+c 297 a -57 -9 0
+c 298 a -57 -11 0
+c 299 a -57 12 0
+c 300 a -57 -13 0
+c 301 a -57 -14 0
+c 302 a -57 15 0
+c 303 a -57 -16 0
+c Node P57 = AND(var-2, -var-3, -var-4, -var-9, -var-11, var-12, -var-13, -var-14, var-15, -var-16)
+304 p 58 -15 56 0
+c Implicit declarations:
+c 304 a 58 15 -56 0
+c 305 a -58 -15 0
+c 306 a -58 56 0
+c Node P58 = AND(-var-15, S56)
+307 s 59 57 58 302 305 0
+c Implicit declarations:
+c 307 a -59 57 58 0
+c 308 a 59 -57 0
+c 309 a 59 -58 0
+c Node S59 = OR(P57, P58)
+310 p 60 -9 10 -11 -12 45 0
+c Implicit declarations:
+c 310 a 60 9 -10 11 12 -45 0
+c 311 a -60 -9 0
+c 312 a -60 10 0
+c 313 a -60 -11 0
+c 314 a -60 -12 0
+c 315 a -60 45 0
+c Node P60 = AND(-var-9, var-10, -var-11, -var-12, S45)
+316 p 61 -10 59 0
+c Implicit declarations:
+c 316 a 61 10 -59 0
+c 317 a -61 -10 0
+c 318 a -61 59 0
+c Node P61 = AND(-var-10, S59)
+319 s 62 60 61 312 317 0
+c Implicit declarations:
+c 319 a -62 60 61 0
+c 320 a 62 -60 0
+c 321 a 62 -61 0
+c Node S62 = OR(P60, P61)
+322 p 63 -6 -7 -8 62 0
+c Implicit declarations:
+c 322 a 63 6 7 8 -62 0
+c 323 a -63 -6 0
+c 324 a -63 -7 0
+c 325 a -63 -8 0
+c 326 a -63 62 0
+c Node P63 = AND(-var-6, -var-7, -var-8, S62)
+327 p 64 -2 -3 6 -7 -8 0
+c Implicit declarations:
+c 327 a 64 2 3 -6 7 8 0
+c 328 a -64 -2 0
+c 329 a -64 -3 0
+c 330 a -64 6 0
+c 331 a -64 -7 0
+c 332 a -64 -8 0
+c Node P64 = AND(-var-2, -var-3, var-6, -var-7, -var-8)
+333 p 65 2 -3 -6 -7 8 0
+c Implicit declarations:
+c 333 a 65 -2 3 6 7 -8 0
+c 334 a -65 2 0
+c 335 a -65 -3 0
+c 336 a -65 -6 0
+c 337 a -65 -7 0
+c 338 a -65 8 0
+c Node P65 = AND(var-2, -var-3, -var-6, -var-7, var-8)
+339 p 66 -2 -3 4 6 -7 -8 0
+c Implicit declarations:
+c 339 a 66 2 3 -4 -6 7 8 0
+c 340 a -66 -2 0
+c 341 a -66 -3 0
+c 342 a -66 4 0
+c 343 a -66 6 0
+c 344 a -66 -7 0
+c 345 a -66 -8 0
+c Node P66 = AND(-var-2, -var-3, var-4, var-6, -var-7, -var-8)
+346 p 67 2 -3 -4 -6 -7 8 0
+c Implicit declarations:
+c 346 a 67 -2 3 4 6 7 -8 0
+c 347 a -67 2 0
+c 348 a -67 -3 0
+c 349 a -67 -4 0
+c 350 a -67 -6 0
+c 351 a -67 -7 0
+c 352 a -67 8 0
+c Node P67 = AND(var-2, -var-3, -var-4, -var-6, -var-7, var-8)
+353 s 68 66 67 342 349 0
+c Implicit declarations:
+c 353 a -68 66 67 0
+c 354 a 68 -66 0
+c 355 a 68 -67 0
+c Node S68 = OR(P66, P67)
+356 p 69 -13 -14 -16 68 0
+c Implicit declarations:
+c 356 a 69 13 14 16 -68 0
+c 357 a -69 -13 0
+c 358 a -69 -14 0
+c 359 a -69 -16 0
+c 360 a -69 68 0
+c Node P69 = AND(-var-13, -var-14, -var-16, S68)
+361 p 70 6 -7 -8 -13 -14 0
+c Implicit declarations:
+c 361 a 70 -6 7 8 13 14 0
+c 362 a -70 6 0
+c 363 a -70 -7 0
+c 364 a -70 -8 0
+c 365 a -70 -13 0
+c 366 a -70 -14 0
+c Node P70 = AND(var-6, -var-7, -var-8, -var-13, -var-14)
+367 p 71 -6 -7 8 -13 14 0
+c Implicit declarations:
+c 367 a 71 6 7 -8 13 -14 0
+c 368 a -71 -6 0
+c 369 a -71 -7 0
+c 370 a -71 8 0
+c 371 a -71 -13 0
+c 372 a -71 14 0
+c Node P71 = AND(-var-6, -var-7, var-8, -var-13, var-14)
+373 p 72 6 -7 -8 -13 -14 16 0
+c Implicit declarations:
+c 373 a 72 -6 7 8 13 14 -16 0
+c 374 a -72 6 0
+c 375 a -72 -7 0
+c 376 a -72 -8 0
+c 377 a -72 -13 0
+c 378 a -72 -14 0
+c 379 a -72 16 0
+c Node P72 = AND(var-6, -var-7, -var-8, -var-13, -var-14, var-16)
+380 p 73 -6 -7 8 -13 14 -16 0
+c Implicit declarations:
+c 380 a 73 6 7 -8 13 -14 16 0
+c 381 a -73 -6 0
+c 382 a -73 -7 0
+c 383 a -73 8 0
+c 384 a -73 -13 0
+c 385 a -73 14 0
+c 386 a -73 -16 0
+c Node P73 = AND(-var-6, -var-7, var-8, -var-13, var-14, -var-16)
+387 s 74 72 73 379 386 0
+c Implicit declarations:
+c 387 a -74 72 73 0
+c 388 a 74 -72 0
+c 389 a 74 -73 0
+c Node S74 = OR(P72, P73)
+390 p 75 -2 -4 74 0
+c Implicit declarations:
+c 390 a 75 2 4 -74 0
+c 391 a -75 -2 0
+c 392 a -75 -4 0
+c 393 a -75 74 0
+c Node P75 = AND(-var-2, -var-4, S74)
+394 p 76 2 -4 -13 -14 0
+c Implicit declarations:
+c 394 a 76 -2 4 13 14 0
+c 395 a -76 2 0
+c 396 a -76 -4 0
+c 397 a -76 -13 0
+c 398 a -76 -14 0
+c Node P76 = AND(var-2, -var-4, -var-13, -var-14)
+399 p 77 -2 4 -13 14 0
+c Implicit declarations:
+c 399 a 77 2 -4 13 -14 0
+c 400 a -77 -2 0
+c 401 a -77 4 0
+c 402 a -77 -13 0
+c 403 a -77 14 0
+c Node P77 = AND(-var-2, var-4, -var-13, var-14)
+404 p 78 2 -4 -13 -14 16 0
+c Implicit declarations:
+c 404 a 78 -2 4 13 14 -16 0
+c 405 a -78 2 0
+c 406 a -78 -4 0
+c 407 a -78 -13 0
+c 408 a -78 -14 0
+c 409 a -78 16 0
+c Node P78 = AND(var-2, -var-4, -var-13, -var-14, var-16)
+410 p 79 -2 4 -13 14 -16 0
+c Implicit declarations:
+c 410 a 79 2 -4 13 -14 16 0
+c 411 a -79 -2 0
+c 412 a -79 4 0
+c 413 a -79 -13 0
+c 414 a -79 14 0
+c 415 a -79 -16 0
+c Node P79 = AND(-var-2, var-4, -var-13, var-14, -var-16)
+416 s 80 78 79 409 415 0
+c Implicit declarations:
+c 416 a -80 78 79 0
+c 417 a 80 -78 0
+c 418 a 80 -79 0
+c Node S80 = OR(P78, P79)
+419 p 81 -6 7 -8 80 0
+c Implicit declarations:
+c 419 a 81 6 -7 8 -80 0
+c 420 a -81 -6 0
+c 421 a -81 7 0
+c 422 a -81 -8 0
+c 423 a -81 80 0
+c Node P81 = AND(-var-6, var-7, -var-8, S80)
+424 p 82 -2 3 -4 74 0
+c Implicit declarations:
+c 424 a 82 2 -3 4 -74 0
+c 425 a -82 -2 0
+c 426 a -82 3 0
+c 427 a -82 -4 0
+c 428 a -82 74 0
+c Node P82 = AND(-var-2, var-3, -var-4, S74)
+429 p 83 -3 -6 7 -8 80 0
+c Implicit declarations:
+c 429 a 83 3 6 -7 8 -80 0
+c 430 a -83 -3 0
+c 431 a -83 -6 0
+c 432 a -83 7 0
+c 433 a -83 -8 0
+c 434 a -83 80 0
+c Node P83 = AND(-var-3, -var-6, var-7, -var-8, S80)
+435 s 84 82 83 426 430 0
+c Implicit declarations:
+c 435 a -84 82 83 0
+c 436 a 84 -82 0
+c 437 a 84 -83 0
+c Node S84 = OR(P82, P83)
+438 p 85 -13 -14 15 -16 68 0
+c Implicit declarations:
+c 438 a 85 13 14 -15 16 -68 0
+c 439 a -85 -13 0
+c 440 a -85 -14 0
+c 441 a -85 15 0
+c 442 a -85 -16 0
+c 443 a -85 68 0
+c Node P85 = AND(-var-13, -var-14, var-15, -var-16, S68)
+444 p 86 -15 84 0
+c Implicit declarations:
+c 444 a 86 15 -84 0
+c 445 a -86 -15 0
+c 446 a -86 84 0
+c Node P86 = AND(-var-15, S84)
+447 s 87 85 86 441 445 0
+c Implicit declarations:
+c 447 a -87 85 86 0
+c 448 a 87 -85 0
+c 449 a 87 -86 0
+c Node S87 = OR(P85, P86)
+450 p 88 -10 -11 -12 87 0
+c Implicit declarations:
+c 450 a 88 10 11 12 -87 0
+c 451 a -88 -10 0
+c 452 a -88 -11 0
+c 453 a -88 -12 0
+c 454 a -88 87 0
+c Node P88 = AND(-var-10, -var-11, -var-12, S87)
+455 p 89 -6 -8 -10 -11 12 0
+c Implicit declarations:
+c 455 a 89 6 8 10 11 -12 0
+c 456 a -89 -6 0
+c 457 a -89 -8 0
+c 458 a -89 -10 0
+c 459 a -89 -11 0
+c 460 a -89 12 0
+c Node P89 = AND(-var-6, -var-8, -var-10, -var-11, var-12)
+461 p 90 -6 8 -10 11 -12 0
+c Implicit declarations:
+c 461 a 90 6 -8 10 -11 12 0
+c 462 a -90 -6 0
+c 463 a -90 8 0
+c 464 a -90 -10 0
+c 465 a -90 11 0
+c 466 a -90 -12 0
+c Node P90 = AND(-var-6, var-8, -var-10, var-11, -var-12)
+467 p 91 -6 7 -8 -10 -11 12 0
+c Implicit declarations:
+c 467 a 91 6 -7 8 10 11 -12 0
+c 468 a -91 -6 0
+c 469 a -91 7 0
+c 470 a -91 -8 0
+c 471 a -91 -10 0
+c 472 a -91 -11 0
+c 473 a -91 12 0
+c Node P91 = AND(-var-6, var-7, -var-8, -var-10, -var-11, var-12)
+474 p 92 -6 -7 8 -10 11 -12 0
+c Implicit declarations:
+c 474 a 92 6 7 -8 10 -11 12 0
+c 475 a -92 -6 0
+c 476 a -92 -7 0
+c 477 a -92 8 0
+c 478 a -92 -10 0
+c 479 a -92 11 0
+c 480 a -92 -12 0
+c Node P92 = AND(-var-6, -var-7, var-8, -var-10, var-11, -var-12)
+481 s 93 91 92 469 476 0
+c Implicit declarations:
+c 481 a -93 91 92 0
+c 482 a 93 -91 0
+c 483 a 93 -92 0
+c Node S93 = OR(P91, P92)
+484 p 94 -3 -4 93 0
+c Implicit declarations:
+c 484 a 94 3 4 -93 0
+c 485 a -94 -3 0
+c 486 a -94 -4 0
+c 487 a -94 93 0
+c Node P94 = AND(-var-3, -var-4, S93)
+488 p 95 -4 -11 12 0
+c Implicit declarations:
+c 488 a 95 4 11 -12 0
+c 489 a -95 -4 0
+c 490 a -95 -11 0
+c 491 a -95 12 0
+c Node P95 = AND(-var-4, -var-11, var-12)
+492 p 96 4 11 -12 0
+c Implicit declarations:
+c 492 a 96 -4 -11 12 0
+c 493 a -96 4 0
+c 494 a -96 11 0
+c 495 a -96 -12 0
+c Node P96 = AND(var-4, var-11, -var-12)
+496 p 97 3 -4 -11 12 0
+c Implicit declarations:
+c 496 a 97 -3 4 11 -12 0
+c 497 a -97 3 0
+c 498 a -97 -4 0
+c 499 a -97 -11 0
+c 500 a -97 12 0
+c Node P97 = AND(var-3, -var-4, -var-11, var-12)
+501 p 98 -3 4 11 -12 0
+c Implicit declarations:
+c 501 a 98 3 -4 -11 12 0
+c 502 a -98 -3 0
+c 503 a -98 4 0
+c 504 a -98 11 0
+c 505 a -98 -12 0
+c Node P98 = AND(-var-3, var-4, var-11, -var-12)
+506 s 99 97 98 497 502 0
+c Implicit declarations:
+c 506 a -99 97 98 0
+c 507 a 99 -97 0
+c 508 a 99 -98 0
+c Node S99 = OR(P97, P98)
+509 p 100 -7 -8 -10 99 0
+c Implicit declarations:
+c 509 a 100 7 8 10 -99 0
+c 510 a -100 -7 0
+c 511 a -100 -8 0
+c 512 a -100 -10 0
+c 513 a -100 99 0
+c Node P100 = AND(-var-7, -var-8, -var-10, S99)
+514 p 101 -4 -7 8 0
+c Implicit declarations:
+c 514 a 101 4 7 -8 0
+c 515 a -101 -4 0
+c 516 a -101 -7 0
+c 517 a -101 8 0
+c Node P101 = AND(-var-4, -var-7, var-8)
+518 p 102 4 7 -8 0
+c Implicit declarations:
+c 518 a 102 -4 -7 8 0
+c 519 a -102 4 0
+c 520 a -102 7 0
+c 521 a -102 -8 0
+c Node P102 = AND(var-4, var-7, -var-8)
+522 p 103 3 -4 -7 8 0
+c Implicit declarations:
+c 522 a 103 -3 4 7 -8 0
+c 523 a -103 3 0
+c 524 a -103 -4 0
+c 525 a -103 -7 0
+c 526 a -103 8 0
+c Node P103 = AND(var-3, -var-4, -var-7, var-8)
+527 p 104 -3 4 7 -8 0
+c Implicit declarations:
+c 527 a 104 3 -4 -7 8 0
+c 528 a -104 -3 0
+c 529 a -104 4 0
+c 530 a -104 7 0
+c 531 a -104 -8 0
+c Node P104 = AND(-var-3, var-4, var-7, -var-8)
+532 s 105 103 104 523 528 0
+c Implicit declarations:
+c 532 a -105 103 104 0
+c 533 a 105 -103 0
+c 534 a 105 -104 0
+c Node S105 = OR(P103, P104)
+535 p 106 10 -11 -12 105 0
+c Implicit declarations:
+c 535 a 106 -10 11 12 -105 0
+c 536 a -106 10 0
+c 537 a -106 -11 0
+c 538 a -106 -12 0
+c 539 a -106 105 0
+c Node P106 = AND(var-10, -var-11, -var-12, S105)
+540 p 107 6 -7 -8 -10 99 0
+c Implicit declarations:
+c 540 a 107 -6 7 8 10 -99 0
+c 541 a -107 6 0
+c 542 a -107 -7 0
+c 543 a -107 -8 0
+c 544 a -107 -10 0
+c 545 a -107 99 0
+c Node P107 = AND(var-6, -var-7, -var-8, -var-10, S99)
+546 p 108 -6 10 -11 -12 105 0
+c Implicit declarations:
+c 546 a 108 6 -10 11 12 -105 0
+c 547 a -108 -6 0
+c 548 a -108 10 0
+c 549 a -108 -11 0
+c 550 a -108 -12 0
+c 551 a -108 105 0
+c Node P108 = AND(-var-6, var-10, -var-11, -var-12, S105)
+552 s 109 107 108 541 547 0
+c Implicit declarations:
+c 552 a -109 107 108 0
+c 553 a 109 -107 0
+c 554 a 109 -108 0
+c Node S109 = OR(P107, P108)
+555 p 110 2 -3 -4 93 0
+c Implicit declarations:
+c 555 a 110 -2 3 4 -93 0
+c 556 a -110 2 0
+c 557 a -110 -3 0
+c 558 a -110 -4 0
+c 559 a -110 93 0
+c Node P110 = AND(var-2, -var-3, -var-4, S93)
+560 p 111 -2 109 0
+c Implicit declarations:
+c 560 a 111 2 -109 0
+c 561 a -111 -2 0
+c 562 a -111 109 0
+c Node P111 = AND(-var-2, S109)
+563 s 112 110 111 556 561 0
+c Implicit declarations:
+c 563 a -112 110 111 0
+c 564 a 112 -110 0
+c 565 a 112 -111 0
+c Node S112 = OR(P110, P111)
+566 p 113 13 -14 -15 -16 112 0
+c Implicit declarations:
+c 566 a 113 -13 14 15 16 -112 0
+c 567 a -113 13 0
+c 568 a -113 -14 0
+c 569 a -113 -15 0
+c 570 a -113 -16 0
+c 571 a -113 112 0
+c Node P113 = AND(var-13, -var-14, -var-15, -var-16, S112)
+572 p 114 9 -10 -11 -12 87 0
+c Implicit declarations:
+c 572 a 114 -9 10 11 12 -87 0
+c 573 a -114 9 0
+c 574 a -114 -10 0
+c 575 a -114 -11 0
+c 576 a -114 -12 0
+c 577 a -114 87 0
+c Node P114 = AND(var-9, -var-10, -var-11, -var-12, S87)
+578 p 115 -9 13 -14 -15 -16 112 0
+c Implicit declarations:
+c 578 a 115 9 -13 14 15 16 -112 0
+c 579 a -115 -9 0
+c 580 a -115 13 0
+c 581 a -115 -14 0
+c 582 a -115 -15 0
+c 583 a -115 -16 0
+c 584 a -115 112 0
+c Node P115 = AND(-var-9, var-13, -var-14, -var-15, -var-16, S112)
+585 s 116 114 115 573 579 0
+c Implicit declarations:
+c 585 a -116 114 115 0
+c 586 a 116 -114 0
+c 587 a 116 -115 0
+c Node S116 = OR(P114, P115)
+588 p 117 5 -6 -7 -8 62 0
+c Implicit declarations:
+c 588 a 117 -5 6 7 8 -62 0
+c 589 a -117 5 0
+c 590 a -117 -6 0
+c 591 a -117 -7 0
+c 592 a -117 -8 0
+c 593 a -117 62 0
+c Node P117 = AND(var-5, -var-6, -var-7, -var-8, S62)
+594 p 118 -5 116 0
+c Implicit declarations:
+c 594 a 118 5 -116 0
+c 595 a -118 -5 0
+c 596 a -118 116 0
+c Node P118 = AND(-var-5, S116)
+597 s 119 117 118 589 595 0
+c Implicit declarations:
+c 597 a -119 117 118 0
+c 598 a 119 -117 0
+c 599 a 119 -118 0
+c Node S119 = OR(P117, P118)
+600 p 120 1 -2 -3 -4 39 0
+c Implicit declarations:
+c 600 a 120 -1 2 3 4 -39 0
+c 601 a -120 1 0
+c 602 a -120 -2 0
+c 603 a -120 -3 0
+c 604 a -120 -4 0
+c 605 a -120 39 0
+c Node P120 = AND(var-1, -var-2, -var-3, -var-4, S39)
+606 p 121 -1 119 0
+c Implicit declarations:
+c 606 a 121 1 -119 0
+c 607 a -121 -1 0
+c 608 a -121 119 0
+c Node P121 = AND(-var-1, S119)
+609 s 122 120 121 601 607 0
+c Implicit declarations:
+c 609 a -122 120 121 0
+c 610 a 122 -120 0
+c 611 a 122 -121 0
+c Node S122 = OR(P120, P121)
+c Assert ITE at node S21
+612 a 15 21 -1 -10 0 * 0
+613 a 21 -1 -10 0 * 0
+c Justify literal -9 in context [1, -10, -7, -12] 
+614 a -1 10 7 12 -9 0 * 0
+c Justify literal 11 in context [1, -10, -7, -12] 
+615 a -1 10 7 12 11 0 * 0
+c Justify literal -15 in context [1, -10, -7, -12] 
+616 a -1 10 7 12 -15 0 * 0
+c Assert ITE at node S29
+617 a 8 29 -1 10 7 12 0 * 0
+618 a 29 -1 10 7 12 0 * 0
+c Assert ITE at node S33
+619 a 12 33 -1 10 7 0 * 0
+620 a 33 -1 10 7 0 * 0
+c Assert ITE at node S36
+621 a 7 36 -1 10 0 * 0
+622 a 36 -1 10 0 * 0
+c Assert ITE at node S39
+623 a 10 39 -1 0 * 0
+624 a 39 -1 0 * 0
+c Assert ITE at node S45
+625 a 3 45 1 -5 -10 0 * 0
+626 a 45 1 -5 -10 0 * 0
+c Assert ITE at node S53
+627 a 3 53 1 -5 10 15 16 0 * 0
+628 a 53 1 -5 10 15 16 0 * 0
+c Assert ITE at node S56
+629 a 16 56 1 -5 10 15 0 * 0
+630 a 56 1 -5 10 15 0 * 0
+c Assert ITE at node S59
+631 a 15 59 1 -5 10 0 * 0
+632 a 59 1 -5 10 0 * 0
+c Assert ITE at node S62
+633 a 10 62 1 -5 0 * 0
+634 a 62 1 -5 0 * 0
+c Assert ITE at node S68
+635 a 4 68 1 5 -9 -15 0 * 0
+636 a 68 1 5 -9 -15 0 * 0
+c Assert ITE at node S74
+637 a 16 74 1 5 -9 15 -3 0 * 0
+638 a 74 1 5 -9 15 -3 0 * 0
+c Assert ITE at node S80
+639 a 16 80 1 5 -9 15 3 0 * 0
+640 a 80 1 5 -9 15 3 0 * 0
+c Assert ITE at node S84
+641 a 3 84 1 5 -9 15 0 * 0
+642 a 84 1 5 -9 15 0 * 0
+c Assert ITE at node S87
+643 a 15 87 1 5 -9 0 * 0
+644 a 87 1 5 -9 0 * 0
+c Assert ITE at node S93
+645 a 7 93 1 5 9 -2 0 * 0
+646 a 93 1 5 9 -2 0 * 0
+c Justify literal -10 in context [-1, -5, -9, -2, 6] 
+647 a 1 5 9 2 -6 -10 0 * 0
+c Assert ITE at node S99
+648 a 3 99 1 5 9 2 -6 0 * 0
+649 a 99 1 5 9 2 -6 0 * 0
+c Assert ITE at node S105
+650 a 3 105 1 5 9 2 6 0 * 0
+651 a 105 1 5 9 2 6 0 * 0
+c Assert ITE at node S109
+652 a 6 109 1 5 9 2 0 * 0
+653 a 109 1 5 9 2 0 * 0
+c Assert ITE at node S112
+654 a 2 112 1 5 9 0 * 0
+655 a 112 1 5 9 0 * 0
+c Assert ITE at node S116
+656 a 9 116 1 5 0 * 0
+657 a 116 1 5 0 * 0
+c Assert ITE at node S119
+658 a 5 119 1 0 * 0
+659 a 119 1 0 * 0
+c Assert ITE at node S122 (root)
+660 a 1 122 0 * 0
+661 a 122 0 * 0
 c Delete input clauses
 dc 1 * 0
 dc 2 * 0
