@@ -955,7 +955,7 @@ class Prover:
         root = self.cmgr.root
         if root is None:
             print("Can't determine count.  Don't know root")
-            return 0.0
+            return P52()
         return self.omgr.count(self.cmgr.root, weights)
 
     def invalidCommand(self, cmd):
