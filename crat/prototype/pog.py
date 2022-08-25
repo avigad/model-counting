@@ -563,6 +563,15 @@ class Pog:
                 raise PogException("Couldn't justify deletion of clause %s.  Reached terminal literal %s" % (str(clause), str(root))) 
 
 
+    def deduplicate(self, ls):
+        items = set([])
+        result = []
+        for ele in ls:
+            if ele not in items:
+                items.add(ele)
+                result.append(ele)
+        return result
+
     def doValidate(self):
         root = self.nodes[-1]
         unitClauseIds = self.validateUp(root, [], parent = None)
@@ -576,6 +585,7 @@ class Pog:
         for cid in range(1, len(self.clauseList)+1):
             hints = self.deletionHints(root, self.clauseList[cid-1])
             hints.append(topUnitId)
+            hints = self.deduplicate(hints)
             self.deleteClause(cid, hints)
             
     def finish(self):
