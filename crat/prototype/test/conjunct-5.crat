@@ -1,15 +1,39 @@
+c Input clauses
 1 i 1 0
 2 i 2 0
 3 i 3 0
 4 i 4 0
 5 i 5 0
 6 p 6 1 2 3 4 5 0
-12 a 6 0 * 0
- dc 1 * 0
- dc 2 * 0
- dc 3 * 0
- dc 4 * 0
- dc 5 * 0
- 
-
-
+c Implicit declarations:
+c 6 a 6 -1 -2 -3 -4 -5 0
+c 7 a -6 1 0
+c 8 a -6 2 0
+c 9 a -6 3 0
+c 10 a -6 4 0
+c 11 a -6 5 0
+c Node P6 = AND(var-1, var-2, var-3, var-4, var-5)
+c Justify literal 1 in context [] 
+12 a 1 0 * 0
+c Justify literal 2 in context [] 
+13 a 2 0 * 0
+c Justify literal 3 in context [] 
+14 a 3 0 * 0
+c Justify literal 4 in context [] 
+15 a 4 0 * 0
+c Justify literal 5 in context [] 
+16 a 5 0 * 0
+c Assert unit clause for AND node P6 (root)
+17 a 6 0 * 0
+c Delete extra unit clauses
+dc 12 * 0
+dc 13 * 0
+dc 14 * 0
+dc 15 * 0
+dc 16 * 0
+c Delete input clauses
+dc 1 7 17 0
+dc 2 8 17 0
+dc 3 9 17 0
+dc 4 10 17 0
+dc 5 11 17 0
