@@ -575,10 +575,11 @@ class Pog:
     def doValidate(self):
         root = self.nodes[-1]
         unitClauseIds = self.validateUp(root, [], parent = None)
+        topUnitId = unitClauseIds[-1]
+        unitClauseIds = unitClauseIds[:-1]
         if self.verbLevel >= 1 and len(unitClauseIds) > 0:
             self.addComment("Delete extra unit clauses")
-        topUnitId = unitClauseIds[-1]
-        for cid in unitClauseIds[:-1]:
+        for cid in unitClauseIds:
             self.deleteClause(cid)
         if self.verbLevel >= 1:
             self.addComment("Delete input clauses")
