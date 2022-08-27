@@ -184,6 +184,19 @@ to handle the benchmarks used in weighted model counting track of the Model Coun
 Using $w(x_i) = w(\obar{x}_i) = 1$ for each variable $x_i$,
 gives the standard model counting of Example 1a.
 
+{\bf Example 1d}: Restrict the rational numbers of Example~1c to be of
+the form $a\cdot 2^b\cdot 5^c$, where $a$, $b$, and $c$ are integers.
+This class of numbers can exactly represent any value written in
+base-10 decimal notation, and it is closed under addition and
+multiplication.  It can therefore be used to exactly
+encode the weights used in the weighted model counting track of the
+Model Counting Competition, as well as any results that are to be
+generated.  In terms of implementation, both $b$ and $c$ can be encoded
+as fixed-length integers, leaving only $a$ requiring an
+arbitrary-precision representation.  Manipulating numbers with this
+representation could be simpler and more efficient than using full rational
+arithmetic.
+
 {\bf Example 2}: Let $\ring$ be a finite field with $z = |\ring| \geq 2n$,
 and let $\hashset$ be the set of functions
 mapping elements of $X$ to elements of $\ring$.  For
