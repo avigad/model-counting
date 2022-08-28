@@ -44,10 +44,11 @@ import pog
 
 
 def usage(name):
-    print("Usage: %s [-h] [-d] [-v VLEVEL] [-i FILE.cnf] [-n FILE.nnf] [-c CFILE] [-p FILE.crat]")
+    print("Usage: %s [-h] [-d] [-v VLEVEL] [-H hlevel] [-i FILE.cnf] [-n FILE.nnf] [-c CFILE] [-p FILE.crat]")
     print(" -h           Print this message")
     print(" -d           Use NNF format defined for D4 model counter")
     print(" -v VLEVEL    Set verbosity level (0-3)")
+    print(" -H HLEVEL    Set what hints to generate: 1 = constant time, 2 = scan for input clause (default), 3 = Use RUP finder")
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
     print(" -c CFILE     Read conflict clauses embedded in CFILE")
@@ -208,11 +209,13 @@ class Nnf:
     # match position in the array, nor are they necessarily in
     # ascending order
     nodes = []
+    hintLevel = 2
 
-    def __init__(self, verbLevel = 1):
+    def __init__(self, verbLevel, hintLevel):
         self.inputCount = 0
         self.nodes = []
         self.verbLevel = verbLevel
+        self.hintLevel = hintLevel
 
     def nodeCount(self):
         count = 0
@@ -434,7 +437,7 @@ class Nnf:
         self.topoSort(root)
 
     def makePog(self, clauseList, fname, conflictClauseList):
-        pg = pog.Pog(self.inputCount, clauseList, fname, conflictClauseList, self.verbLevel)
+        pg = pog.Pog(self.inputCount, clauseList, fname, conflictClauseList, self.verbLevel, self.hintLevel)
         for node in self.nodes:
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
@@ -672,19 +675,22 @@ class D4Reader:
         
 def run(name, args):
     verbLevel = 1
+    hintLevel = 2
     d4 = False
     cnfName = None
     nnfName = None
     cratName = None
     conflictName = None
     conflictClauses = []
-    optlist, args = getopt.getopt(args, 'hdv:i:n:p:c:')
+    optlist, args = getopt.getopt(args, 'hdv:H:i:n:p:c:')
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
             return
         elif opt == '-v':
             verbLevel = int(val)
+        elif opt == '-H':
+            hintLevel = int(val)
         elif opt == '-d':
             d4 = True
         elif opt == '-i':
@@ -728,7 +734,7 @@ def run(name, args):
         conflictClauses = clauseReader.clauses
 
     start = datetime.datetime.now()
-    dag = Nnf(verbLevel)
+    dag = Nnf(verbLevel, hintLevel)
     if d4:
         d4reader = D4Reader(dag)
         if not d4reader.read(nfile):
