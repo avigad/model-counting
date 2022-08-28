@@ -334,7 +334,7 @@ class Pog:
     nodeClauseCounts = []
 
 
-    def __init__(self, variableCount, inputClauseList, fname, conflictClauseList, verbLevel, hintLevel):
+    def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel):
         self.verbLevel = verbLevel
         self.hintLevel = hintLevel
         self.uniqueTable = {}
@@ -356,11 +356,6 @@ class Pog:
         # Reset so that constant nodes are not included
         self.nodeCounts = [0] * NodeType.tcount
         self.nodeVisits = [0] * NodeType.tcount
-        if len(conflictClauseList) > 0:
-            self.cwriter.doComment("Initial set of conflict clauses")
-            self.reasoner.addClauses(conflictClauseList)
-            for cls in conflictClauseList:
-                self.cwriter.doClause(cls)
         
     def lookup(self, ntype, children):
         n = ProtoNode(ntype, children)

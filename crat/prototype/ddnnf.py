@@ -44,14 +44,13 @@ import pog
 
 
 def usage(name):
-    print("Usage: %s [-h] [-d] [-v VLEVEL] [-H hlevel] [-i FILE.cnf] [-n FILE.nnf] [-c CFILE] [-p FILE.crat]")
+    print("Usage: %s [-h] [-d] [-v VLEVEL] [-H hlevel] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
     print(" -h           Print this message")
     print(" -d           Use NNF format defined for D4 model counter")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -H HLEVEL    Set what hints to generate: 1 = constant time, 2 = scan for input clause (default), 3 = Use RUP finder")
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
-    print(" -c CFILE     Read conflict clauses embedded in CFILE")
     print(" -p FILE.crat Output CRAT")
 
 class NnfException(Exception):
@@ -436,8 +435,8 @@ class Nnf:
                 self.nodes.append(node)
         self.topoSort(root)
 
-    def makePog(self, clauseList, fname, conflictClauseList):
-        pg = pog.Pog(self.inputCount, clauseList, fname, conflictClauseList, self.verbLevel, self.hintLevel)
+    def makePog(self, clauseList, fname):
+        pg = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel, self.hintLevel)
         for node in self.nodes:
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
@@ -680,9 +679,7 @@ def run(name, args):
     cnfName = None
     nnfName = None
     cratName = None
-    conflictName = None
-    conflictClauses = []
-    optlist, args = getopt.getopt(args, 'hdv:H:i:n:p:c:')
+    optlist, args = getopt.getopt(args, 'hdv:H:i:n:p:')
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
@@ -697,8 +694,6 @@ def run(name, args):
             cnfName = val
         elif opt == '-n':
             nnfName = val
-        elif opt == '-c':
-            conflictName = val
         elif opt == '-p':
             cratName = val
         else:
@@ -724,14 +719,6 @@ def run(name, args):
     except:
         print("Couldn't open NNF file %s" % nnfName)
         return
-    
-    if conflictName is not None:
-        try:
-            clauseReader = readwrite.ClauseReader(conflictName, "CRAT", verbLevel = verbLevel)
-        except Exception as ex:
-            print("ERROR in Conflict Clause File: %s" % str(ex))
-            return
-        conflictClauses = clauseReader.clauses
 
     start = datetime.datetime.now()
     dag = Nnf(verbLevel, hintLevel)
@@ -759,7 +746,7 @@ def run(name, args):
     if verbLevel >= 2:
         dag.show()
     if cratName is not None:
-        pg = dag.makePog(creader.clauses, cratName, conflictClauses)
+        pg = dag.makePog(creader.clauses, cratName)
         if verbLevel == 1:
             print("c Generated POG has %d nodes" % len(pg.nodes))
         if verbLevel >= 2:
