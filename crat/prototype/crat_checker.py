@@ -492,6 +492,8 @@ class ClauseManager:
     liveClauseCount = 0
     maxLiveClauseCount = 0
     totalClauseCount = 0
+    totalHintCount = 0
+    addedHintCount = 0
     # Maximum clause ID.  Used to ensure ascending order
     maxClauseId = 0
     # Clauses that haven't been deleted (only in verbose mode)
@@ -515,6 +517,8 @@ class ClauseManager:
         self.liveClauseCount = 0
         self.maxLiveClauseCount = 0
         self.totalClauseCount = 0
+        self.totalHintCount = 0
+        self.addedHintCount = 0
         self.liveClauseSet = set([])
         self.root = None
 
@@ -655,7 +659,9 @@ class ClauseManager:
     # Assumes clause has been processed by cleanClause
     # Return (T/F, Reason, hints)
     def checkRup(self, clause, hints):
+        self.totalHintCount += 1
         if len(hints) == 1 and hints[0] == '*':
+            self.addedHintCount += 1
             if self.laxMode:
                 self.uncheckedCount += 1
                 return (True, "")
@@ -671,7 +677,7 @@ class ClauseManager:
             if uresult == "none":
                 return (False, "RUP failed for clause %s: No unit literal found in clause #%d %s" % (showClause(clause) ,id, showClause(rclause)), hints)
             elif uresult == "satisfied":
-                return (False, "RUP failed for clause %s: Literal %s true in clause #%d %s" % (showClause(clause), ulit, id, showClause(rclause)), hints)
+                return (False, "RUP failed for clause %s: Satisfied literal %s in clause #%d. RUP clause:%s" % (showClause(clause), ulit, id, showClause(rclause)), hints)
             elif uresult == "conflict":
                 return (True, "", hints)
         return (False, "RUP failed: No conflict found", hints)
@@ -1107,6 +1113,8 @@ class Prover:
         tcount = 0
         print("%d total clauses" % self.cmgr.totalClauseCount)
         print("%d maximum live clauses" % self.cmgr.maxLiveClauseCount)
+        print("%d total hints" % self.cmgr.totalHintCount)
+        print("%d added hints" % self.cmgr.addedHintCount)
         print("Command occurences:")
         for cmd in clist:
             count = self.ruleCounters[cmd]
