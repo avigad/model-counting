@@ -19,13 +19,18 @@ class PogException(Exception):
 # Version of reasoner that relies purely on SAT solver
 class Reasoner:
     solver = None
-    clauseList = []
-    hintLevel = False
+    # Allow blocks of clauses, each starting with IDs at different offsets.
+    # Starting with input clauses
+    clauseBlocks = [[]]
+    clauseOffsets = []
+    hintLevel = 2
 
     def __init__(self, inputClauseList, hintLevel):
         self.solver = Solver(solverId, with_proof = True)
-        self.clauseList = readwrite.cleanClauses(inputClauseList)
-        self.addClauses(self.clauseList)
+        clauseList = readwrite.cleanClauses(inputClauseList)
+        self.clauseBlocks = [clauseList]
+        self.clauseOffsets = [1]
+        self.addClauses(clauseList)
         self.hintLevel = hintLevel
 
     def propagate(self, assumptions):
@@ -85,14 +90,15 @@ class Reasoner:
         self.addClauses([pclause])
         return clauses
     
-    # Find input clause that is subset of target
+    # Find clause that is subset of target
     def findClauseId(self, tclause):
         tclause = readwrite.cleanClause(tclause)
-        cid = 0
-        for clause in self.clauseList:
-            cid += 1
-            if readwrite.testClauseSubset(clause, tclause):
-                return cid
+        for (clauseList, offset) in zip(self.clauseBlocks, self.clauseOffsets):
+            cid = offset            
+            for clause in clauseList:
+                if readwrite.testClauseSubset(clause, tclause):
+                    return cid
+                cid += 1
         return -1
 
     # Unit propagation.  Given clause and set of satisfied literals.
@@ -113,6 +119,31 @@ class Reasoner:
         unitSet.add(ulit)
         return ("unit", ulit)
 
+    # Perform one pass of unit propagation through block of clauses
+    # Returns pair of Booleans (found,propagated)
+    # Updates search state
+    def propagatePass(self, blockId, propClauses, propSet, satSet, generatorDict):
+        found = False
+        propagated = False
+        id = self.clauseOffsets[blockId]
+        for clause in self.clauseBlocks[blockId]:
+            if id in propSet or id in satSet:
+                continue
+            (uresult, ulit) = self.unitProp(clause, unitSet)
+            if uresult == "satisfied":
+                satSet.add(id)
+            elif uresult == "unit":
+                propagated = True
+                propClauses.append(id)
+                propSet.add(id)
+                generatorDict[abs(ulit)] = id
+            elif uresult == "conflict":
+                propClauses.append(id)
+                found = True
+                break
+            id += 1
+        return (found, propagated)
+
     # Try to derive RUP clause chain. Return list of hints
     # Or None if fail
     def findRup(self, tclause):
@@ -130,25 +161,14 @@ class Reasoner:
             unitSet.add(-lit)
             generatorDict[abs(lit)] = None
         found = False
-        propagated = True
-        while propagated and not found:
-            propagated = False
-            id = 0
-            for clause in self.clauseList:
-                id += 1
-                if id in propSet or id in satSet:
-                    continue
-                (uresult, ulit) = self.unitProp(clause, unitSet)
-                if uresult == "satisfied":
-                    satSet.add(id)
-                elif uresult == "unit":
-                    propagated = True
-                    propClauses.append(id)
-                    propSet.add(id)
-                    generatorDict[abs(ulit)] = id
-                elif uresult == "conflict":
-                    propClauses.append(id)
-                    found = True
+        while True:
+            # Do nested iterations, where iterate through each block before moving on to next
+            for bid in range(len(self.clauseBlocks)):
+                while True:
+                    found, propagated = self.propagatePass(bid, propClauses, propSet, satSet, generatorDict)
+                    if found or not propagated:
+                        break
+                if found:
                     break
         if found:
             propClauses.reverse()
@@ -157,7 +177,7 @@ class Reasoner:
             for id in propClauses:
                 if id in usedIdSet:
                     hints.append(id)
-                    clause = self.clauseList[id-1]
+                    clause = self.clauseBlocks[0][id-self.clauseOffsets[0]]
                     if clause is None:
                         continue
                     for lit in clause:
@@ -204,6 +224,10 @@ class Node(ProtoNode):
     # Information used during proof generation.  Holdover from when node represented ITE
     iteVar = None
     dependencySet = set([])
+    # Id of first clause in defining clauses
+    definingClauseId = None
+    # Id of clause that validates this as potential root node
+    unitClauseId = None
  
     def __init__(self, xlit, ntype, children):
         ProtoNode.__init__(self, ntype, children)
@@ -212,6 +236,8 @@ class Node(ProtoNode):
         self.dependencySet = set([])
         for child in children:
             self.dependencySet |= child.dependencySet
+        self.definingClauseId = None
+        self.unitClauseId = None
     
     def __hash__(self):
         return self.xlit
@@ -257,21 +283,20 @@ class Negation(Node):
         return clit if clit is None else -clit
 
 class Conjunction(Node):
-    clauseId = None
+
 
     def __init__(self, children, xlit, clauseId):
         Node.__init__(self, xlit, NodeType.conjunction, children)
-        self.clauseId = clauseId
+        self.definingClauseId = clauseId
 
     def __str__(self):
         return "P%d" % self.xlit
 
 class Disjunction(Node):
-    clauseId = None
 
     def __init__(self, child1, child2, xlit, clauseId):
         Node.__init__(self, xlit, NodeType.disjunction, [child1, child2])
-        self.clauseId = clauseId
+        self.definingClauseId = clauseId
 
     def __str__(self):
         return "S%d" % self.xlit
@@ -419,7 +444,7 @@ class Pog:
         for idx in range(len(node.children)):
             child = node.children[idx]
             if abs(child.xlit) == var:
-                return node.clauseId+idx+1
+                return node.definingClauseId+idx+1
         return None
 
     def addIte(self, nif, nthen, nelse):
@@ -456,21 +481,6 @@ class Pog:
             print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
         return result
 
-    # hlist members can be clauseId or (node, offset), where 0 <= offset < 3
-    def addClause(self, nodes, hlist = None):
-        lits = [n.xlit for n in nodes]
-        if hlist is None:
-            hints = ['*']
-        else:
-            hints = []
-            for h in hlist:
-                if type(h) == type((1,2)):
-                    hint = h[0].clauseId = h[1]
-                else:
-                    hint = h
-                hints.append(hint)
-        self.cwriter.doClause(lits, hints)
-
     def addComment(self, s):
         self.cwriter.doComment(s)
 
@@ -478,7 +488,7 @@ class Pog:
         self.cwriter.doDeleteClause(id, hlist)
 
     def deleteOperation(self, node):
-        self.cwriter.doDeleteOperation(node.xlit, node.clauseId)
+        self.cwriter.doDeleteOperation(node.xlit, node.definingClauseId, 1+len(node.children))
         
     def validateDisjunction(self, root, context, parent):
         rstring = " (root)" if parent is None else ""
@@ -498,11 +508,11 @@ class Pog:
         icontext = readwrite.invertClause(context)
         clause = [-root.iteVar, root.xlit] + icontext
         if self.hintLevel >= 2:
-            thints.append(root.clauseId+1)
+            thints.append(root.definingClauseId+1)
             tid = self.cwriter.doClause(clause, thints)
             clause = clause[1:]
             fhints = [tid] + fhints
-            fhints.append(root.clauseId+2)
+            fhints.append(root.definingClauseId+2)
             cid = self.cwriter.doClause(clause, fhints)
         else:
             self.cwriter.doClause(clause)
@@ -511,6 +521,7 @@ class Pog:
         hints = [cid]
         self.nodeClauseCounts[root.ntype] += 2
         if len(context) == 0:
+            root.unitClauseId = cid
             unitClauseIds.append(cid)
         return hints, unitClauseIds
 
@@ -557,7 +568,9 @@ class Pog:
                         if self.verbLevel >= 2:
                             self.addComment("Justify literal %d in context %s with single RUP step" % (clit, str(ncontext)))
                         cid = self.cwriter.doClause(tclause, rhints)
-                        if len(context) == 0 and len(tclause) == 1:
+                        # Not sure if this will ever be used
+                        if len(ncontext) == 0:
+                            c.unitClauseId = cid
                             unitClauseIds.append(cid)
                         hints.append(cid)
                         if self.fullContext:
@@ -574,7 +587,8 @@ class Pog:
                 lastCid = None
                 for clause in clauses:
                     cid = self.cwriter.doClause(clause)
-                    if len(context) == 0 and len(clause) == 1:
+                    # This doesn't seem necessary
+                    if len(ncontext) == 0 and len(clause) == 1:
                         unitClauseIds.append(cid)
                     lastCid = cid
                 if lastCid is not None:
@@ -593,7 +607,7 @@ class Pog:
             if self.verbLevel >= 2:
                 self.addComment("Assert unit clause for AND node %s%s" % (str(root), rstring))
             clause = [root.xlit] + readwrite.invertClause(context)
-            hints.append(root.clauseId)
+            hints.append(root.definingClauseId)
             if self.hintLevel >= 2:
                 cid = self.cwriter.doClause(clause, hints)
             else:
@@ -603,9 +617,10 @@ class Pog:
                 print("Asserted unit clause for AND node %s%s.  Clause #%d" % (str(root), rstring, cid))
             self.nodeClauseCounts[root.ntype] += 1
             if len(context) == 0:
+                root.unitClauseId = cid
                 unitClauseIds.append(cid)
         else:
-            hints.append(root.clauseId)
+            hints.append(root.definingClauseId)
             if self.verbLevel >= 3:
                 print("Returned hints from AND node %s%s Hints:%s" % (str(root), rstring, str(hints)))
         return hints, unitClauseIds
@@ -631,12 +646,13 @@ class Pog:
             cid = self.reasoner.findClauseId(tclause)
             if cid <= 0:
                 raise PogException("Couldn't find input clause represented by negated disjunction %s" % (str(root)))
-            hints = [nroot.clauseId+1+i for i in range(len(lits))] + [cid]
+            hints = [nroot.definingClauseId+1+i for i in range(len(lits))] + [cid]
             cid = self.cwriter.doClause(clause, hints)
         else:
             cid = self.cwriter.doClause(clause)
         hints = [cid]
         if len(context) == 0:
+            root.unitClauseId = cid
             unitClauseIds.append(cid)
         return hints, unitClauseIds
 
@@ -663,13 +679,13 @@ class Pog:
                 vset = set([abs(lit) for lit in clause])
                 if len(vset & child.dependencySet) > 0:
                     hints = self.deletionHints(child, clause)
-                    hints.append(root.clauseId+1+idx)
+                    hints.append(root.definingClauseId+1+idx)
                     return hints
                 else:
                     continue
             else:
                 if lit in clause:
-                    hints = [root.clauseId+1+idx]
+                    hints = [root.definingClauseId+1+idx]
                     return hints
                 else:
                     continue
@@ -687,7 +703,7 @@ class Pog:
                 if -lit not in clause:
                     raise PogException("Couldn't justify deletion of clause %s.  Negated conjunction %s contains unhandled literal %d" % (str(clause), str(root), lit))
         # Checks out
-        return [root.clauseId]
+        return [root.definingClauseId]
 
     # Generate list of hints to justify deletion of clause
     # Make sure all paths compatible with negating assignment lead to false
@@ -704,7 +720,7 @@ class Pog:
             for child in root.children:
                 hlist += self.deletionHints(child, clause)
             # Justify -xlit
-            hlist.append(root.clauseId)
+            hlist.append(root.definingClauseId)
             return hlist
         elif root.isZero():
             return []
@@ -736,12 +752,24 @@ class Pog:
         root = self.nodes[-1]
         hints, unitClauseIds = self.validateUp(root, [], parent = None)
         # The last one should be the root.  The others should be deleted
-        topUnitId = unitClauseIds[-1]
+        topUnitId = root.unitClauseId
         unitClauseIds = unitClauseIds[:-1]
-        if self.verbLevel >= 1 and len(unitClauseIds) > 0:
-            self.addComment("Delete extra unit clauses")
+        deletedUnits = []
+        # Look for special case where top-level node is conjunction
+        if root.ntype == NodeType.conjunction:
+            for idx in range(len(root.children)):
+                child = root.children[idx]
+                if child.unitClauseId is not None:
+                    if self.verbLevel >= 2:
+                        self.addComment("Delete extra unit clause for node %s" % str(child))
+                    hints = [root.definingClauseId+1+idx, topUnitId]
+                    self.deleteClause(child.unitClauseId, hints)
+                    deletedUnits.append(child.unitClauseId)
         for cid in unitClauseIds:
-            self.deleteClause(cid)
+            if cid not in deletedUnits:
+                if self.verbLevel >= 2:
+                    self.addComment("Delete unexpected unit clause for node %s" % str(child))
+                self.deleteClause(cid)            
         if self.verbLevel >= 1:
             self.addComment("Delete input clauses")
         for cid in range(1, len(self.inputClauseList)+1):

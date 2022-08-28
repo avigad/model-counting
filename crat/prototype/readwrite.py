@@ -675,9 +675,9 @@ class CratWriter(Writer):
         self.doLine(['dc', id] + hints + [0])
         self.deleteClause(id)
 
-    def doDeleteOperation(self, exvar, clauseId):
+    def doDeleteOperation(self, exvar, clauseId, count):
         self.doLine(['do', exvar])
-        for i in range(3):
+        for i in range(count):
             self.deleteClause(clauseId+i)
         
         
