@@ -49,16 +49,6 @@ class Reasoner:
         val = ok and lit in lits
         return val
 
-    # Find input clause that is subset of target
-    def findClauseId(self, tclause):
-        tclause = readwrite.cleanClause(tclause)
-        cid = 0
-        for clause in self.clauseList:
-            cid += 1
-            if readwrite.testClauseSubset(clause, tclause):
-                return cid
-        return -1
-
     def justifyUnit(self, lit, context):
         clauses =  []
         if self.isUnit(lit, context):
@@ -95,6 +85,89 @@ class Reasoner:
         self.addClauses([pclause])
         return clauses
     
+    # Find input clause that is subset of target
+    def findClauseId(self, tclause):
+        tclause = readwrite.cleanClause(tclause)
+        cid = 0
+        for clause in self.clauseList:
+            cid += 1
+            if readwrite.testClauseSubset(clause, tclause):
+                return cid
+        return -1
+
+    # Unit propagation.  Given clause and set of satisfied literals.
+    # Return: ("unit", ulit), ("conflict", None), ("satisfied", lit), ("none", None)
+    def unitProp(self, clause, unitSet):
+        ulit = None
+        for lit in clause:
+            if lit in unitSet:
+                return ("satisfied", lit)
+            if -lit not in unitSet:
+                if ulit is None:
+                    ulit = lit
+                else:
+                    # No unit literal found
+                    return ("none", None)
+        if ulit is None:
+            return ("conflict", None)
+        unitSet.add(ulit)
+        return ("unit", ulit)
+
+    # Try to derive RUP clause chain. Return list of hints
+    # Or None if fail
+    def findRup(self, tclause):
+        # List of clause Ids that have been used in unit propagation
+        propClauses = []
+        # Set of clause Ids that have been used in unit propagation
+        propSet = set([])
+        # Set of clause Ids that are satisfied during unit propagation
+        satSet = set([])
+        # For each variable unit literal, either id of generating clause or None when comes from target
+        generatorDict = {}
+        # Set of unit literals
+        unitSet = set([])
+        for lit in tclause:
+            unitSet.add(-lit)
+            generatorDict[abs(lit)] = None
+        found = False
+        propagated = True
+        while propagated and not found:
+            propagated = False
+            id = 0
+            for clause in self.clauseList:
+                id += 1
+                if id in propSet or id in satSet:
+                    continue
+                (uresult, ulit) = self.unitProp(clause, unitSet)
+                if uresult == "satisfied":
+                    satSet.add(id)
+                elif uresult == "unit":
+                    propagated = True
+                    propClauses.append(id)
+                    propSet.add(id)
+                    generatorDict[abs(ulit)] = id
+                elif uresult == "conflict":
+                    propClauses.append(id)
+                    found = True
+                    break
+        if found:
+            propClauses.reverse()
+            usedIdSet = set([propClauses[0]])
+            hints = []
+            for id in propClauses:
+                if id in usedIdSet:
+                    hints.append(id)
+                    clause = self.clauseList[id-1]
+                    if clause is None:
+                        continue
+                    for lit in clause:
+                        gen = generatorDict[abs(lit)]
+                        if gen is not None:
+                            usedIdSet.add(gen)
+            hints.reverse()
+            return hints
+        else:
+            return None
 
 class NodeType:
     tcount = 5
@@ -470,6 +543,22 @@ class Pog:
                     if cid > 0:
                         if self.verbLevel >= 3:
                             print("Found input clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.inputClauseList[cid-1], clit, str(ncontext)))
+                        hints.append(cid)
+                        if self.fullContext:
+                            ncontext.append(clit)
+                        continue
+                if self.hintLevel >= 3:
+                    # See if can generate RUP proof over input clauses
+#                    tclause = [clit] + readwrite.invertClause(ncontext)
+                    rhints = self.reasoner.findRup(tclause)
+                    if rhints is not None:
+                        if self.verbLevel >= 3:
+                            print("Justified unit literal %d in context %s with single RUP step and hints %s" % (clit, str(ncontext), str(rhints)))
+                        if self.verbLevel >= 2:
+                            self.addComment("Justify literal %d in context %s with single RUP step" % (clit, str(ncontext)))
+                        cid = self.cwriter.doClause(tclause, rhints)
+                        if len(context) == 0 and len(tclause) == 1:
+                            unitClauseIds.append(cid)
                         hints.append(cid)
                         if self.fullContext:
                             ncontext.append(clit)
