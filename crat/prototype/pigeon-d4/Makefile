@@ -1,6 +1,7 @@
 INTERP = python3
 D4 = ~/repos/d4/d4
 VLEVEL = 1
+HLEVEL = 2
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 N=5
@@ -36,7 +37,7 @@ pigeon-sat-tseitin-$(N).cnf:
 	$(D4) $< -dDNNF -out=$@ | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) | tee $*.crat_data
+	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) | tee $*.crat_data
 
 .crat.hinted_crat:
 	echo "Adding hints for $*.crat" | tee $*.hint_data

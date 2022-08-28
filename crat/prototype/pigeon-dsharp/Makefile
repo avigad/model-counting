@@ -1,6 +1,7 @@
 INTERP = python3
 DSHARP = ~/repos/dsharp/dsharp
 VLEVEL = 1
+HLEVEL = 2
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 N=5
@@ -37,7 +38,7 @@ pigeon-sat-tseitin-$(N).cnf:
 	$(DSHARP) -Fnnf $@ $< | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) | tee $*.crat_data
+	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) | tee $*.crat_data
 
 .crat.hinted_crat:
 	echo "Adding hints for $*.crat" | tee $*.hint_data
