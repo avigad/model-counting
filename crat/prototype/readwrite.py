@@ -17,6 +17,16 @@
 # OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ########################################################################################
 
+class ReadWriteException(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return "ReadWrite Exception: " + str(self.value)
+
+
+
 # Code for reading and generating CNF, order, schedule, and crat proof files
 
 def trim(s):
@@ -51,6 +61,45 @@ def cleanClause(literalList):
         nlist.append(slist[i])
     return nlist
 
+# Fix up set of input clauses
+# Flag error if any tautologies
+def cleanClauses(clist):
+    nlist = []
+    id = 0
+    for clause in clist:
+        id += 1
+        nclause = cleanClause(clause)
+        if nclause == tautologyId:
+            raise ReadWriteException("Tautologous clause #%d: %s" % (id, str(clause)))
+        nlist.append(nclause)
+    return nlist
+
+# Clause comparison.  Assumes both have been processed by cleanClause
+def testClauseSubset(clause1, clause2):
+    if clause1 is None or clause2 is None:
+        return False
+    if clause2 == tautologyId:
+        return True
+    if clause1 == tautologyId:
+        return False
+    idx1 = 0
+    idx2 = 0
+    while idx1 < len(clause1):
+        if idx2 >= len(clause2):
+            return False
+        head1 = clause1[idx1]
+        head2 = clause2[idx2]
+        if abs(head1) < abs(head2):
+            idx2 += 1
+        elif abs(head1) > abs(head2):
+            return False
+        elif head1 == head2:
+            idx1 += 1
+            idx2 += 1
+        else:
+            return False
+    return True
+
 def regularClause(clause):
     return clause is not None
 
@@ -80,15 +129,6 @@ def unitReduce(clause, unitSet):
         elif -lit not in unitSet:
             nclause.append(lit)
     return nclause
-
-
-class ReadWriteException(Exception):
-
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return "CNF Exception: " + str(self.value)
 
 
 # Read CNF file.
