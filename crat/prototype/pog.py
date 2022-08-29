@@ -16,7 +16,8 @@ class PogException(Exception):
     def __str__(self):
         return "Pog Exception: " + str(self.value)
 
-# Version of reasoner that relies purely on SAT solver
+
+# Integration of SAT solver + RUP proof generator
 class Reasoner:
     solver = None
     hintLevel = 2
@@ -48,24 +49,6 @@ class Reasoner:
         prop, slits = self.solver.propagate(assumptions)
         result = not prop
         return result
-
-    # Add clause for future RUP derivation.  None if want to skip this one
-    def addClause(self, cid, clause):
-        if self.hintLevel < 4:
-            return
-        # See if can append this to the current clause block
-        consecutiveId = len(self.clauseBlocks[-1]) + self.clauseOffsets[-1]
-        if cid < consecutiveId:
-            raise PogException("Can't add clause #%d.  Final clause of last block has Id %d" % (cid, consecutiveId-1))
-        if cid == consecutiveId:
-            self.clauseBlocks[-1].append(clause)
-        else:
-            # Start new block
-            self.clauseBlocks.append([clause])
-            self.clauseOffsets.append(cid)
-
-    def skipClause(self, cid):
-        self.addClause(cid, None)
 
     # See if literal among current units
     # No longer used
@@ -110,6 +93,26 @@ class Reasoner:
         self.addSolverClauses([pclause])
         return clauses
     
+    #### RUP proof generation code ###
+
+    # Add clause for future RUP derivation.  None if want to skip this one
+    def addClause(self, cid, clause):
+        if self.hintLevel < 4:
+            return
+        # See if can append this to the current clause block
+        consecutiveId = len(self.clauseBlocks[-1]) + self.clauseOffsets[-1]
+        if cid < consecutiveId:
+            raise PogException("Can't add clause #%d.  Final clause of last block has Id %d" % (cid, consecutiveId-1))
+        if cid == consecutiveId:
+            self.clauseBlocks[-1].append(clause)
+        else:
+            # Start new block
+            self.clauseBlocks.append([clause])
+            self.clauseOffsets.append(cid)
+
+    def skipClause(self, cid):
+        self.addClause(cid, None)
+
     # Find clause that is subset of target
     def findClauseId(self, tclause):
         tclause = readwrite.cleanClause(tclause)
@@ -165,6 +168,20 @@ class Reasoner:
             id += 1
         return (found, propagated)
 
+    # Perform multiple passes over set of blocks
+    def multiPass(self, bidList, propClauses, propSet, satSet, generatorDict, unitSet):
+        found = False
+        somePropagated = True
+        while not found and somePropagated:
+            somePropagated = False
+            for bid in bidList:
+                found, propagated = self.propagatePass(bid, propClauses, propSet, satSet, generatorDict, unitSet)
+                somePropagated = somePropagated or propagated
+                if found:
+                    break
+        return found, somePropagated
+
+
     # Try to derive RUP clause chain. Return list of hints
     # Or None if fail
     def findRup(self, tclause, inputOnly = True):
@@ -181,28 +198,18 @@ class Reasoner:
         for lit in tclause:
             unitSet.add(-lit)
             generatorDict[abs(lit)] = None
+
         blimit = 1 if inputOnly else len(self.clauseBlocks)
-        found = False
-        somePropagated = True
 
-        while not found and somePropagated:
-            somePropagated = False
-            for bid in range(blimit):
-                found, propagated = self.propagatePass(bid, propClauses, propSet, satSet, generatorDict, unitSet)
-                somePropagated = somePropagated or propagated
-                if found:
-                    break
+#        for bcount in range(blimit):
+#            # Put newly added blocks at front
+#            bidList = [bcount] + list(range(bcount-1))
+#            found, propagated = self.multiPass(bidList, propClauses, propSet, satSet, generatorDict, unitSet)
+#            if found:
+#                break
 
-        # Saturation approach
-#        while not found and somePropagated:
-#            # Do nested iterations, where iterate through each block before moving on to next
-#            somePropagated = False
-#            for bid in range(blimit):
-#                propagated = True
-#                while not found and propagated:
-#                    found, propagated = self.propagatePass(bid, propClauses, propSet, satSet, generatorDict, unitSet)
-#                    somePropagated = somePropagated or propagated
-
+        bidList = list(range(blimit))
+        found, propagated = self.multiPass(bidList, propClauses, propSet, satSet, generatorDict, unitSet)
 
         if found:
             propClauses.reverse()

@@ -59,7 +59,7 @@ def cleanClause(literalList):
         if slist[i-1] == -slist[i]:
             return tautologyId
         nlist.append(slist[i])
-    return nlist
+    return tuple(nlist)
 
 # Fix up set of input clauses
 # Flag error if any tautologies
