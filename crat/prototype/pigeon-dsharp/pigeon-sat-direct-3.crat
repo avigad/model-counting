@@ -1,48 +1,284 @@
+c Input clauses
+1 i 1 4 7 0
+2 i 2 5 8 0
+3 i 3 6 9 0
+4 i -1 -2 0
+5 i -1 -3 0
+6 i -2 -3 0
+7 i -4 -5 0
+8 i -4 -6 0
+9 i -5 -6 0
+10 i -7 -8 0
+11 i -7 -9 0
+12 i -8 -9 0
 13 p 10 -4 -7 -6 -8 9 0
+c Implicit declarations:
+c 13 a 10 4 7 6 8 -9 0
+c 14 a -10 -4 0
+c 15 a -10 -7 0
+c 16 a -10 -6 0
+c 17 a -10 -8 0
+c 18 a -10 9 0
+c Node P10 = AND(-var-4, -var-7, -var-6, -var-8, var-9)
 19 p 11 -4 -7 8 6 -9 0
+c Implicit declarations:
+c 19 a 11 4 7 -8 -6 9 0
+c 20 a -11 -4 0
+c 21 a -11 -7 0
+c 22 a -11 8 0
+c 23 a -11 6 0
+c 24 a -11 -9 0
+c Node P11 = AND(-var-4, -var-7, var-8, var-6, -var-9)
 25 p 12 5 -4 -7 -6 -8 9 0
+c Implicit declarations:
+c 25 a 12 -5 4 7 6 8 -9 0
+c 26 a -12 5 0
+c 27 a -12 -4 0
+c 28 a -12 -7 0
+c 29 a -12 -6 0
+c 30 a -12 -8 0
+c 31 a -12 9 0
+c Node P12 = AND(var-5, -var-4, -var-7, -var-6, -var-8, var-9)
 32 p 13 -5 -4 -7 8 6 -9 0
+c Implicit declarations:
+c 32 a 13 5 4 7 -8 -6 9 0
+c 33 a -13 -5 0
+c 34 a -13 -4 0
+c 35 a -13 -7 0
+c 36 a -13 8 0
+c 37 a -13 6 0
+c 38 a -13 -9 0
+c Node P13 = AND(-var-5, -var-4, -var-7, var-8, var-6, -var-9)
 39 s 14 12 13 26 33 0
+c Implicit declarations:
+c 39 a -14 12 13 0
+c 40 a 14 -12 0
+c 41 a 14 -13 0
+c Node S14 = OR(P12, P13)
 42 p 15 -2 -3 14 0
+c Implicit declarations:
+c 42 a 15 2 3 -14 0
+c 43 a -15 -2 0
+c 44 a -15 -3 0
+c 45 a -15 14 0
+c Node P15 = AND(-var-2, -var-3, S14)
 46 p 16 -8 -3 9 0
+c Implicit declarations:
+c 46 a 16 8 3 -9 0
+c 47 a -16 -8 0
+c 48 a -16 -3 0
+c 49 a -16 9 0
+c Node P16 = AND(-var-8, -var-3, var-9)
 50 p 17 8 3 -9 0
+c Implicit declarations:
+c 50 a 17 -8 -3 9 0
+c 51 a -17 8 0
+c 52 a -17 3 0
+c 53 a -17 -9 0
+c Node P17 = AND(var-8, var-3, -var-9)
 54 p 18 2 -8 -3 9 0
+c Implicit declarations:
+c 54 a 18 -2 8 3 -9 0
+c 55 a -18 2 0
+c 56 a -18 -8 0
+c 57 a -18 -3 0
+c 58 a -18 9 0
+c Node P18 = AND(var-2, -var-8, -var-3, var-9)
 59 p 19 -2 8 3 -9 0
+c Implicit declarations:
+c 59 a 19 2 -8 -3 9 0
+c 60 a -19 -2 0
+c 61 a -19 8 0
+c 62 a -19 3 0
+c 63 a -19 -9 0
+c Node P19 = AND(-var-2, var-8, var-3, -var-9)
 64 s 20 18 19 55 60 0
+c Implicit declarations:
+c 64 a -20 18 19 0
+c 65 a 20 -18 0
+c 66 a 20 -19 0
+c Node S20 = OR(P18, P19)
 67 p 21 -7 -6 -5 20 0
+c Implicit declarations:
+c 67 a 21 7 6 5 -20 0
+c 68 a -21 -7 0
+c 69 a -21 -6 0
+c 70 a -21 -5 0
+c 71 a -21 20 0
+c Node P21 = AND(-var-7, -var-6, -var-5, S20)
 72 p 22 -5 -3 6 0
+c Implicit declarations:
+c 72 a 22 5 3 -6 0
+c 73 a -22 -5 0
+c 74 a -22 -3 0
+c 75 a -22 6 0
+c Node P22 = AND(-var-5, -var-3, var-6)
 76 p 23 -6 5 3 0
+c Implicit declarations:
+c 76 a 23 6 -5 -3 0
+c 77 a -23 -6 0
+c 78 a -23 5 0
+c 79 a -23 3 0
+c Node P23 = AND(-var-6, var-5, var-3)
 80 p 24 2 -5 -3 6 0
+c Implicit declarations:
+c 80 a 24 -2 5 3 -6 0
+c 81 a -24 2 0
+c 82 a -24 -5 0
+c 83 a -24 -3 0
+c 84 a -24 6 0
+c Node P24 = AND(var-2, -var-5, -var-3, var-6)
 85 p 25 -2 -6 5 3 0
+c Implicit declarations:
+c 85 a 25 2 6 -5 -3 0
+c 86 a -25 -2 0
+c 87 a -25 -6 0
+c 88 a -25 5 0
+c 89 a -25 3 0
+c Node P25 = AND(-var-2, -var-6, var-5, var-3)
 90 s 26 24 25 81 86 0
+c Implicit declarations:
+c 90 a -26 24 25 0
+c 91 a 26 -24 0
+c 92 a 26 -25 0
+c Node S26 = OR(P24, P25)
 93 p 27 7 -8 -9 26 0
+c Implicit declarations:
+c 93 a 27 -7 8 9 -26 0
+c 94 a -27 7 0
+c 95 a -27 -8 0
+c 96 a -27 -9 0
+c 97 a -27 26 0
+c Node P27 = AND(var-7, -var-8, -var-9, S26)
 98 p 28 4 -7 -6 -5 20 0
+c Implicit declarations:
+c 98 a 28 -4 7 6 5 -20 0
+c 99 a -28 4 0
+c 100 a -28 -7 0
+c 101 a -28 -6 0
+c 102 a -28 -5 0
+c 103 a -28 20 0
+c Node P28 = AND(var-4, -var-7, -var-6, -var-5, S20)
 104 p 29 -4 7 -8 -9 26 0
+c Implicit declarations:
+c 104 a 29 4 -7 8 9 -26 0
+c 105 a -29 -4 0
+c 106 a -29 7 0
+c 107 a -29 -8 0
+c 108 a -29 -9 0
+c 109 a -29 26 0
+c Node P29 = AND(-var-4, var-7, -var-8, -var-9, S26)
 110 s 30 28 29 99 105 0
+c Implicit declarations:
+c 110 a -30 28 29 0
+c 111 a 30 -28 0
+c 112 a 30 -29 0
+c Node S30 = OR(P28, P29)
 113 p 31 1 -2 -3 14 0
+c Implicit declarations:
+c 113 a 31 -1 2 3 -14 0
+c 114 a -31 1 0
+c 115 a -31 -2 0
+c 116 a -31 -3 0
+c 117 a -31 14 0
+c Node P31 = AND(var-1, -var-2, -var-3, S14)
 118 p 32 -1 30 0
+c Implicit declarations:
+c 118 a 32 1 -30 0
+c 119 a -32 -1 0
+c 120 a -32 30 0
+c Node P32 = AND(-var-1, S30)
 121 s 33 31 32 114 119 0
-124 a 5 14 -1 0 * 0
-125 a 14 -1 0 * 0
-126 a 1 -4 -7 0 * 0
-127 a 2 20 1 -4 0 * 0
-128 a 20 1 -4 0 * 0
-129 a 2 26 1 4 0 * 0
-130 a 26 1 4 0 * 0
-131 a 4 30 1 0 * 0
-132 a 30 1 0 * 0
-133 a 1 33 0 * 0
-134 a 33 0 * 0
+c Implicit declarations:
+c 121 a -33 31 32 0
+c 122 a 33 -31 0
+c 123 a 33 -32 0
+c Node S33 = OR(P31, P32)
+c Justify literal -2 in context [1] 
+124 a -1 -2 0 * 0
+c Justify literal -3 in context [1, -2] 
+125 a -1 2 -3 0 * 0
+c Justify literal -4 in context [1, -2, -3, 5] 
+126 a -1 2 3 -5 -4 0 * 0
+c Justify literal -7 in context [1, -2, -3, 5, -4] 
+127 a -1 2 3 -5 4 -7 0 * 0
+c Justify literal -6 in context [1, -2, -3, 5, -4, -7] 
+128 a -1 2 3 -5 4 7 -6 0 * 0
+c Justify literal -8 in context [1, -2, -3, 5, -4, -7, -6] 
+129 a -1 2 3 -5 4 7 6 -8 0 * 0
+c Justify literal 9 in context [1, -2, -3, 5, -4, -7, -6, -8] 
+130 a -1 2 3 -5 4 7 6 8 9 0 * 0
+c Justify literal -4 in context [1, -2, -3, -5] 
+131 a -1 2 3 5 -4 0 * 0
+c Justify literal -7 in context [1, -2, -3, -5, -4] 
+132 a -1 2 3 5 4 -7 0 * 0
+c Justify literal 8 in context [1, -2, -3, -5, -4, -7] 
+133 a -1 2 3 5 4 7 8 0 * 0
+c Justify literal 6 in context [1, -2, -3, -5, -4, -7, 8] 
+134 a -1 2 3 5 4 7 -8 6 0 * 0
+c Justify literal -9 in context [1, -2, -3, -5, -4, -7, 8, 6] 
+135 a -1 2 3 5 4 7 -8 -6 -9 0 * 0
+c Assert ITE at node S14
+136 a -5 14 -1 2 3 0 * 0
+137 a 14 -1 2 3 0 * 0
+c Justify literal -7 in context [-1, 4] 
+138 a 1 -4 -7 0 * 0
+c Justify literal -6 in context [-1, 4, -7] 
+139 a 1 -4 7 -6 0 * 0
+c Justify literal -5 in context [-1, 4, -7, -6] 
+140 a 1 -4 7 6 -5 0 * 0
+c Justify literal -8 in context [-1, 4, -7, -6, -5, 2] 
+141 a 1 -4 7 6 5 -2 -8 0 * 0
+c Justify literal -3 in context [-1, 4, -7, -6, -5, 2, -8] 
+142 a 1 -4 7 6 5 -2 8 -3 0 * 0
+c Justify literal 9 in context [-1, 4, -7, -6, -5, 2, -8, -3] 
+143 a 1 -4 7 6 5 -2 8 3 9 0 * 0
+c Justify literal 8 in context [-1, 4, -7, -6, -5, -2] 
+144 a 1 -4 7 6 5 2 8 0 * 0
+c Justify literal 3 in context [-1, 4, -7, -6, -5, -2, 8] 
+145 a 1 -4 7 6 5 2 -8 3 0 * 0
+c Justify literal -9 in context [-1, 4, -7, -6, -5, -2, 8, 3] 
+146 a 1 -4 7 6 5 2 -8 -3 -9 0 * 0
+c Assert ITE at node S20
+147 a -2 20 1 -4 7 6 5 0 * 0
+148 a 20 1 -4 7 6 5 0 * 0
+c Justify literal 7 in context [-1, -4] 
+149 a 1 4 7 0 * 0
+c Justify literal -8 in context [-1, -4, 7] 
+150 a 1 4 -7 -8 0 * 0
+c Justify literal -9 in context [-1, -4, 7, -8] 
+151 a 1 4 -7 8 -9 0 * 0
+c Justify literal -5 in context [-1, -4, 7, -8, -9, 2] 
+152 a 1 4 -7 8 9 -2 -5 0 * 0
+c Justify literal -3 in context [-1, -4, 7, -8, -9, 2, -5] 
+153 a 1 4 -7 8 9 -2 5 -3 0 * 0
+c Justify literal 6 in context [-1, -4, 7, -8, -9, 2, -5, -3] 
+154 a 1 4 -7 8 9 -2 5 3 6 0 * 0
+c Justify literal -6 in context [-1, -4, 7, -8, -9, -2] 
+155 a 1 4 -7 8 9 2 -6 0 * 0
+c Justify literal 5 in context [-1, -4, 7, -8, -9, -2, -6] 
+156 a 1 4 -7 8 9 2 6 5 0 * 0
+c Justify literal 3 in context [-1, -4, 7, -8, -9, -2, -6, 5] 
+157 a 1 4 -7 8 9 2 6 -5 3 0 * 0
+c Assert ITE at node S26
+158 a -2 26 1 4 -7 8 9 0 * 0
+159 a 26 1 4 -7 8 9 0 * 0
+c Assert ITE at node S30
+160 a -4 30 1 0 * 0
+161 a 30 1 0 * 0
+c Assert ITE at node S33 (root)
+162 a -1 33 0 * 0
+163 a 33 0 * 0
 c Delete input clauses
-dc 1 114 99 106 110 120 121 134 0
-dc 2 26 36 39 117 55 61 64 103 81 88 90 109 110 120 121 134 0
-dc 3 31 37 39 117 58 62 64 103 84 89 90 109 110 120 121 134 0
-dc 4 115 119 121 134 0
-dc 5 116 119 121 134 0
-dc 6 115 57 60 64 103 83 86 90 109 110 120 121 134 0
-dc 7 27 33 39 117 102 105 110 120 121 134 0
-dc 8 27 34 39 117 101 105 110 120 121 134 0
-dc 9 29 33 39 117 101 82 87 90 109 110 120 121 134 0
-dc 10 28 35 39 117 100 107 110 120 121 134 0
-dc 11 28 35 39 117 100 108 110 120 121 134 0
-dc 12 30 38 39 117 56 63 64 103 107 110 120 121 134 0
+dc 1 114 99 106 110 120 121 163 0
+dc 2 26 36 39 117 55 61 64 103 81 88 90 109 110 120 121 163 0
+dc 3 31 37 39 117 58 62 64 103 84 89 90 109 110 120 121 163 0
+dc 4 115 119 121 163 0
+dc 5 116 119 121 163 0
+dc 6 115 57 60 64 103 83 86 90 109 110 120 121 163 0
+dc 7 27 33 39 117 102 105 110 120 121 163 0
+dc 8 27 34 39 117 101 105 110 120 121 163 0
+dc 9 29 33 39 117 101 82 87 90 109 110 120 121 163 0
+dc 10 28 35 39 117 100 107 110 120 121 163 0
+dc 11 28 35 39 117 100 108 110 120 121 163 0
+dc 12 30 38 39 117 56 63 64 103 107 110 120 121 163 0
