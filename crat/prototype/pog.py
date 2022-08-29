@@ -20,22 +20,30 @@ class PogException(Exception):
 # Integration of SAT solver + RUP proof generator
 class Reasoner:
     solver = None
-    hintLevel = 2
 
-    # Allow blocks of clauses, each starting with IDs at different offsets.
-    # Starting with input clauses
-    # Some non-input clauses can be None if want to disregard them
-    clauseBlocks = [[]]
-    clauseOffsets = []
+    # Each step is a tuple: Category (0 = input.  Others have higher numbers), Step Id, clause
+    stepList = []
+    # Dictionary mapping step Ids to position in step list
+    stepMap = {}
+    # For each category, highest numbered step
+    stepMax = {}
 
+    ## Options
+    # Saturate for each category before attempting next during unit propagation
+    layered = False
 
-    def __init__(self, inputClauseList, hintLevel):
+    def __init__(self, inputClauseList):
         self.solver = Solver(solverId, with_proof = True)
-        self.hintLevel = hintLevel
         clauseList = readwrite.cleanClauses(inputClauseList)
-        self.clauseBlocks = [clauseList]
-        self.clauseOffsets = [1]
+        self.stepList = []
         self.addSolverClauses(clauseList)
+        self.stepList = []
+        self.stepMap = {}
+        self.stepMax = {}
+        cid = 1
+        for clause in clauseList:
+            self.addStep(0, cid, clause)
+            cid += 1
 
     def propagate(self, assumptions):
         prop, lits = self.solver.propagate(assumptions)
@@ -50,12 +58,9 @@ class Reasoner:
         result = not prop
         return result
 
-    # See if literal among current units
-    # No longer used
     def isUnit(self, lit, context):
         ok, lits = self.propagate(context)
-        val = ok and lit in lits
-        return val
+        return ok and lit in lits
 
     def justifyUnit(self, lit, context):
         clauses =  []
@@ -94,34 +99,44 @@ class Reasoner:
         return clauses
     
     #### RUP proof generation code ###
-
-    # Add clause for future RUP derivation.  None if want to skip this one
-    def addClause(self, cid, clause):
-        if self.hintLevel < 4:
-            return
-        # See if can append this to the current clause block
-        consecutiveId = len(self.clauseBlocks[-1]) + self.clauseOffsets[-1]
-        if cid < consecutiveId:
-            raise PogException("Can't add clause #%d.  Final clause of last block has Id %d" % (cid, consecutiveId-1))
-        if cid == consecutiveId:
-            self.clauseBlocks[-1].append(clause)
+    def recordCategory(self, cat, cid):
+        if cat in self.stepMax:
+            self.stepMax[cat] = max(self.stepMax[cat], cid)
         else:
-            # Start new block
-            self.clauseBlocks.append([clause])
-            self.clauseOffsets.append(cid)
+            self.stepMax[cat] = cid
 
-    def skipClause(self, cid):
-        self.addClause(cid, None)
+    # Add proof step
+    def addStep(self, cat, cid, clause):
+        idx = len(self.stepList)
+        self.stepList.append((cat, cid, clause))
+        self.stepMap[cid] = idx
+        self.recordCategory(cat, cid)
+        return idx
+
+    # Change category for entry in step list
+    def changeCategory(self, idx, ncat):
+        (cat, cid, clause) = self.stepList[idx]
+        self.stepList[idx] = (ncat, cid, clause)
+        self.recordCategory(ncat, cid)
+
+    def getMaxStep(self, cat):
+        cid = 1
+        for icat in range(cat+1):
+            if icat in self.stepMax:
+                cid = max(cid, self.stepMax[icat])
+        return cid
 
     # Find clause that is subset of target
-    def findClauseId(self, tclause):
+    def findClauseId(self, tclause, maxCategory):
+        maxCid = self.getMaxStep(maxCategory)
         tclause = readwrite.cleanClause(tclause)
-        for (clauseList, offset) in zip(self.clauseBlocks, self.clauseOffsets):
-            cid = offset            
-            for clause in clauseList:
-                if clause is not None and readwrite.testClauseSubset(clause, tclause):
-                    return cid
-                cid += 1
+        for (cat,cid,clause) in self.stepList:
+            if cid > maxCid:
+                break
+            if cat > maxCategory:
+                continue
+            if readwrite.testClauseSubset(clause, tclause):
+                return cid
         return -1
 
     # Unit propagation.  Given clause and set of satisfied literals.
@@ -141,50 +156,36 @@ class Reasoner:
             return ("conflict", None)
         unitSet.add(ulit)
         return ("unit", ulit)
-
-    # Perform one pass of unit propagation through block of clauses
+ 
+    # Perform one pass of unit propagation through clauses
     # Returns pair of Booleans (found,propagated)
     # Updates search state
-    def propagatePass(self, blockId, propClauses, propSet, satSet, generatorDict, unitSet):
+    def propagatePass(self, maxCategory, propClauses, propSet, satSet, generatorDict, unitSet):
+        maxCid = self.getMaxStep(maxCategory)
         found = False
         propagated = False
-        id = self.clauseOffsets[blockId]
-        for clause in self.clauseBlocks[blockId]:
-            if clause is None or id in propSet or id in satSet:
-                id += 1
+        for (cat,cid,clause) in self.stepList:
+            if cid > maxCid:
+                break
+            if cat > maxCategory or cid in propSet or cid in satSet:
                 continue
             (uresult, ulit) = self.unitProp(clause, unitSet)
             if uresult == "satisfied":
-                satSet.add(id)
+                satSet.add(cid)
             elif uresult == "unit":
                 propagated = True
-                propClauses.append(id)
-                propSet.add(id)
-                generatorDict[abs(ulit)] = id
+                propClauses.append(cid)
+                propSet.add(cid)
+                generatorDict[abs(ulit)] = cid
             elif uresult == "conflict":
-                propClauses.append(id)
+                propClauses.append(cid)
                 found = True
                 break
-            id += 1
         return (found, propagated)
-
-    # Perform multiple passes over set of blocks
-    def multiPass(self, bidList, propClauses, propSet, satSet, generatorDict, unitSet):
-        found = False
-        somePropagated = True
-        while not found and somePropagated:
-            somePropagated = False
-            for bid in bidList:
-                found, propagated = self.propagatePass(bid, propClauses, propSet, satSet, generatorDict, unitSet)
-                somePropagated = somePropagated or propagated
-                if found:
-                    break
-        return found, somePropagated
-
 
     # Try to derive RUP clause chain. Return list of hints
     # Or None if fail
-    def findRup(self, tclause, inputOnly = True):
+    def findRup(self, tclause, maxCategory):
         # List of clause Ids that have been used in unit propagation
         propClauses = []
         # Set of clause Ids that have been used in unit propagation
@@ -199,17 +200,20 @@ class Reasoner:
             unitSet.add(-lit)
             generatorDict[abs(lit)] = None
 
-        blimit = 1 if inputOnly else len(self.clauseBlocks)
-
-#        for bcount in range(blimit):
-#            # Put newly added blocks at front
-#            bidList = [bcount] + list(range(bcount-1))
-#            found, propagated = self.multiPass(bidList, propClauses, propSet, satSet, generatorDict, unitSet)
-#            if found:
-#                break
-
-        bidList = list(range(blimit))
-        found, propagated = self.multiPass(bidList, propClauses, propSet, satSet, generatorDict, unitSet)
+        if self.layered:
+            # Work way upward in category
+            for mcat in range(maxCategory+1):
+                found = False
+                propagated = True
+                while not found and propagated:
+                    found, propagated = self.propagatePass(mcat, propClauses, propSet, satSet, generatorDict, unitSet)
+                if found:
+                    break
+        else:
+            found = False
+            propagated = True
+            while not found and propagated:
+                found, propagated = self.propagatePass(maxCategory, propClauses, propSet, satSet, generatorDict, unitSet)
 
         if found:
             propClauses.reverse()
@@ -218,13 +222,8 @@ class Reasoner:
             for id in propClauses:
                 if id in usedIdSet:
                     hints.append(id)
-                    clause = None
-                    for clauseList, offset in zip(self.clauseBlocks, self.clauseOffsets):
-                        if id >= offset and id < offset+len(clauseList):
-                            clause = clauseList[id-offset]
-                            break
-                    if clause is None:
-                        continue
+                    idx = self.stepMap[id]
+                    (cat,cid,clause) = self.stepList[idx]
                     for lit in clause:
                         gen = generatorDict[abs(lit)]
                         if gen is not None:
@@ -385,7 +384,7 @@ class Pog:
         self.uniqueTable = {}
         self.inputClauseList = inputClauseList
         self.cwriter = readwrite.CratWriter(variableCount, inputClauseList, fname, verbLevel)
-        self.reasoner = Reasoner(inputClauseList, hintLevel)
+        self.reasoner = Reasoner(inputClauseList)
         self.nodeCounts = [0] * NodeType.tcount
         self.literalClauseCounts = {}
         self.nodeClauseCounts = [0] * NodeType.tcount
@@ -558,8 +557,6 @@ class Pog:
             tid = self.cwriter.doClause(clause)
             clause = clause[1:]
             cid = self.cwriter.doClause(clause)
-        self.reasoner.skipClause(tid)
-        self.reasoner.skipClause(cid)
         hints = [cid]
         self.nodeClauseCounts[root.ntype] += 2
         if len(context) == 0:
@@ -592,7 +589,7 @@ class Pog:
                 if self.hintLevel >= 2:
                     # See if can find subsuming input clause
                     tclause = [clit] + readwrite.invertClause(ncontext)
-                    cid = self.reasoner.findClauseId(tclause)
+                    cid = self.reasoner.findClauseId(tclause, 0)
                     if cid > 0:
                         if self.verbLevel >= 3:
                             print("Found input clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.inputClauseList[cid-1], clit, str(ncontext)))
@@ -603,14 +600,14 @@ class Pog:
                 if self.hintLevel >= 3:
                     # See if can generate RUP proof over input clauses
 #                    tclause = [clit] + readwrite.invertClause(ncontext)
-                    rhints = self.reasoner.findRup(tclause)
+                    rhints = self.reasoner.findRup(tclause, 0)
                     if rhints is not None:
                         if self.verbLevel >= 3:
                             print("Justified unit literal %d in context %s with single RUP step and hints %s" % (clit, str(ncontext), str(rhints)))
                         if self.verbLevel >= 2:
                             self.addComment("Justify literal %d in context %s with single RUP step" % (clit, str(ncontext)))
                         cid = self.cwriter.doClause(tclause, rhints)
-                        self.reasoner.addClause(cid, tclause)
+                        self.reasoner.addStep(1, cid, tclause)
                         # Not sure if this will ever be used
                         if len(ncontext) == 0:
                             c.unitClauseId = cid
@@ -628,11 +625,12 @@ class Pog:
                     if self.verbLevel >= 3:
                         print("Justified unit literal %d in context %s with %d proof steps" % (clit, str(ncontext), len(clauses)))
                 lastCid = None
+                idxList = []
                 for clause in clauses:
                     rhints = None
                     if self.hintLevel >= 4:
                         # Should be able to justify each clause
-                        rhints = self.reasoner.findRup(clause, inputOnly=False)
+                        rhints = self.reasoner.findRup(clause, 2)
                     if rhints is not None:
                         cid = self.cwriter.doClause(clause, rhints)
                         if self.verbLevel >= 3:
@@ -641,15 +639,20 @@ class Pog:
                         cid = self.cwriter.doClause(clause)
                         if self.hintLevel >= 4 and self.verbLevel >= 3:
                             print("Could not generate hints for intermediate clause #%d" % (cid))
-                    self.reasoner.addClause(cid, clause)
+                    idxList.append(self.reasoner.addStep(1, cid, clause))
                     # This doesn't seem necessary
                     if len(ncontext) == 0 and len(clause) == 1:
                         unitClauseIds.append(cid)
                     lastCid = cid
                 if lastCid is not None:
+                    # At least one clause added
                     hints.append(lastCid)
                     if self.verbLevel >= 3:
                         print("Added hint %d" % lastCid)
+                    # Change categories for all added clauses, except for last one
+                    idxList = idxList[:-1]
+                    for idx in idxList:
+                        self.reasoner.changeCategory(idx, 2)
                 if self.fullContext:
                     ncontext.append(clit)
                 nc = len(clauses)
@@ -667,7 +670,6 @@ class Pog:
                 cid = self.cwriter.doClause(clause, hints)
             else:
                 cid = self.cwriter.doClause(clause)
-            self.reasoner.skipClause(cid)
             hints = [cid]
             if self.verbLevel >= 3:
                 print("Asserted unit clause for AND node %s%s.  Clause #%d" % (str(root), rstring, cid))
@@ -699,14 +701,13 @@ class Pog:
             self.addComment("Assert clause for negated disjunction %s%s" % (str(root), rstring))
         if self.hintLevel >= 2:
             tclause = readwrite.invertClause(lits + context)
-            cid = self.reasoner.findClauseId(tclause)
+            cid = self.reasoner.findClauseId(tclause, 0)
             if cid <= 0:
                 raise PogException("Couldn't find input clause represented by negated disjunction %s" % (str(root)))
             hints = [nroot.definingClauseId+1+i for i in range(len(lits))] + [cid]
             cid = self.cwriter.doClause(clause, hints)
         else:
             cid = self.cwriter.doClause(clause)
-        self.reasoner.skipClause(cid)
         hints = [cid]
         if len(context) == 0:
             root.unitClauseId = cid
