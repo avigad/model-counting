@@ -2,7 +2,7 @@ INTERP = python3
 DSHARP = ~/repos/dsharp/dsharp
 D4 = ~/repos/d4/d4
 VLEVEL = 2
-HLEVEL = 2
+HLEVEL = 4
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 
