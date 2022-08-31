@@ -233,6 +233,78 @@ class Reasoner:
         else:
             return None
 
+# Maintain set of clauses, based on simplifications of input clauses
+class ClauseManager:
+    # Each clause is a tuple, ordered by ascending variable
+    clauseList = []
+    # List of input clauses from which each one originated
+    provenanceList = []
+
+    def __init__(self, inputClauseList):
+        cid = 0
+        self.clauseList = []
+        self.provenanceList = []
+        for clause in inputClauseList:
+            cid += 1
+            self.clauseList.append(clause)
+            self.provenanceList.append([cid])
+    
+    # Make fresh copy of manager
+    def clone(self):
+        ncm = ClauseManager([])
+        for clause, plist in zip(self.clauseList, self.provenanceList):
+            ncm.clauseList.append(clause)
+            ncm.provenanceList.append(list(plist))
+        return ncm
+
+    def compress(self):
+        # Create mapping from clause to position in clauseList
+        idx = 0
+        imap = {}
+        while idx < len(self.clauseList):
+            clause = self.clauseList[idx]
+            plist = self.provenanceList[idx]
+            # Delete empty clauses
+            if clause is None:
+                if len(self.provenanceList) > idx+1:
+                    # Swap in new entry
+                    self.clauseList[idx] = self.clauseList[-1]
+                    self.provenanceList[idx] = self.provenanceList[-1]
+                self.clauseList = self.clauseList[:-1]
+                self.provenanceList = self.provenanceList[:-1]
+            elif clause in imap:
+                # Merge
+                odix = imap[clause]
+                self.provenanceList[odix] += plist
+                if len(self.provenanceList) > idx+1:
+                    # Swap in new entry
+                    self.clauseList[idx] = self.clauseList[-1]
+                    self.provenanceList[idx] = self.provenanceList[-1]
+                self.clauseList = self.clauseList[:-1]
+                self.provenanceList = self.provenanceList[:-1]
+            else:
+                imap[clause] = idx
+                idx += 1
+                    
+    # Assign value to literal
+    # Temporarily replace satisfied entry with None
+    # These get removed through compression
+    def assign(self, lit):
+        idx = 0
+        for clause in self.clauseList:
+            if lit in clause:
+                self.clauseList[idx] = None
+            elif -lit in clause:
+                nclause = tuple([nlit for nlit in clause if nlit != -lit])
+                self.clauseList[idx] = nclause
+            idx += 1
+        self.compress()
+
+    def show(self):
+        for clause, plist in zip(self.clauseList, self.provenanceList):
+            print("Clause %s.  From %s" % (str(clause), str(plist)))
+
+
 class NodeType:
     tcount = 5
     tautology, variable, negation, conjunction, disjunction = range(5)
@@ -243,13 +315,10 @@ class NodeType:
 class ProtoNode:
     ntype = None
     children =  None
-    # For traversals
-    mark = False 
-    
+
     def __init__(self, ntype, children):
         self.ntype = ntype
         self.children = children
-        self.mark = False
 
     def key(self):
         return tuple([self.ntype] + [c.xlit for c in self.children])
@@ -264,6 +333,12 @@ class ProtoNode:
         return self.isOne() or self.isZero()
 
 class Node(ProtoNode):
+    # For traversals
+    mark = False 
+    # Graph properties
+    indegree = 0
+    height = 0
+
     xlit = None
     # Information used during proof generation.  Holdover from when node represented ITE
     iteVar = None
@@ -282,7 +357,24 @@ class Node(ProtoNode):
             self.dependencySet |= child.dependencySet
         self.definingClauseId = None
         self.unitClauseId = None
+        self.mark = False
+        self.doDegreeHeight()
     
+    def doDegreeHeight(self):
+        self.indegree = 0
+        self.height = 0
+        for child in self.children:
+            if child.ntype == NodeType.negation:
+                child.children[0].indegree += 1
+            else:
+                child.indegree += 1
+        if len(self.children) > 0:
+            cheight = max(child.height for height in self.children)
+            if self.ntype == NodeType.negation:
+                self.height = cheight
+            else:
+                self.height = cheight+1
+
     def __hash__(self):
         return self.xlit
 
@@ -883,25 +975,26 @@ class Pog:
             nclause = niclause + ndclause + nlclause + nnclause
             print("Total clauses: %d input + %d defining + %d literal justification + %d node justifications = %d" % (niclause, ndclause, nlclause, nnclause, nclause))
 
-    def doMark(self, root, markSet):
-        if root.xlit in markSet:
+    def doMark(self, root):
+        if root.mark:
             return
-        markSet.add(root.xlit)
+        root.mark = True
         for c in root.children:
-            self.doMark(c, markSet)
+            self.doMark(c)
         
     # Perform mark & sweep to remove any nodes not reachable from root
     def compress(self):
-        markSet = set([])
-        root = self.nodes[-1]
-        self.doMark(root, markSet)
-        nnodes = []
         for node in self.nodes:
-            if node.xlit in markSet:
-                nnodes.append(node)
+            node.mark = False
+        root = self.nodes[-1]
+        self.doMark(root)
+        nnodes = [node for node in self.nodes if node.mark]
         if self.verbLevel >= 2:
             print("Compressed POG from %d to %d nodes" % (len(self.nodes), len(nnodes)))
-        self.nodes = nnodes
+        if len(nnodes) < len(self.nodes):
+            self.nodes = nnodes
+            for node in nnodes:
+                node.doDegreeHeight()
 
 
     def show(self):
@@ -913,6 +1006,9 @@ class Pog:
                     outs += " (" + ", ".join(schildren) + ")"
                 print(outs)
         print("Root = %s" % str(self.nodes[-1]))
+        for node in self.nodes:
+            if node.indegree > 1 and node.ntype != NodeType.variable:
+                print("Node %s.  Indegree %s.  Height %d" % (str(node), node.indegree, node.height))
             
         
         
