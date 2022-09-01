@@ -881,17 +881,31 @@ class Pog:
 
     # Want conjunction to yield true, so that its negation is false
     def deletionHintsNegatedConjunction(self, root, clause):
-        for idx in range(len(root.children)):
-            child = root.children[idx]
+        nroot = root.children[0]
+        hlist = []
+        for idx in range(len(nroot.children)):
+            child = nroot.children[idx]
             lit = child.getLit()
             if lit is None:
-                # Need to work this out
-                return None
+                # child must be negation
+                if child.ntype == NodeType.negation:
+                    nchild = child.children[0]
+                    hlist += self.deletionHints(nchild, clause)
+                else:
+                    raise PogException("Couldn't justify deletion of clause %s.  Negated conjunction %s has non-negated nonterminal child %s" % (str(clause), str(root), str(child)))
             else:
                 if -lit not in clause:
                     raise PogException("Couldn't justify deletion of clause %s.  Negated conjunction %s contains unhandled literal %d" % (str(clause), str(root), lit))
         # Checks out
-        return [root.definingClauseId]
+        hlist.append(nroot.definingClauseId)
+        return hlist
+
+    def deletionHintsDisjunction(self, root, clause):
+        hlist = []
+        for child in root.children:
+            hlist += self.deletionHints(child, clause)
+        hlist.append(root.definingClauseId)
+        return hlist
 
     # Generate list of hints to justify deletion of clause
     # Make sure all paths compatible with negating assignment lead to false
@@ -904,12 +918,7 @@ class Pog:
         if root.ntype == NodeType.conjunction:
             return self.deletionHintsConjunction(root, clause)
         elif root.ntype == NodeType.disjunction:
-            hlist = []
-            for child in root.children:
-                hlist += self.deletionHints(child, clause)
-            # Justify -xlit
-            hlist.append(root.definingClauseId)
-            return hlist
+            return self.deletionHintsDisjunction(root, clause)
         elif root.isZero():
             return []
         elif root.isOne():
@@ -917,8 +926,8 @@ class Pog:
         elif root.ntype == NodeType.negation:
             nchild = root.children[0]
             if nchild.ntype == NodeType.conjunction:
-                return self.deletionHintsNegatedConjunction(nchild, clause)
-            elif child.ntype == NodeType.variable:
+                return self.deletionHintsNegatedConjunction(root, clause)
+            elif nchild.ntype == NodeType.variable:
                 lit = root.getLit()
                 if lit in clause:
                     return []
@@ -961,9 +970,6 @@ class Pog:
         if self.verbLevel >= 1:
             self.addComment("Delete input clauses")
         for cid in range(1, len(self.inputClauseList)+1):
-            # Temporary hack
-            self.deleteClause(cid)
-            continue
             for node in self.nodes:
                 node.mark = False
             hints = self.deletionHints(root, self.inputClauseList[cid-1])
