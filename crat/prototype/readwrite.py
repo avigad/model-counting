@@ -41,7 +41,7 @@ tautologyId = 1000 * 1000 * 1000
 # Sort in reverse order of variable number
 # Don't allow clause to have opposite literals (returns tautologyId)
 def cleanClause(literalList):
-    slist = sorted(literalList, key = lambda v: -abs(v))
+    slist = sorted(literalList, key = lambda v: abs(v))
     if len(slist) == 0:
         return slist
     if slist[0] == tautologyId:
@@ -89,9 +89,9 @@ def testClauseSubset(clause1, clause2):
             return False
         head1 = clause1[idx1]
         head2 = clause2[idx2]
-        if abs(head1) < abs(head2):
+        if abs(head1) > abs(head2):
             idx2 += 1
-        elif abs(head1) > abs(head2):
+        elif abs(head1) < abs(head2):
             return False
         elif head1 == head2:
             idx1 += 1
@@ -624,43 +624,46 @@ class CratWriter(Writer):
     def doComment(self, line):
         self.show("c " + line)
         
-    def doAnd(self, ilist):
+    def newXvar(self):
         self.variableCount += 1
-        self.stepCount += 1
         v = self.variableCount
-        s = self.stepCount
-        self.doLine([s, 'p', v] + ilist + [0])
-        cpos = [v] + [-i for i in ilist]
-        self.addClause(s, cpos)
+        return v
+
+    def finalizeAnd(self, ilist, xvar):
+        self.stepCount += 1
+        step = self.stepCount
+        self.doLine([step, 'p', xvar] + ilist + [0])
+        cpos = [xvar] + [-i for i in ilist]
+        self.addClause(step, cpos)
         if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
             slist = [str(lit) for lit in cpos]
-            self.doComment("%d a %s 0" % (s, " ".join(slist)))
+            self.doComment("%d a %s 0" % (step, " ".join(slist)))
         for idx in range(len(ilist)):
-            self.addClause(s+idx, [-v, ilist[idx]])
+            self.addClause(step+idx, [-xvar, ilist[idx]])
             if self.verbLevel >= 2:
-                self.doComment("%d a %d %d 0" % (s+1+idx, -v, ilist[idx]))
+                self.doComment("%d a %d %d 0" % (step+1+idx, -xvar, ilist[idx]))
         self.stepCount += len(ilist)
-        return (v, s)
+        return step
 
-    def doOr(self, i1, i2, hints = None):
+    def finalizeOr(self, ilist, xvar, hints):
         if hints is None:
             hints = ['*']
-        self.variableCount += 1
         self.stepCount += 1
-        v = self.variableCount
-        s = self.stepCount
-        self.doLine([s, 's', v, i1, i2] + hints + [0])
-        self.addClause(s, [-v, i1, i2])
-        self.addClause(s+1, [v, -i1])        
-        self.addClause(s+2, [v, -i2])
+        step = self.stepCount
+        i1 = ilist[0]
+        i2 = ilist[1]
+        self.doLine([step, 's', xvar, i1, i2] + hints + [0])
+        self.addClause(step, [-xvar, i1, i2])
+        self.addClause(step+1, [xvar, -i1])        
+        self.addClause(step+2, [xvar, -i2])
         if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
-            self.doComment("%d a %d %d %d 0" % (s, -v, i1, i2))
-            self.doComment("%d a %d %d 0" % (s+1, v, -i1))
-            self.doComment("%d a %d %d 0" % (s+2, v, -i2))
+            self.doComment("%d a %d %d %d 0" % (step, -xvar, i1, i2))
+            self.doComment("%d a %d %d 0" % (step+1, xvar, -i1))
+            self.doComment("%d a %d %d 0" % (step+2, xvar, -i2))
         self.stepCount += 2
-        return (v, s)
+        return step
         
     def doClause(self, lits, hints = ['*']):
         self.stepCount += 1

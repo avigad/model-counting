@@ -234,11 +234,17 @@ class Reasoner:
             return None
 
 # Maintain set of clauses, based on simplifications of input clauses
+# Augment clause information to manage lemma
 class ClauseManager:
     # Each clause is a tuple, ordered by ascending variable
     clauseList = []
     # List of input clauses from which each one originated
     provenanceList = []
+    # For each clause, whether still is original input clause
+    isOriginalList = []
+    ## Added when used as lemma
+    # When generating lemma, sort the clause list lexicographically.
+
 
     def __init__(self, inputClauseList):
         cid = 0
@@ -248,13 +254,14 @@ class ClauseManager:
             cid += 1
             self.clauseList.append(clause)
             self.provenanceList.append([cid])
+            self.isOriginalList.append(True)
     
     # Make fresh copy of manager
     def clone(self):
         ncm = ClauseManager([])
-        for clause, plist in zip(self.clauseList, self.provenanceList):
-            ncm.clauseList.append(clause)
-            ncm.provenanceList.append(list(plist))
+        ncm.clauseList = [clause for clause in self.clauseList]
+        ncm.provenanceList = [list(plist) for plist in self.provenanceList]
+        ncm.isOriginalList = [isOriginal for isOriginal in self.isOrginalList]
         return ncm
 
     def compress(self):
@@ -263,25 +270,29 @@ class ClauseManager:
         imap = {}
         while idx < len(self.clauseList):
             clause = self.clauseList[idx]
-            plist = self.provenanceList[idx]
             # Delete empty clauses
             if clause is None:
                 if len(self.provenanceList) > idx+1:
                     # Swap in new entry
                     self.clauseList[idx] = self.clauseList[-1]
                     self.provenanceList[idx] = self.provenanceList[-1]
+                    self.isOriginalList[idx] = self.isOriginalList[-1]
                 self.clauseList = self.clauseList[:-1]
                 self.provenanceList = self.provenanceList[:-1]
+                self.isOriginalList = self.isOriginalList[:-1]
             elif clause in imap:
                 # Merge
                 odix = imap[clause]
-                self.provenanceList[odix] += plist
+                self.provenanceList[odix] += self.provenanceList[idx]
+                self.isOrignalList[oidx] = self.isOriginalList[oidx] or self.isOriginalList[idx]
                 if len(self.provenanceList) > idx+1:
                     # Swap in new entry
                     self.clauseList[idx] = self.clauseList[-1]
                     self.provenanceList[idx] = self.provenanceList[-1]
+                    self.isOriginalList[idx] = self.isOriginalList[-1]
                 self.clauseList = self.clauseList[:-1]
                 self.provenanceList = self.provenanceList[:-1]
+                self.isOriginalList = self.isOriginalList[:-1]
             else:
                 imap[clause] = idx
                 idx += 1
@@ -294,22 +305,23 @@ class ClauseManager:
         for clause in self.clauseList:
             if lit in clause:
                 self.clauseList[idx] = None
+                self.isOriginalList[idx] = False
             elif -lit in clause:
                 nclause = tuple([nlit for nlit in clause if nlit != -lit])
                 self.clauseList[idx] = nclause
+                self.isOriginalList[idx] = False
             idx += 1
         self.compress()
 
     def show(self):
-        for clause, plist in zip(self.clauseList, self.provenanceList):
-            print("Clause %s.  From %s" % (str(clause), str(plist)))
+        for clause, plist,isOriginal in zip(self.clauseList, self.provenanceList, self.isOriginalList):
+            print("Clause %s.  From %s.  Original? %s" % (str(clause), str(plist), str(isOriginal)))
 
 
 class NodeType:
     tcount = 5
     tautology, variable, negation, conjunction, disjunction = range(5)
     typeName = ["taut", "var", "neg", "conjunct", "disjunct"]
-    definingClauseCount = [0, 0, 0, 3, 3]
 
 # Prototype node.  Used for unique table lookup
 class ProtoNode:
@@ -347,6 +359,10 @@ class Node(ProtoNode):
     definingClauseId = None
     # Id of clause that validates this as potential root node
     unitClauseId = None
+    # Stash away argument list of And or Or node
+    ilist = None
+    # Stash away hints for Or node
+    hints = None
  
     def __init__(self, xlit, ntype, children):
         ProtoNode.__init__(self, ntype, children)
@@ -359,10 +375,15 @@ class Node(ProtoNode):
         self.unitClauseId = None
         self.mark = False
         self.doDegreeHeight()
+        self.ilist = None
+        self.hintPairs = None
     
     def doDegreeHeight(self):
         self.indegree = 0
         self.height = 0
+        if self.ntype == NodeType.negation:
+            self.height = self.children[0].height
+            return
         for child in self.children:
             if child.ntype == NodeType.negation:
                 child.children[0].indegree += 1
@@ -370,10 +391,7 @@ class Node(ProtoNode):
                 child.indegree += 1
         if len(self.children) > 0:
             cheight = max(child.height for height in self.children)
-            if self.ntype == NodeType.negation:
-                self.height = cheight
-            else:
-                self.height = cheight+1
+            self.height = cheight+1
 
     def __hash__(self):
         return self.xlit
@@ -420,19 +438,19 @@ class Negation(Node):
 
 class Conjunction(Node):
 
-
-    def __init__(self, children, xlit, clauseId):
+    def __init__(self, children, xlit):
         Node.__init__(self, xlit, NodeType.conjunction, children)
-        self.definingClauseId = clauseId
+        self.ilist = [child.xlit for child in children]
 
     def __str__(self):
         return "P%d" % self.xlit
 
 class Disjunction(Node):
 
-    def __init__(self, child1, child2, xlit, clauseId):
+    def __init__(self, child1, child2, xlit, hintPairs):
         Node.__init__(self, xlit, NodeType.disjunction, [child1, child2])
-        self.definingClauseId = clauseId
+        self.ilist = [child1.xlit, child2.xlit]
+        self.hintPairs = hintPairs
 
     def __str__(self):
         return "S%d" % self.xlit
@@ -464,11 +482,12 @@ class Pog:
     nodeCounts = []
     # Traverses of nodes by type
     nodeVisits = []
+    # Total number of defining clauses
+    definingClauseCounts = 0
     # Added RUP clause counts, indexed by number of clauses to justify single literal
     literalClauseCounts = {}
     # Added RUP clause counts, indexed by node type
     nodeClauseCounts = []
-
 
     def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel):
         self.verbLevel = verbLevel
@@ -478,7 +497,9 @@ class Pog:
         self.cwriter = readwrite.CratWriter(variableCount, inputClauseList, fname, verbLevel)
         self.reasoner = Reasoner(inputClauseList)
         self.nodeCounts = [0] * NodeType.tcount
-        self.literalClauseCounts = {}
+        self.nodeVisits = [0] * NodeType.tcount
+        self.definingClauseCounts = 0
+        self.literalClauseCounts = {1:0}
         self.nodeClauseCounts = [0] * NodeType.tcount
         self.leaf1 = One()
         self.store(self.leaf1)
@@ -489,9 +510,6 @@ class Pog:
             v = Variable(i)
             self.variables.append(v)
             self.store(v)
-        # Reset so that constant nodes are not included
-        self.nodeCounts = [0] * NodeType.tcount
-        self.nodeVisits = [0] * NodeType.tcount
         
     def lookup(self, ntype, children):
         n = ProtoNode(ntype, children)
@@ -507,7 +525,6 @@ class Pog:
         key = node.key()
         self.uniqueTable[key] = node
         self.nodes.append(node)
-        self.nodeCounts[node.ntype] += 1
 
     def addNegation(self, child):
         if child.ntype == NodeType.negation:
@@ -544,15 +561,12 @@ class Pog:
         children = nchildren
         n = self.lookup(NodeType.conjunction, children)
         if n is None:
-            xlit, clauseId = self.cwriter.doAnd([child.xlit for child in children])
-            n = Conjunction(children, xlit, clauseId)
-            if self.verbLevel >= 2:
-                slist = [str(child) for child in children]
-                self.addComment("Node %s = AND(%s)" % (str(n), ", ".join(slist)))
+            xlit = self.cwriter.newXvar()
+            n = Conjunction(children, xlit)
             self.store(n)
         return n
 
-    def addDisjunction(self, child1, child2, hints = None):
+    def addDisjunction(self, child1, child2, hintPairs = None):
         if child1.isOne() or child2.isOne():
             return self.leaf1
         if child1.isZero():
@@ -561,21 +575,19 @@ class Pog:
             return child1
         n = self.lookup(NodeType.disjunction, [child1, child2])
         if n is None:
-            xlit, clauseId = self.cwriter.doOr(child1.xlit, child2.xlit, hints)
-            n = Disjunction(child1, child2, xlit, clauseId)
-            if self.verbLevel >= 2:
-                self.addComment("Node %s = OR(%s, %s)" % (str(n), str(child1), str(child2)))
+            xlit = self.cwriter.newXvar()
+            n = Disjunction(child1, child2, xlit, hintPairs)
             self.store(n)
         return n
 
-    # Find defining clauses that can be used in mutual exclusion proof
-    def findHintClause(self, node, var):
+    # Find information to generate hint for mutual exclusion proof
+    def findHintPair(self, node, var):
         if node.ntype != NodeType.conjunction:
             return None
         for idx in range(len(node.children)):
             child = node.children[idx]
             if abs(child.xlit) == var:
-                return node.definingClauseId+idx+1
+                return (node, idx+1)
         return None
 
     def addIte(self, nif, nthen, nelse):
@@ -600,8 +612,8 @@ class Pog:
         else:
             ntrue = self.addConjunction([nif, nthen])
             nfalse = self.addConjunction([self.addNegation(nif), nelse])
-            hint1 = self.findHintClause(ntrue, nif.xlit)
-            hint2 = self.findHintClause(nfalse, nif.xlit)
+            hint1 = self.findHintPair(ntrue, nif.xlit)
+            hint2 = self.findHintPair(nfalse, nif.xlit)
             if hint1 is None or hint2 is None:
                 hints = None
             else:
@@ -699,6 +711,7 @@ class Pog:
                         if self.verbLevel >= 2:
                             self.addComment("Justify literal %d in context %s with single RUP step" % (clit, str(ncontext)))
                         cid = self.cwriter.doClause(tclause, rhints)
+                        self.literalClauseCounts[1] += 1
                         self.reasoner.addStep(1, cid, tclause)
                         # Not sure if this will ever be used
                         if len(ncontext) == 0:
@@ -800,6 +813,7 @@ class Pog:
             cid = self.cwriter.doClause(clause, hints)
         else:
             cid = self.cwriter.doClause(clause)
+        self.nodeClauseCounts[root.ntype] += 1
         hints = [cid]
         if len(context) == 0:
             root.unitClauseId = cid
@@ -933,14 +947,13 @@ class Pog:
         self.cwriter.finish()
         if self.verbLevel >= 1:
             nnode = 0
-            ndclause = 0
+            ndclause = self.definingClauseCounts
             print("c Nodes by type")
             for t in range(NodeType.tcount):
                 if self.nodeCounts[t] == 0:
                     continue
                 print("c    %s: %d" % (NodeType.typeName[t], self.nodeCounts[t]))
                 nnode += self.nodeCounts[t]
-                ndclause += NodeType.definingClauseCount[t] * self.nodeCounts[t]
             print("c    TOTAL: %d" % nnode)
             print("c Total defining clauses: %d" % ndclause)
             nvnode = 0
@@ -983,32 +996,51 @@ class Pog:
             self.doMark(c)
         
     # Perform mark & sweep to remove any nodes not reachable from root
-    def compress(self):
+    # Generate node declarations
+    def finalize(self):
         for node in self.nodes:
             node.mark = False
         root = self.nodes[-1]
         self.doMark(root)
-        nnodes = [node for node in self.nodes if node.mark]
-        if self.verbLevel >= 2:
-            print("Compressed POG from %d to %d nodes" % (len(self.nodes), len(nnodes)))
-        if len(nnodes) < len(self.nodes):
-            self.nodes = nnodes
-            for node in nnodes:
-                node.doDegreeHeight()
-
+        nnodes = []
+        # Generate compressed set of nodes.
+        # Actual node declarations generated
+        for node in self.nodes:
+            if not node.mark:
+                continue
+            self.nodeCounts[node.ntype] += 1
+            if node.ntype == NodeType.conjunction:
+                if self.verbLevel >= 2:
+                    slist = [str(child) for child in node.children]
+                    self.addComment("Node %s = AND(%s)" % (str(node), ", ".join(slist)))
+                node.definingClauseId = self.cwriter.finalizeAnd(node.ilist, node.xlit)
+                self.definingClauseCounts += 1 + len(node.children)
+            elif node.ntype == NodeType.disjunction:
+                if self.verbLevel >= 2:
+                    self.addComment("Node %s = OR(%s, %s)" % (str(node), str(node.children[0]), str(node.children[1])))
+                if node.hintPairs is None:
+                    hints = None
+                else:
+                    hints = [node.definingClauseId+offset for node,offset in node.hintPairs]
+                node.definingClauseId = self.cwriter.finalizeOr(node.ilist, node.xlit, hints)
+                self.definingClauseCounts += 1 + len(node.children)
+            elif node.ntype == NodeType.negation:
+                node.definingClauseId = node.children[0].definingClauseId
+            node.doDegreeHeight()
+            nnodes.append(node)
+        self.nodes = nnodes
 
     def show(self):
         for node in self.nodes:
-            if node.ntype != NodeType.negation:
-                outs = str(node)
-                schildren = [str(c) for c in node.children]
-                if len(schildren) > 0:
-                    outs += " (" + ", ".join(schildren) + ")"
-                print(outs)
+            if node.ntype in  [NodeType.negation, NodeType.variable]:
+                continue
+            outs = str(node)
+            schildren = [str(c) for c in node.children]
+            if len(schildren) > 0:
+                outs += " (" + ", ".join(schildren) + ")"
+            print(outs)
         print("Root = %s" % str(self.nodes[-1]))
         for node in self.nodes:
             if node.indegree > 1 and node.ntype != NodeType.variable:
-                print("Node %s.  Indegree %s.  Height %d" % (str(node), node.indegree, node.height))
+                print("Node %s.  Indegree %d.  Height %d" % (str(node), node.indegree, node.height))
             
-        
-        
