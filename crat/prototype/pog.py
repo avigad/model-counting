@@ -796,22 +796,45 @@ class Pog:
         unitClauseIds = []
         # Gather children
         lits = []
+        # Can have at most one nonterminal child
+        ntchild = None
         for child in nroot.children:
             lit = child.getLit()
             if lit is None:
-                raise PogException("Don't know how to handle negated disjunction %s having child %s" % (str(root), str(child)))
-            lits.append(lit)
+                # Nonterminal child
+                ntchild = child
+            else:
+                lits.append(lit)
         clause = [root.xlit] + readwrite.invertClause(context)
-        if self.verbLevel >= 2:
-            self.addComment("Assert clause for negated disjunction %s%s" % (str(root), rstring))
         if self.hintLevel >= 2:
-            tclause = readwrite.invertClause(lits + context)
-            cid = self.reasoner.findClauseId(tclause, 0)
-            if cid <= 0:
-                raise PogException("Couldn't find input clause represented by negated disjunction %s" % (str(root)))
-            hints = [nroot.definingClauseId+1+i for i in range(len(lits))] + [cid]
+            if ntchild is None:
+                tclause = readwrite.invertClause(lits + context)
+                lcid = self.reasoner.findClauseId(tclause, 0)
+                if lcid <= 0:
+                    raise PogException("Couldn't find input clause represented by negated disjunction %s" % (str(root)))
+            else:
+                # Nonterminal child must be negated
+                if ntchild.ntype == NodeType.negation:
+                    nntchild = ntchild.children[0]
+                    chints,uids = self.validateUp(nntchild, context + lits, ntchild)
+                    lcid = chints[0]
+                else:
+                    raise PogException("Don't know how to generate proof for node %s.  It has non-negated nonterminal child %s" % (str(root), str(ntchild)))
+            hints = [nroot.definingClauseId+1+i for i in range(len(nroot.children))]
+            hints.append(lcid)
+            if self.verbLevel >= 2:
+                self.addComment("Assert clause for negated disjunction %s%s" % (str(root), rstring))
             cid = self.cwriter.doClause(clause, hints)
         else:
+            if ntchild is not None:
+                # Nonterminal child must be negated
+                if ntchild.ntype == NodeType.negation:
+                    nntchild = ntchild.children[0]
+                    self.validateUp(nntchild, context + lits, ntchild)
+                else:
+                    raise PogException("Don't know how to generate proof for node %s.  It has non-negated nonterminal child %s" % (str(root), str(ntchild)))
+            if self.verbLevel >= 2:
+                self.addComment("Assert clause for negated disjunction %s%s" % (str(root), rstring))
             cid = self.cwriter.doClause(clause)
         self.nodeClauseCounts[root.ntype] += 1
         hints = [cid]
@@ -862,7 +885,8 @@ class Pog:
             child = root.children[idx]
             lit = child.getLit()
             if lit is None:
-                raise PogException("Couldn't justify deletion of clause %s.  Don't know how to handle negated conjunction %s" % (str(clause), str(root)))
+                # Need to work this out
+                return None
             else:
                 if -lit not in clause:
                     raise PogException("Couldn't justify deletion of clause %s.  Negated conjunction %s contains unhandled literal %d" % (str(clause), str(root), lit))
@@ -937,6 +961,9 @@ class Pog:
         if self.verbLevel >= 1:
             self.addComment("Delete input clauses")
         for cid in range(1, len(self.inputClauseList)+1):
+            # Temporary hack
+            self.deleteClause(cid)
+            continue
             for node in self.nodes:
                 node.mark = False
             hints = self.deletionHints(root, self.inputClauseList[cid-1])
