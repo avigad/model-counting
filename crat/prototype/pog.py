@@ -45,6 +45,47 @@ class Reasoner:
             self.addStep(0, cid, clause)
             cid += 1
 
+    # Add proof step.  Assuming step numbers are always increasing
+    def addStep(self, cat, cid, clause):
+        idx = len(self.stepList)
+        self.stepList.append((cat, cid, clause))
+        self.stepMap[cid] = idx
+        self.recordCategory(cat, cid)
+        return idx
+
+    # Change category for entry in step list
+    def changeCategory(self, idx, ncat):
+        (cat, cid, clause) = self.stepList[idx]
+        self.stepList[idx] = (ncat, cid, clause)
+        self.recordCategory(ncat, cid)
+
+    def getMaxStep(self, cat):
+        cid = 1
+        for icat in range(cat+1):
+            if icat in self.stepMax:
+                cid = max(cid, self.stepMax[icat])
+        return cid
+
+    # Find clause that is subset of target
+    def findClauseId(self, tclause, maxCategory):
+        maxCid = self.getMaxStep(maxCategory)
+        tclause = readwrite.cleanClause(tclause)
+        for (cat,cid,clause) in self.stepList:
+            if cid > maxCid:
+                break
+            if cat > maxCategory:
+                continue
+            if readwrite.testClauseSubset(clause, tclause):
+                return cid
+        return -1
+
+    # Locate clause associated with step number
+    def getClause(self, cid):
+        idx = self.stepMap[cid]
+        cat,ncid,clause = self.stepList[idx]
+        return clause
+
+    # Operations that make use of SAT solver
     def propagate(self, assumptions):
         prop, lits = self.solver.propagate(assumptions)
         return prop, lits
@@ -61,7 +102,8 @@ class Reasoner:
     def isUnit(self, lit, context):
         ok, lits = self.propagate(context)
         return ok and lit in lits
-
+    
+    # Core inference engine
     def justifyUnit(self, lit, context):
         clauses =  []
         if lit in context:
@@ -104,40 +146,6 @@ class Reasoner:
             self.stepMax[cat] = max(self.stepMax[cat], cid)
         else:
             self.stepMax[cat] = cid
-
-    # Add proof step
-    def addStep(self, cat, cid, clause):
-        idx = len(self.stepList)
-        self.stepList.append((cat, cid, clause))
-        self.stepMap[cid] = idx
-        self.recordCategory(cat, cid)
-        return idx
-
-    # Change category for entry in step list
-    def changeCategory(self, idx, ncat):
-        (cat, cid, clause) = self.stepList[idx]
-        self.stepList[idx] = (ncat, cid, clause)
-        self.recordCategory(ncat, cid)
-
-    def getMaxStep(self, cat):
-        cid = 1
-        for icat in range(cat+1):
-            if icat in self.stepMax:
-                cid = max(cid, self.stepMax[icat])
-        return cid
-
-    # Find clause that is subset of target
-    def findClauseId(self, tclause, maxCategory):
-        maxCid = self.getMaxStep(maxCategory)
-        tclause = readwrite.cleanClause(tclause)
-        for (cat,cid,clause) in self.stepList:
-            if cid > maxCid:
-                break
-            if cat > maxCategory:
-                continue
-            if readwrite.testClauseSubset(clause, tclause):
-                return cid
-        return -1
 
     # Unit propagation.  Given clause and set of satisfied literals.
     # Return: ("unit", ulit), ("conflict", None), ("satisfied", lit), ("none", None)
@@ -222,8 +230,7 @@ class Reasoner:
             for id in propClauses:
                 if id in usedIdSet:
                     hints.append(id)
-                    idx = self.stepMap[id]
-                    (cat,cid,clause) = self.stepList[idx]
+                    clause = self.getClause(id)
                     for lit in clause:
                         gen = generatorDict[abs(lit)]
                         if gen is not None:
@@ -235,7 +242,7 @@ class Reasoner:
 
 # Maintain set of clauses, based on simplifications of input clauses
 # Augment clause information to manage lemma
-class ClauseManager:
+class LemmaManager:
     # Each clause is a tuple, ordered by ascending variable
     clauseList = []
     # List of input clauses from which each one originated
@@ -258,7 +265,7 @@ class ClauseManager:
     
     # Make fresh copy of manager
     def clone(self):
-        ncm = ClauseManager([])
+        ncm = LemmaManager([])
         ncm.clauseList = [clause for clause in self.clauseList]
         ncm.provenanceList = [list(plist) for plist in self.provenanceList]
         ncm.isOriginalList = [isOriginal for isOriginal in self.isOrginalList]
@@ -696,7 +703,7 @@ class Pog:
                     cid = self.reasoner.findClauseId(tclause, 0)
                     if cid > 0:
                         if self.verbLevel >= 3:
-                            print("Found input clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.inputClauseList[cid-1], clit, str(ncontext)))
+                            print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), clit, str(ncontext)))
                         hints.append(cid)
                         if self.fullContext:
                             ncontext.append(clit)
