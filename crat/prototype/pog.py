@@ -242,83 +242,97 @@ class Reasoner:
 
 # Maintain set of clauses, based on simplifications of input clauses
 # Augment clause information to manage lemma
-class LemmaManager:
-    # Each clause is a tuple, ordered by ascending variable
-    clauseList = []
-    # List of input clauses from which each one originated
-    provenanceList = []
-    # For each clause, whether still is original input clause
-    isOriginalList = []
+# Used both to generate lemma and to apply it
+class Lemma:
+    ## Tracking information
+    # Each entry is tuple (clause,provenance,isOriginal)
+    # Provenance indicates origin clause id
+    # isOriginal indicates whether still matches an input clause
+    argList = []
+    # Map from clause to position in list
+    clauseMap = {}
     ## Added when used as lemma
-    # When generating lemma, sort the clause list lexicographically.
-
 
     def __init__(self, inputClauseList):
         cid = 0
-        self.clauseList = []
-        self.provenanceList = []
+        self.argList = []
+        self.clauseMap = {}
         for clause in inputClauseList:
             cid += 1
-            self.clauseList.append(clause)
-            self.provenanceList.append([cid])
-            self.isOriginalList.append(True)
+            self.argList.append((clause,cid,True))
+        self.compress()
     
-    # Make fresh copy of manager
+    # Make fresh copy of tracking information
     def clone(self):
-        ncm = LemmaManager([])
-        ncm.clauseList = [clause for clause in self.clauseList]
-        ncm.provenanceList = [list(plist) for plist in self.provenanceList]
-        ncm.isOriginalList = [isOriginal for isOriginal in self.isOrginalList]
+        ncm = Lemma([])
+        idx = 0
+        for clause,provenance,isOriginal in self.argList:
+            ncm.argList.append((clause,provenance,isOriginal))
+            ncm.clauseMap[clause] = idx
+            idx += 1
         return ncm
 
+    # Organize tracking information
     def compress(self):
-        # Create mapping from clause to position in clauseList
         idx = 0
-        imap = {}
-        while idx < len(self.clauseList):
-            clause = self.clauseList[idx]
-            # Delete empty clauses
+        self.clauseMap = {}
+        while idx < len(self.argList):
+            clause,provenance,isOriginal = self.argList[idx]
+            # Delete tautologous clauses
             if clause is None:
-                if len(self.provenanceList) > idx+1:
+                if len(self.argList) > idx+1:
                     # Swap in new entry
-                    self.clauseList[idx] = self.clauseList[-1]
-                    self.provenanceList[idx] = self.provenanceList[-1]
-                    self.isOriginalList[idx] = self.isOriginalList[-1]
-                self.clauseList = self.clauseList[:-1]
-                self.provenanceList = self.provenanceList[:-1]
-                self.isOriginalList = self.isOriginalList[:-1]
-            elif clause in imap:
+                    self.argList[idx] = self.argList[-1]
+                self.argList = self.argList[:-1]
+            elif clause in self.clauseMap:
                 # Merge
-                odix = imap[clause]
-                self.provenanceList[odix] += self.provenanceList[idx]
-                self.isOrignalList[oidx] = self.isOriginalList[oidx] or self.isOriginalList[idx]
-                if len(self.provenanceList) > idx+1:
+                odix = self.clauseMap[clause]
+                oclause,oprovenance,oisOriginal = self.argList[oidx]
+                if isOriginal == oisOriginal:
+                    oprovenance = min(provenance,oprovenance)
+                elif isOriginal:
+                    oprovenance = provenance
+                    oisOriginal = True
+                self.argList[oidx] = (oclause,oprovenance,oisOriginal)
+                if len(self.argList) > idx+1:
                     # Swap in new entry
-                    self.clauseList[idx] = self.clauseList[-1]
-                    self.provenanceList[idx] = self.provenanceList[-1]
-                    self.isOriginalList[idx] = self.isOriginalList[-1]
-                self.clauseList = self.clauseList[:-1]
-                self.provenanceList = self.provenanceList[:-1]
-                self.isOriginalList = self.isOriginalList[:-1]
+                    self.argList[idx] = self.argList[-1]
+                self.argList = self.argList[:-1]
             else:
-                imap[clause] = idx
+                self.clauseMap[clause] = idx
                 idx += 1
                     
     # Assign value to literal
     # Temporarily replace satisfied entry with None
     # These get removed through compression
-    def assign(self, lit):
-        idx = 0
-        for clause in self.clauseList:
+    def assignLiteral(self, lit):
+        for idx in range(len(self.argList)):
+            clause,provenance,isOriginal = self.argList[idx]
             if lit in clause:
-                self.clauseList[idx] = None
-                self.isOriginalList[idx] = False
+                self.argList[idx] = (None,-1,False)
             elif -lit in clause:
                 nclause = tuple([nlit for nlit in clause if nlit != -lit])
-                self.clauseList[idx] = nclause
-                self.isOriginalList[idx] = False
-            idx += 1
+                self.argList[idx] = (nclause,provenance,False)
         self.compress()
+
+    def setupLemma(self, rootLiteral, cwriter):
+        argLiterals = []
+        # Put arguments in lexicographic order
+        self.argList.sort(key = lambda tup: tup[0])
+        self.clauseMap = {}
+        for idx in range(len(self.argList)):
+            clause,provenance,isOriginal = self.argList[idx]
+            self.clauseMap[clause] = idx
+            if not isOriginal:
+                # Must generate synthetic clause
+                xvar = cwriter.newXvar()
+                argLiterals.append(-xvar)
+                ilist = readwrite.invertClause(clause)
+                cwriter.doComment("Generating synthetic clause for lemma %d, argument #%d" % (rootLiteral, idx+1))
+                # First defining clause will serve as synthetic clause
+                cid = cwriter.finalizeAnd(ilist, xvar)
+                self.argList[idx] = (clause,cid,False)
+        return argLiterals
 
     def show(self):
         for clause, plist,isOriginal in zip(self.clauseList, self.provenanceList, self.isOriginalList):
@@ -600,10 +614,12 @@ class Pog:
     def addIte(self, nif, nthen, nelse):
         if nif.isOne():
             result = nthen
+
         elif nif.isZero():
             result = nelse
-        elif nthen == nelse:
-            result = nthen
+#        This is a valid rule, but applying it makes proof generation difficult
+#        elif nthen == nelse:
+#            result = nthen
         elif nthen.isOne() and nelse.isZero():
             result = nif
         elif nthen.isZero() and nelse.isOne():
