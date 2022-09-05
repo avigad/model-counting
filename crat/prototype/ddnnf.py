@@ -442,9 +442,7 @@ class Nnf:
             if node.ntype == NodeType.constant:
                 node.snode = pg.leaf1 if node.val == 1 else pg.leaf0
             elif node.ntype == NodeType.leaf:
-                var = abs(node.lit)
-                svar = pg.getVariable(var)
-                node.snode = svar if node.lit > 0 else pg.addNegation(svar)
+                node.snode = pg.findNode(node.lit)
             elif node.ntype == NodeType.conjunction:
                 # Build linear chain.   Keep literals at top
                 nroot = pg.addConjunction(schildren)
@@ -452,8 +450,8 @@ class Nnf:
             elif node.ntype == NodeType.disjunction:
                 node.snode = pg.addDisjunction(schildren[0], schildren[1])
             elif node.ntype == NodeType.ite:
-                svar = pg.getVariable(node.splitVar)
-                node.snode = pg.addIte(svar, schildren[0], schildren[1])
+                splitNode = pg.findNode(node.splitVar)
+                node.snode = pg.addIte(splitNode, schildren[0], schildren[1])
                 # Label for proof generation
                 node.snode.iteVar = node.splitVar
             if self.verbLevel >= 3:
