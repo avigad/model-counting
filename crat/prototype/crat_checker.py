@@ -986,11 +986,14 @@ class Prover:
         if self.failed:
             return
         if len(rest) > 0:
-            self.flagError("Coudn't add clause #%d: Items beyond terminating 0" % (id))
+            self.flagError("Couldn't add clause #%d: Items beyond terminating 0" % (id))
             return
         if self.verbose:
             print("AddRup step #%d.  Lits = %s" % (id, str(lits)))
         clause = cleanClause(lits)
+        if clause is None:
+            self.flagError("Clause #%d is a tautology" % id)
+            return
         (ok, msg, hints) = self.cmgr.checkRup(clause, hints)
         if not ok:
             self.flagError("Couldn't add clause #%d: %s" % (id, msg))
