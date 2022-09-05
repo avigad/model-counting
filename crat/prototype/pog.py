@@ -467,6 +467,7 @@ class Node(ProtoNode):
     # Criteria for constructing lemma
     def wantLemma(self):
         # Might want to tighten this up
+#        return False
         return self.indegree > 1 and self.height > 1
 
     # Assign context to children of node
@@ -775,6 +776,87 @@ class Pog:
             unitClauseIds.append(cid)
         return hints, unitClauseIds
 
+    def validateUnit(self, lit, context):
+        hints = []
+        unitClauseIds = []
+        if self.verbLevel >= 3:
+            print("Validating unit %d in context %s" % (lit, str(context)))
+        if lit in context:
+            if self.verbLevel >= 3:
+                print("Unit literal %d already in context %s" % (lit, str(context)))
+            return hints, unitClauseIds
+        if self.hintLevel >= 2:
+            # See if can find subsuming input clause
+            tclause = [lit] + readwrite.invertClause(context)
+            cid = self.reasoner.findClauseId(tclause, 0)
+            if cid > 0:
+                if self.verbLevel >= 3:
+                    print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), lit, str(context)))
+                hints.append(cid)
+                return hints, unitClauseIds
+        if self.hintLevel >= 3:
+            # See if can generate RUP proof over input clauses
+            rhints = self.reasoner.findRup(tclause, 1)
+            if rhints is not None:
+                if self.verbLevel >= 3:
+                    print("Justified unit literal %d in context %s with single RUP step and hints %s" % (lit, str(context), str(rhints)))
+                if self.verbLevel >= 2:
+                    self.addComment("Justify literal %d in context %s with single RUP step" % (lit, str(context)))
+                cid = self.cwriter.doClause(tclause, rhints)
+                self.literalClauseCounts[1] += 1
+                self.reasoner.addStep(2, cid, tclause)
+                # Not sure if this will ever be used
+                if len(context) == 0:
+                    c.unitClauseId = cid
+                    unitClauseIds.append(cid)
+                hints.append(cid)
+                return hints, unitClauseIds
+        clauses = self.reasoner.justifyUnit(lit, context)
+        if len(clauses) == 0:
+            if self.verbLevel >= 3:
+                print("Found unit literal %d in context %s" % (lit, str(context)))
+        else:
+            self.addComment("Justify literal %d in context %s " % (lit, str(context)))
+        lastCid = None
+        idxList = []
+        for clause in clauses:
+            rhints = None
+            if self.hintLevel >= 4:
+                # Should be able to justify each clause
+                rhints = self.reasoner.findRup(clause, 2)
+            if rhints is not None:
+                cid = self.cwriter.doClause(clause, rhints)
+                if self.verbLevel >= 3:
+                    print("Generated hints for intermediate clause #%d" % (cid))
+            else:
+                cid = self.cwriter.doClause(clause)
+                if self.hintLevel >= 4 and self.verbLevel >= 3:
+                    print("Could not generate hints for intermediate clause #%d" % (cid))
+            idxList.append(self.reasoner.addStep(1, cid, clause))
+            # This doesn't seem necessary
+            if len(context) == 0 and len(clause) == 1:
+                unitClauseIds.append(cid)
+            lastCid = cid
+        if lastCid is not None:
+            # At least one clause added
+            hints.append(lastCid)
+            if self.verbLevel >= 3:
+                print("Added hint %d" % lastCid)
+            # Change categories for all added clauses, except for last one
+            idxList = idxList[:-1]
+            for idx in idxList:
+                self.reasoner.changeCategory(idx, 3)
+        if self.verbLevel >= 3:
+            print("Justified unit literal %d in context %s with %d proof steps" % (lit, str(context), len(clauses)))
+
+        nc = len(clauses)
+        if nc in self.literalClauseCounts:
+            self.literalClauseCounts[nc] += 1
+        else:
+            self.literalClauseCounts[nc] = 1
+        return hints, unitClauseIds
+
+
     def validateConjunction(self, root, context, parent):
         rstring = " (root)" if parent is None else ""
         hints = []
@@ -794,85 +876,93 @@ class Pog:
                     print("Got hints %s from child %s" % (str(chints), str(c)))
             else:
                 root.lemma.assignLiteral(clit)
-                if clit in ncontext:
-                    if self.verbLevel >= 3:
-                        print("Unit literal %d already in context %s" % (clit, str(ncontext)))
-                    continue
-                if self.hintLevel >= 2:
-                    # See if can find subsuming input clause
-                    tclause = [clit] + readwrite.invertClause(ncontext)
-                    cid = self.reasoner.findClauseId(tclause, 0)
-                    if cid > 0:
-                        if self.verbLevel >= 3:
-                            print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), clit, str(ncontext)))
-                        hints.append(cid)
-                        if self.fullContext:
-                            ncontext.append(clit)
-                        continue
-                if self.hintLevel >= 3:
-                    # See if can generate RUP proof over input clauses
-#                    tclause = [clit] + readwrite.invertClause(ncontext)
-                    rhints = self.reasoner.findRup(tclause, 0)
-                    if rhints is not None:
-                        if self.verbLevel >= 3:
-                            print("Justified unit literal %d in context %s with single RUP step and hints %s" % (clit, str(ncontext), str(rhints)))
-                        if self.verbLevel >= 2:
-                            self.addComment("Justify literal %d in context %s with single RUP step" % (clit, str(ncontext)))
-                        cid = self.cwriter.doClause(tclause, rhints)
-                        self.literalClauseCounts[1] += 1
-                        self.reasoner.addStep(1, cid, tclause)
-                        # Not sure if this will ever be used
-                        if len(ncontext) == 0:
-                            c.unitClauseId = cid
-                            unitClauseIds.append(cid)
-                        hints.append(cid)
-                        if self.fullContext:
-                            ncontext.append(clit)
-                        continue
-                clauses = self.reasoner.justifyUnit(clit, ncontext)
-                if len(clauses) == 0:
-                    if self.verbLevel >= 3:
-                        print("Found unit literal %d in context %s" % (clit, str(ncontext)))
-                elif self.verbLevel >= 2:
-                    self.addComment("Justify literal %d in context %s " % (clit, str(ncontext)))
-                    if self.verbLevel >= 3:
-                        print("Justified unit literal %d in context %s with %d proof steps" % (clit, str(ncontext), len(clauses)))
-                lastCid = None
-                idxList = []
-                for clause in clauses:
-                    rhints = None
-                    if self.hintLevel >= 4:
-                        # Should be able to justify each clause
-                        rhints = self.reasoner.findRup(clause, 2)
-                    if rhints is not None:
-                        cid = self.cwriter.doClause(clause, rhints)
-                        if self.verbLevel >= 3:
-                            print("Generated hints for intermediate clause #%d" % (cid))
-                    else:
-                        cid = self.cwriter.doClause(clause)
-                        if self.hintLevel >= 4 and self.verbLevel >= 3:
-                            print("Could not generate hints for intermediate clause #%d" % (cid))
-                    idxList.append(self.reasoner.addStep(1, cid, clause))
-                    # This doesn't seem necessary
-                    if len(ncontext) == 0 and len(clause) == 1:
-                        unitClauseIds.append(cid)
-                    lastCid = cid
-                if lastCid is not None:
-                    # At least one clause added
-                    hints.append(lastCid)
-                    if self.verbLevel >= 3:
-                        print("Added hint %d" % lastCid)
-                    # Change categories for all added clauses, except for last one
-                    idxList = idxList[:-1]
-                    for idx in idxList:
-                        self.reasoner.changeCategory(idx, 2)
-                if self.fullContext:
+#### New
+                chints, cunitClauseIds = self.validateUnit(clit, ncontext)
+                hints += chints
+                unitClauseIds += cunitClauseIds
+                if clit not in ncontext and self.fullContext:
                     ncontext.append(clit)
-                nc = len(clauses)
-                if nc in self.literalClauseCounts:
-                    self.literalClauseCounts[nc] += 1
-                else:
-                    self.literalClauseCounts[nc] = 1
+#### Old 
+##                if clit in ncontext:
+##                    if self.verbLevel >= 3:
+##                        print("Unit literal %d already in context %s" % (clit, str(ncontext)))
+##                    continue
+##                if self.hintLevel >= 2:
+##                    # See if can find subsuming input clause
+##                    tclause = [clit] + readwrite.invertClause(ncontext)
+##                    cid = self.reasoner.findClauseId(tclause, 0)
+##                    if cid > 0:
+##                        if self.verbLevel >= 3:
+##                            print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), clit, str(ncontext)))
+##                        hints.append(cid)
+##                        if self.fullContext:
+##                            ncontext.append(clit)
+##                        continue
+##                if self.hintLevel >= 3:
+##                    # See if can generate RUP proof over input clauses
+###                    tclause = [clit] + readwrite.invertClause(ncontext)
+##                    rhints = self.reasoner.findRup(tclause, 0)
+##                    if rhints is not None:
+##                        if self.verbLevel >= 3:
+##                            print("Justified unit literal %d in context %s with single RUP step and hints %s" % (clit, str(ncontext), str(rhints)))
+##                        if self.verbLevel >= 2:
+##                            self.addComment("Justify literal %d in context %s with single RUP step" % (clit, str(ncontext)))
+##                        cid = self.cwriter.doClause(tclause, rhints)
+##                        self.literalClauseCounts[1] += 1
+##                        self.reasoner.addStep(1, cid, tclause)
+##                        # Not sure if this will ever be used
+##                        if len(ncontext) == 0:
+##                            c.unitClauseId = cid
+##                            unitClauseIds.append(cid)
+##                        hints.append(cid)
+##                        if self.fullContext:
+##                            ncontext.append(clit)
+##                        continue
+##                clauses = self.reasoner.justifyUnit(clit, ncontext)
+##                if len(clauses) == 0:
+##                    if self.verbLevel >= 3:
+##                        print("Found unit literal %d in context %s" % (clit, str(ncontext)))
+##                elif self.verbLevel >= 2:
+##                    self.addComment("Justify literal %d in context %s " % (clit, str(ncontext)))
+##                    if self.verbLevel >= 3:
+##                        print("Justified unit literal %d in context %s with %d proof steps" % (clit, str(ncontext), len(clauses)))
+##                lastCid = None
+##                idxList = []
+##                for clause in clauses:
+##                    rhints = None
+##                    if self.hintLevel >= 4:
+##                        # Should be able to justify each clause
+##                        rhints = self.reasoner.findRup(clause, 2)
+##                    if rhints is not None:
+##                        cid = self.cwriter.doClause(clause, rhints)
+##                        if self.verbLevel >= 3:
+##                            print("Generated hints for intermediate clause #%d" % (cid))
+##                    else:
+##                        cid = self.cwriter.doClause(clause)
+##                        if self.hintLevel >= 4 and self.verbLevel >= 3:
+##                            print("Could not generate hints for intermediate clause #%d" % (cid))
+##                    idxList.append(self.reasoner.addStep(1, cid, clause))
+##                    # This doesn't seem necessary
+##                    if len(ncontext) == 0 and len(clause) == 1:
+##                        unitClauseIds.append(cid)
+##                    lastCid = cid
+##                if lastCid is not None:
+##                    # At least one clause added
+##                    hints.append(lastCid)
+##                    if self.verbLevel >= 3:
+##                        print("Added hint %d" % lastCid)
+##                    # Change categories for all added clauses, except for last one
+##                    idxList = idxList[:-1]
+##                    for idx in idxList:
+##                        self.reasoner.changeCategory(idx, 2)
+##                if self.fullContext:
+##                    ncontext.append(clit)
+##                nc = len(clauses)
+##                if nc in self.literalClauseCounts:
+##                    self.literalClauseCounts[nc] += 1
+##                else:
+##                    self.literalClauseCounts[nc] = 1
+### Safe from here
         if vcount > 1 or parent is None:
             # Assert extension literal
             if self.verbLevel >= 2:
