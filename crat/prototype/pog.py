@@ -414,8 +414,6 @@ class Node(ProtoNode):
     iteVar = None
     # Variables on which this depends
     dependencySet = set([])
-    # Asserted literals that are present along all paths to node
-    contextSet = None
     # Id of first clause in defining clauses
     definingClauseId = None
     # Id of clause that validates this as potential root node
@@ -432,7 +430,6 @@ class Node(ProtoNode):
         self.xlit = xlit
         self.iteVar = None
         self.dependencySet = set([])
-        self.contextSet = None
         for child in children:
             self.dependencySet |= child.dependencySet
         self.definingClauseId = None
@@ -463,21 +460,6 @@ class Node(ProtoNode):
     def wantLemma(self):
         # Might want to tighten this up
         return self.indegree > 1 and self.height > 1
-
-    # Assign context to children of node
-    def applyContext(self):
-        if self.contextSet is None:
-            self.contextSet = set([])
-        pcset = set(self.contextSet)
-        for child in self.children:
-            clit = child.getLit()
-            if clit is None:
-                if child.contextSet is None:
-                    child.contextSet = pcset
-                else:
-                    child.contextSet &= pcset
-            else:
-                pcset.add(clit)
 
     def __hash__(self):
         return self.xlit
@@ -1258,9 +1240,6 @@ class Pog:
             node.doDegreeHeight()
             nnodes.append(node)
         self.nodes = nnodes
-        # Compute contexts
-        for node in reversed(self.nodes):
-            node.applyContext()
 
     def show(self):
         for node in self.nodes:
