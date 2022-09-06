@@ -1,5 +1,5 @@
-import Std.Data.HashMap
-import Std.Data.RBTree
+import Lean.Data.HashMap
+import Lean.Data.RBTree
 
 import ProofChecker.Data.Cnf
 import ProofChecker.Data.Dimacs
