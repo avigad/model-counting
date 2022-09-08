@@ -656,9 +656,10 @@ class Pog:
     lemmaApplicationCount = 0
     lemmaApplicationClauseCount = 0
 
-    def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel):
+    def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel, lemmaHeight):
         self.verbLevel = verbLevel
         self.hintLevel = hintLevel
+        self.lemmaHeight = lemmaHeight
         self.uniqueTable = {}
         self.inputClauseList = readwrite.cleanClauses(inputClauseList)
         self.cwriter = readwrite.CratWriter(variableCount, inputClauseList, fname, verbLevel)
@@ -696,10 +697,11 @@ class Pog:
             raise PogException("No node with xlit %d" % xlit)
         return self.nodeMap[xlit]
 
-    def store(self, node):
+    def store(self, node, forLemma=False):
         key = node.key()
         self.uniqueTable[key] = node
-        self.nodes.append(node)
+        if not forLemma:
+            self.nodes.append(node)
         self.nodeMap[node.xlit] = node
 
     def addNegation(self, child):
@@ -739,7 +741,7 @@ class Pog:
         if n is None:
             xlit = self.cwriter.newXvar()
             n = Conjunction(children, xlit)
-            self.store(n)
+            self.store(n, forLemma)
         if forLemma:
             self.lemmaShadowNodeCount += 1
             self.lemmaShadowNodeClauseCount += len(children) + 1
@@ -1236,11 +1238,8 @@ class Pog:
                 raise PogException("Couldn't justify deletion of clause %s.  Reached terminal literal %s" % (str(clause), str(root))) 
 
 
-    def doValidate(self, lemmaHeight):
-        self.lemmaHeight = lemmaHeight
+    def doValidate(self):
         root = self.nodes[-1]
-        if lemmaHeight is not None:
-            self.addLemmas()
         hints, unitClauseIds = self.validateUp(root, [], parent = None)
         # The last one should be the root.  The others should be deleted
         topUnitId = root.unitClauseId
@@ -1340,12 +1339,21 @@ class Pog:
         root = self.nodes[-1]
         self.doMark(root)
         nnodes = []
+
         # Generate compressed set of nodes.
-        # Actual node declarations generated
         for node in self.nodes:
             if not node.mark:
                 continue
             self.nodeCounts[node.ntype] += 1
+            node.doDegreeHeight()
+            nnodes.append(node)
+        self.nodes = nnodes
+
+        if self.lemmaHeight is not None:
+            self.addLemmas()
+
+        # Generate node declarations
+        for node in self.nodes:
             if node.ntype == NodeType.conjunction:
                 if self.verbLevel >= 2:
                     slist = [str(child) for child in node.children]
@@ -1362,9 +1370,8 @@ class Pog:
                 self.definingClauseCounts += 1 + len(node.children)
             elif node.ntype == NodeType.negation:
                 node.definingClauseId = node.children[0].definingClauseId
-            node.doDegreeHeight()
-            nnodes.append(node)
-        self.nodes = nnodes
+
+
 
     def addLemmas(self):
         root = self.nodes[-1]

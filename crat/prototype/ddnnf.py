@@ -434,8 +434,8 @@ class Nnf:
                 self.nodes.append(node)
         self.topoSort(root)
 
-    def makePog(self, clauseList, fname, hintLevel):
-        pg = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel, hintLevel)
+    def makePog(self, clauseList, fname, hintLevel, lemmaHeight):
+        pg = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel, hintLevel, lemmaHeight)
         for node in self.nodes:
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
@@ -749,7 +749,7 @@ def run(name, args):
     if verbLevel >= 3:
         dag.show()
     if cratName is not None:
-        pg = dag.makePog(creader.clauses, cratName, hintLevel)
+        pg = dag.makePog(creader.clauses, cratName, hintLevel, lemmaHeight)
         fcount = pg.nodeCounts[pog.NodeType.conjunction] + pg.nodeCounts[pog.NodeType.disjunction]
         if verbLevel == 1:
             print("c Generated POG has %d And/Or nodes" % fcount)
@@ -757,7 +757,7 @@ def run(name, args):
             print("")
             print("c Generated POG has %d And/Or nodes:" % fcount)
             pg.show()
-        pg.doValidate(lemmaHeight)
+        pg.doValidate()
         pg.finish()
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
