@@ -49,7 +49,7 @@ def usage(name):
     print(" -d           Use NNF format defined for D4 model counter")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -H HLEVEL    Set what hints to generate: 1 = constant time, 2 = scan for input clause (default), 3 = Use RUP finder")
-    print(" -L LHEIGHT   Set minimum height of shared graph for introducing lemma (default = No lemmas)")
+    print(" -L LHEIGHT   Set minimum height of shared graph for introducing lemma (X --> No lemmas)")
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
     print(" -p FILE.crat Output CRAT")
@@ -687,7 +687,10 @@ def run(name, args):
         elif opt == '-H':
             hintLevel = int(val)
         elif opt == '-L':
-            lemmaHeight = int(val)
+            try:
+                lemmaHeight = int(val)
+            except:
+                pass
         elif opt == '-d':
             d4 = True
         elif opt == '-i':
