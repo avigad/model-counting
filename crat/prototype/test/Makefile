@@ -3,6 +3,7 @@ DSHARP = ~/repos/dsharp/dsharp
 D4 = ~/repos/d4/d4
 VLEVEL = 2
 HLEVEL = 4
+LHEIGHT = 2
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 
@@ -13,7 +14,7 @@ CHECK = ../crat_checker.py
 	$(DSHARP) -Fnnf $@ $< | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) | tee $*.crat_data
+	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) | tee $*.crat_data
 
 .crat.check_data:
 	$(INTERP) $(CHECK) -v $(VLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@
@@ -25,7 +26,7 @@ CHECK = ../crat_checker.py
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
 
 .d4nnf.d4crat:
-	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(TLEVEL) | tee $*.d4crat_data
+	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) | tee $*.d4crat_data
 
 .d4crat.d4check_data:
 	$(INTERP) $(CHECK) -v $(VLEVEL) -i $*.cnf -p $< -o $*.d4hinted_crat | tee $@
