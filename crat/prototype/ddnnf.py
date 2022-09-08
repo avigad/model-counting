@@ -44,11 +44,12 @@ import pog
 
 
 def usage(name):
-    print("Usage: %s [-h] [-d] [-v VLEVEL] [-H hlevel] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
+    print("Usage: %s [-h] [-d] [-v VLEVEL] [-H hlevel] [-L lheight] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
     print(" -h           Print this message")
     print(" -d           Use NNF format defined for D4 model counter")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -H HLEVEL    Set what hints to generate: 1 = constant time, 2 = scan for input clause (default), 3 = Use RUP finder")
+    print(" -L LHEIGHT   Set minimum height of shared graph for introducing lemma (default = No lemmas)")
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
     print(" -p FILE.crat Output CRAT")
@@ -208,13 +209,11 @@ class Nnf:
     # match position in the array, nor are they necessarily in
     # ascending order
     nodes = []
-    hintLevel = 2
 
-    def __init__(self, verbLevel, hintLevel):
+    def __init__(self, verbLevel):
         self.inputCount = 0
         self.nodes = []
         self.verbLevel = verbLevel
-        self.hintLevel = hintLevel
 
     def nodeCount(self):
         count = 0
@@ -436,7 +435,7 @@ class Nnf:
         self.topoSort(root)
 
     def makePog(self, clauseList, fname):
-        pg = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel, self.hintLevel)
+        pg = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel)
         for node in self.nodes:
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
@@ -673,11 +672,12 @@ class D4Reader:
 def run(name, args):
     verbLevel = 1
     hintLevel = 2
+    lemmaHeight = None
     d4 = False
     cnfName = None
     nnfName = None
     cratName = None
-    optlist, args = getopt.getopt(args, 'hdv:H:i:n:p:')
+    optlist, args = getopt.getopt(args, 'hdv:H:L:i:n:p:')
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
@@ -686,6 +686,8 @@ def run(name, args):
             verbLevel = int(val)
         elif opt == '-H':
             hintLevel = int(val)
+        elif opt == '-L':
+            lemmaHeight = int(val)
         elif opt == '-d':
             d4 = True
         elif opt == '-i':
@@ -719,7 +721,7 @@ def run(name, args):
         return
 
     start = datetime.datetime.now()
-    dag = Nnf(verbLevel, hintLevel)
+    dag = Nnf(verbLevel)
     if d4:
         d4reader = D4Reader(dag)
         if not d4reader.read(nfile):
@@ -741,18 +743,18 @@ def run(name, args):
     dag.findIte()
     if verbLevel >= 1:
         print("c NNF DAG with ITEs has %d nodes" % (dag.nodeCount()))
-    if verbLevel >= 2:
+    if verbLevel >= 3:
         dag.show()
     if cratName is not None:
         pg = dag.makePog(creader.clauses, cratName)
         fcount = pg.nodeCounts[pog.NodeType.conjunction] + pg.nodeCounts[pog.NodeType.disjunction]
         if verbLevel == 1:
             print("c Generated POG has %d And/Or nodes" % fcount)
-        if verbLevel >= 2:
+        if verbLevel >= 3:
             print("")
             print("c Generated POG has %d And/Or nodes:" % fcount)
             pg.show()
-        pg.doValidate()
+        pg.doValidate(hintLevel, lemmaHeight)
         pg.finish()
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
