@@ -164,7 +164,6 @@ class Reasoner:
             clauses.append(clause)
         clauses.reverse()
         clauses.append(pclause)
-        self.addSolverClauses([pclause])
         return clauses
     
     #### RUP proof generation code ###
@@ -655,9 +654,11 @@ class Pog:
     lemmaShadowNodeCount = 0
     lemmaShadowNodeClauseCount = 0
     lemmaApplicationCount = 0
+    lemmaApplicationClauseCount = 0
 
-    def __init__(self, variableCount, inputClauseList, fname, verbLevel):
+    def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel):
         self.verbLevel = verbLevel
+        self.hintLevel = hintLevel
         self.uniqueTable = {}
         self.inputClauseList = readwrite.cleanClauses(inputClauseList)
         self.cwriter = readwrite.CratWriter(variableCount, inputClauseList, fname, verbLevel)
@@ -671,6 +672,7 @@ class Pog:
         self.lemmaShadowNodeCount = 0
         self.lemmaShadowNodeClauseCount = 0
         self.lemmaApplicationCount = 0
+        self.lemmaApplicationClauseCount = 0
 
         self.leaf1 = One()
         self.store(self.leaf1)
@@ -856,7 +858,7 @@ class Pog:
             if self.verbLevel >= 3:
                 print("Unit literal %d already in context %s" % (lit, str(context)))
             return hints, unitClauseIds
-        if self.hintLevel >= 2:
+        if self.hintLevel >= 3:
             # See if can find subsuming input clause
             tclause = [lit] + readwrite.invertClause(context)
             cid = self.reasoner.findClauseId(tclause, 1)
@@ -1035,7 +1037,7 @@ class Pog:
     def generateLemma(self, root):
         # Set up lemma for this node
         self.addComment("Setting up lemma at node %s" % str(root))
-        root.lemma.setupLemma(root, self)
+#        root.lemma.setupLemma(root, self)
         ncontext = [lit for lit in root.lemma.shadowLiterals if lit != 0] 
         ncontext += list(root.lemma.assignedLiteralSet)
         root.lemma.isLemma = True
@@ -1077,7 +1079,6 @@ class Pog:
                 anode = self.findNode(-lit)
                 if anode.ntype == NodeType.conjunction:
                     pos = anode.definingClauseId + 1
-                    # Debugging
                     for alit in anode.ilist:
                         if -alit in iclause:
                             ahints.append(pos)
@@ -1095,6 +1096,7 @@ class Pog:
                 lhints.append(self.cwriter.doClause(aclause, ahints))
             else:
                 self.cwriter.doClause(aclause)
+            self.lemmaApplicationClauseCount += 1
         self.addComment("Lemma invocation")
         lclause = readwrite.invertClause(context) + [root.xlit]
         if self.hintLevel >= 2:
@@ -1104,6 +1106,7 @@ class Pog:
         else:
             self.cwriter.doClause(lclause)
             hints = []
+        self.lemmaApplicationClauseCount += 1
         self.lemmaApplicationCount += 1
         return hints, []
 
@@ -1233,8 +1236,7 @@ class Pog:
                 raise PogException("Couldn't justify deletion of clause %s.  Reached terminal literal %s" % (str(clause), str(root))) 
 
 
-    def doValidate(self, hintLevel, lemmaHeight):
-        self.hintLevel = hintLevel
+    def doValidate(self, lemmaHeight):
         self.lemmaHeight = lemmaHeight
         root = self.nodes[-1]
         if lemmaHeight is not None:
@@ -1264,8 +1266,11 @@ class Pog:
         for cid in range(1, len(self.inputClauseList)+1):
             for node in self.nodes:
                 node.mark = False
-            hints = self.deletionHints(root, self.inputClauseList[cid-1])
-            hints.append(topUnitId)
+            if self.hintLevel >= 1:
+                hints = self.deletionHints(root, self.inputClauseList[cid-1])
+                hints.append(topUnitId)
+            else:
+                hints = None
             self.deleteClause(cid, hints)
             
     def finish(self):
@@ -1290,6 +1295,7 @@ class Pog:
                 nvnode += self.nodeVisits[t]
             print("c    TOTAL: %d" % nvnode)
             nldclause = self.lemmaShadowNodeClauseCount
+            nlaclause = self.lemmaApplicationClauseCount
             if self.lemmaCount > 0:
                 print("c Lemmas:  %d definitions.  %d shadow nodes (%d defining clauses), %d applications" % 
                       (self.lemmaCount, self.lemmaShadowNodeCount, nldclause, self.lemmaApplicationCount))
@@ -1315,8 +1321,8 @@ class Pog:
                 nnclause += self.nodeClauseCounts[t]
             print("c    TOTAL: %d" % nnclause)
             niclause = len(self.inputClauseList)
-            nclause = niclause + ndclause + nldclause + nlclause + nnclause
-            print("Total clauses: %d input + %d defining + %d lemma defining + %d literal justification + %d node justifications = %d" % (niclause, ndclause, nldclause, nlclause, nnclause, nclause))
+            nclause = niclause + ndclause + nldclause + nlaclause + nlclause + nnclause
+            print("Total clauses: %d input + %d defining + %d lemma defining + %d lemma application + %d literal justification + %d node justifications = %d" % (niclause, ndclause, nldclause, nlaclause, nlclause, nnclause, nclause))
 
     def doMark(self, root):
         if root.mark:
@@ -1349,9 +1355,8 @@ class Pog:
             elif node.ntype == NodeType.disjunction:
                 if self.verbLevel >= 2:
                     self.addComment("Node %s = OR(%s, %s)" % (str(node), str(node.children[0]), str(node.children[1])))
-                if node.hintPairs is None:
-                    hints = None
-                else:
+                hints = None
+                if node.hintPairs is not None and self.hintLevel >= 1:
                     hints = [node.definingClauseId+offset for node,offset in node.hintPairs]
                 node.definingClauseId = self.cwriter.finalizeOr(node.ilist, node.xlit, hints)
                 self.definingClauseCounts += 1 + len(node.children)
@@ -1364,9 +1369,12 @@ class Pog:
     def addLemmas(self):
         root = self.nodes[-1]
         root.lemma = Lemma(self.inputClauseList)
+        self.addComment("Defining (negated) conjunction operations to use as shadow clauses for lemmas")
         for node in reversed(self.nodes):
             if node.ntype not in [NodeType.conjunction, NodeType.disjunction]:
                 continue
+            if node.wantLemma(self.lemmaHeight):
+                node.lemma.setupLemma(root, self)
             ntchildren = []
             nlemma = node.lemma.clone()
             if node.ntype == NodeType.conjunction:
@@ -1400,6 +1408,7 @@ class Pog:
                         print(str(ex))
                         print("Failed when adding lemma from node %s to child %s" % (str(node), str(child)))
                         sys.exit(1)
+        self.addComment("Completed declarations of shadow operations")
 
     def showNode(self, node):
         outs = str(node)
