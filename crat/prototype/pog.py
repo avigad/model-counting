@@ -273,7 +273,7 @@ class Reasoner:
 class Lemma:
     ### Tracking information generated while traversing graph
     # Each entry is tuple (provenance,isOriginalclause)
-    # Provenance indicates origin clause id
+    # Provenance is set indicate possible origin clause id's
     # isOriginal indicates whether clause still matches original input clause
     argList = []
     # Map from clause to position in list
@@ -281,6 +281,8 @@ class Lemma:
     # Literals that have been assigned up to this point
     # During the initial pass, this set consists of the intersection of the constraints along
     # all paths to the root node.
+    # In conversion to a working lemma, this set restricted to those literals that appear in 
+    # an original input clause
     assignedLiteralSet = set([])
 
     ### Information added for use as lemma
@@ -307,7 +309,7 @@ class Lemma:
         for clause in inputClauseList:
             cid += 1
             tclause = tuple(clause)
-            self.argList.append((cid,True,tclause))
+            self.argList.append((set([cid]),True,tclause))
             self.clauseMap[tclause] = cid
         # Stuff reserved for later
         self.isLemma = False
@@ -320,9 +322,8 @@ class Lemma:
     def clone(self):
         ncm = Lemma([])
         idx = 0
-        for tup in self.argList:
-            ncm.argList.append(tup)
-            provenance,isOriginal,clause = tup
+        for provenance,isOriginal,clause in self.argList:
+            ncm.argList.append((set(provenance), isOriginal, clause))
             ncm.clauseMap[clause] = idx
             idx += 1
         return ncm
@@ -331,6 +332,18 @@ class Lemma:
     # Only accept assigned literals that are common to both
     def merge(self, olemma):
         self.assignedLiteralSet &= olemma.assignedLiteralSet
+        # Merge provenances:
+        nargList = []
+        for provenance,isOriginal,clause in self.argList:
+            if clause not in olemma.clauseMap:
+                raise PogException("Lemma merge failure.  Clause %s (Provenance = %s) in original lemma, not in other" %
+                                   str(clause), str(provenance))
+            oidx = olemma.clauseMap[clause]
+            oprovenance,oisOriginal,oclause = olemma.argList[oidx]
+            provenance |= oprovenance
+            isOriginal = isOriginal and oisOriginal
+            nargList.append((provenance,isOriginal,clause))
+        self.argList = nargList
         return
         # Double check
         sxo = []
@@ -389,13 +402,28 @@ class Lemma:
 
     def setupLemma(self, root, pog):
         self.shadowLiterals = []
+        # Derive subset of the assigned literals that occur in at least one original input clause
+        # These become part of context for lemma
+        externalLiteralSet = set([])
         self.root = root
         for idx in range(len(self.argList)):
             provenance,isOriginal,clause = self.argList[idx]
+            # Find what literals get used
+            if not isOriginal:
+                for icid in provenance:
+                    iclause = pog.inputClauseList[icid]
+                    for lit in iclause:
+                        if lit in self.assignedLiteralSet:
+                            externalLiteralSet.add(lit)
             if isOriginal:
                 lit = 0
-                pog.addComment("Lemma %s, argument #%d: input clause %d" % (str(root), idx+1, provenance))
+                if len(provenance) != 1:
+                    raise PogException("Setting up lemma at node %s. Lemma thinks there's a unique input clause, but the provenance is %s" %
+                                       str(root), str(provenance))
+                icid = list(provenance)[0]
+                pog.addComment("Lemma %s, argument #%d: input clause %d" % (str(root), idx+1, icid))
             elif len(clause) == 1:
+                # Don't expect this to happen, since would have unit propagation
                 lit = clause[0]
                 pog.addComment("Lemma %s, argument #%d: Shadow literal %d" % (str(root), idx+1, lit))
             else:
@@ -409,6 +437,8 @@ class Lemma:
                 lit = -node.xlit
                 pog.addComment("Lemma %s, argument #%d: synthetic clause #%d" % (str(root), idx+1, node.definingClauseId))
             self.shadowLiterals.append(lit)
+        self.assignedLiteralSet = externalLiteralSet
+
 
     def getIdx(self, clause):
         if clause not in self.clauseMap:
@@ -425,7 +455,11 @@ class Lemma:
     def findInputClause(self, clause):
         idx = self.getIdx(clause)
         provenance,isOriginal,xclause = self.argList[idx]
-        return provenance
+        if len(provenance) != 1:
+            raise PogException("Finding input clause matching argument clause %s. Provenance is %s" %
+                               str(clause), str(provenance))
+        icid = list(provenance)[0]
+        return icid
     
     def show(self):
         print("Assigned literals: %s" % str(sorted(self.assignedLiteralSet)))
@@ -912,7 +946,8 @@ class Pog:
                 if self.verbLevel >= 3:
                     print("Got hints %s from child %s" % (str(chints), str(c)))
             else:
-                root.lemma.assignLiteral(clit)
+                if root.lemma is not None:
+                    root.lemma.assignLiteral(clit)
                 chints, cunitClauseIds = self.validateUnit(clit, ncontext)
                 hints += chints
                 unitClauseIds += cunitClauseIds
@@ -999,11 +1034,14 @@ class Pog:
     # Construct lemma
     def generateLemma(self, root):
         # Set up lemma for this node
+        self.addComment("Setting up lemma at node %s" % str(root))
         root.lemma.setupLemma(root, self)
-        ncontext = [lit for lit in root.lemma.shadowLiterals if lit != 0]
+        ncontext = [lit for lit in root.lemma.shadowLiterals if lit != 0] 
+        ncontext += list(root.lemma.assignedLiteralSet)
         root.lemma.isLemma = True
         # Prove the lemma
         hints, unitClauseIds = self.validateUp(root, ncontext, None)
+        self.addComment("Completed proof of lemma at node %s.  Assumed literals = %s" % (str(root), str(ncontext)))
         root.lemma.lemmaHints = hints
         self.lemmaCount += 1
 
@@ -1015,6 +1053,11 @@ class Pog:
         idx = 0
         lcontext = []
         lhints = []
+        for lit in root.lemma.assignedLiteralSet:
+            if lit not in context:
+                self.addComment("Lemma %s.  Justify assigned literal %d in context %s" % (str(root), lit, str(context)))
+                chints, cunits = self.validateUnit(lit, context)
+                lhints += chints
         for provenance,isOriginal,clause in root.lemma.argList:
             idx += 1
             if isOriginal:
@@ -1043,8 +1086,8 @@ class Pog:
                 # See if there are other literals that must be justified
                 ncontext = context + alits
                 for lit in iclause:
-                    if -lit not in context and lit not in clause and -lit not in alits:
-                        self.addComment("Justify additional literal %d in context %s" % (-lit, str(ncontext)))
+                    if -lit not in context and lit not in clause and -lit not in alits and -lit not in root.lemma.assignedLiteralSet:
+                        self.addComment("Lemma %s.  Justify additional literal %d in context %s" % (str(root), -lit, str(ncontext)))
                         chints, cunits = self.validateUnit(-lit, ncontext)
                         ahints += chints
                         ncontext.append(-lit)
@@ -1352,8 +1395,9 @@ class Pog:
                 else:
                     try:
                         child.lemma.merge(lemma)
-                    except Exception as ex:
+                    except PogException as ex:
                         self.showNode(node)
+                        print(str(ex))
                         print("Failed when adding lemma from node %s to child %s" % (str(node), str(child)))
                         sys.exit(1)
 
