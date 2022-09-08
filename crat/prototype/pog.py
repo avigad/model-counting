@@ -279,6 +279,8 @@ class Lemma:
     # Map from clause to position in list
     clauseMap = {}
     # Literals that have been assigned up to this point
+    # During the initial pass, this set consists of the intersection of the constraints along
+    # all paths to the root node.
     assignedLiteralSet = set([])
 
     ### Information added for use as lemma
@@ -320,7 +322,7 @@ class Lemma:
         idx = 0
         for tup in self.argList:
             ncm.argList.append(tup)
-            cid,isOriginal,clause = tup
+            provenance,isOriginal,clause = tup
             ncm.clauseMap[clause] = idx
             idx += 1
         return ncm
@@ -333,10 +335,10 @@ class Lemma:
         # Double check
         sxo = []
         oxs = []
-        for cid,isOriginal,clause in self.argList:
+        for provenance,isOriginal,clause in self.argList:
              if clause not in olemma.clauseMap:
                  sxo.append(clause)
-        for cid,isOriginal,clause in olemma.argList:
+        for provenance,isOriginal,clause in olemma.argList:
              if clause not in self.clauseMap:
                  oxs.append(clause)
         if len(sxo) > 0 or len(oxs) > 0:
@@ -360,14 +362,14 @@ class Lemma:
         nargList = []
         idx = 0
         self.clauseMap = {}
-        for cid,isOriginal,clause in self.argList:
+        for provenance,isOriginal,clause in self.argList:
             if lit in clause:
                 continue
             elif -lit in clause:
                 isOriginal = False
                 clause = tuple([nlit for nlit in clause if nlit != -lit])
             self.clauseMap[clause] = idx
-            nargList.append((cid,isOriginal,clause))
+            nargList.append((provenance,isOriginal,clause))
             idx += 1
         self.argList = nargList
 
@@ -378,7 +380,7 @@ class Lemma:
         idx = 0
         self.clauseMap = {}
         for tup in self.argList:
-            cid,isOriginal,clause = tup
+            provenance,isOriginal,clause = tup
             if (len(clause)) > 0 and abs(clause[0]) in vset:
                 self.clauseMap[clause] = idx
                 nargList.append(tup)
@@ -422,13 +424,13 @@ class Lemma:
     # Given clause, find originating input clause
     def findInputClause(self, clause):
         idx = self.getIdx(clause)
-        cid,isOriginal,xclause = self.argList[idx]
-        return cid
+        provenance,isOriginal,xclause = self.argList[idx]
+        return provenance
     
     def show(self):
         print("Assigned literals: %s" % str(sorted(self.assignedLiteralSet)))
-        for cid,isOriginal,clause in self.argList:
-            print("Clause %s.  From input clause #%d.  Original? %s" % (str(clause), cid, str(isOriginal)))
+        for provenance,isOriginal,clause in self.argList:
+            print("Clause %s.  From input clause #%d.  Original? %s" % (str(clause), provenance, str(isOriginal)))
 
 
 class NodeType:
@@ -1013,7 +1015,7 @@ class Pog:
         idx = 0
         lcontext = []
         lhints = []
-        for cid,isOriginal,clause in root.lemma.argList:
+        for provenance,isOriginal,clause in root.lemma.argList:
             idx += 1
             if isOriginal:
                 continue
