@@ -312,6 +312,7 @@ class Writer:
             self.outfile.write(line + '\n')
 
     def finish(self):
+        print("Writer finishing")
         if self.isNull:
             return
         if self.outfile is None:
@@ -593,15 +594,60 @@ class OrderWriter(Writer):
         Writer.finish(self)
 
 
-class CratWriter(Writer):
+class SplitWriter(Writer):
+    upperOutfile = None
+    isSplit = False
+    ufname = ""
+
+    def __init__(self, count, fname, verbLevel = 1, isNull = False):
+        Writer.__init__(self, count, fname, verbLevel = 1, isNull = False)
+        self.upperOutfile = None
+        self.isSplit = False
+        self.ufname = ""
+
+    def split(self):
+        self.ufname = "upper_" + self.fname
+        try:
+            self.upperOutfile = open(self.ufname, 'w')
+        except:
+            raise ReadWriteException("Couldn't open file '%s' when splitting" % ufname)
+        self.isSplit = True
+
+    def show(self, line, splitLower = False):
+        if self.isSplit and not splitLower:
+            line = trim(line)
+            if self.verbLevel > 2:
+                print(line)
+            self.upperOutfile.write(line + '\n')
+        else:
+            Writer.show(self, line)
+
+    def finish(self):
+        print("Split writer finishing")
+        if self.isSplit:
+            self.upperOutfile.close()
+            try:
+                infile = open(self.ufname, 'r')
+            except:
+                raise ReadWriteException("Couldn't open file '%s' when merging files")
+            for line in infile:
+                Writer.show(self, line)
+        Writer.finish(self)
+
+# Where should split proofs start their upper steps
+upperStepStart = 100 * 1000 * 1000
+
+class CratWriter(SplitWriter):
     variableCount = 0
     clauseDict = []
-    stepCount = 0
+    lowerStepCount = 0
+    upperStepCount = upperStepStart
 
     def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
         Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
         self.variableCount = variableCount
-        self.stepCount = len(clauseList)
+        self.lowerStepCount = len(clauseList)
+        self.upperStepCount = upperStepStart
         self.clauseDict = {}
         if verbLevel >= 2 and len(clauseList) > 0:
             self.doComment("Input clauses")
@@ -611,18 +657,27 @@ class CratWriter(Writer):
                 self.doLine([s, 'i'] + lits + [0])
             self.addClause(s, lits)
 
+    def incrStep(self, delta = 1, splitLower = False):
+        if self.isSplit and not splitLower:
+            cid = self.upperStepCount
+            self.upperStepCount += delta
+        else:
+            cid = self.lowerStepCount
+            self.lowerStepCount += delta
+        return cid+1
+
     def addClause(self, step, lits):
         self.clauseDict[step] = lits
 
     def deleteClause(self, step):
         del self.clauseDict[step]
 
-    def doLine(self, items):
+    def doLine(self, items, splitLower = False):
         slist = [str(i) for i in items]
-        self.show(" ".join(slist))
+        self.show(" ".join(slist), splitLower)
 
-    def doComment(self, line):
-        self.show("c " + line)
+    def doComment(self, line, splitLower = False):
+        self.show("c " + line, splitLower)
         
     def newXvar(self):
         self.variableCount += 1
@@ -630,8 +685,8 @@ class CratWriter(Writer):
         return v
 
     def finalizeAnd(self, ilist, xvar):
-        self.stepCount += 1
-        step = self.stepCount
+        # Never add operations to lower after split
+        step = self.incrStep()
         self.doLine([step, 'p', xvar] + ilist + [0])
         cpos = [xvar] + [-i for i in ilist]
         self.addClause(step, cpos)
@@ -643,14 +698,13 @@ class CratWriter(Writer):
             self.addClause(step+idx, [-xvar, ilist[idx]])
             if self.verbLevel >= 2:
                 self.doComment("%d a %d %d 0" % (step+1+idx, -xvar, ilist[idx]))
-        self.stepCount += len(ilist)
+        self.incrStep(len(ilist))
         return step
 
     def finalizeOr(self, ilist, xvar, hints):
         if hints is None:
             hints = ['*']
-        self.stepCount += 1
-        step = self.stepCount
+        step = self.incrStep()
         i1 = ilist[0]
         i2 = ilist[1]
         self.doLine([step, 's', xvar, i1, i2] + hints + [0])
@@ -662,13 +716,12 @@ class CratWriter(Writer):
             self.doComment("%d a %d %d %d 0" % (step, -xvar, i1, i2))
             self.doComment("%d a %d %d 0" % (step+1, xvar, -i1))
             self.doComment("%d a %d %d 0" % (step+2, xvar, -i2))
-        self.stepCount += 2
+        self.incrStep(2)
         return step
         
-    def doClause(self, lits, hints = ['*']):
-        self.stepCount += 1
-        s = self.stepCount
-        self.doLine([s, 'a'] + lits + [0] + hints + [0])
+    def doClause(self, lits, hints = ['*'], splitLower = False):
+        s = self.incrStep(1, splitLower)
+        self.doLine([s, 'a'] + lits + [0] + hints + [0], splitLower)
         self.addClause(s, lits)
         return s
         
@@ -683,8 +736,8 @@ class CratWriter(Writer):
         for i in range(count):
             self.deleteClause(clauseId+i)
         
-        
     def finish(self):
-        print("c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, self.stepCount))
-        Writer.finish(self)
+        scount = self.lowerStepCount + (self.upperStepCount - upperStepStart)
+        print("c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, scount))
+        SplitWriter.finish(self)
 

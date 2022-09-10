@@ -145,7 +145,6 @@ class Reasoner:
         if sstate == True:
             print("WARNING. Proof failure. Couldn't justify literal %d with context  %s" % (lit, str(context)))
             raise PogException("Proof failure. Couldn't justify literal %d with context  %s" % (lit, str(context)))
-            return clauses
         slist = self.solver.get_proof()
         if len(slist) == 0:
             raise PogException("Proof failure.  SAT solver returned empty proof")
@@ -807,8 +806,8 @@ class Pog:
             print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
         return result
 
-    def addComment(self, s):
-        self.cwriter.doComment(s)
+    def addComment(self, s, lowerSplit = False):
+        self.cwriter.doComment(s, lowerSplit)
 
     def deleteClause(self, id, hlist = None):
         self.cwriter.doDeleteClause(id, hlist)
@@ -887,40 +886,41 @@ class Pog:
                 hints.append(cid)
                 return hints, unitClauseIds
         clauses = self.reasoner.justifyUnit(lit, context)
-        if len(clauses) == 0:
-            if self.verbLevel >= 3:
-                print("Found unit literal %d in context %s" % (lit, str(context)))
-        else:
-            self.addComment("Justify literal %d in context %s with %d proof steps" % (lit, str(context), len(clauses)))
         lastCid = None
         idxList = []
-        for clause in clauses:
-            rhints = None
-            if self.hintLevel >= 4:
+        if self.hintLevel >= 4:
+            self.addComment("Justify literal %d in context %s with %d hinted steps" % (lit, str(context), len(clauses)))
+            for clause in clauses:
                 # Should be able to justify each clause
                 rhints = self.reasoner.findRup(clause, 3)
-            if rhints is not None:
+                if rhints is None:
+                    raise PogException("Failed to justify intermediate clause %s when trying to justify literal %d in context %s" % (str(clause), lit, str(context)))
                 cid = self.cwriter.doClause(clause, rhints)
                 if self.verbLevel >= 3:
                     print("Generated hints for intermediate clause #%d" % (cid))
-            else:
-                cid = self.cwriter.doClause(clause)
-                if self.hintLevel >= 4 and self.verbLevel >= 3:
-                    print("Could not generate hints for intermediate clause #%d" % (cid))
-            idxList.append(self.reasoner.addStep(1, cid, clause))
-            # This doesn't seem necessary
-            if len(context) == 0 and len(clause) == 1:
-                unitClauseIds.append(cid)
-            lastCid = cid
-        if lastCid is not None:
-            # At least one clause added
-            hints.append(lastCid)
-            if self.verbLevel >= 3:
-                print("Added hint %d" % lastCid)
-            # Change categories for all added clauses, except for last one
-            idxList = idxList[:-1]
-            for idx in idxList:
-                self.reasoner.changeCategory(idx, 3)
+                idxList.append(self.reasoner.addStep(1, cid, clause))
+                # This doesn't seem necessary
+                if len(context) == 0 and len(clause) == 1:
+                    unitClauseIds.append(cid)
+                lastCid = cid
+        else:
+            self.addComment("Justify literal %d in context %s with %d unhinted steps" % (lit, str(context), len(clauses)), lowerSplit = True)
+            for clause in clauses:
+                cid = self.cwriter.doClause(clause, splitLower = True)
+                if self.verbLevel >= 3:
+                    print("Require hints for intermediate clause #%d" % (cid))
+                idxList.append(self.reasoner.addStep(1, cid, clause))
+                # This doesn't seem necessary
+                if len(context) == 0 and len(clause) == 1:
+                    unitClauseIds.append(cid)
+                lastCid = cid
+        hints.append(lastCid)
+        if self.verbLevel >= 3:
+            print("Added hint %d" % lastCid)
+        # Change categories for all added clauses, except for last one
+        idxList = idxList[:-1]
+        for idx in idxList:
+            self.reasoner.changeCategory(idx, 3)
         if self.verbLevel >= 3:
             print("Justified unit literal %d in context %s with %d proof steps" % (lit, str(context), len(clauses)))
 
@@ -1333,7 +1333,7 @@ class Pog:
     # Perform mark & sweep to remove any nodes not reachable from root
     # Generate node declarations
     # Construct context sets
-    def finalize(self):
+    def finalize(self, splitProof):
         for node in self.nodes:
             node.mark = False
         root = self.nodes[-1]
@@ -1351,6 +1351,9 @@ class Pog:
 
         if self.lemmaHeight is not None:
             self.addLemmas()
+
+        if splitProof:
+            self.cwriter.split()
 
         # Generate node declarations
         for node in self.nodes:
