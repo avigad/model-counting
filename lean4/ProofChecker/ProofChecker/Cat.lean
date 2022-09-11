@@ -168,8 +168,9 @@ structure CheckerState where
   /-- We have `x ↦ xs` when `x` is any variable and `xs` is the set of all ext vars which *directly*
   (not transitively) depend on it. -/
   revDeps : Std.HashMap Nat (Std.RBTree Nat compare) := {}
-  /-- The index of the first clause of the three clauses defining an extension variable. -/
-  extDefClauses : Std.HashMap Nat Nat := {}
+  /-- The index of the first clause together with the number of clauses defining an extension
+  variable. -/
+  extDefClauses : Std.HashMap Nat (Nat × Nat) := {}
   scheme : CountingScheme.Graph Nat := CountingScheme.Graph.empty
   trace : Array String := #[]
 
@@ -420,8 +421,8 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
       let lx := Lit.ofInt x
       addClause idx (Clause.mk <| lx :: ls.map (-·))
       for (i, l) in ls.enum do
-        addClause (idx+i+1) (Clause.mk [-lx, l])
-      modify fun st => { st with extDefClauses := st.extDefClauses.insert x idx }
+        addClause (idx+1+i) (Clause.mk [-lx, l])
+      modify fun st => { st with extDefClauses := st.extDefClauses.insert x (idx, ls.length + 1) }
       updateGraph step
     | step@(.sum idx x l₁ l₂ pf) =>
       let C := Clause.mk [l₁.negate, l₂.negate]
@@ -432,16 +433,15 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
       addClause idx (Clause.mk [-lx, l₁, l₂])
       addClause (idx+1) (Clause.mk [lx, -l₁])
       addClause (idx+2) (Clause.mk [lx, -l₂])
-      modify fun st => { st with extDefClauses := st.extDefClauses.insert x idx }
+      modify fun st => { st with extDefClauses := st.extDefClauses.insert x (idx, 3) }
       updateGraph step
     | .delOp x =>
       match (← get).extDefClauses.find? x with
       | none => throw <| .unknownExtVar x
-      | some idx =>
+      | some (idx, n) =>
         delExtVar x
-        delClause idx
-        delClause (idx+1)
-        delClause (idx+2)
+        for i in [:n] do
+          delClause (idx+i)
         modify fun st => { st with extDefClauses := st.extDefClauses.erase x }
         updateGraph step
 
