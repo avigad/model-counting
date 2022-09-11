@@ -1,4 +1,4 @@
-import Std.Data.HashSet
+import Lean.Data.HashSet
 
 def List.union [BEq α] [Hashable α] (xs ys : List α) : List α :=
   let m := xs.foldl (·.insert ·) Std.HashSet.empty
