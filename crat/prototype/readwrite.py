@@ -17,6 +17,8 @@
 # OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ########################################################################################
 
+import os
+
 class ReadWriteException(Exception):
 
     def __init__(self, value):
@@ -312,7 +314,6 @@ class Writer:
             self.outfile.write(line + '\n')
 
     def finish(self):
-        print("Writer finishing")
         if self.isNull:
             return
         if self.outfile is None:
@@ -610,7 +611,7 @@ class SplitWriter(Writer):
         try:
             self.upperOutfile = open(self.ufname, 'w')
         except:
-            raise ReadWriteException("Couldn't open file '%s' when splitting" % ufname)
+            raise ReadWriteException("Couldn't open supplementary file '%s' when splitting" % ufname)
         self.isSplit = True
 
     def show(self, line, splitLower = False):
@@ -623,15 +624,19 @@ class SplitWriter(Writer):
             Writer.show(self, line)
 
     def finish(self):
-        print("Split writer finishing")
         if self.isSplit:
             self.upperOutfile.close()
             try:
                 infile = open(self.ufname, 'r')
             except:
-                raise ReadWriteException("Couldn't open file '%s' when merging files")
+                raise ReadWriteException("Couldn't open supplementary file '%s' when merging files")
             for line in infile:
                 Writer.show(self, line)
+            infile.close()
+            try:
+                os.remove(self.ufname)
+            except:
+                raise ReadWriteException("Couldn't delete supplementary file '%s'" % self.ufname)
         Writer.finish(self)
 
 # Where should split proofs start their upper steps

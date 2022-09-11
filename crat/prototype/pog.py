@@ -859,7 +859,7 @@ class Pog:
             if self.verbLevel >= 3:
                 print("Unit literal %d already in context %s" % (lit, str(context)))
             return hints, unitClauseIds
-        if self.hintLevel >= 3:
+        if self.hintLevel >= 2:
             # See if can find subsuming input clause
             tclause = [lit] + readwrite.invertClause(context)
             cid = self.reasoner.findClauseId(tclause, 1)
