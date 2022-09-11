@@ -11,13 +11,13 @@ going through an index mapping. -/
 inductive CatStep (α ν : Type)
   | /-- Add input clause. -/
     addInput (idx : α) (C : Clause ν)
-  | /-- Add asymmetric tautology. Empty hints means inferred. -/
+  | /-- Add asymmetric tautology. Empty hints means inferred hint. -/
     addAt (idx : α) (C : Clause ν) (upHints : List α)
-  | /-- Add asymmetric tautology. Empty hints means inferred. -/
+  | /-- Delete asymmetric tautology. Empty hints means inferred hint. -/
     delAt (idx : α) (upHints : List α)
   | /-- Declare product operation. -/
-    prod (idx : α) (x : ν) (l₁ l₂ : Lit ν)
-  | /-- Declare sum operation. Empty hints means inferred. -/
+    prod (idx : α) (x : ν) (ls : List (Lit ν))
+  | /-- Declare sum operation. Empty hints means inferred hint. -/
     sum (idx : α) (x : ν) (l₁ l₂ : Lit ν) (upHints : List α)
   | /-- Delete operation. -/
     delOp (x : ν)
@@ -30,7 +30,7 @@ instance [ToString α] [ToString ν] : ToString (CatStep α ν) where
     | addInput idx C => s!"{idx} i ({C})"
     | addAt idx C upHints => s!"{idx} a ({C}) (hints: {upHints})"
     | delAt idx upHints => s!"dc {idx} (hints: {upHints})"
-    | prod idx x l₁ l₂ => s!"{idx} p {x} {l₁} {l₂}"
+    | prod idx x ls => s!"{idx} p {x} {ls.map toString |> " ".intercalate}"
     | sum idx x l₁ l₂ upHints => s!"{idx} s {x} {l₁} {l₂} (hints: {upHints})"
     | delOp x => s!"do {x}"
 
@@ -44,35 +44,38 @@ def ofDimacs (tks : List Token) : Except String (CatStep Nat Nat) := do
     if x < 0 then throw s!"expected positive int {x}"
     return x.natAbs
   match tks with
-  | .int idx :: .str "i" :: tks =>
+  | [.int idx, .str "i"] ++ tks =>
     let some (.int 0) := tks.getLast? | throw s!"missing terminating 0"
     let lits := tks.dropLast
     return .addInput (← posInt idx) (← Clause.ofDimacsLits lits)
-  | .int idx :: .str "a" :: tks =>
+  | [.int idx, .str "a"] ++ tks =>
     let grps := List.splitOn (.int 0) tks
     let lits :: pf? := grps | throw s!"expected clause in '{grps}'"
     let pf := pf?.head?.getD []
     return .addAt (← posInt idx) (← Clause.ofDimacsLits lits) (← toUpHints pf)
-  | .str "dc" :: .int idx :: tks =>
+  | [.str "dc", .int idx] ++ tks =>
     let some (.int 0) := tks.getLast? | throw s!"missing terminating 0"
     let pf := tks.dropLast
     return .delAt (← posInt idx) (← toUpHints pf)
-  | [.int idx, .str "p", .int v, .int l₁, .int l₂] =>
-    return .prod (← posInt idx) (← posInt v) (Lit.ofInt l₁) (Lit.ofInt l₂)
-  | .int idx :: .str "s" :: .int v :: .int l₁ :: .int l₂ :: tks =>
+  | [.int idx, .str "p", .int v] ++ tks =>
+    let some (.int 0) := tks.getLast? | throw s!"missing terminating 0"
+    let ls ← tks.dropLast.mapM (·.getInt? |> Except.ofOption "expected int" |>.map Lit.ofInt)
+    if ls.length < 2 then throw s!"expected at least two literals"
+    return .prod (← posInt idx) (← posInt v) ls
+  | [.int idx, .str "s", .int v, .int l₁, .int l₂] ++ tks =>
     let some (.int 0) := tks.getLast? | throw s!"missing terminating 0"
     let pf := tks.dropLast
     return .sum (← posInt idx) (← posInt v) (Lit.ofInt l₁) (Lit.ofInt l₂) (← toUpHints pf)
   | [.str "do", .int v] =>
     return .delOp (← posInt v)
-  | tks => throw s!"unexpected line {tks}"
+  | _ => throw s!"unexpected line"
 
 def readDimacsFile (fname : String) : IO (Array <| CatStep Nat Nat) := do
   let mut pf := #[]
   for ln in (← Dimacs.tokenizeFile fname) do
     match CatStep.ofDimacs ln with
     | .ok s => pf := pf.push s
-    | .error e => throw <| IO.userError e
+    | .error e => throw <| IO.userError s!"invalid line '{ln}': {e}"
   return pf
 
 end CatStep
@@ -87,7 +90,7 @@ inductive Node ν
   /- Extension variable for sum of subdiagrams with disjoint assignments. -/
   | sum (a b : Lit ν)
   /- Extension variable for product of subdiagrams with disjoint dependency sets. -/
-  | prod (a b : Lit ν)
+  | prod (ls : List (Lit ν))
   deriving Repr, Inhabited
 
 structure Graph (ν : Type) [BEq ν] [Hashable ν] where
@@ -111,11 +114,11 @@ instance [ToString ν] : ToString (GraphUpdateError ν) where
     | .unknownVar x => s!"unknown extension variable '{x}'"
 
 def Graph.update (g : Graph ν) : CatStep α ν → Except (GraphUpdateError ν) (Graph ν)
-  | .prod _ x l₁ l₂ =>
+  | .prod _ x ls =>
     if g.nodes.contains x then
       throw <| .varAlreadyExists x
     else
-      return { g with nodes := g.nodes.insert x <| .prod l₁ l₂ }
+      return { g with nodes := g.nodes.insert x <| .prod ls }
   | .sum _ x l₁ l₂ _ =>
     if g.nodes.contains x then
       throw <| .varAlreadyExists x
@@ -138,30 +141,34 @@ def Graph.toMermaidChart [ToString ν] (g : Graph ν) : String := Id.run do
       ret := ret ++ s!"{x}([{x} OR])\n"
       ret := ret ++ s!"{x} -->{mkArrowEnd a}\n"
       ret := ret ++ s!"{x} -->{mkArrowEnd b}\n"
-    | .prod a b =>
+    | .prod ls =>
       ret := ret ++ s!"{x}({x} AND)\n"
-      ret := ret ++ s!"{x} -->{mkArrowEnd a}\n"
-      ret := ret ++ s!"{x} -->{mkArrowEnd b}\n"
+      for l in ls do
+        ret := ret ++ s!"{x} -->{mkArrowEnd l}\n"
   return ret
 
 end CountingScheme
 
 structure CheckerState where
-  /-- The actual input CNF. -/
-  inputCnf : CnfForm Nat := CnfForm.mk []
-  /-- Input clauses which were introduced by the proof. -/
-  proofInputCnf : CnfForm Nat := CnfForm.mk []
+  inputCnf : CnfForm Nat
+  /-- Clauses in the input CNF that have not yet been added by the proof.
+  This must be empty (all clauses must be introduced) by the end of the proof. -/
+  inputClausesToAdd : Std.HashSet (Clause Nat) := inputCnf.foldl (init := {}) .insert
+  /-- Indices in the database of added input clauses.
+  This must be empty (all inputs must be deleted) by the end of the proof. -/
   inputIdsInDb : Std.HashSet Nat := {}
   originalVars : Nat := inputCnf.maxVar?.getD 0
   clauseDb : Std.HashMap Nat (Clause Nat) := {}
-  -- which clauses a given literal occurs in
+  /-- The indices of all clauses a given literal occurs in. -/
   occurs : Std.HashMap (Lit Nat) (Array Nat) := {}
-  /-- Which variables an extension variable transitively depends on. -/
-  -- invariant: extension variable is in `depends` iff it has been introduced
+  /-- We have `x ↦ xs` when `x` is an extension variable and `xs = D(x)`, i.e. the set of all
+  variables `x` transitively depends on. Invariant: an extension variable is in `depends` iff
+  it has been introduced. -/
   depends : Std.HashMap Nat (Std.RBTree Nat compare) := {}
-  /-- Which extension variables directly depend on a variable. -/
+  /-- We have `x ↦ xs` when `x` is any variable and `xs` is the set of all ext vars which *directly*
+  (not transitively) depend on it. -/
   revDeps : Std.HashMap Nat (Std.RBTree Nat compare) := {}
-  /-- The first clause of the three clauses defining an extension variable. -/
+  /-- The index of the first clause of the three clauses defining an extension variable. -/
   extDefClauses : Std.HashMap Nat Nat := {}
   scheme : CountingScheme.Graph Nat := CountingScheme.Graph.empty
   trace : Array String := #[]
@@ -172,7 +179,7 @@ structure CheckerState where
   -- -/
   -- backrefs : Std.HashMap ν (Std.HashSet ν)
 
-instance : Inhabited CheckerState := ⟨{}⟩
+instance : Inhabited CheckerState := ⟨{ inputCnf := CnfForm.mk [] }⟩
 
 inductive CheckerError where
   | graphUpdateError (err : CountingScheme.GraphUpdateError Nat)
@@ -185,7 +192,7 @@ inductive CheckerError where
   | missingHint (idx : Nat) (pivot : Lit Nat)
   | duplicateExtVar (x : Nat)
   | unknownExtVar (x : Nat)
-  | sumNotDisjoint (x y : Nat)
+  | prodNotDisjoint (xs : List Nat)
   | finalStateIncorrectInput
   | finalStateInputNotDeleted (C : Clause Nat)
   | finalStateNotOneUnit (n : Nat)
@@ -207,7 +214,7 @@ instance : ToString CheckerError where
     | missingHint idx pivot => s!"missing hint for clause {idx} resolved on '{pivot}'"
     | duplicateExtVar x => s!"extension variable '{x}' already introduced"
     | unknownExtVar x => s!"unknown extension variable '{x}'"
-    | sumNotDisjoint x y => s!"variables '{x}' and '{y}' have intersecting dependency sets"
+    | prodNotDisjoint xs => s!"variables {xs} have non-disjoint dependency sets"
     | finalStateIncorrectInput => s!"proof done but input CNF was not introduced correctly"
     | finalStateInputNotDeleted C => s!"proof done but input clause {C} was not deleted"
     | finalStateNotOneUnit n => s!"proof done but {n} unit clauses left, expected 1"
@@ -253,37 +260,41 @@ def reduceClause (idx : Nat) (τ : PropAssignment Nat) : CheckerM (Option (Claus
   let C ← getClause idx
   return τ.reduceClause C
 
--- d₁ d₂ are the vars x depends on
-def addExtVar (x : Nat) (d₁ d₂ : Nat) (ensureDisjoint := false) : CheckerM Unit := do
+/-- Add an extension variable `x`. `ds` are the vars `x` depends on. If `ensureDisjoint = true`,
+the dependency sets of `ds` must be pairwise disjoint. -/
+def addExtVar (x : Nat) (ds : List Nat) (ensureDisjoint := false) : CheckerM Unit := do
   let st ← get
   if st.depends.contains x then
     throw <| .duplicateExtVar x
 
-  let depsOf (x : Nat) :=
+  let depsOf (x : Nat) := do
     match st.depends.find? x with
-    | some ds => pure ds
+    | some ds => return ds
     | none =>
       if x > st.originalVars then
         throw <| .unknownExtVar x
       else
       -- TODO introduce these at the start and maintain invariant that `st.depends`
       -- contains all depsets of all present variables
-        pure <| Std.RBTree.ofList [x]
+        return Std.RBTree.ofList [x]
 
-  let depends₁ ← depsOf d₁
-  let depends₂ ← depsOf d₂
+  let mut allDeps ← depsOf ds.head!
+  allDeps := allDeps.insert ds.head!
+  for d in ds.tail! do
+    let deps ← depsOf d
+    -- TODO HashSet instead of RBTree?
+    if ensureDisjoint ∧ deps.any (allDeps.contains ·) then
+      throw <| .prodNotDisjoint ds
+    allDeps := deps.fold (init := allDeps) fun acc x => acc.insert x |>.insert d
 
-  -- TODO HashSet instead of RBTree?
-  if ensureDisjoint ∧ depends₁.any (depends₂.contains ·) then
-    throw <| .sumNotDisjoint d₁ d₂
-  let allDeps := depends₂.fold (init := depends₁) fun acc x => acc.insert x
-    |>.insert d₁ |>.insert d₂
+  let mut revDeps := st.revDeps
+  for d in ds do
+    let dRevDeps := revDeps.find? d |>.getD {} |>.insert x
+    revDeps := revDeps.insert d dRevDeps
 
-  let revDeps₁ := st.revDeps.find? d₁ |>.getD {} |>.insert x
-  let revDeps₂ := st.revDeps.find? d₂ |>.getD {} |>.insert x
   set { st with
     depends := st.depends.insert x allDeps
-    revDeps := st.revDeps.insert d₁ revDeps₁ |>.insert d₂ revDeps₂
+    revDeps
   }
 
 def delExtVar (x : Nat) : CheckerM Unit := do
@@ -390,8 +401,8 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
     | .addInput idx C =>
       addClause idx C
       modify fun st => { st with
-        proofInputCnf := C :: st.proofInputCnf
         inputIdsInDb := st.inputIdsInDb.insert idx
+        inputClausesToAdd := st.inputClausesToAdd.erase C
       }
     | .addAt idx C pf =>
       if !pf.isEmpty then checkAtWithHints C pf
@@ -404,19 +415,19 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
       if !pf.isEmpty then checkAtWithHints C pf
       else checkAtWithoutHints C
       modify fun st => { st with inputIdsInDb := st.inputIdsInDb.erase idx }
-    | step@(.prod idx x l₁ l₂) =>
-      addExtVar x l₁.var l₂.var (ensureDisjoint := true)
+    | step@(.prod idx x ls) =>
+      addExtVar x (ls.map (·.var)) (ensureDisjoint := true)
       let lx := Lit.ofInt x
-      addClause idx (Clause.mk [lx, -l₁, -l₂])
-      addClause (idx+1) (Clause.mk [-lx, l₁])
-      addClause (idx+2) (Clause.mk [-lx, l₂])
+      addClause idx (Clause.mk <| lx :: ls.map (-·))
+      for (i, l) in ls.enum do
+        addClause (idx+i+1) (Clause.mk [-lx, l])
       modify fun st => { st with extDefClauses := st.extDefClauses.insert x idx }
       updateGraph step
     | step@(.sum idx x l₁ l₂ pf) =>
       let C := Clause.mk [l₁.negate, l₂.negate]
       if !pf.isEmpty then checkAtWithHints C pf
       else checkAtWithoutHints C
-      addExtVar x l₁.var l₂.var
+      addExtVar x [l₁.var, l₂.var]
       let lx := Lit.ofInt x
       addClause idx (Clause.mk [-lx, l₁, l₂])
       addClause (idx+1) (Clause.mk [lx, -l₁])
@@ -438,14 +449,8 @@ def checkFinalState : CheckerM Unit := do
   let st ← get
   log s!"final clauses:\n\t{st.clauseDb.toList}"
 
-  -- Check that the "actual" input CNF and the introduced clauses are equal as sets.
-  -- HACK(WN): horrible quadratic checks
-  for C in st.proofInputCnf do
-    if !st.inputCnf.contains C then
-      throw <| .finalStateIncorrectInput
-  for C in st.inputCnf do
-    if !st.proofInputCnf.contains C then
-      throw <| .finalStateIncorrectInput
+  if !st.inputClausesToAdd.isEmpty then
+    throw <| .finalStateIncorrectInput
 
   if !st.inputIdsInDb.isEmpty then
     let C ← getClause st.inputIdsInDb.toList.head!
