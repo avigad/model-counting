@@ -480,6 +480,8 @@ class ClauseManager:
     inputClauseCount = 0
     # Mapping from Id to clause.  Deleted clauses represented by None
     clauseDict = {}
+    # Ids of clauses used in defining operations
+    definingClauseSet = set([])
     # Unit clauses
     unitClauseSet = set([])
     # For each literal, count of clauses containing it
@@ -510,6 +512,7 @@ class ClauseManager:
         self.laxMode = laxMode
         self.uncheckedCount = 0
         self.clauseDict = {}
+        self.definingClauseSet = set([])
         self.unitClauseSet = set([])
         self.literalCountDict = {}
         self.literalSetDict = {}
@@ -532,7 +535,7 @@ class ClauseManager:
 
     # Add clause.  Should have been processed with cleanClause
     # Return (T/F, reason)
-    def addClause(self, clause, id):
+    def addClause(self, clause, id, defining = False):
         if not regularClause(clause):
             return (False, "Cannot add clause %s" % showClause(clause))
         if id <= self.maxClauseId:
@@ -543,6 +546,8 @@ class ClauseManager:
             self.addedEmpty = True
         if len(clause) == 1:
             self.unitClauseSet.add(id)
+        if defining:
+            self.definingClauseSet.add(id)
         self.liveClauseCount += 1
         self.totalClauseCount += 1
         if self.verbose:
@@ -683,22 +688,15 @@ class ClauseManager:
         return (False, "RUP failed: No conflict found", hints)
 
     def checkFinal(self):
-        # All input clauses should have been deleted
-        neverDefined = []
+        # All but single unit clause should have been deleted
         notDeleted = []
-        for id in range(1, self.inputClauseCount+1):
-            if id in self.clauseDict:
-                if self.clauseDict[id] is not None:
-                    notDeleted.append(id)
-            else:
-                neverDefined.append(id)
-        if len(neverDefined) > 0:
-            return (False, "Input clauses %s never defined" % str(neverDefined))
-        if len(notDeleted) > 0:
-            return (False, "Input clauses %s not deleted" % str(notDeleted))
         # Should only be one unit clause
         self.root = None
+
+
         for id in sorted(self.clauseDict.keys()):
+            if id in self.definingClauseSet:
+                continue
             entry = self.clauseDict[id]
             if entry is None:
                 continue
@@ -707,6 +705,14 @@ class ClauseManager:
                 if self.root is not None:
                     return (False, "At least two possible roots: %d, %d" % (self.root, nroot))
                 self.root = nroot
+            else:
+                notDeleted.append(id)
+
+        if len(notDeleted) > 0:
+            return (False, "Input clauses %s not deleted" % str(notDeleted))
+                
+
+                
         if self.root is None:
             return (False, "No root found")
         return (True, "")
@@ -752,22 +758,22 @@ class OperationManager:
             dset = dset.union(adset)
         self.dependencySetDict[outVar] = dset
         if op == self.conjunction:
-            (ok, msg) = self.cmgr.addClause([outVar] + [-lit for lit in inLits], id)
+            (ok, msg) = self.cmgr.addClause([outVar] + [-lit for lit in inLits], id, defining=True)
             if not ok:
                 return (ok, msg)
             nextId = id+1
             for lit in inLits:
-                (ok, msg) = self.cmgr.addClause([-outVar, lit], nextId)
+                (ok, msg) = self.cmgr.addClause([-outVar, lit], nextId, defining=True)
                 nextId += 1
                 if not ok:
                     return (ok, msg)
         elif op == self.disjunction:
-            (ok, msg) = self.cmgr.addClause([-outVar] + inLits, id)
+            (ok, msg) = self.cmgr.addClause([-outVar] + inLits, id, defining=True)
             if not ok:
                 return (ok, msg)
             nextId = id+1
             for lit in inLits:
-                (ok, msg) = self.cmgr.addClause([outVar, -lit], nextId)
+                (ok, msg) = self.cmgr.addClause([outVar, -lit], nextId, defining=True)
                 nextId += 1
                 if not ok:
                     return (ok, msg)
