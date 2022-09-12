@@ -647,6 +647,9 @@ class CratWriter(SplitWriter):
     clauseDict = []
     lowerStepCount = 0
     upperStepCount = upperStepStart
+    # Maintain lists of clause additions.  Each is tuple of form (id, hints)
+    lowerHintStack = []
+    upperHintStack = []
 
     def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
         Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
@@ -654,6 +657,9 @@ class CratWriter(SplitWriter):
         self.lowerStepCount = len(clauseList)
         self.upperStepCount = upperStepStart
         self.clauseDict = {}
+        self.lowerClauseStack = []
+        self.upperClauseStack = []
+
         if verbLevel >= 2 and len(clauseList) > 0:
             self.doComment("Input clauses")
         for s in range(1, len(clauseList)+1):
@@ -728,12 +734,17 @@ class CratWriter(SplitWriter):
         s = self.incrStep(1, splitLower)
         self.doLine([s, 'a'] + lits + [0] + hints + [0], splitLower)
         self.addClause(s, lits)
+        shints = None if len(hints) == 1 and hints[0] == '*' else tuple(hints)
+        if s >= upperStepStart:
+            self.upperHintStack.append((s,shints))
+        else:
+            self.lowerHintStack.append((s,shints))
         return s
         
     def doDeleteClause(self, id, hints=None):
         if hints is None:
             hints = ['*']
-        self.doLine(['dc', id] + hints + [0])
+        self.doLine(['dc', id] + list(hints) + [0])
         self.deleteClause(id)
 
     def doDeleteOperation(self, exvar, clauseId, count):
@@ -741,6 +752,15 @@ class CratWriter(SplitWriter):
         for i in range(count):
             self.deleteClause(clauseId+i)
         
+    def doDeleteAssertedClauses(self):
+        hintStack = self.lowerHintStack + self.upperHintStack
+        # final hint should be asserted unit clause.  Don't delete it
+        hintStack = hintStack[:-1]
+        hintStack.reverse()
+        for (id,hints) in hintStack:
+            self.doDeleteClause(id, hints)
+            
+
     def finish(self):
         scount = self.lowerStepCount + (self.upperStepCount - upperStepStart)
         print("c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, scount))
