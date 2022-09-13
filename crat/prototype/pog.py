@@ -886,6 +886,13 @@ class Pog:
             tclause = [lit] + readwrite.invertClause(context)
             rhints = self.reasoner.findRup(tclause, 1)
             if rhints is not None:
+                if len(rhints) == 1:
+                    # Found matchingclause
+                    cid = rhints[0]
+                    if self.verbLevel >= 3:
+                        print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), lit, str(context)))
+                    hints.append(cid)
+                    return hints
                 if self.verbLevel >= 3:
                     print("Justified unit literal %d in context %s with single RUP step and hints %s" % (lit, str(context), str(rhints)))
                 if self.verbLevel >= 2:
