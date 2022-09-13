@@ -322,14 +322,15 @@ class Writer:
         self.outfile = None
 
 
-class WriterException(Exception):
+class DratWriter(Writer):
+    
+    def __init__(self, fname):
+        Writer.__init__(self, 0, fname)
 
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return "Writer Exception: " + str(self.value)
-     
+    def doStep(self, lits):
+        slits = [str(lit) for lit in lits] + ['0']
+        line = " ".join(slits)
+        self.show(line)
 
 # Creating CNF
 class CnfWriter(Writer):
@@ -351,7 +352,7 @@ class CnfWriter(Writer):
         for lit in literals:
             var = abs(lit)
             if var <= 0 or var > self.expectedVariableCount:
-                raise WriterException("Variable %d out of range 1--%d" % (var, self.expectedVariableCount))
+                raise ReadWriteException("Variable %d out of range 1--%d" % (var, self.expectedVariableCount))
         ilist = literals + [0]
         self.outputList.append(" ".join([str(i) for i in ilist]))
         self.clauseCount += 1
@@ -368,6 +369,18 @@ class CnfWriter(Writer):
         self.outfile.close()
         self.outfile = None
 
+# Version that allows adding clauses for product operators
+class AugmentedCnfWriter(CnfWriter):
+    
+    def doProduct(self, var, args):
+        self.expectedVariableCount = max(self.expectedVariableCount, var)
+        lits = [var] + [-arg for arg in args]
+        self.doClause(lits)
+        for arg in args:
+            lits = [-var, arg]
+            self.doClause(lits)
+    
+
 # Enable permuting of variables before emitting CNF
 class Permuter:
     forwardMap = {}
@@ -381,7 +394,7 @@ class Permuter:
             permutedList = valueList
             identity = True
         if len(valueList) != len(permutedList):
-            raise WriterException("Unequal list lengths: %d, %d" % (len(valueList), len(permutedList)))
+            raise ReadWriteException("Unequal list lengths: %d, %d" % (len(valueList), len(permutedList)))
         for v, p in zip(valueList, permutedList):
             self.forwardMap[v] = p
             self.reverseMap[p] = v
@@ -390,20 +403,20 @@ class Permuter:
         # Check permutation
         for v in valueList:
             if v not in self.reverseMap:
-                raise WriterException("Not permutation: Nothing maps to %s" % str(v))
+                raise ReadWriteException("Not permutation: Nothing maps to %s" % str(v))
         for v in permutedList:
             if v not in self.forwardMap:
-                raise WriterException("Not permutation: %s does not map anything" % str(v))
+                raise ReadWriteException("Not permutation: %s does not map anything" % str(v))
             
             
     def forward(self, v):
         if v not in self.forwardMap:
-            raise WriterException("Value %s not in permutation" % (str(v)))
+            raise ReadWriteException("Value %s not in permutation" % (str(v)))
         return self.forwardMap[v]
 
     def reverse(self, v):
         if v not in self.reverseMap:
-            raise WriterException("Value %s not in permutation range" % (str(v)))
+            raise ReadWriteException("Value %s not in permutation range" % (str(v)))
         return self.reverseMap[v]
     
     def __len__(self):
@@ -533,7 +546,7 @@ class ScheduleWriter(Writer):
             return
         if self.stackDepth == 0:
             print ("Warning: Cannot quantify.  Stack empty")
-#            raise WriterException("Cannot quantify.  Stack empty")
+#            raise ReadWriteException("Cannot quantify.  Stack empty")
         self.show("q %s" % " ".join([str(c) for c in vlist]))
 
     # Issue equation or constraint.
@@ -545,7 +558,7 @@ class ScheduleWriter(Writer):
         if self.stackDepth == 0:
             print ("Warning: Cannot quantify.  Stack empty")
         if len(vlist) != len(clist):
-            raise WriterException("Invalid equation or constraint.  %d variables, %d coefficients" % (len(vlist), len(clist)))
+            raise ReadWriteException("Invalid equation or constraint.  %d variables, %d coefficients" % (len(vlist), len(clist)))
         cmd = "=" if isEquation else ">="
         slist = [cmd, str(const)]
         slist += [("%d.%d" % (c,v)) for (c,v) in zip(clist, vlist)]
@@ -563,7 +576,7 @@ class ScheduleWriter(Writer):
             return
         if self.stackDepth != self.expectedFinal:
             print("Warning: Invalid schedule.  Finish with %d elements on stack" % self.stackDepth)
-#            raise WriterException("Invalid schedule.  Finish with %d elements on stack" % self.stackDepth)
+#            raise ReadWriteException("Invalid schedule.  Finish with %d elements on stack" % self.stackDepth)
         Writer.finish(self)
 
 class OrderWriter(Writer):
@@ -581,7 +594,7 @@ class OrderWriter(Writer):
         if self.isNull:
             return
         if self.expectedVariableCount != len(self.variableList):
-#            raise WriterException("Incorrect number of variables in ordering %d != %d" % (
+#            raise ReadWriteException("Incorrect number of variables in ordering %d != %d" % (
 #                len(self.variableList), self.expectedVariableCount))
             print("Warning: Incorrect number of variables in ordering")
             print("  Expected %d.  Got %d" % (self.expectedVariableCount, len(self.variableList)))
@@ -590,7 +603,7 @@ class OrderWriter(Writer):
         self.variableList.sort()
         for (e, a) in zip(expected, self.variableList):
             if e != a:
-               raise WriterException("Mismatch in ordering.  Expected %d.  Got %d" % (e, a))
+               raise ReadWriteException("Mismatch in ordering.  Expected %d.  Got %d" % (e, a))
         print("c File '%s' written" % (self.fname))
         Writer.finish(self)
 
@@ -665,7 +678,7 @@ class CratWriter(SplitWriter):
         for s in range(1, len(clauseList)+1):
             lits = clauseList[s-1]
             if verbLevel >= 2:
-                self.doLine([s, 'i'] + lits + [0])
+                self.doLine(['c', s, 'i'] + lits + [0])
             self.addClause(s, lits)
 
     def incrStep(self, delta = 1, splitLower = False):
