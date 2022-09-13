@@ -871,16 +871,6 @@ class Pog:
                     print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), lit, str(context)))
                 hints.append(cid)
                 return hints
-        if self.hintLevel >= 5:
-            # This is an expensive test, relative to its success rate and its checking time savings
-            # See if can find subsuming input clause
-            tclause = [lit] + readwrite.invertClause(context)
-            cid = self.reasoner.findClauseId(tclause, 0)
-            if cid > 0:
-                if self.verbLevel >= 3:
-                    print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), lit, str(context)))
-                hints.append(cid)
-                return hints
         if self.hintLevel >= 3:
             # See if can generate RUP proof over input and lemma argument clauses
             tclause = [lit] + readwrite.invertClause(context)
