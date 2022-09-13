@@ -332,7 +332,7 @@ class CnfReader():
                     if vars[i] == vars[i+1]:
                         self.fail("Line %d.  Opposite or repeated literal" % lineNumber)
                         return
-                self.clauses.append(lits)
+                self.clauses.append(tuple(lits))
                 clauseCount += 1
         if clauseCount != nclause:
             self.fail("Line %d: Got %d clauses.  Expected %d" % (lineNumber, clauseCount, nclause))
