@@ -39,7 +39,7 @@ def polarity : Lit ν → Bool
 
 def ofDimacs? (s : String) : Option (Lit String) :=
   if s.isEmpty then none
-  else if s[0] == '-' then neg (s.drop 1)
+  else if s.get! 0 == '-' then neg (s.drop 1)
   else pos s
 
 def ofInt (i : Int) : Lit Nat :=
