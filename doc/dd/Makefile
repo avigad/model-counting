@@ -2,8 +2,8 @@ GDIR = .
 GEN = $(GDIR)/ddgen.py
 SCALE=50pt
 
-tex: c3.tex c3-eval.tex p2-bdd.tex p2-bdd-eval.tex p2-cdcl.tex p2-cdcl-eval.tex
-
+tex: c3.tex c3-eval.tex p2-bdd.tex p2-bdd-eval.tex p2-cdcl.tex p2-cdcl-eval.tex \
+	eg4.tex eg4-eval.tex
 
 c3.tex: c3.dd
 	$(GEN) -i c3.dd -o c3.tex -u $(SCALE)
@@ -46,6 +46,21 @@ p2-cdcl-doc.pdf: p2-cdcl.dd
 p2-cdcl-eval-doc.pdf: p2-cdcl-eval.dd
 	$(GEN) -w -i p2-cdcl-eval.dd -o p2-cdcl-eval-doc.tex -u $(SCALE)
 	pdflatex p2-cdcl-eval-doc.tex
+
+eg4.tex: eg4.dd
+	$(GEN) -i eg4.dd -o eg4.tex -u $(SCALE)
+
+eg4-doc.pdf: eg4.dd
+	$(GEN) -w -i eg4.dd -o eg4-doc.tex -u $(SCALE)
+	pdflatex eg4-doc.tex
+
+eg4-eval.tex: eg4-eval.dd
+	$(GEN) -i eg4-eval.dd -o eg4-eval.tex -u $(SCALE)
+
+eg4-eval-doc.pdf: eg4-eval.dd
+	$(GEN) -w -i eg4-eval.dd -o eg4-eval-doc.tex -u $(SCALE)
+	pdflatex eg4-eval-doc.tex
+
 
 clean:
 	rm -f *.tex *.pdf *~ *.log *.aux
