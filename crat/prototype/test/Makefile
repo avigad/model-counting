@@ -8,8 +8,10 @@ HLEVEL = 4
 LHEIGHT = 2
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
+HINTIFY = ../hintify.py
 
-.SUFFIXES: .cnf .nnf .crat .check_data .hinted_crat .hinted_check_data \
+
+.SUFFIXES: .cnf .nnf .crat .check_data .hinted_crat .hinted_check_data .scrat .drat \
 	      .d4nnf .d4crat .d4check_data .d4hinted_crat .d4hinted_check_data
 
 .cnf.nnf:
@@ -18,11 +20,18 @@ CHECK = ../crat_checker.py
 .nnf.crat:
 	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) $(SPLIT) | tee $*.crat_data
 
+.nnf.scrat:
+	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H 2 -L $(LHEIGHT) -s | tee $*.scrat_data
+
 .crat.check_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@
 
 .hinted_crat.hinted_check_data:
 	$(INTERP) $(CHECK) -v $(VLEVEL) -i $*.cnf -p $<  | tee $@
+
+.scrat.drat:
+	$(INTERP) $(HINTIFY) -i $*.cnf -p $< -r $*
+
 
 .cnf.d4nnf:
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
