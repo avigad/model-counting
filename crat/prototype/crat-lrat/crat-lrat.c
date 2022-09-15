@@ -1494,3 +1494,4 @@ int main (int argc, char** argv) {
   freeMemory (&S);
   return (sts != UNSAT); // 0 on success, 1 on any failure
 }
+

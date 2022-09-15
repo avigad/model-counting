@@ -14,12 +14,23 @@ cat $CNF  | awk '/ 0/ {print "d "$0;}' > d-lines
 cat $CNF  | awk '/ 0/ {print $0; print "d "$0;}' >> d-lines
 #cat $CNF  | awk '/ 0/ {print "d "$0; print $0; print "d "$0;}' > d-lines
 
-./expand p-lines > $DRAT
-cat a-lines d-lines >> $DRAT
+cp $CNF tmp-$$.cnf
+./expand p-lines >> tmp-$$.cnf
+NVAR=`tail -n 1 tmp-$$.cnf | awk '{if ($1 > 0) print $1; else print $1*-1}'`
+NCLS=`cat tmp-$$.cnf | grep -v "c" | wc | awk '{print $1}'`
 
-./crat-lrat $CNF $DRAT -f | grep -v -e "c " -e "s " > tmp.lrat
+cat tmp-$$.cnf | awk '/p cnf/ {print "p cnf '$NVAR' '$NCLS'"} / 0/ {print $0}' > base.cnf
+rm tmp-$$.cnf
+
+#echo $NVAR" "$NCLS
+
+#cat a-lines d-lines > $DRAT
+cat a-lines > $DRAT
+
+./crat-lrat base.cnf $DRAT -f | grep -v -e "c " -e "s " > tmp.lrat
 
 
-tail -n $BOTH tmp.lrat  | head -n $ASIZE | awk '{printf "%i a", $1; $1=""; print $0}'
+cat tmp.lrat | awk '{printf "%i a", $1; $1=""; print $0}'
+#tail -n $BOTH tmp.lrat  | head -n $ASIZE | awk '{printf "%i a", $1; $1=""; print $0}'
+#tail -n $DSIZE tmp.lrat | sed 's| 0 |:|' | cut -d: -f2- | awk 'BEGIN{i=1} {print "dc "i" "$0; i=i+1}'
 
-tail -n $DSIZE tmp.lrat | sed 's| 0 |:|' | cut -d: -f2- | awk 'BEGIN{i=1} {print "dc "i" "$0; i=i+1}'
