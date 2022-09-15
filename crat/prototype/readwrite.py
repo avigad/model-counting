@@ -17,6 +17,8 @@
 # OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ########################################################################################
 
+import os
+
 class ReadWriteException(Exception):
 
     def __init__(self, value):
@@ -41,7 +43,7 @@ tautologyId = 1000 * 1000 * 1000
 # Sort in reverse order of variable number
 # Don't allow clause to have opposite literals (returns tautologyId)
 def cleanClause(literalList):
-    slist = sorted(literalList, key = lambda v: -abs(v))
+    slist = sorted(literalList, key = lambda v: abs(v))
     if len(slist) == 0:
         return slist
     if slist[0] == tautologyId:
@@ -89,9 +91,9 @@ def testClauseSubset(clause1, clause2):
             return False
         head1 = clause1[idx1]
         head2 = clause2[idx2]
-        if abs(head1) < abs(head2):
+        if abs(head1) > abs(head2):
             idx2 += 1
-        elif abs(head1) > abs(head2):
+        elif abs(head1) < abs(head2):
             return False
         elif head1 == head2:
             idx1 += 1
@@ -320,24 +322,28 @@ class Writer:
         self.outfile = None
 
 
-class WriterException(Exception):
+class DratWriter(Writer):
+    
+    def __init__(self, fname):
+        Writer.__init__(self, 0, fname)
 
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return "Writer Exception: " + str(self.value)
-     
+    def doStep(self, lits):
+        slits = [str(lit) for lit in lits] + ['0']
+        line = " ".join(slits)
+        self.show(line)
 
 # Creating CNF
 class CnfWriter(Writer):
     clauseCount = 0
     outputList = []
+    # Track which variables actually occur
+    vset = set([])
 
     def __init__(self, count, fname, verbLevel = 1):
         Writer.__init__(self, count, fname, verbLevel = verbLevel)
         self.clauseCount = 0
         self.outputList = []
+        self.vset = set([])
 
     # With CNF, must accumulate all of the clauses, since the file header
     # requires providing the number of clauses.
@@ -349,11 +355,15 @@ class CnfWriter(Writer):
         for lit in literals:
             var = abs(lit)
             if var <= 0 or var > self.expectedVariableCount:
-                raise WriterException("Variable %d out of range 1--%d" % (var, self.expectedVariableCount))
+                raise ReadWriteException("Variable %d out of range 1--%d" % (var, self.expectedVariableCount))
+            self.vset.add(var)
         ilist = literals + [0]
         self.outputList.append(" ".join([str(i) for i in ilist]))
         self.clauseCount += 1
         return self.clauseCount
+
+    def variableCount(self):
+        return len(self.vset)
 
     def finish(self):
         if self.isNull:
@@ -365,6 +375,19 @@ class CnfWriter(Writer):
             self.show(line)
         self.outfile.close()
         self.outfile = None
+
+
+# Version that allows adding clauses for product operators
+class AugmentedCnfWriter(CnfWriter):
+    
+    def doProduct(self, var, args):
+        self.expectedVariableCount = max(self.expectedVariableCount, var)
+        lits = [var] + [-arg for arg in args]
+        self.doClause(lits)
+        for arg in args:
+            lits = [-var, arg]
+            self.doClause(lits)
+    
 
 # Enable permuting of variables before emitting CNF
 class Permuter:
@@ -379,7 +402,7 @@ class Permuter:
             permutedList = valueList
             identity = True
         if len(valueList) != len(permutedList):
-            raise WriterException("Unequal list lengths: %d, %d" % (len(valueList), len(permutedList)))
+            raise ReadWriteException("Unequal list lengths: %d, %d" % (len(valueList), len(permutedList)))
         for v, p in zip(valueList, permutedList):
             self.forwardMap[v] = p
             self.reverseMap[p] = v
@@ -388,20 +411,20 @@ class Permuter:
         # Check permutation
         for v in valueList:
             if v not in self.reverseMap:
-                raise WriterException("Not permutation: Nothing maps to %s" % str(v))
+                raise ReadWriteException("Not permutation: Nothing maps to %s" % str(v))
         for v in permutedList:
             if v not in self.forwardMap:
-                raise WriterException("Not permutation: %s does not map anything" % str(v))
+                raise ReadWriteException("Not permutation: %s does not map anything" % str(v))
             
             
     def forward(self, v):
         if v not in self.forwardMap:
-            raise WriterException("Value %s not in permutation" % (str(v)))
+            raise ReadWriteException("Value %s not in permutation" % (str(v)))
         return self.forwardMap[v]
 
     def reverse(self, v):
         if v not in self.reverseMap:
-            raise WriterException("Value %s not in permutation range" % (str(v)))
+            raise ReadWriteException("Value %s not in permutation range" % (str(v)))
         return self.reverseMap[v]
     
     def __len__(self):
@@ -531,7 +554,7 @@ class ScheduleWriter(Writer):
             return
         if self.stackDepth == 0:
             print ("Warning: Cannot quantify.  Stack empty")
-#            raise WriterException("Cannot quantify.  Stack empty")
+#            raise ReadWriteException("Cannot quantify.  Stack empty")
         self.show("q %s" % " ".join([str(c) for c in vlist]))
 
     # Issue equation or constraint.
@@ -543,7 +566,7 @@ class ScheduleWriter(Writer):
         if self.stackDepth == 0:
             print ("Warning: Cannot quantify.  Stack empty")
         if len(vlist) != len(clist):
-            raise WriterException("Invalid equation or constraint.  %d variables, %d coefficients" % (len(vlist), len(clist)))
+            raise ReadWriteException("Invalid equation or constraint.  %d variables, %d coefficients" % (len(vlist), len(clist)))
         cmd = "=" if isEquation else ">="
         slist = [cmd, str(const)]
         slist += [("%d.%d" % (c,v)) for (c,v) in zip(clist, vlist)]
@@ -561,7 +584,7 @@ class ScheduleWriter(Writer):
             return
         if self.stackDepth != self.expectedFinal:
             print("Warning: Invalid schedule.  Finish with %d elements on stack" % self.stackDepth)
-#            raise WriterException("Invalid schedule.  Finish with %d elements on stack" % self.stackDepth)
+#            raise ReadWriteException("Invalid schedule.  Finish with %d elements on stack" % self.stackDepth)
         Writer.finish(self)
 
 class OrderWriter(Writer):
@@ -579,7 +602,7 @@ class OrderWriter(Writer):
         if self.isNull:
             return
         if self.expectedVariableCount != len(self.variableList):
-#            raise WriterException("Incorrect number of variables in ordering %d != %d" % (
+#            raise ReadWriteException("Incorrect number of variables in ordering %d != %d" % (
 #                len(self.variableList), self.expectedVariableCount))
             print("Warning: Incorrect number of variables in ordering")
             print("  Expected %d.  Got %d" % (self.expectedVariableCount, len(self.variableList)))
@@ -588,28 +611,92 @@ class OrderWriter(Writer):
         self.variableList.sort()
         for (e, a) in zip(expected, self.variableList):
             if e != a:
-               raise WriterException("Mismatch in ordering.  Expected %d.  Got %d" % (e, a))
+               raise ReadWriteException("Mismatch in ordering.  Expected %d.  Got %d" % (e, a))
         print("c File '%s' written" % (self.fname))
         Writer.finish(self)
 
 
-class CratWriter(Writer):
+class SplitWriter(Writer):
+    upperOutfile = None
+    isSplit = False
+    ufname = ""
+
+    def __init__(self, count, fname, verbLevel = 1, isNull = False):
+        Writer.__init__(self, count, fname, verbLevel = 1, isNull = False)
+        self.upperOutfile = None
+        self.isSplit = False
+        self.ufname = ""
+
+    def split(self):
+        self.ufname = "upper_" + self.fname
+        try:
+            self.upperOutfile = open(self.ufname, 'w')
+        except:
+            raise ReadWriteException("Couldn't open supplementary file '%s' when splitting" % ufname)
+        self.isSplit = True
+
+    def show(self, line, splitLower = False):
+        if self.isSplit and not splitLower:
+            line = trim(line)
+            if self.verbLevel > 2:
+                print(line)
+            self.upperOutfile.write(line + '\n')
+        else:
+            Writer.show(self, line)
+
+    def finish(self):
+        if self.isSplit:
+            self.upperOutfile.close()
+            try:
+                infile = open(self.ufname, 'r')
+            except:
+                raise ReadWriteException("Couldn't open supplementary file '%s' when merging files")
+            for line in infile:
+                Writer.show(self, line)
+            infile.close()
+            try:
+                os.remove(self.ufname)
+            except:
+                raise ReadWriteException("Couldn't delete supplementary file '%s'" % self.ufname)
+        Writer.finish(self)
+
+# Where should split proofs start their upper steps
+upperStepStart = 100 * 1000 * 1000
+
+class CratWriter(SplitWriter):
     variableCount = 0
     clauseDict = []
-    stepCount = 0
+    lowerStepCount = 0
+    upperStepCount = upperStepStart
+    # Maintain lists of clause additions.  Each is tuple of form (id, hints)
+    lowerHintStack = []
+    upperHintStack = []
 
     def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
         Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
         self.variableCount = variableCount
-        self.stepCount = len(clauseList)
+        self.lowerStepCount = len(clauseList)
+        self.upperStepCount = upperStepStart
         self.clauseDict = {}
+        self.lowerClauseStack = []
+        self.upperClauseStack = []
+
         if verbLevel >= 2 and len(clauseList) > 0:
             self.doComment("Input clauses")
         for s in range(1, len(clauseList)+1):
             lits = clauseList[s-1]
             if verbLevel >= 2:
-                self.doLine([s, 'i'] + lits + [0])
+                self.doLine(['c', s, 'i'] + lits + [0])
             self.addClause(s, lits)
+
+    def incrStep(self, delta = 1, splitLower = False):
+        if self.isSplit and not splitLower:
+            cid = self.upperStepCount
+            self.upperStepCount += delta
+        else:
+            cid = self.lowerStepCount
+            self.lowerStepCount += delta
+        return cid+1
 
     def addClause(self, step, lits):
         self.clauseDict[step] = lits
@@ -617,62 +704,68 @@ class CratWriter(Writer):
     def deleteClause(self, step):
         del self.clauseDict[step]
 
-    def doLine(self, items):
+    def doLine(self, items, splitLower = False):
         slist = [str(i) for i in items]
-        self.show(" ".join(slist))
+        self.show(" ".join(slist), splitLower)
 
-    def doComment(self, line):
-        self.show("c " + line)
+    def doComment(self, line, splitLower = False):
+        self.show("c " + line, splitLower)
         
-    def doAnd(self, ilist):
+    def newXvar(self):
         self.variableCount += 1
-        self.stepCount += 1
         v = self.variableCount
-        s = self.stepCount
-        self.doLine([s, 'p', v] + ilist + [0])
-        cpos = [v] + [-i for i in ilist]
-        self.addClause(s, cpos)
+        return v
+
+    def finalizeAnd(self, ilist, xvar):
+        # Never add operations to lower after split
+        step = self.incrStep()
+        self.doLine([step, 'p', xvar] + ilist + [0])
+        cpos = [xvar] + [-i for i in ilist]
+        self.addClause(step, cpos)
         if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
             slist = [str(lit) for lit in cpos]
-            self.doComment("%d a %s 0" % (s, " ".join(slist)))
+            self.doComment("%d a %s 0" % (step, " ".join(slist)))
         for idx in range(len(ilist)):
-            self.addClause(s+idx, [-v, ilist[idx]])
+            self.addClause(step+idx, [-xvar, ilist[idx]])
             if self.verbLevel >= 2:
-                self.doComment("%d a %d %d 0" % (s+1+idx, -v, ilist[idx]))
-        self.stepCount += len(ilist)
-        return (v, s)
+                self.doComment("%d a %d %d 0" % (step+1+idx, -xvar, ilist[idx]))
+        self.incrStep(len(ilist))
+        return step
 
-    def doOr(self, i1, i2, hints = None):
+    def finalizeOr(self, ilist, xvar, hints):
         if hints is None:
             hints = ['*']
-        self.variableCount += 1
-        self.stepCount += 1
-        v = self.variableCount
-        s = self.stepCount
-        self.doLine([s, 's', v, i1, i2] + hints + [0])
-        self.addClause(s, [-v, i1, i2])
-        self.addClause(s+1, [v, -i1])        
-        self.addClause(s+2, [v, -i2])
+        step = self.incrStep()
+        i1 = ilist[0]
+        i2 = ilist[1]
+        self.doLine([step, 's', xvar, i1, i2] + hints + [0])
+        self.addClause(step, [-xvar, i1, i2])
+        self.addClause(step+1, [xvar, -i1])        
+        self.addClause(step+2, [xvar, -i2])
         if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
-            self.doComment("%d a %d %d %d 0" % (s, -v, i1, i2))
-            self.doComment("%d a %d %d 0" % (s+1, v, -i1))
-            self.doComment("%d a %d %d 0" % (s+2, v, -i2))
-        self.stepCount += 2
-        return (v, s)
+            self.doComment("%d a %d %d %d 0" % (step, -xvar, i1, i2))
+            self.doComment("%d a %d %d 0" % (step+1, xvar, -i1))
+            self.doComment("%d a %d %d 0" % (step+2, xvar, -i2))
+        self.incrStep(2)
+        return step
         
-    def doClause(self, lits, hints = ['*']):
-        self.stepCount += 1
-        s = self.stepCount
-        self.doLine([s, 'a'] + lits + [0] + hints + [0])
+    def doClause(self, lits, hints = ['*'], splitLower = False):
+        s = self.incrStep(1, splitLower)
+        self.doLine([s, 'a'] + lits + [0] + hints + [0], splitLower)
         self.addClause(s, lits)
+        shints = None if len(hints) == 1 and hints[0] == '*' else tuple(hints)
+        if s >= upperStepStart:
+            self.upperHintStack.append((s,shints))
+        else:
+            self.lowerHintStack.append((s,shints))
         return s
         
     def doDeleteClause(self, id, hints=None):
         if hints is None:
             hints = ['*']
-        self.doLine(['dc', id] + hints + [0])
+        self.doLine(['dc', id] + list(hints) + [0])
         self.deleteClause(id)
 
     def doDeleteOperation(self, exvar, clauseId, count):
@@ -680,8 +773,17 @@ class CratWriter(Writer):
         for i in range(count):
             self.deleteClause(clauseId+i)
         
-        
+    def doDeleteAssertedClauses(self):
+        hintStack = self.lowerHintStack + self.upperHintStack
+        # final hint should be asserted unit clause.  Don't delete it
+        hintStack = hintStack[:-1]
+        hintStack.reverse()
+        for (id,hints) in hintStack:
+            self.doDeleteClause(id, hints)
+            
+
     def finish(self):
-        print("c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, self.stepCount))
-        Writer.finish(self)
+        scount = self.lowerStepCount + (self.upperStepCount - upperStepStart)
+        print("c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, scount))
+        SplitWriter.finish(self)
 

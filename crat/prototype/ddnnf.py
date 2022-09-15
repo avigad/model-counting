@@ -1,12 +1,34 @@
 #!/usr/bin/python3
 
+#####################################################################################
+# Copyright (c) 2022 Randal E. Bryant, Carnegie Mellon University
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge, publish, distribute,
+# sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all copies or
+# substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+# NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+# OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+########################################################################################
+
+
 # Convert DNNF representation of Boolean formula into a POG
 
 import sys
 import getopt
 import datetime
 import readwrite
-import pog
+import tdpog
+
+### Standard .ddnnf format
 
 # Format documentation: http://www.cril.univ-artois.fr/kc/d-DNNF-reasoner.html
 # Standard Input/output format:
@@ -42,13 +64,62 @@ import pog
 #     O j 2 i1 i2 for a decision node,
 #     O 0 0 for the false node.
 
+### D4's .ddnnf format
+
+# https://github.com/crillab/d4/blob/main/README.md
+#
+# To get the resulting decision-DNNF representation in file /tmp/test.nnf please use:
+# 
+# ./d4 -dDNNF benchTest/littleTest.cnf -out=/tmp/test.nnf
+# cat /tmp/test.nnf
+# o 1 0
+# o 2 0
+# o 3 0
+# t 4 0
+# 3 4 -2 3 0
+# 3 4 2 0
+# 2 3 -1 0
+# 2 4 1 0
+# 1 2 0
+#
+# Note that the format used now is an extension of the previous format
+# (as defined in the archive of c2d available from
+# http://reasoning.cs.ucla.edu/c2d/). The management of propagated
+# literals has been improved in the new format, where both nodes and
+# arcs are represented. When a literal becomes true at some node there
+# is no more need to create an AND node and a literal node to capture it.
+# Instead the literal is attached to the arc connecting the
+# node with its father. Each line represents a node or an arc, and is
+# terminated by 0. When a line represents a node it starts with a
+# node type and is followed by its index. Here are the node types:
+# 
+# o, for an OR node
+# f, for a false leaf
+# t, for a true leaf
+# a, for an AND node (not present in this example)
+# 
+# The second argument just after the type of node is its index.
+# 
+# In the example above the decision-DNNF representation has
+# 3 OR nodes (1, 2 and 3) and 1 true node (4).
+# 
+# As expected arcs are used to connect the nodes. In the file .nnf,
+# arcs are represented by lines starting with a node index (a positive
+# integer, the source node), followed by another node index (a
+# positive integer, the target node), and eventually a sequence of literals
+# that represents the unit literals that become true at the target node.
+#
+# In the example, 3 4 -2 3 0 means that OR node of index 3 is connected to the
+# true node of index 4 and the literals -2 and 3 are set to true.
 
 def usage(name):
-    print("Usage: %s [-h] [-d] [-v VLEVEL] [-H hlevel] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
+    print("Usage: %s [-h] [-d][-s] [-v VLEVEL] [-H hlevel] [-L lheight] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
     print(" -h           Print this message")
     print(" -d           Use NNF format defined for D4 model counter")
+    print(" -s           Split proof with unhinted clauses first.  Must have HLEVEL = 2 or 3")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -H HLEVEL    Set what hints to generate: 1 = constant time, 2 = scan for input clause (default), 3 = Use RUP finder")
+    print(" -L LHEIGHT   Set minimum height of shared graph for introducing lemma (X --> No lemmas)")
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
     print(" -p FILE.crat Output CRAT")
@@ -208,13 +279,11 @@ class Nnf:
     # match position in the array, nor are they necessarily in
     # ascending order
     nodes = []
-    hintLevel = 2
 
-    def __init__(self, verbLevel, hintLevel):
+    def __init__(self, verbLevel):
         self.inputCount = 0
         self.nodes = []
         self.verbLevel = verbLevel
-        self.hintLevel = hintLevel
 
     def nodeCount(self):
         count = 0
@@ -435,16 +504,14 @@ class Nnf:
                 self.nodes.append(node)
         self.topoSort(root)
 
-    def makePog(self, clauseList, fname):
-        pg = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel, self.hintLevel)
+    def makePog(self, clauseList, fname, hintLevel, lemmaHeight, splitProof):
+        pg = tdpog.Pog(self.inputCount, clauseList, fname, self.verbLevel, hintLevel, lemmaHeight)
         for node in self.nodes:
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
                 node.snode = pg.leaf1 if node.val == 1 else pg.leaf0
             elif node.ntype == NodeType.leaf:
-                var = abs(node.lit)
-                svar = pg.getVariable(var)
-                node.snode = svar if node.lit > 0 else pg.addNegation(svar)
+                node.snode = pg.findNode(node.lit)
             elif node.ntype == NodeType.conjunction:
                 # Build linear chain.   Keep literals at top
                 nroot = pg.addConjunction(schildren)
@@ -452,13 +519,11 @@ class Nnf:
             elif node.ntype == NodeType.disjunction:
                 node.snode = pg.addDisjunction(schildren[0], schildren[1])
             elif node.ntype == NodeType.ite:
-                svar = pg.getVariable(node.splitVar)
-                node.snode = pg.addIte(svar, schildren[0], schildren[1])
-                # Label for proof generation
-                node.snode.iteVar = node.splitVar
+                splitNode = pg.findNode(node.splitVar)
+                node.snode = pg.addIte(splitNode, schildren[0], schildren[1])
             if self.verbLevel >= 3:
                 print("NNF node %s --> POG node %s" % (str(node), str(node.snode)))
-        pg.compress()
+        pg.finalize(splitProof)
         return pg
                 
 # Read NNF file in format generated by d4
@@ -675,19 +740,28 @@ class D4Reader:
 def run(name, args):
     verbLevel = 1
     hintLevel = 2
+    splitProof = False
+    lemmaHeight = None
     d4 = False
     cnfName = None
     nnfName = None
     cratName = None
-    optlist, args = getopt.getopt(args, 'hdv:H:i:n:p:')
+    optlist, args = getopt.getopt(args, 'hdsv:H:L:i:n:p:')
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
             return
+        elif opt == '-s':
+            splitProof = True
         elif opt == '-v':
             verbLevel = int(val)
         elif opt == '-H':
             hintLevel = int(val)
+        elif opt == '-L':
+            try:
+                lemmaHeight = int(val)
+            except:
+                pass
         elif opt == '-d':
             d4 = True
         elif opt == '-i':
@@ -699,6 +773,11 @@ def run(name, args):
         else:
             print("Invalid option '%s'" % (opt))
             return
+
+    if splitProof and hintLevel not in [2,3]:
+        print("Require hint level 2 or 3 to split proof")
+        return
+
     if cnfName is None:
         print("Must give name of CNF file")
         return
@@ -721,7 +800,7 @@ def run(name, args):
         return
 
     start = datetime.datetime.now()
-    dag = Nnf(verbLevel, hintLevel)
+    dag = Nnf(verbLevel)
     if d4:
         d4reader = D4Reader(dag)
         if not d4reader.read(nfile):
@@ -743,15 +822,16 @@ def run(name, args):
     dag.findIte()
     if verbLevel >= 1:
         print("c NNF DAG with ITEs has %d nodes" % (dag.nodeCount()))
-    if verbLevel >= 2:
+    if verbLevel >= 3:
         dag.show()
     if cratName is not None:
-        pg = dag.makePog(creader.clauses, cratName)
+        pg = dag.makePog(creader.clauses, cratName, hintLevel, lemmaHeight, splitProof)
+        fcount = pg.nodeCounts[tdpog.NodeType.conjunction] + pg.nodeCounts[tdpog.NodeType.disjunction]
         if verbLevel == 1:
-            print("c Generated POG has %d nodes" % len(pg.nodes))
-        if verbLevel >= 2:
+            print("c Generated POG has %d And/Or nodes" % fcount)
+        if verbLevel >= 3:
             print("")
-            print("c Generated POG has %d nodes:" % len(pg.nodes))
+            print("c Generated POG has %d And/Or nodes:" % fcount)
             pg.show()
         pg.doValidate()
         pg.finish()
