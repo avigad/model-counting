@@ -336,11 +336,14 @@ class DratWriter(Writer):
 class CnfWriter(Writer):
     clauseCount = 0
     outputList = []
+    # Track which variables actually occur
+    vset = set([])
 
     def __init__(self, count, fname, verbLevel = 1):
         Writer.__init__(self, count, fname, verbLevel = verbLevel)
         self.clauseCount = 0
         self.outputList = []
+        self.vset = set([])
 
     # With CNF, must accumulate all of the clauses, since the file header
     # requires providing the number of clauses.
@@ -353,10 +356,14 @@ class CnfWriter(Writer):
             var = abs(lit)
             if var <= 0 or var > self.expectedVariableCount:
                 raise ReadWriteException("Variable %d out of range 1--%d" % (var, self.expectedVariableCount))
+            self.vset.add(var)
         ilist = literals + [0]
         self.outputList.append(" ".join([str(i) for i in ilist]))
         self.clauseCount += 1
         return self.clauseCount
+
+    def variableCount(self):
+        return len(self.vset)
 
     def finish(self):
         if self.isNull:
@@ -368,6 +375,7 @@ class CnfWriter(Writer):
             self.show(line)
         self.outfile.close()
         self.outfile = None
+
 
 # Version that allows adding clauses for product operators
 class AugmentedCnfWriter(CnfWriter):

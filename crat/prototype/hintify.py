@@ -106,7 +106,9 @@ def process(cnfName, cratName, root, verbLevel):
     cratFile.close()
     print("Input CNF file %s had %d variables and %d clauses" % (cnfName, cnfReader.nvar, len(cnfReader.clauses)))
     cnfWriter.finish()
-    print("Augmented CNF file %s has %d variables and %d clauses" % (acnfName, cnfWriter.expectedVariableCount, cnfWriter.clauseCount))
+    vcount = cnfWriter.variableCount()
+    vmax = cnfWriter.expectedVariableCount
+    print("Augmented CNF file %s has %d variables (max=%d) and %d clauses" % (acnfName, vcount, vmax, cnfWriter.clauseCount))
     dratWriter.finish()
     print("DRAT file %s has %d clauses" % (dratName, dratClauses))
 
