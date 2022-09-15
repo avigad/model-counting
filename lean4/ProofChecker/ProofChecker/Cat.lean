@@ -158,7 +158,9 @@ structure CheckerState where
   This must be empty (all inputs must be deleted) by the end of the proof. -/
   inputIdsInDb : Std.HashSet Nat := {}
   originalVars : Nat := inputCnf.maxVar?.getD 0
-  clauseDb : Std.HashMap Nat (Clause Nat) := {}
+  /-- The clause database. We store `(C, true)` for schema definition clauses
+  and `(C, false)` for all other ones. -/
+  clauseDb : Std.HashMap Nat (Clause Nat × Bool) := {}
   /-- The indices of all clauses a given literal occurs in. -/
   occurs : Std.HashMap (Lit Nat) (Array Nat) := {}
   /-- We have `x ↦ xs` when `x` is an extension variable and `xs = D(x)`, i.e. the set of all
@@ -194,12 +196,9 @@ inductive CheckerError where
   | duplicateExtVar (x : Nat)
   | unknownExtVar (x : Nat)
   | prodNotDisjoint (xs : List Nat)
-  | finalStateIncorrectInput
+  | finalStateInputNotIntrod (C : Clause Nat)
   | finalStateInputNotDeleted (C : Clause Nat)
-  | finalStateNotOneUnit (n : Nat)
-  -- TODO(WN): do we need this check? Leftover trees in the forest do not falsify the count,
-  -- but they might complicate the proof.
-  | finalStateUnitNotRoot (x : Int)
+  | finalStateNotOneUnit (C : Clause Nat)
 
 namespace CheckerError
 
@@ -216,10 +215,9 @@ instance : ToString CheckerError where
     | duplicateExtVar x => s!"extension variable '{x}' already introduced"
     | unknownExtVar x => s!"unknown extension variable '{x}'"
     | prodNotDisjoint xs => s!"variables {xs} have non-disjoint dependency sets"
-    | finalStateIncorrectInput => s!"proof done but input CNF was not introduced correctly"
+    | finalStateInputNotIntrod C => s!"proof done but input clause {C} was never introduced"
     | finalStateInputNotDeleted C => s!"proof done but input clause {C} was not deleted"
-    | finalStateNotOneUnit n => s!"proof done but {n} unit clauses left, expected 1"
-    | finalStateUnitNotRoot x => s!"proof done but unit clause ({x}) is not the counting schema root"
+    | finalStateNotOneUnit C => s!"proof done but leftover clause {C} found"
 
 end CheckerError
 
@@ -236,11 +234,11 @@ def withTraces (f : Array String → String) (x : CheckerM Unit) : CheckerM Unit
 def log (msg : String) : CheckerM Unit := do
   modify fun st => { st with trace := st.trace.push msg }
 
-def addClause (idx : Nat) (C : Clause Nat) : CheckerM Unit := do
+def addClause (idx : Nat) (C : Clause Nat) (schemaDef : Bool) : CheckerM Unit := do
   let st ← get
   if st.clauseDb.contains idx then
     throw <| .duplicateClauseIdx idx
-  set { st with clauseDb := st.clauseDb.insert idx C }
+  set { st with clauseDb := st.clauseDb.insert idx (C, schemaDef) }
   log s!"adding ({C})"
 
 def delClause (idx : Nat) : CheckerM Unit := do
@@ -250,15 +248,15 @@ def delClause (idx : Nat) : CheckerM Unit := do
   set { st with clauseDb := st.clauseDb.erase idx }
   log s!"deleting ({st.clauseDb.find! idx})"
 
-def getClause (idx : Nat) : CheckerM (Clause Nat) := do
+def getClause (idx : Nat) : CheckerM (Clause Nat × Bool) := do
   let st ← get
   match st.clauseDb.find? idx with
   | none => throw <| .wrongClauseIdx idx
-  | some C => return C
+  | some x => return x
 
 /-- Reduce clause at `idx` under `τ`. Return `none` if it reduced to true. -/
 def reduceClause (idx : Nat) (τ : PropAssignment Nat) : CheckerM (Option (Clause Nat)) := do
-  let C ← getClause idx
+  let (C, _) ← getClause idx
   return τ.reduceClause C
 
 /-- Add an extension variable `x`. `ds` are the vars `x` depends on. If `ensureDisjoint = true`,
@@ -340,7 +338,7 @@ def checkRat (C : Clause Nat) (posHints : List Nat) (negHints : List (Nat × Lis
   if pivot.var ≤ st.originalVars then throw <| .varNotExtension pivot.var
   let negHints := negHints.foldl (init := Std.HashMap.empty) fun acc (i, hs) => acc.insert i hs
   -- TODO this would be much more efficient if we only looped over clauses containing the pivot
-  st.clauseDb.forM fun i Ci => do
+  st.clauseDb.forM fun i (Ci, _) => do
     if !Ci.contains pivot.negate then return
     for lit in C do
       -- resolvent is a tautology
@@ -353,7 +351,7 @@ def checkRat (C : Clause Nat) (posHints : List Nat) (negHints : List (Nat × Lis
 
 partial def propagateWithoutHints (τ : PropAssignment Nat) : CheckerM (Option (PropAssignment Nat)) := do
   -- awfully inefficient UP implementation
-  let τ' ← (← get).clauseDb.foldM (init := some τ) fun τ _ Ci => do
+  let τ' ← (← get).clauseDb.foldM (init := some τ) fun τ _ (Ci, _) => do
     let some τ := τ | return none
     match τ.reduceClause Ci with
     | none => return some τ
@@ -381,7 +379,7 @@ def checkRatWithoutHints (C : Clause Nat) : CheckerM Unit := do
   let some pivot := C.firstLit? | throw <| .upNoContradiction τ
   let st ← get
   if pivot.var ≤ st.originalVars then throw <| .varNotExtension pivot.var
-  st.clauseDb.forM fun _ Ci => do
+  st.clauseDb.forM fun _ (Ci, _) => do
     if !Ci.contains pivot.negate then return
     for lit in C do
       if lit ≠ pivot ∧ Ci.contains lit.negate then return
@@ -400,7 +398,7 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
   withTraces (fun ts => s!"{step}:\n\t" ++ ("\n\t".intercalate ts.toList)) do
     match step with
     | .addInput idx C =>
-      addClause idx C
+      addClause idx C false
       modify fun st => { st with
         inputIdsInDb := st.inputIdsInDb.insert idx
         inputClausesToAdd := st.inputClausesToAdd.erase C
@@ -408,9 +406,9 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
     | .addAt idx C pf =>
       if !pf.isEmpty then checkAtWithHints C pf
       else checkAtWithoutHints C
-      addClause idx C
+      addClause idx C false
     | .delAt idx pf =>
-      let C ← getClause idx
+      let (C, _) ← getClause idx
       -- The clause must be AT by everything except itself.
       delClause idx
       if !pf.isEmpty then checkAtWithHints C pf
@@ -419,9 +417,9 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
     | step@(.prod idx x ls) =>
       addExtVar x (ls.map (·.var)) (ensureDisjoint := true)
       let lx := Lit.ofInt x
-      addClause idx (Clause.mk <| lx :: ls.map (-·))
+      addClause idx (Clause.mk <| lx :: ls.map (-·)) true
       for (i, l) in ls.enum do
-        addClause (idx+1+i) (Clause.mk [-lx, l])
+        addClause (idx+1+i) (Clause.mk [-lx, l]) true
       modify fun st => { st with extDefClauses := st.extDefClauses.insert x (idx, ls.length + 1) }
       updateGraph step
     | step@(.sum idx x l₁ l₂ pf) =>
@@ -430,9 +428,9 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
       else checkAtWithoutHints C
       addExtVar x [l₁.var, l₂.var]
       let lx := Lit.ofInt x
-      addClause idx (Clause.mk [-lx, l₁, l₂])
-      addClause (idx+1) (Clause.mk [lx, -l₁])
-      addClause (idx+2) (Clause.mk [lx, -l₂])
+      addClause idx (Clause.mk [-lx, l₁, l₂]) true
+      addClause (idx+1) (Clause.mk [lx, -l₁]) true
+      addClause (idx+2) (Clause.mk [lx, -l₂]) true
       modify fun st => { st with extDefClauses := st.extDefClauses.insert x (idx, 3) }
       updateGraph step
     | .delOp x =>
@@ -450,18 +448,23 @@ def checkFinalState : CheckerM Unit := do
   log s!"final clauses:\n\t{st.clauseDb.toList}"
 
   if !st.inputClausesToAdd.isEmpty then
-    throw <| .finalStateIncorrectInput
+    throw <| .finalStateInputNotIntrod st.inputClausesToAdd.toList.head!
 
   if !st.inputIdsInDb.isEmpty then
-    let C ← getClause st.inputIdsInDb.toList.head!
+    let (C, _) ← getClause st.inputIdsInDb.toList.head!
     throw <| .finalStateInputNotDeleted C
 
-  let mut nUnits := 0
-  for (_, cls) in st.clauseDb.toList do
+  -- Check that the final state of the database is just one unit clause
+  -- and everything else is schema definitions.
+  let mut foundUnit := false
+  for (_, cls, schemaDef) in st.clauseDb.toList do
     if cls.length == 1 then
-      nUnits := nUnits + 1
-  if nUnits != 1 then
-    throw <| .finalStateNotOneUnit nUnits
+      if !foundUnit then
+        foundUnit := true
+      else
+        throw <| .finalStateNotOneUnit cls
+    else if !schemaDef then
+      throw <| .finalStateNotOneUnit cls
 
 def check (cnf : CnfForm Nat) (pf : List (CatStep Nat Nat)) (traces := false) : IO Bool := do
   let st : CheckerState := { inputCnf := cnf }
