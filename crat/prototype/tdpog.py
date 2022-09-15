@@ -1,5 +1,5 @@
 # Quasi-canonical representation of a POG
-# For use by both top-down and bottom-up schema generators
+# For use by top-down POG generators
 
 import sys
 from pysat.solvers import Solver
@@ -810,6 +810,7 @@ class Pog:
                 hints = [hint1, hint2]
             n = self.addDisjunction(ntrue, nfalse, hints)
             result = n
+        result.iteVar = nif.xlit
         if self.verbLevel >= 3:
             print("ITE(%s, %s, %s) --> %s" % (str(nif), str(nthen), str(nelse), str(result)))
         return result

@@ -26,7 +26,9 @@ import sys
 import getopt
 import datetime
 import readwrite
-import pog
+import tdpog
+
+### Standard .ddnnf format
 
 # Format documentation: http://www.cril.univ-artois.fr/kc/d-DNNF-reasoner.html
 # Standard Input/output format:
@@ -62,6 +64,53 @@ import pog
 #     O j 2 i1 i2 for a decision node,
 #     O 0 0 for the false node.
 
+### D4's .ddnnf format
+
+# https://github.com/crillab/d4/blob/main/README.md
+#
+# To get the resulting decision-DNNF representation in file /tmp/test.nnf please use:
+# 
+# ./d4 -dDNNF benchTest/littleTest.cnf -out=/tmp/test.nnf
+# cat /tmp/test.nnf
+# o 1 0
+# o 2 0
+# o 3 0
+# t 4 0
+# 3 4 -2 3 0
+# 3 4 2 0
+# 2 3 -1 0
+# 2 4 1 0
+# 1 2 0
+#
+# Note that the format used now is an extension of the previous format
+# (as defined in the archive of c2d available from
+# http://reasoning.cs.ucla.edu/c2d/). The management of propagated
+# literals has been improved in the new format, where both nodes and
+# arcs are represented. When a literal becomes true at some node there
+# is no more need to create an AND node and a literal node to capture it.
+# Instead the literal is attached to the arc connecting the
+# node with its father. Each line represents a node or an arc, and is
+# terminated by 0. When a line represents a node it starts with a
+# node type and is followed by its index. Here are the node types:
+# 
+# o, for an OR node
+# f, for a false leaf
+# t, for a true leaf
+# a, for an AND node (not present in this example)
+# 
+# The second argument just after the type of node is its index.
+# 
+# In the example above the decision-DNNF representation has
+# 3 OR nodes (1, 2 and 3) and 1 true node (4).
+# 
+# As expected arcs are used to connect the nodes. In the file .nnf,
+# arcs are represented by lines starting with a node index (a positive
+# integer, the source node), followed by another node index (a
+# positive integer, the target node), and eventually a sequence of literals
+# that represents the unit literals that become true at the target node.
+#
+# In the example, 3 4 -2 3 0 means that OR node of index 3 is connected to the
+# true node of index 4 and the literals -2 and 3 are set to true.
 
 def usage(name):
     print("Usage: %s [-h] [-d][-s] [-v VLEVEL] [-H hlevel] [-L lheight] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
@@ -456,7 +505,7 @@ class Nnf:
         self.topoSort(root)
 
     def makePog(self, clauseList, fname, hintLevel, lemmaHeight, splitProof):
-        pg = pog.Pog(self.inputCount, clauseList, fname, self.verbLevel, hintLevel, lemmaHeight)
+        pg = tdpog.Pog(self.inputCount, clauseList, fname, self.verbLevel, hintLevel, lemmaHeight)
         for node in self.nodes:
             schildren = [child.snode for child in node.children]
             if node.ntype == NodeType.constant:
@@ -472,8 +521,6 @@ class Nnf:
             elif node.ntype == NodeType.ite:
                 splitNode = pg.findNode(node.splitVar)
                 node.snode = pg.addIte(splitNode, schildren[0], schildren[1])
-                # Label for proof generation
-                node.snode.iteVar = node.splitVar
             if self.verbLevel >= 3:
                 print("NNF node %s --> POG node %s" % (str(node), str(node.snode)))
         pg.finalize(splitProof)
@@ -779,7 +826,7 @@ def run(name, args):
         dag.show()
     if cratName is not None:
         pg = dag.makePog(creader.clauses, cratName, hintLevel, lemmaHeight, splitProof)
-        fcount = pg.nodeCounts[pog.NodeType.conjunction] + pg.nodeCounts[pog.NodeType.disjunction]
+        fcount = pg.nodeCounts[tdpog.NodeType.conjunction] + pg.nodeCounts[tdpog.NodeType.disjunction]
         if verbLevel == 1:
             print("c Generated POG has %d And/Or nodes" % fcount)
         if verbLevel >= 3:
