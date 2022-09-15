@@ -693,7 +693,6 @@ class ClauseManager:
         # Should only be one unit clause
         self.root = None
 
-
         for id in sorted(self.clauseDict.keys()):
             if id in self.definingClauseSet:
                 continue
@@ -709,7 +708,7 @@ class ClauseManager:
                 notDeleted.append(id)
 
         if len(notDeleted) > 0:
-            return (False, "Input clauses %s not deleted" % str(notDeleted))
+            return (False, "Clauses %s not deleted" % str(notDeleted))
                 
 
                 
