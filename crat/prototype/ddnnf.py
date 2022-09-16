@@ -812,32 +812,32 @@ def run(name, args):
     elif not dag.read(nfile):
         print("Read failed")
         return
-    elif verbLevel >= 1: 
-       print("c Input NNF DAG has %d inputs, %d nodes" % (dag.inputCount, dag.nodeCount()))
+    if verbLevel >= 1: 
+       print("GEN: Input NNF DAG has %d inputs, %d nodes" % (dag.inputCount, dag.nodeCount()))
     if verbLevel >= 3:
         dag.show()
     if verbLevel >= 2:
         print("")
-        print("c ITE extraction:")
+        print("GEN: ITE extraction:")
     dag.findIte()
     if verbLevel >= 1:
-        print("c NNF DAG with ITEs has %d nodes" % (dag.nodeCount()))
+        print("GEN: NNF DAG with ITEs has %d nodes" % (dag.nodeCount()))
     if verbLevel >= 3:
         dag.show()
     if cratName is not None:
         pg = dag.makePog(creader.clauses, cratName, hintLevel, lemmaHeight, splitProof)
         fcount = pg.nodeCounts[tdpog.NodeType.conjunction] + pg.nodeCounts[tdpog.NodeType.disjunction]
         if verbLevel == 1:
-            print("c Generated POG has %d And/Or nodes" % fcount)
+            print("GEN: Generated POG has %d And/Or nodes" % fcount)
         if verbLevel >= 3:
             print("")
-            print("c Generated POG has %d And/Or nodes:" % fcount)
+            print("GEN: Generated POG has %d And/Or nodes:" % fcount)
             pg.show()
         pg.doValidate()
         pg.finish()
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
-    print("Elapsed time for generation: %.2f seconds" % seconds)
+    print("GEN: Elapsed time for generation: %.2f seconds" % seconds)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
