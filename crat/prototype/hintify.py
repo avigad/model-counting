@@ -44,8 +44,9 @@ prog = path + "/" + "crat-lrat"
 hintStart = 0
 hintList = []
 tmpList = []
-genLrat = True
-deleteTempFiles = False
+# Debugging options
+genLrat = False
+deleteTempFiles = True
 
 # Make up a name for intermediate files
 def getRoot(cnfName):
@@ -85,7 +86,6 @@ def splitFiles(cnfName, cratName, verbLevel):
         return
 
     lineNumber = 0
-    dratClauses = 0    
     getProducts = True
     for line in cratFile:
         line = readwrite.trim(line)
@@ -109,7 +109,7 @@ def splitFiles(cnfName, cratName, verbLevel):
                 ilist = [int(r) for r in rest[:-1]]
                 var = ilist[0]
                 args = ilist[1:]
-                cnfWriter.doProduct(var, args)
+                cnfWriter.doProduct(var, args, dwriter = dratWriter)
             except:
                 print("ERROR: File %s, line #%d.  Couldn't parse product line '%s' in CRAT file" % (cratName, lineNumber, line))                
                 return
@@ -119,7 +119,6 @@ def splitFiles(cnfName, cratName, verbLevel):
                 try:
                     lits = [int(r) for r in rest[:-3]]
                     dratWriter.doStep(lits)
-                    dratClauses += 1
                 except:
                     print("ERROR:  File %s, line #%d. Couldn't generate DRAT step from line %s" % (cratName, lineNumber, line))
                     return
@@ -128,13 +127,13 @@ def splitFiles(cnfName, cratName, verbLevel):
         else:
             break
     cratFile.close()
-    print("Input CNF file %s had %d variables and %d clauses" % (cnfName, cnfReader.nvar, len(cnfReader.clauses)))
+    print("HINTIFY: Input CNF file %s had %d variables and %d clauses" % (cnfName, cnfReader.nvar, len(cnfReader.clauses)))
     cnfWriter.finish()
     vcount = cnfWriter.variableCount()
     vmax = cnfWriter.expectedVariableCount
-    print("Augmented CNF file %s has %d variables (max=%d) and %d clauses" % (acnfName, vcount, vmax, cnfWriter.clauseCount))
+    print("HINTIFY: Augmented CNF file %s has %d variables (max=%d) and %d clauses" % (acnfName, vcount, vmax, cnfWriter.clauseCount))
     dratWriter.finish()
-    print("DRAT file %s has %d clauses" % (dratName, dratClauses))
+    print("HINTIFY: DRAT file %s has %d clause additions and %d clause deletions" % (dratName, dratWriter.additions, dratWriter.deletions))
 
 def fixLine(line):
     line = line.decode('utf-8')
@@ -245,7 +244,7 @@ def insertHints(icratName, hcratName):
         ofile.write(line + '\n')
     ifile.close()
     ofile.close()
-    print("Added %d hints" % hcount)
+    print("HINTIFY: Added %d hints" % hcount)
 
 def run(name, args):
     cnfName = None
@@ -294,7 +293,7 @@ def run(name, args):
     s2 = d2.seconds + 1e-6 * d2.microseconds
     s3 = d3.seconds + 1e-6 * d3.microseconds
     s  = d.seconds  + 1e-6 * d.microseconds
-    print("Elapsed seconds for hint addition: %.3f split files + %.3f DRAT + %.3f insert hints = %.3f" %
+    print("HINTIFY: Elapsed seconds for hint addition: %.3f split files + %.3f DRAT-TRIM + %.3f insert hints = %.3f" %
           (s1, s2, s3, s))
 
 if __name__ == "__main__":
