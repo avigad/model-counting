@@ -10,13 +10,13 @@ c Implicit declarations:
 c 6 a 12 3 -4 0
 c 7 a -12 -3 0
 c 8 a -12 4 0
-c Lemma S11, argument #1: synthetic clause #6
+c Lemma S7, argument #1: synthetic clause #6
 9 p 13 3 -4 0
 c Implicit declarations:
 c 9 a 13 -3 4 0
 c 10 a -13 3 0
 c 11 a -13 -4 0
-c Lemma S11, argument #2: synthetic clause #9
+c Lemma S7, argument #2: synthetic clause #9
 c Completed declarations of shadow operations
 c Node P5 = AND(var-3, var-4)
 12 p 5 3 4 0
@@ -55,7 +55,7 @@ c Implicit declarations:
 c 28 a -11 9 10 0
 c 29 a 11 -9 0
 c 30 a 11 -10 0
-c Setting up lemma at node S7
+c Setting up Lemma S7
 c Justify literal 4 in context [-12, -13, 3] with single RUP step
 31 a 4 12 13 -3 0 2 4 0
 c Justify literal -4 in context [-12, -13, -3] with single RUP step
@@ -64,14 +64,14 @@ c Assert ITE at node S7 (root)
 33 a -3 7 12 13 0 31 12 19 0
 34 a 7 12 13 0 33 32 15 20 0
 c Completed proof of lemma at node S7.  Assumed literals = [-12, -13]
-c Apply lemma at node S7.  Context = [1, -2]
+c Apply Lemma S7.  Context = [1, -2]
 c Lemma argument #1 (clause (3, -4)) from input clause #1:(-1, 3, -4)
 35 a -1 2 -12 0 7 8 1 0
 c Lemma argument #2 (clause (-3, 4)) from input clause #2:(-1, -3, 4)
 36 a -1 2 -13 0 10 11 2 0
 c Lemma invocation
 37 a -1 2 7 0 35 36 34 0
-c Apply lemma at node S7.  Context = [-1]
+c Apply Lemma S7.  Context = [-1]
 c Lemma argument #1 (clause (3, -4)) from input clause #3:(1, 3, -4)
 38 a 1 -12 0 7 8 3 0
 c Lemma argument #2 (clause (-3, 4)) from input clause #4:(1, -3, 4)
