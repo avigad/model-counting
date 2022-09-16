@@ -11,7 +11,7 @@ CHECK = ../crat_checker.py
 HINTIFY = ../hintify.py
 
 
-.SUFFIXES: .cnf .nnf .crat .check_data .hinted_crat .hinted_check_data .scrat .drat \
+.SUFFIXES: .cnf .nnf .crat .check_data .hinted_crat .hinted_check_data .scrat .hcrat .hcheck_data \
 	      .d4nnf .d4crat .d4check_data .d4hinted_crat .d4hinted_check_data
 
 .cnf.nnf:
@@ -29,9 +29,11 @@ HINTIFY = ../hintify.py
 .hinted_crat.hinted_check_data:
 	$(INTERP) $(CHECK) -v $(VLEVEL) -i $*.cnf -p $<  | tee $@
 
-.scrat.drat:
-	$(INTERP) $(HINTIFY) -i $*.cnf -p $< -r $*
+.scrat.hcrat:
+	$(INTERP) $(HINTIFY) -i $*.cnf -p $< -o $@ | tee $*.hcrat_data
 
+.hcrat.hcheck_data:
+	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@	
 
 .cnf.d4nnf:
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
