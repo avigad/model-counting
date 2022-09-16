@@ -1034,13 +1034,13 @@ class Pog:
     # Construct lemma
     def generateLemma(self, root):
         # Set up lemma for this node
-        self.addComment("Setting up Lemma %s" % str(root))
+        self.addComment("Prove Lemma %s" % str(root))
         ncontext = [lit for lit in root.lemma.shadowLiterals if lit != 0] 
         ncontext += list(root.lemma.assignedLiteralSet)
         root.lemma.isLemma = True
         # Prove the lemma
         hints = self.validateUp(root, ncontext, None)
-        self.addComment("Completed proof of lemma at node %s.  Assumed literals = %s" % (str(root), str(ncontext)))
+        self.addComment("Completed proof of Lemma %s.  Assumed literals = %s" % (str(root), str(ncontext)))
         root.lemma.lemmaHints = hints
         self.lemmaCount += 1
 
@@ -1250,7 +1250,7 @@ class Pog:
         hints = self.validateUp(root, [], parent = None)
         topUnitId = root.unitClauseId
         if self.verbLevel >= 2:
-            self.addComment("Delete all but final asserted clauses")
+            self.addComment("Delete all but final asserted clause")
         self.cwriter.doDeleteAssertedClauses()
         if self.verbLevel >= 2:
             self.addComment("Delete input clauses")
@@ -1371,7 +1371,7 @@ class Pog:
     def addLemmas(self):
         root = self.nodes[-1]
         root.lemma = Lemma(self.inputClauseList)
-        self.addComment("Defining (negated) conjunction operations to use as shadow clauses for lemmas")
+        self.addComment("Negated conjunction operations to use as lemma arguments")
         for node in reversed(self.nodes):
             if node.ntype not in [NodeType.conjunction, NodeType.disjunction]:
                 continue
@@ -1412,7 +1412,7 @@ class Pog:
                         print(str(ex))
                         print("Failed when adding lemma from node %s to child %s" % (str(node), str(child)))
                         sys.exit(1)
-        self.addComment("Completed declarations of shadow operations")
+        self.addComment("Operations for representing formula")
 
     def showNode(self, node):
         outs = str(node)
