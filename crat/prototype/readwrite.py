@@ -332,6 +332,11 @@ class DratWriter(Writer):
         line = " ".join(slits)
         self.show(line)
 
+    def doDelete(self, lits):
+        slits = ['d'] + [str(lit) for lit in lits] + ['0']
+        line = " ".join(slits)
+        self.show(line)
+
 # Creating CNF
 class CnfWriter(Writer):
     clauseCount = 0
