@@ -952,17 +952,17 @@ p cnf 4 5
 
 \begin{figure}
 \begin{verbatim}
-c Node P5 = AND(var-3, var-4)
+c P5 = AND(x-3, x-4)
 12 p 5 3 4 0
-c Node P6 = AND(-var-3, -var-4)
+c P6 = AND(-x-3, -x-4)
 15 p 6 -3 -4 0
-c Node S7 = OR(P5, P6)
+c S7 = OR(P5, P6)
 18 s 7 5 6 13 16 0
-c Node P9 = AND(var-1, -var-2, S7)
+c P9 = AND(x-1, -x-2, S7)
 21 p 9 1 -2 7 0
-c Node P10 = AND(-var-1, S7)
+c P10 = AND(-x-1, S7)
 25 p 10 -1 7 0
-c Node S11 = OR(P9, P10)
+c S11 = OR(P9, P10)
 28 s 11 9 10 22 26 0
 \end{verbatim}
 \caption{Declarations of operations to represent Formula \#4}
