@@ -18,6 +18,7 @@ n x1a  75 300 t=e
 n x1b 175 300 t=e
 n x1n 175 300 t=e
 n x2a  75 200 t=e
+n x2n  90 215 t=e
 n x3a  75 100 t=e
 n x3b 175 100 t=e
 n x3n 175 100 t=e
@@ -39,6 +40,7 @@ e x1a  p9
 e x1b  p10
 e x1n x1n m=b
 e x2  x2a
+e x2n x2n m=b
 e x2a  p9
 e x3  x3b
 e x3a p5
