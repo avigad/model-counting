@@ -441,7 +441,7 @@ class Lemma:
                     shadowClause = readwrite.cleanClause(readwrite.invertClause(node.ilist) + [node.xlit])
                     pog.reasoner.addPseudoInput(cid, shadowClause)
                 lit = -node.xlit
-                pog.addComment("Lemma %s, argument #%d: synthetic clause #%d" % (str(root), idx+1, node.definingClauseId))
+                pog.addComment("Lemma %s, argument #%d: shadow clause #%d" % (str(root), idx+1, node.definingClauseId))
             self.shadowLiterals.append(lit)
         self.assignedLiteralSet = externalLiteralSet
 
@@ -639,8 +639,6 @@ class Pog:
     inputClauseList = []
     reasoner = None
     # Options
-    # Should unit-propagated literals be added to context?
-    fullContext = True
     # Should the program attempt to fill out all hints?
     hintLevel = 2
     # What is minimum height for shared subgraph to generate lemma (None--> no lemmas)
@@ -954,7 +952,7 @@ class Pog:
                     root.lemma.assignLiteral(clit)
                 chints = self.validateUnit(clit, ncontext)
                 hints += chints
-                if clit not in ncontext and self.fullContext:
+                if clit not in ncontext:
                     ncontext.append(clit)
         if vcount > 1 or parent is None:
             # Assert extension literal
@@ -1055,7 +1053,7 @@ class Pog:
         for lit in root.lemma.assignedLiteralSet:
             if lit not in context:
                 self.addComment("Lemma %s.  Justify assigned literal %d in context %s" % (str(root), lit, str(context)))
-                chints, self.validateUnit(lit, context)
+                chints = self.validateUnit(lit, context)
                 lhints += chints
         for provenance,isOriginal,clause in root.lemma.argList:
             idx += 1
@@ -1269,29 +1267,29 @@ class Pog:
         if self.verbLevel >= 1:
             nnode = 0
             ndclause = self.definingClauseCounts
-            print("c Nodes by type")
+            print("GEN: Nodes by type")
             for t in range(NodeType.tcount):
                 if self.nodeCounts[t] == 0:
                     continue
-                print("c    %s: %d" % (NodeType.typeName[t], self.nodeCounts[t]))
+                print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeCounts[t]))
                 nnode += self.nodeCounts[t]
-            print("c    TOTAL: %d" % nnode)
-            print("c Total defining clauses: %d" % ndclause)
+            print("GEN:    TOTAL: %d" % nnode)
+            print("GEN: Total defining clauses: %d" % ndclause)
             nvnode = 0
-            print("c Node visits during proof generation (by node type)")
+            print("GEN: Node visits during proof generation (by node type)")
             for t in range(NodeType.tcount):
                 if self.nodeVisits[t] == 0:
                     continue
-                print("c    %s: %d" % (NodeType.typeName[t], self.nodeVisits[t]))
+                print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeVisits[t]))
                 nvnode += self.nodeVisits[t]
-            print("c    TOTAL: %d" % nvnode)
+            print("GEN:    TOTAL: %d" % nvnode)
             nldclause = self.lemmaShadowNodeClauseCount
             nlaclause = self.lemmaApplicationClauseCount
             if self.lemmaCount > 0:
-                print("c Lemmas:  %d definitions.  %d shadow nodes (%d defining clauses), %d applications" % 
+                print("GEN: Lemmas:  %d definitions.  %d shadow nodes (%d defining clauses), %d applications" % 
                       (self.lemmaCount, self.lemmaShadowNodeCount, nldclause, self.lemmaApplicationCount))
             nlclause = 0
-            print("c Literal justification clause counts (by number of clauses in justification:")
+            print("GEN: Literal justification clause counts (by number of clauses in justification:")
             singletons = []
             for count in sorted(self.literalClauseCounts.keys()):
                 nc = self.literalClauseCounts[count]
@@ -1299,21 +1297,21 @@ class Pog:
                 if nc == 1:
                     singletons.append(str(count))
                 else:
-                    print("c    %d : %d" % (count, nc))
+                    print("GEN:    %d : %d" % (count, nc))
             if len(singletons) > 1:
-                print("c    1 each for counts %s" % ", ".join(singletons))
-            print("c    TOTAL: %d" % nlclause)
+                print("GEN:    1 each for counts %s" % ", ".join(singletons))
+            print("GEN:    TOTAL: %d" % nlclause)
             nnclause = 0
-            print("c RUP clauses for node justification (by node type):")
+            print("GEN: RUP clauses for node justification (by node type):")
             for t in range(NodeType.tcount):
                 if self.nodeClauseCounts[t] == 0:
                     continue
-                print("c    %s: %d" % (NodeType.typeName[t], self.nodeClauseCounts[t]))
+                print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeClauseCounts[t]))
                 nnclause += self.nodeClauseCounts[t]
-            print("c    TOTAL: %d" % nnclause)
+            print("GEN:    TOTAL: %d" % nnclause)
             niclause = len(self.inputClauseList)
             nclause = niclause + ndclause + nldclause + nlaclause + nlclause + nnclause
-            print("Total clauses: %d input + %d defining + %d lemma defining + %d lemma application + %d literal justification + %d node justifications = %d" % (niclause, ndclause, nldclause, nlaclause, nlclause, nnclause, nclause))
+            print("GEN: Total clauses: %d input + %d defining + %d lemma defining + %d lemma application + %d literal justification + %d node justifications = %d" % (niclause, ndclause, nldclause, nlaclause, nlclause, nnclause, nclause))
 
     def doMark(self, root):
         if root.mark:
@@ -1352,12 +1350,12 @@ class Pog:
             if node.ntype == NodeType.conjunction:
                 if self.verbLevel >= 2:
                     slist = [str(child) for child in node.children]
-                    self.addComment("Node %s = AND(%s)" % (str(node), ", ".join(slist)))
+                    self.addComment("%s = AND(%s)" % (str(node), ", ".join(slist)))
                 node.definingClauseId = self.cwriter.finalizeAnd(node.ilist, node.xlit)
                 self.definingClauseCounts += 1 + len(node.children)
             elif node.ntype == NodeType.disjunction:
                 if self.verbLevel >= 2:
-                    self.addComment("Node %s = OR(%s, %s)" % (str(node), str(node.children[0]), str(node.children[1])))
+                    self.addComment("%s = OR(%s, %s)" % (str(node), str(node.children[0]), str(node.children[1])))
                 hints = None
                 if node.hintPairs is not None and self.hintLevel >= 1:
                     hints = [node.definingClauseId+offset for node,offset in node.hintPairs]
