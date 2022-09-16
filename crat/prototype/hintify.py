@@ -25,6 +25,7 @@ import sys
 import os
 import getopt
 import subprocess
+import datetime
 import readwrite
 
 
@@ -118,7 +119,6 @@ def splitFiles(cnfName, cratName, verbLevel):
                 try:
                     lits = [int(r) for r in rest[:-3]]
                     dratWriter.doStep(lits)
-                    dratWriter.doDelete(lits)
                     dratClauses += 1
                 except:
                     print("ERROR:  File %s, line #%d. Couldn't generate DRAT step from line %s" % (cratName, lineNumber, line))
@@ -272,18 +272,30 @@ def run(name, args):
         print("Require names for CNF file input CRAT file, and output CRAT file")
         usage(name)
         return
-
     root = getRoot(cnfName)
+    t0 = datetime.datetime.now()
     splitFiles(cnfName, cratName, verbLevel)
+    t1 = datetime.datetime.now()
     genHints(root)
+    t2 = datetime.datetime.now()
     insertHints(cratName, hcratName)
+    t3 = datetime.datetime.now()
     if deleteTempFiles:
         for tname in tmpList:
             try:
                 os.remove(tname)
             except:
                 continue
-              
+    d1 = t1 - t0
+    d2 = t2 - t1
+    d3 = t3 - t2
+    d  = t3 - t0
+    s1 = d1.seconds + 1e-6 * d1.microseconds
+    s2 = d2.seconds + 1e-6 * d2.microseconds
+    s3 = d3.seconds + 1e-6 * d3.microseconds
+    s  = d.seconds  + 1e-6 * d.microseconds
+    print("Elapsed seconds for hint addition: %.3f split files + %.3f DRAT + %.3f insert hints = %.3f" %
+          (s1, s2, s3, s))
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
