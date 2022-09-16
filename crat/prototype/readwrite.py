@@ -323,19 +323,25 @@ class Writer:
 
 
 class DratWriter(Writer):
+    additions = 0
+    deletions = 0
     
     def __init__(self, fname):
         Writer.__init__(self, 0, fname)
+        self.additions = 0
+        self.deletions = 0
 
     def doStep(self, lits):
         slits = [str(lit) for lit in lits] + ['0']
         line = " ".join(slits)
         self.show(line)
+        self.additions += 1
 
     def doDelete(self, lits):
         slits = ['d'] + [str(lit) for lit in lits] + ['0']
         line = " ".join(slits)
         self.show(line)
+        self.deletions += 1
 
 # Creating CNF
 class CnfWriter(Writer):
@@ -385,14 +391,17 @@ class CnfWriter(Writer):
 # Version that allows adding clauses for product operators
 class AugmentedCnfWriter(CnfWriter):
     
-    def doProduct(self, var, args):
+    # Optionally have the DRAT file delete all but the first clause
+    def doProduct(self, var, args, dwriter = None):
         self.expectedVariableCount = max(self.expectedVariableCount, var)
         lits = [var] + [-arg for arg in args]
-        self.doClause(lits)
+        id = self.doClause(lits)
         for arg in args:
             lits = [-var, arg]
             self.doClause(lits)
-    
+            if dwriter is not None:
+                dwriter.doDelete(lits)
+        return id
 
 # Enable permuting of variables before emitting CNF
 class Permuter:
@@ -670,6 +679,7 @@ upperStepStart = 100 * 1000 * 1000
 
 class CratWriter(SplitWriter):
     variableCount = 0
+    usedVariableSet = set([])
     clauseDict = []
     lowerStepCount = 0
     upperStepCount = upperStepStart
@@ -680,6 +690,7 @@ class CratWriter(SplitWriter):
     def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
         Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
         self.variableCount = variableCount
+        self.usedVariableSet = set([])
         self.lowerStepCount = len(clauseList)
         self.upperStepCount = upperStepStart
         self.clauseDict = {}
@@ -704,6 +715,8 @@ class CratWriter(SplitWriter):
         return cid+1
 
     def addClause(self, step, lits):
+        for lit in lits:
+            self.usedVariableSet.add(abs(lit))
         self.clauseDict[step] = lits
 
     def deleteClause(self, step):
@@ -789,6 +802,6 @@ class CratWriter(SplitWriter):
 
     def finish(self):
         scount = self.lowerStepCount + (self.upperStepCount - upperStepStart)
-        print("c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, scount))
+        print("GEN: File '%s' has %d variables (%d used) and %d steps" % (self.fname, self.variableCount, len(self.usedVariableSet), scount))
         SplitWriter.finish(self)
 
