@@ -935,44 +935,117 @@ operation.
 %%   C}_{\obar{z}}$) denote the clauses in which literal $z$ (resp.,
 %% $\obar{z}$) occcurs
 
-\subsection{TO-DO List}
+\section{Exploiting Shared Subgraphs}
 
-\begin{itemize}
-\item Proof Framework
-  \begin{itemize}
-  \item Generalities and details of the format
-  \item Can some form of abstraction be incorporated?
-    \begin{itemize}
-    \item Want to abstract a subformula to consider only on its cost and dependency set
-    \item Could represent with fresh extension variable
-    \item But how to prove logical equivalence?
-    \end{itemize}
-  \end{itemize}
+\begin{figure}
+\begin{verbatim}
+p cnf 4 5
+-1 3 -4 0
+-1 -3 4 0
+1 3 -4 0
+1 -3 4 0
+-1 -2 0
+\end{verbatim}
+\caption{CNF representation of Formula \#4}
+\label{fig:eg4:cnf}
+\end{figure}
 
-\item Checker
-  \begin{itemize}
-  \item Working prototype
-  \item C/C++ (or Rust?)
-  \item Formally verified
-  \end{itemize}
+\begin{figure}
+\begin{verbatim}
+c Node P5 = AND(var-3, var-4)
+12 p 5 3 4 0
+c Node P6 = AND(-var-3, -var-4)
+15 p 6 -3 -4 0
+c Node S7 = OR(P5, P6)
+18 s 7 5 6 13 16 0
+c Node P9 = AND(var-1, -var-2, S7)
+21 p 9 1 -2 7 0
+c Node P10 = AND(-var-1, S7)
+25 p 10 -1 7 0
+c Node S11 = OR(P9, P10)
+28 s 11 9 10 22 26 0
+\end{verbatim}
+\caption{Declarations of operations to represent Formula \#4}
+\label{fig:eg4:ops}
+\end{figure}
 
-\item Counters
-\begin{itemize}
-\item BDD-based
-  \begin{itemize}
-  \item Prototype
-  \item C/C++
-  \end{itemize}
+\begin{figure}
+  \centering{
+    \centering{\input{dd/eg4}}
+  }
+\caption{POG for Formula \#4 yielding shared subgraph $s_7$}
+\label{fig:eg4:pog}
+\end{figure}
 
-  \item SDD-based
-  \begin{itemize}
-  \item Bottom-up
-  \item Top-down
-  \end{itemize}
+\begin{figure}
+\begin{verbatim}
+c Shadow clause [3, -4]
+6 p 12 -3 4 0
+c Implicit declarations:
+c 6 a 12 3 -4 0
+c 7 a -12 -3 0
+c 8 a -12 4 0
+c Shadow clause [-3, 4]
+9 p 13 3 -4 0
+c Implicit declarations:
+c 9 a 13 -3 4 0
+c 10 a -13 3 0
+c 11 a -13 -4 0
+\end{verbatim}
+\caption{Declarations of operations to represent lemma arguments}
+\label{fig:eg4:args}
+\end{figure}
 
-\item Others?
-\end{itemize}
-\end{itemize}
+
+\begin{figure}
+\begin{verbatim}
+c Proof of Lemma S7
+31 a 12 13 -3 4 0 * 0
+32 a 12 13 3 -4 0 * 0
+33 a -3 7 12 13 0 31 12 19 0
+34 a 7 12 13 0 33 32 15 20 0
+c Apply Lemma S7.  Context = [1, -2]
+35 a -1 2 -12 0 7 8 1 0
+36 a -1 2 -13 0 10 11 2 0
+37 a -1 2 7 0 35 36 34 0
+c Apply Lemma S7.  Context = [-1]
+38 a 1 -12 0 7 8 3 0
+39 a 1 -13 0 10 11 4 0
+40 a 1 7 0 38 39 34 0
+c Assert ITE at node S11 (root)
+41 a -1 11 0 5 37 21 29 0
+42 a 11 0 41 40 25 30 0
+\end{verbatim}
+\caption{Assertions leading to unit clause for $t=s_7$}
+\label{fig:eg4:assert}
+\end{figure}
+
+\begin{figure}
+\begin{verbatim}
+c Delete all but final asserted clause
+dc 41 5 37 21 29 0
+dc 40 38 39 34 0
+dc 39 10 11 4 0
+dc 38 7 8 3 0
+dc 37 35 36 34 0
+dc 36 10 11 2 0
+dc 35 7 8 1 0
+dc 34 33 32 15 20 0
+dc 33 31 12 19 0
+dc 32 * 0
+dc 31 * 0
+c Delete input clauses
+dc 1 13 17 18 24 26 28 42 0
+dc 2 14 16 18 24 26 28 42 0
+dc 3 22 13 17 18 27 28 42 0
+dc 4 22 14 16 18 27 28 42 0
+dc 5 23 26 28 42 0
+\end{verbatim}
+\caption{Clause deletions for Formula \#4}
+\label{fig:eg4:delete}
+\end{figure}
+
+
 
 
 \bibliography{references}
