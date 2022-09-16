@@ -424,7 +424,7 @@ class Lemma:
             if isOriginal:
                 lit = 0
                 if len(provenance) != 1:
-                    raise PogException("Setting up lemma at node %s. Lemma thinks there's a unique input clause, but the provenance is %s" %
+                    raise PogException("Setting up Lemma %s. Lemma thinks there's a unique input clause, but the provenance is %s" %
                                        str(root), str(provenance))
                 icid = list(provenance)[0]
                 pog.addComment("Lemma %s, argument #%d: input clause %d" % (str(root), idx+1, icid))
@@ -1034,8 +1034,7 @@ class Pog:
     # Construct lemma
     def generateLemma(self, root):
         # Set up lemma for this node
-        self.addComment("Setting up lemma at node %s" % str(root))
-#        root.lemma.setupLemma(root, self)
+        self.addComment("Setting up Lemma %s" % str(root))
         ncontext = [lit for lit in root.lemma.shadowLiterals if lit != 0] 
         ncontext += list(root.lemma.assignedLiteralSet)
         root.lemma.isLemma = True
@@ -1048,7 +1047,7 @@ class Pog:
 
     def applyLemma(self, root, context, callingLemma):
         # Apply lemma
-        self.addComment("Apply lemma at node %s.  Context = %s" % (str(root), str(context)))
+        self.addComment("Apply Lemma %s.  Context = %s" % (str(root), str(context)))
         # Show that each shadow literal activated
         idx = 0
         lcontext = []
@@ -1377,7 +1376,7 @@ class Pog:
             if node.ntype not in [NodeType.conjunction, NodeType.disjunction]:
                 continue
             if node.wantLemma(self.lemmaHeight):
-                node.lemma.setupLemma(root, self)
+                node.lemma.setupLemma(node, self)
             elif not node.lemma:
                 continue
             ntchildren = []
