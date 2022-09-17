@@ -293,7 +293,7 @@ def run(name, args):
     s2 = d2.seconds + 1e-6 * d2.microseconds
     s3 = d3.seconds + 1e-6 * d3.microseconds
     s  = d.seconds  + 1e-6 * d.microseconds
-    print("HINTIFY: Elapsed seconds for hint addition: %.3f split files + %.3f DRAT-TRIM + %.3f insert hints = %.3f" %
+    print("HINTIFY: Elapsed seconds for hint addition: %.2f split files + %.2f DRAT-TRIM + %.2f insert hints = %.2f" %
           (s1, s2, s3, s))
 
 if __name__ == "__main__":
