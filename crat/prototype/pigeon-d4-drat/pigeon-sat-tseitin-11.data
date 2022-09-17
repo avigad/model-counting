@@ -25,8 +25,8 @@ c top 5: -50 -51 -105 -39
 c unitLits 1048577 4194308 Bytes
 c      16384 |       0.17 |       6415 |       8198 |       4856 |        562 |     123479 |     134086 |          0 |       8198 |         672 |          0 | 
 c      32768 |       0.36 |      15064 |      16391 |      11444 |        562 |     254724 |     276814 |          0 |      16391 |        1186 |          0 | 
-c      49152 |       0.56 |      24703 |      24581 |      18972 |        563 |     395294 |     429344 |          0 |      24581 |        1629 |          0 | 
-c      65536 |       0.74 |      34036 |      32777 |      26268 |        563 |     533439 |     579325 |          0 |      32777 |        2094 |          0 | 
+c      49152 |       0.57 |      24703 |      24581 |      18972 |        563 |     395294 |     429344 |          0 |      24581 |        1629 |          0 | 
+c      65536 |       0.75 |      34036 |      32777 |      26268 |        563 |     533439 |     579325 |          0 |      32777 |        2094 |          0 | 
 c      81920 |       0.96 |      44124 |      40964 |      33794 |        563 |     687599 |     745445 |          0 |      40964 |        2550 |          0 | 
 c top 5: -50 -51 -105 39 
 c top 5: -50 -51 105 
@@ -35,7 +35,7 @@ c top 5: -50 -51 105 18
 c top 5: -50 51 
 c top 5: -50 51 -18 
 c top 5: -50 51 -18 -105 
-c      98304 |       1.62 |      52239 |      49159 |      40084 |        564 |     836324 |     905503 |          0 |      49159 |        3087 |          0 | 
+c      98304 |       1.63 |      52239 |      49159 |      40084 |        564 |     836324 |     905503 |          0 |      49159 |        3087 |          0 | 
 c top 5: -50 51 -18 105 
 c top 5: 50 
 c top 5: 50 -18 
@@ -64,113 +64,114 @@ c Number of nodes: 955832
 c Number of edges: 1034099
 c 
 c [1m[34mCache Information[0m
-c Memory used: 564 MB
+c Memory used: 565 MB
 c
 c Number of positive hit: 58122
 c Number of negative hit: 56025
 c Number of reduceCall: 0
 c
-c Final time: 4.360541
+c Final time: 4.374372
 c 
 s 0.000000
-c NNF DAG with ITEs has 152687 nodes
-c Generated POG has 119514 And/Or nodes
-c File 'pigeon-sat-tseitin-11.crat' has 238708 variables and 3076342 steps
-c Nodes by type
-c    var: 220
-c    neg: 220
-c    conjunct: 79676
-c    disjunct: 39838
-c    TOTAL: 119954
-c Total defining clauses: 1168520
-c Node visits during proof generation (by node type)
-c    conjunct: 79676
-c    disjunct: 39838
-c    TOTAL: 119514
-c Lemmas:  5245 definitions.  39212 shadow nodes (146266 defining clauses), 63523 applications
-c Literal justification clause counts (by number of clauses in justification:
-c    1 : 1285261
-c    2 : 27
-c    3 : 6008
-c    4 : 1096
-c    5 : 477
-c    6 : 298
-c    7 : 121
-c    8 : 68
-c    9 : 38
-c    10 : 37
-c    11 : 43
-c    12 : 38
-c    13 : 46
-c    14 : 47
-c    15 : 34
-c    16 : 37
-c    17 : 43
-c    18 : 48
-c    19 : 38
-c    20 : 36
-c    21 : 32
-c    22 : 26
-c    23 : 16
-c    24 : 10
-c    25 : 21
-c    26 : 21
-c    27 : 9
-c    28 : 11
-c    29 : 10
-c    30 : 7
-c    31 : 6
-c    32 : 5
-c    33 : 7
-c    34 : 6
-c    35 : 7
-c    36 : 3
-c    37 : 3
-c    38 : 6
-c    39 : 4
-c    40 : 2
-c    41 : 2
-c    42 : 3
-c    43 : 3
-c    44 : 4
-c    45 : 2
-c    47 : 4
-c    51 : 2
-c    54 : 2
-c    55 : 3
-c    56 : 6
-c    57 : 2
-c    59 : 3
-c    66 : 2
-c    69 : 2
-c    71 : 2
-c    74 : 2
-c    85 : 2
-c    193 : 2
-c    1 each for counts 46, 48, 52, 53, 58, 60, 63, 64, 65, 67, 70, 72, 75, 78, 80, 82, 89, 91, 94, 101, 105, 106, 171, 172, 212, 222, 304, 313, 364, 392, 441, 516, 693, 840, 917, 2689, 4463
-c    TOTAL: 1343243
-c RUP clauses for node justification (by node type):
-c    conjunct: 22398
-c    disjunct: 79676
-c    TOTAL: 102074
-Total clauses: 418 input + 1168520 defining + 146266 lemma defining + 421969 lemma application + 1343243 literal justification + 102074 node justifications = 3182490
-Elapsed time for generation: 407.39 seconds
-Input CNF file pigeon-sat-tseitin-11.cnf had 220 variables and 418 clauses
-Augmented CNF file tmp_pigeon-sat-tseitin-11.acnf has 8019 variables (max=238708) and 40536 clauses
-DRAT file tmp_pigeon-sat-tseitin-11.drat has 1343243 clauses
-Added 2686486 hints
-Elapsed seconds for hint addition: 23.672 split files + 356.717 DRAT + 11.102 insert hints = 391.491
-Read 418 clauses from file pigeon-sat-tseitin-11.cnf
-PROOF SUCCESSFUL
-3076342 total clauses
-3076342 maximum live clauses
-3774827 total hints
-0 added hints
-Command occurences:
-     a   : 1867286
-    dc   : 1867703
-     p   : 87475
-     s   : 39838
-    TOTAL: 3862302
-Elapsed time for check: 495.85 seconds
-Unweighted count = 39916800
+GEN: Input NNF DAG has 220 inputs, 158385 nodes
+GEN: NNF DAG with ITEs has 152687 nodes
+GEN: Generated POG has 119514 And/Or nodes
+GEN: File 'pigeon-sat-tseitin-11.crat' has 238708 variables (127533 used) and 3076342 steps
+GEN: Nodes by type
+GEN:    var: 220
+GEN:    neg: 220
+GEN:    conjunct: 79676
+GEN:    disjunct: 39838
+GEN:    TOTAL: 119954
+GEN: Total defining clauses: 1168520
+GEN: Node visits during proof generation (by node type)
+GEN:    conjunct: 79676
+GEN:    disjunct: 39838
+GEN:    TOTAL: 119514
+GEN: Lemmas:  5245 definitions.  39212 shadow nodes (146266 defining clauses), 63523 applications
+GEN: Literal justification clause counts (by number of clauses in justification:
+GEN:    1 : 1285261
+GEN:    2 : 27
+GEN:    3 : 6008
+GEN:    4 : 1096
+GEN:    5 : 477
+GEN:    6 : 298
+GEN:    7 : 121
+GEN:    8 : 68
+GEN:    9 : 38
+GEN:    10 : 37
+GEN:    11 : 43
+GEN:    12 : 38
+GEN:    13 : 46
+GEN:    14 : 47
+GEN:    15 : 34
+GEN:    16 : 37
+GEN:    17 : 43
+GEN:    18 : 48
+GEN:    19 : 38
+GEN:    20 : 36
+GEN:    21 : 32
+GEN:    22 : 26
+GEN:    23 : 16
+GEN:    24 : 10
+GEN:    25 : 21
+GEN:    26 : 21
+GEN:    27 : 9
+GEN:    28 : 11
+GEN:    29 : 10
+GEN:    30 : 7
+GEN:    31 : 6
+GEN:    32 : 5
+GEN:    33 : 7
+GEN:    34 : 6
+GEN:    35 : 7
+GEN:    36 : 3
+GEN:    37 : 3
+GEN:    38 : 6
+GEN:    39 : 4
+GEN:    40 : 2
+GEN:    41 : 2
+GEN:    42 : 3
+GEN:    43 : 3
+GEN:    44 : 4
+GEN:    45 : 2
+GEN:    47 : 4
+GEN:    51 : 2
+GEN:    54 : 2
+GEN:    55 : 3
+GEN:    56 : 6
+GEN:    57 : 2
+GEN:    59 : 3
+GEN:    66 : 2
+GEN:    69 : 2
+GEN:    71 : 2
+GEN:    74 : 2
+GEN:    85 : 2
+GEN:    193 : 2
+GEN:    1 each for counts 46, 48, 52, 53, 58, 60, 63, 64, 65, 67, 70, 72, 75, 78, 80, 82, 89, 91, 94, 101, 105, 106, 171, 172, 212, 222, 304, 313, 364, 392, 441, 516, 693, 840, 917, 2689, 4463
+GEN:    TOTAL: 1343243
+GEN: RUP clauses for node justification (by node type):
+GEN:    conjunct: 22398
+GEN:    disjunct: 79676
+GEN:    TOTAL: 102074
+GEN: Total clauses: 418 input + 1168520 defining + 146266 lemma defining + 421969 lemma application + 1343243 literal justification + 102074 node justifications = 3182490
+GEN: Elapsed time for generation: 408.79 seconds
+HINTIFY: Input CNF file pigeon-sat-tseitin-11.cnf had 220 variables and 418 clauses
+HINTIFY: Augmented CNF file tmp_pigeon-sat-tseitin-11.acnf has 8019 variables (max=238708) and 40536 clauses
+HINTIFY: DRAT file tmp_pigeon-sat-tseitin-11.drat has 1343243 clause additions and 32319 clause deletions
+HINTIFY: Added 2686486 hints
+HINTIFY: Elapsed seconds for hint addition: 23.970 split files + 304.100 DRAT-TRIM + 10.902 insert hints = 338.972
+CHECKER: Read 418 clauses from file pigeon-sat-tseitin-11.cnf
+CHECKER: PROOF SUCCESSFUL
+CHECKER: 3076342 total clauses
+CHECKER: 3076342 maximum live clauses
+CHECKER: 3774827 total hints
+CHECKER: 0 added hints
+CHECKER: Command occurences:
+CHECKER:      a   : 1867286
+CHECKER:     dc   : 1867703
+CHECKER:      p   : 87475
+CHECKER:      s   : 39838
+CHECKER:     TOTAL: 3862302
+CHECKER: Elapsed time for check: 494.41 seconds
+CHECKER: Unweighted count = 39916800
