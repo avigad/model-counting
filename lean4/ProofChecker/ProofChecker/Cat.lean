@@ -9,15 +9,13 @@ import ProofChecker.Data.Dimacs
 As a trick, we could set `α := Clause ν` to have direct access to clauses without
 going through an index mapping. -/
 inductive CatStep (α ν : Type)
-  | /-- Add input clause. -/
-    addInput (idx : α) (C : Clause ν)
-  | /-- Add asymmetric tautology. Empty hints means inferred hint. -/
+  | /-- Add asymmetric tautology. -/
     addAt (idx : α) (C : Clause ν) (upHints : List α)
-  | /-- Delete asymmetric tautology. Empty hints means inferred hint. -/
+  | /-- Delete asymmetric tautology. -/
     delAt (idx : α) (upHints : List α)
   | /-- Declare product operation. -/
     prod (idx : α) (x : ν) (ls : List (Lit ν))
-  | /-- Declare sum operation. Empty hints means inferred hint. -/
+  | /-- Declare sum operation. -/
     sum (idx : α) (x : ν) (l₁ l₂ : Lit ν) (upHints : List α)
   | /-- Delete operation. -/
     delOp (x : ν)
@@ -27,7 +25,6 @@ namespace CatStep
 
 instance [ToString α] [ToString ν] : ToString (CatStep α ν) where
   toString := fun
-    | addInput idx C => s!"{idx} i ({C})"
     | addAt idx C upHints => s!"{idx} a ({C}) (hints: {upHints})"
     | delAt idx upHints => s!"dc {idx} (hints: {upHints})"
     | prod idx x ls => s!"{idx} p {x} {ls.map toString |> " ".intercalate}"
@@ -38,16 +35,13 @@ open Dimacs in
 /-- Makes a step given a DIMACS line. -/
 def ofDimacs (tks : List Token) : Except String (CatStep Nat Nat) := do
   let toUpHints (tks : List Token) : Except String (List Nat) := do
-    if let [.str "*"] := tks then return []
+    if let [.str "*"] := tks then
+      throw s!"got unhinted proof, but all hints need to be filled in"
     tks.mapM (·.getInt? |> Except.ofOption "expected int" |>.map Int.natAbs)
   let posInt (x : Int) : Except String Nat := do
     if x < 0 then throw s!"expected positive int {x}"
     return x.natAbs
   match tks with
-  | [.int idx, .str "i"] ++ tks =>
-    let some (.int 0) := tks.getLast? | throw s!"missing terminating 0"
-    let lits := tks.dropLast
-    return .addInput (← posInt idx) (← Clause.ofDimacsLits lits)
   | [.int idx, .str "a"] ++ tks =>
     let grps := List.splitOn (.int 0) tks
     let lits :: pf? := grps | throw s!"expected clause in '{grps}'"
@@ -68,6 +62,8 @@ def ofDimacs (tks : List Token) : Except String (CatStep Nat Nat) := do
     return .sum (← posInt idx) (← posInt v) (Lit.ofInt l₁) (Lit.ofInt l₂) (← toUpHints pf)
   | [.str "do", .int v] =>
     return .delOp (← posInt v)
+  | [_, .str "i"] ++ _ =>
+    throw s!"input clause command is deprecated"
   | _ => throw s!"unexpected line"
 
 def readDimacsFile (fname : String) : IO (Array <| CatStep Nat Nat) := do
@@ -75,7 +71,7 @@ def readDimacsFile (fname : String) : IO (Array <| CatStep Nat Nat) := do
   for ln in (← Dimacs.tokenizeFile fname) do
     match CatStep.ofDimacs ln with
     | .ok s => pf := pf.push s
-    | .error e => throw <| IO.userError s!"invalid line '{ln}': {e}"
+    | .error e => throw <| IO.userError s!"failed to parse line '{ln}': {e}"
   return pf
 
 end CatStep
@@ -151,12 +147,6 @@ end CountingScheme
 
 structure CheckerState where
   inputCnf : CnfForm Nat
-  /-- Clauses in the input CNF that have not yet been added by the proof.
-  This must be empty (all clauses must be introduced) by the end of the proof. -/
-  inputClausesToAdd : Std.HashSet (Clause Nat) := inputCnf.foldl (init := {}) .insert
-  /-- Indices in the database of added input clauses.
-  This must be empty (all inputs must be deleted) by the end of the proof. -/
-  inputIdsInDb : Std.HashSet Nat := {}
   originalVars : Nat := inputCnf.maxVar?.getD 0
   /-- The clause database. We store `(C, true)` for schema definition clauses
   and `(C, false)` for all other ones. -/
@@ -196,7 +186,6 @@ inductive CheckerError where
   | duplicateExtVar (x : Nat)
   | unknownExtVar (x : Nat)
   | prodNotDisjoint (xs : List Nat)
-  | finalStateInputNotIntrod (C : Clause Nat)
   | finalStateInputNotDeleted (C : Clause Nat)
   | finalStateNotOneUnit (C : Clause Nat)
 
@@ -215,7 +204,6 @@ instance : ToString CheckerError where
     | duplicateExtVar x => s!"extension variable '{x}' already introduced"
     | unknownExtVar x => s!"unknown extension variable '{x}'"
     | prodNotDisjoint xs => s!"variables {xs} have non-disjoint dependency sets"
-    | finalStateInputNotIntrod C => s!"proof done but input clause {C} was never introduced"
     | finalStateInputNotDeleted C => s!"proof done but input clause {C} was not deleted"
     | finalStateNotOneUnit C => s!"proof done but leftover clause {C} found"
 
@@ -325,69 +313,6 @@ def checkAtWithHints (C : Clause Nat) (hints : List Nat) : CheckerM Unit := do
     return
   throw <| .upNoContradiction τ
 
-/-- Check that `C` is either implied by UP, or is a RAT on its first literal, the *pivot*.
-For CRAT we also ensure that the pivot is an extension variable.
-`posHints` and `negHints` are as in LRAT -/
-def checkRat (C : Clause Nat) (posHints : List Nat) (negHints : List (Nat × List Nat)) : CheckerM Unit := do
-  let notC := PropAssignment.mk (C.map Lit.negate)
-  let some τ ← propagateWithHints notC posHints | do
-    log s!"({C}) implied by UP"
-    return /- contradiction found, implied by UP -/
-  let some pivot := C.firstLit? | throw <| .upNoContradiction τ
-  let st ← get
-  if pivot.var ≤ st.originalVars then throw <| .varNotExtension pivot.var
-  let negHints := negHints.foldl (init := Std.HashMap.empty) fun acc (i, hs) => acc.insert i hs
-  -- TODO this would be much more efficient if we only looped over clauses containing the pivot
-  st.clauseDb.forM fun i (Ci, _) => do
-    if !Ci.contains pivot.negate then return
-    for lit in C do
-      -- resolvent is a tautology
-      if lit ≠ pivot ∧ Ci.contains lit.negate then return
-    let some hs := negHints.find? i | throw <| .missingHint i pivot
-    let τ' := τ ++ PropAssignment.mk (Ci.filterMap fun x => if x ≠ pivot then some x.negate else none)
-    if let some τ' ← propagateWithHints τ' hs then
-      throw <| .upNoContradiction τ'
-  log s!"({C}) RAT on {pivot}"
-
-partial def propagateWithoutHints (τ : PropAssignment Nat) : CheckerM (Option (PropAssignment Nat)) := do
-  -- awfully inefficient UP implementation
-  let τ' ← (← get).clauseDb.foldM (init := some τ) fun τ _ (Ci, _) => do
-    let some τ := τ | return none
-    match τ.reduceClause Ci with
-    | none => return some τ
-    | some [] => return none
-    | some [l] => return some (τ.extend l)
-    | some _ => return some τ
-  match τ' with
-  | none => return none
-  | some τ' =>
-    if τ' == τ then return τ
-    else propagateWithoutHints τ'
-
-def checkAtWithoutHints (C : Clause Nat) : CheckerM Unit := do
-  let notC := PropAssignment.mk (C.map Lit.negate)
-  let some τ ← propagateWithoutHints notC | do
-    log s!"({C}) implied by UP"
-    return
-  throw <| .upNoContradiction τ
-
-def checkRatWithoutHints (C : Clause Nat) : CheckerM Unit := do
-  let notC := PropAssignment.mk (C.map Lit.negate)
-  let some τ ← propagateWithoutHints notC | do
-    log s!"({C}) implied by UP"
-    return
-  let some pivot := C.firstLit? | throw <| .upNoContradiction τ
-  let st ← get
-  if pivot.var ≤ st.originalVars then throw <| .varNotExtension pivot.var
-  st.clauseDb.forM fun _ (Ci, _) => do
-    if !Ci.contains pivot.negate then return
-    for lit in C do
-      if lit ≠ pivot ∧ Ci.contains lit.negate then return
-    let τ' := τ ++ PropAssignment.mk (Ci.filterMap fun x => if x ≠ pivot then some x.negate else none)
-    if let some τ' ← propagateWithoutHints τ' then
-      throw <| .upNoContradiction τ'
-  log s!"({C}) RAT on {pivot}"
-
 def updateGraph (step : CatStep Nat Nat) : CheckerM Unit := do
   let st ← get
   match st.scheme.update step with
@@ -397,23 +322,14 @@ def updateGraph (step : CatStep Nat Nat) : CheckerM Unit := do
 def update (step : CatStep Nat Nat) : CheckerM Unit :=
   withTraces (fun ts => s!"{step}:\n\t" ++ ("\n\t".intercalate ts.toList)) do
     match step with
-    | .addInput idx C =>
-      addClause idx C false
-      modify fun st => { st with
-        inputIdsInDb := st.inputIdsInDb.insert idx
-        inputClausesToAdd := st.inputClausesToAdd.erase C
-      }
     | .addAt idx C pf =>
-      if !pf.isEmpty then checkAtWithHints C pf
-      else checkAtWithoutHints C
+      checkAtWithHints C pf
       addClause idx C false
     | .delAt idx pf =>
       let (C, _) ← getClause idx
       -- The clause must be AT by everything except itself.
       delClause idx
-      if !pf.isEmpty then checkAtWithHints C pf
-      else checkAtWithoutHints C
-      modify fun st => { st with inputIdsInDb := st.inputIdsInDb.erase idx }
+      checkAtWithHints C pf
     | step@(.prod idx x ls) =>
       addExtVar x (ls.map (·.var)) (ensureDisjoint := true)
       let lx := Lit.ofInt x
@@ -424,8 +340,7 @@ def update (step : CatStep Nat Nat) : CheckerM Unit :=
       updateGraph step
     | step@(.sum idx x l₁ l₂ pf) =>
       let C := Clause.mk [l₁.negate, l₂.negate]
-      if !pf.isEmpty then checkAtWithHints C pf
-      else checkAtWithoutHints C
+      checkAtWithHints C pf
       addExtVar x [l₁.var, l₂.var]
       let lx := Lit.ofInt x
       addClause idx (Clause.mk [-lx, l₁, l₂]) true
@@ -447,17 +362,13 @@ def checkFinalState : CheckerM Unit := do
   let st ← get
   log s!"final clauses:\n\t{st.clauseDb.toList}"
 
-  if !st.inputClausesToAdd.isEmpty then
-    throw <| .finalStateInputNotIntrod st.inputClausesToAdd.toList.head!
-
-  if !st.inputIdsInDb.isEmpty then
-    let (C, _) ← getClause st.inputIdsInDb.toList.head!
-    throw <| .finalStateInputNotDeleted C
-
   -- Check that the final state of the database is just one unit clause
-  -- and everything else is schema definitions.
+  -- and everything else is schema definitions. In particular, all input
+  -- clauses must have been deleted.
   let mut foundUnit := false
-  for (_, cls, schemaDef) in st.clauseDb.toList do
+  for (i, cls, schemaDef) in st.clauseDb.toList do
+    if i < st.inputCnf.length then
+      throw <| .finalStateInputNotDeleted cls
     if cls.length == 1 then
       if !foundUnit then
         foundUnit := true
@@ -465,21 +376,25 @@ def checkFinalState : CheckerM Unit := do
         throw <| .finalStateNotOneUnit cls
     else if !schemaDef then
       throw <| .finalStateNotOneUnit cls
-
-def check (cnf : CnfForm Nat) (pf : List (CatStep Nat Nat)) (traces := false) : IO Bool := do
-  let st : CheckerState := { inputCnf := cnf }
-  let (ret, st') := (do
-    for step in pf do
+    
+def checkAux (pf : List (CatStep Nat Nat)) : ExceptT String (StateM CheckerState) Unit := do
+  -- Insert all input clauses into the db.
+  -- TODO(WN): For clause db, an array where we never realloc but rather
+  -- just mark clauses as deleted might be a better choice.
+  for (i, cl) in (← get).inputCnf.enum do
+    ExceptT.adapt toString <| addClause (i + 1) cl false
+  for step in pf do
+    ExceptT.adapt (fun e => s!"error on line '{step}': {e}") <|
       update step
-    checkFinalState
-    : CheckerM Unit).run st |>.run
+  ExceptT.adapt toString <| checkFinalState
+
+def check (cnf : CnfForm Nat) (pf : List (CatStep Nat Nat)) (traces := false) : IO Unit := do
+  let mut st : CheckerState := { inputCnf := cnf }
+  let (ret, st') := checkAux pf |>.run st |>.run
   if traces then
     for t in st'.trace do
       IO.println t
-  match ret with
-  | .error e =>
-    IO.println s!"\n\t{e}\n\tclauses: {st'.clauseDb.toList}"
-    return false
-  | .ok _ => return true
+  if let .error e := ret then
+    throw <| IO.userError s!"{e}\n\tclauses: {st'.clauseDb.toList}"
 
 end CheckerState

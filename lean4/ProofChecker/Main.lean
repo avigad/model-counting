@@ -5,10 +5,15 @@ import ProofChecker.Cat
 def runCheckCmd (p : Cli.Parsed) : IO UInt32 := do
   let cnfFname := p.positionalArg! "cnf"
   let cratFname := p.positionalArg! "crat"
-  let cnf ← CnfForm.readDimacsFile cnfFname.value
-  let pf ← CatStep.readDimacsFile cratFname.value
-  let ret ← CheckerState.check cnf pf.toList (traces := p.hasFlag "verbose")
-  return if ret then 0 else 1
+  try
+    let cnf ← CnfForm.readDimacsFile cnfFname.value
+    let pf ← CatStep.readDimacsFile cratFname.value
+    CheckerState.check cnf pf.toList (traces := p.hasFlag "verbose")
+    IO.println "PROOF SUCCESSFUL"
+    return 0
+  catch e =>
+    IO.println s!"PROOF FAILED\n{e}"
+    return 1
 
 def checkCmd : Cli.Cmd := `[Cli|
   CheckCRAT VIA runCheckCmd; ["0.0.1"]
