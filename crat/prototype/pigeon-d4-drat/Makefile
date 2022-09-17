@@ -11,6 +11,7 @@ BDIR = ../../../benchmarks/generators
 PGEN = $(BDIR)/gen_pigeon.py
 HINTIFY = ../hintify.py
 GRAB = ../../../tools/grab_data.py
+MERGE = ../../../tools/merge_csv.py
 
 pst: pigeon-sat-tseitin-$(N).cnf
 psd: pigeon-sat-direct-$(N).cnf
@@ -71,3 +72,16 @@ data:
 	$(INTERP) $(GRAB) -1 "HINTIFY: Elapsed seconds" pigeon-sat-tseitin-*.data > pst-hintify-seconds.csv
 	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-direct-*.data > psd-check-seconds.csv
 	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-tseitin-*.data > pst-check-seconds.csv
+	$(INTERP) $(MERGE) -l "NNF nodes,POG nodes,Def clauses,Just clauses,Tot clauses,Gen secs,Hint secs,Check secs" \
+		pst-nnf-nodes.csv pst-pog-nodes.csv pst-defining-clauses.csv pst-justification-clauses.csv pst-total-clauses.csv \
+		pst-generate-seconds.csv pst-hintify-seconds.csv pst-check-seconds.csv > pst-data.csv
+	$(INTERP) $(MERGE) -l "NNF nodes,POG nodes,Def clauses,Just clauses,Tot clauses,Gen secs,Hint secs,Check secs" \
+		psd-nnf-nodes.csv psd-pog-nodes.csv psd-defining-clauses.csv psd-justification-clauses.csv psd-total-clauses.csv \
+		psd-generate-seconds.csv psd-hintify-seconds.csv psd-check-seconds.csv > psd-data.csv
+
+
+
+
+
+
+
