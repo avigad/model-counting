@@ -10,6 +10,7 @@ N=5
 BDIR = ../../../benchmarks/generators
 PGEN = $(BDIR)/gen_pigeon.py
 HINTIFY = ../hintify.py
+GRAB = ../../../tools/grab_data.py
 
 pst: pigeon-sat-tseitin-$(N).cnf
 psd: pigeon-sat-direct-$(N).cnf
@@ -53,3 +54,20 @@ clean:
 superclean: clean
 	rm -f *.cnf *.nnf *.crat *data
 
+data:
+	$(INTERP) $(GRAB) -1 "Input NNF" pigeon-sat-direct-*.data > psd-nnf-nodes.csv
+	$(INTERP) $(GRAB) -1 "Input NNF" pigeon-sat-tseitin-*.data > pst-nnf-nodes.csv
+	$(INTERP) $(GRAB) "Generated POG" pigeon-sat-direct-*.data > psd-pog-nodes.csv
+	$(INTERP) $(GRAB) "Generated POG" pigeon-sat-tseitin-*.data > pst-pog-nodes.csv
+	$(INTERP) $(GRAB) -1 "Total clauses" pigeon-sat-direct-*.data > psd-total-clauses.csv
+	$(INTERP) $(GRAB) -1 "Total clauses" pigeon-sat-tseitin-*.data > pst-total-clauses.csv
+	$(INTERP) $(GRAB)  2 "Total clauses" pigeon-sat-direct-*.data > psd-defining-clauses.csv
+	$(INTERP) $(GRAB)  2 "Total clauses" pigeon-sat-tseitin-*.data > pst-defining-clauses.csv
+	$(INTERP) $(GRAB)  5 "Total clauses" pigeon-sat-direct-*.data > psd-justification-clauses.csv
+	$(INTERP) $(GRAB)  5 "Total clauses" pigeon-sat-tseitin-*.data > pst-justification-clauses.csv
+	$(INTERP) $(GRAB) "GEN: Elapsed time" pigeon-sat-direct-*.data > psd-generate-seconds.csv
+	$(INTERP) $(GRAB) "GEN: Elapsed time" pigeon-sat-tseitin-*.data > pst-generate-seconds.csv
+	$(INTERP) $(GRAB) -1 "HINTIFY: Elapsed seconds" pigeon-sat-direct-*.data > psd-hintify-seconds.csv
+	$(INTERP) $(GRAB) -1 "HINTIFY: Elapsed seconds" pigeon-sat-tseitin-*.data > pst-hintify-seconds.csv
+	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-direct-*.data > psd-check-seconds.csv
+	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-tseitin-*.data > pst-check-seconds.csv
