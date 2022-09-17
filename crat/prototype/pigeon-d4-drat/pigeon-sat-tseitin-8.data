@@ -1,0 +1,134 @@
+c [33mBenchmark Information[0m
+c Number of variables: 112
+c Number of clauses: 208
+c Number of literals: 512
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -34 
+c top 5: -34 -35 
+c top 5: -34 -35 -46 
+c top 5: -34 -35 -46 -54 
+c unitLits 1048577 4194308 Bytes
+c top 5: -34 -35 -46 54 
+c top 5: -34 -35 46 
+c top 5: -34 -35 46 -54 
+c top 5: -34 35 
+c top 5: -34 35 -53 
+c top 5: -34 35 -53 -45 
+c top 5: -34 35 -53 45 
+c top 5: -34 35 53 
+c top 5: -34 35 53 -45 
+c top 5: 34 
+c top 5: 34 -53 
+c top 5: 34 -53 -45 
+c top 5: 34 -53 -45 -52 
+c top 5: 34 -53 -45 52 
+c top 5: 34 -53 45 
+c top 5: 34 -53 45 -52 
+c top 5: 34 53 
+c top 5: 34 53 -45 
+c top 5: 34 53 -45 -46 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 8295
+c Number of split formula: 2070
+c Number of decision node: 4147
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 1035
+c Number of backbone calls: 0
+c Number of partitioner calls: 507
+c Average number of assigned literal to obtain decomposable AND nodes: 84.18/112
+c Minimum number of assigned variable where a decomposable AND appeared: 56
+c 
+c [33mGraph Information[0m
+c Number of nodes: 68680
+c Number of edges: 73862
+c 
+c [1m[34mCache Information[0m
+c Memory used: 563 MB
+c
+c Number of positive hit: 2723
+c Number of negative hit: 4147
+c Number of reduceCall: 0
+c
+c Final time: 0.097826
+c 
+s 0.000000
+GEN: Input NNF DAG has 112 inputs, 11038 nodes
+GEN: NNF DAG with ITEs has 10799 nodes
+GEN: Generated POG has 8445 And/Or nodes
+GEN: File 'pigeon-sat-tseitin-8.crat' has 16573 variables (8860 used) and 188062 steps
+GEN: Nodes by type
+GEN:    var: 112
+GEN:    neg: 112
+GEN:    conjunct: 5630
+GEN:    disjunct: 2815
+GEN:    TOTAL: 8669
+GEN: Total defining clauses: 81916
+GEN: Node visits during proof generation (by node type)
+GEN:    conjunct: 5630
+GEN:    disjunct: 2815
+GEN:    TOTAL: 8445
+GEN: Lemmas:  460 definitions.  3259 shadow nodes (11925 defining clauses), 3189 applications
+GEN: Literal justification clause counts (by number of clauses in justification:
+GEN:    1 : 74095
+GEN:    3 : 432
+GEN:    4 : 184
+GEN:    5 : 81
+GEN:    6 : 38
+GEN:    7 : 19
+GEN:    8 : 10
+GEN:    9 : 3
+GEN:    10 : 7
+GEN:    11 : 3
+GEN:    12 : 2
+GEN:    13 : 3
+GEN:    14 : 5
+GEN:    16 : 2
+GEN:    17 : 3
+GEN:    18 : 2
+GEN:    25 : 2
+GEN:    102 : 2
+GEN:    1 each for counts 19, 20, 21, 22, 23, 26, 27, 29, 32, 33, 34, 35, 37, 48, 54, 65, 68, 111, 164, 179, 209, 211
+GEN:    TOTAL: 79076
+GEN: RUP clauses for node justification (by node type):
+GEN:    conjunct: 1041
+GEN:    disjunct: 5630
+GEN:    TOTAL: 6671
+GEN: Total clauses: 208 input + 81916 defining + 11925 lemma defining + 19102 lemma application + 79076 literal justification + 6671 node justifications = 198898
+GEN: Elapsed time for generation: 10.45 seconds
+HINTIFY: Input CNF file pigeon-sat-tseitin-8.cnf had 112 variables and 208 clauses
+HINTIFY: Augmented CNF file tmp_pigeon-sat-tseitin-8.acnf has 415 variables (max=16573) and 1297 clauses
+HINTIFY: DRAT file tmp_pigeon-sat-tseitin-8.drat has 79076 clause additions and 786 clause deletions
+HINTIFY: Added 158152 hints
+HINTIFY: Elapsed seconds for hint addition: 1.332 split files + 2.028 DRAT-TRIM + 0.576 insert hints = 3.936
+CHECKER: Read 208 clauses from file pigeon-sat-tseitin-8.cnf
+CHECKER: PROOF SUCCESSFUL
+CHECKER: 188062 total clauses
+CHECKER: 188062 maximum live clauses
+CHECKER: 212720 total hints
+CHECKER: 0 added hints
+CHECKER: Command occurences:
+CHECKER:      a   : 104849
+CHECKER:     dc   : 105056
+CHECKER:      p   : 5933
+CHECKER:      s   : 2815
+CHECKER:     TOTAL: 218653
+CHECKER: Elapsed time for check: 9.69 seconds
+CHECKER: Unweighted count = 40320

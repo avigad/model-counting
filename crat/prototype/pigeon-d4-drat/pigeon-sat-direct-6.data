@@ -1,0 +1,122 @@
+c [33mBenchmark Information[0m
+c Number of variables: 36
+c Number of clauses: 96
+c Number of literals: 216
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -29 
+c top 5: -29 -17 
+c top 5: -29 -17 -33 
+c top 5: -29 -17 -33 -21 
+c unitLits 1048577 4194308 Bytes
+c top 5: -29 -17 -33 21 
+c top 5: -29 -17 33 
+c top 5: -29 -17 33 -21 
+c top 5: -29 17 
+c top 5: -29 17 -11 
+c top 5: -29 17 -11 -30 
+c top 5: -29 17 -11 30 
+c top 5: 29 
+c top 5: 29 -18 
+c top 5: 29 -18 -14 
+c top 5: 29 -18 -14 -8 
+c top 5: 29 -18 -14 8 
+c top 5: 29 -18 14 
+c top 5: 29 -18 14 -8 
+c top 5: 29 18 
+c top 5: 29 18 -8 
+c top 5: 29 18 -8 -21 
+c top 5: 29 18 -8 21 
+c top 5: 29 18 8 
+c top 5: 29 18 8 -21 
+c top 5: 29 18 8 21 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 1411
+c Number of split formula: 164
+c Number of decision node: 705
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 82
+c Number of backbone calls: 0
+c Number of partitioner calls: 1
+c Average number of assigned literal to obtain decomposable AND nodes: 24.50/36
+c Minimum number of assigned variable where a decomposable AND appeared: 18
+c 
+c [33mGraph Information[0m
+c Number of nodes: 6711
+c Number of edges: 7498
+c 
+c [1m[34mCache Information[0m
+c Memory used: 550 MB
+c
+c Number of positive hit: 176
+c Number of negative hit: 705
+c Number of reduceCall: 0
+c
+c Final time: 0.004760
+c 
+s 0.000000
+GEN: Input NNF DAG has 36 inputs, 1715 nodes
+GEN: NNF DAG with ITEs has 1461 nodes
+GEN: Generated POG has 1281 And/Or nodes
+GEN: File 'pigeon-sat-direct-6.crat' has 2318 variables (1354 used) and 15246 steps
+GEN: Nodes by type
+GEN:    var: 36
+GEN:    neg: 36
+GEN:    conjunct: 854
+GEN:    disjunct: 427
+GEN:    TOTAL: 1353
+GEN: Total defining clauses: 8432
+GEN: Node visits during proof generation (by node type)
+GEN:    conjunct: 854
+GEN:    disjunct: 427
+GEN:    TOTAL: 1281
+GEN: Lemmas:  43 definitions.  90 shadow nodes (278 defining clauses), 219 applications
+GEN: Literal justification clause counts (by number of clauses in justification:
+GEN:    1 : 4821
+GEN:    3 : 18
+GEN:    4 : 3
+GEN:    5 : 3
+GEN:    1 each for counts 8, 10, 12, 13, 14, 15, 25
+GEN:    TOTAL: 4999
+GEN: RUP clauses for node justification (by node type):
+GEN:    conjunct: 82
+GEN:    disjunct: 854
+GEN:    TOTAL: 936
+GEN: Total clauses: 96 input + 8432 defining + 278 lemma defining + 665 lemma application + 4999 literal justification + 936 node justifications = 15406
+GEN: Elapsed time for generation: 0.34 seconds
+HINTIFY: Input CNF file pigeon-sat-direct-6.cnf had 36 variables and 96 clauses
+HINTIFY: Augmented CNF file tmp_pigeon-sat-direct-6.acnf has 73 variables (max=2318) and 214 clauses
+HINTIFY: DRAT file tmp_pigeon-sat-direct-6.drat has 4999 clause additions and 81 clause deletions
+HINTIFY: Added 9998 hints
+HINTIFY: Elapsed seconds for hint addition: 0.039 split files + 0.063 DRAT-TRIM + 0.025 insert hints = 0.127
+CHECKER: Read 96 clauses from file pigeon-sat-direct-6.cnf
+CHECKER: PROOF SUCCESSFUL
+CHECKER: 15246 total clauses
+CHECKER: 15246 maximum live clauses
+CHECKER: 13722 total hints
+CHECKER: 0 added hints
+CHECKER: Command occurences:
+CHECKER:      a   : 6600
+CHECKER:     dc   : 6695
+CHECKER:      p   : 891
+CHECKER:      s   : 427
+CHECKER:     TOTAL: 14613
+CHECKER: Elapsed time for check: 0.31 seconds
+CHECKER: Unweighted count = 720

@@ -1,0 +1,142 @@
+c [33mBenchmark Information[0m
+c Number of variables: 64
+c Number of clauses: 232
+c Number of literals: 512
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -29 
+c top 5: -29 -35 
+c top 5: -29 -35 -43 
+c top 5: -29 -35 -43 -37 
+c unitLits 1048577 4194308 Bytes
+c      16384 |       0.08 |       3835 |       8203 |       1912 |        550 |      69788 |      78920 |          0 |       8203 |          49 |          0 | 
+c top 5: -29 -35 -43 37 
+c top 5: -29 -35 43 
+c top 5: -29 -35 43 -19 
+c top 5: -29 35 
+c top 5: -29 35 -43 
+c top 5: -29 35 -43 -19 
+c top 5: 29 
+c top 5: 29 -43 
+c top 5: 29 -43 -35 
+c top 5: 29 -43 -35 -19 
+c      32768 |       0.16 |       8106 |      16394 |       3184 |        550 |     149855 |     167818 |          0 |      16394 |          52 |          0 | 
+c top 5: 29 -43 -35 19 
+c top 5: 29 -43 35 
+c top 5: 29 -43 35 -19 
+c top 5: 29 43 
+c top 5: 29 43 -35 
+c top 5: 29 43 -35 -19 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 37143
+c Number of split formula: 4046
+c Number of decision node: 18571
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 2023
+c Number of backbone calls: 0
+c Number of partitioner calls: 52
+c Average number of assigned literal to obtain decomposable AND nodes: 46.49/64
+c Minimum number of assigned variable where a decomposable AND appeared: 36
+c 
+c [33mGraph Information[0m
+c Number of nodes: 171904
+c Number of edges: 192498
+c 
+c [1m[34mCache Information[0m
+c Memory used: 550 MB
+c
+c Number of positive hit: 9183
+c Number of negative hit: 18571
+c Number of reduceCall: 0
+c
+c Final time: 0.182867
+c 
+s 0.000000
+GEN: Input NNF DAG has 64 inputs, 40332 nodes
+GEN: NNF DAG with ITEs has 34380 nodes
+GEN: Generated POG has 29412 And/Or nodes
+GEN: File 'pigeon-sat-direct-8.crat' has 54072 variables (29911 used) and 452928 steps
+GEN: Nodes by type
+GEN:    var: 64
+GEN:    neg: 64
+GEN:    conjunct: 19608
+GEN:    disjunct: 9804
+GEN:    TOTAL: 29540
+GEN: Total defining clauses: 219496
+GEN: Node visits during proof generation (by node type)
+GEN:    conjunct: 19608
+GEN:    disjunct: 9804
+GEN:    TOTAL: 29412
+GEN: Lemmas:  1569 definitions.  5310 shadow nodes (20149 defining clauses), 10825 applications
+GEN: Literal justification clause counts (by number of clauses in justification:
+GEN:    1 : 155661
+GEN:    3 : 1043
+GEN:    4 : 384
+GEN:    5 : 224
+GEN:    6 : 114
+GEN:    7 : 78
+GEN:    8 : 51
+GEN:    9 : 38
+GEN:    10 : 40
+GEN:    11 : 15
+GEN:    12 : 19
+GEN:    13 : 16
+GEN:    14 : 12
+GEN:    15 : 10
+GEN:    16 : 12
+GEN:    17 : 9
+GEN:    18 : 6
+GEN:    19 : 12
+GEN:    20 : 7
+GEN:    21 : 4
+GEN:    22 : 4
+GEN:    23 : 11
+GEN:    25 : 4
+GEN:    26 : 7
+GEN:    27 : 3
+GEN:    32 : 2
+GEN:    58 : 2
+GEN:    1 each for counts 29, 31, 34, 35, 36, 38, 40, 47, 52, 65, 72, 75, 77, 78, 81, 87, 99, 108, 110, 146, 290, 318, 336, 361, 364, 372, 410, 430, 438, 450, 516, 663
+GEN:    TOTAL: 172822
+GEN: RUP clauses for node justification (by node type):
+GEN:    conjunct: 2096
+GEN:    disjunct: 19608
+GEN:    TOTAL: 21704
+GEN: Total clauses: 232 input + 219496 defining + 20149 lemma defining + 36777 lemma application + 172822 literal justification + 21704 node justifications = 471180
+GEN: Elapsed time for generation: 24.31 seconds
+HINTIFY: Input CNF file pigeon-sat-direct-8.cnf had 64 variables and 232 clauses
+HINTIFY: Augmented CNF file tmp_pigeon-sat-direct-8.acnf has 499 variables (max=54072) and 2129 clauses
+HINTIFY: DRAT file tmp_pigeon-sat-direct-8.drat has 172822 clause additions and 1462 clause deletions
+HINTIFY: Added 345644 hints
+HINTIFY: Elapsed seconds for hint addition: 1.559 split files + 4.759 DRAT-TRIM + 0.953 insert hints = 7.270
+CHECKER: Read 232 clauses from file pigeon-sat-direct-8.cnf
+CHECKER: PROOF SUCCESSFUL
+CHECKER: 452928 total clauses
+CHECKER: 452928 maximum live clauses
+CHECKER: 472641 total hints
+CHECKER: 0 added hints
+CHECKER: Command occurences:
+CHECKER:      a   : 231303
+CHECKER:     dc   : 231534
+CHECKER:      p   : 20043
+CHECKER:      s   : 9804
+CHECKER:     TOTAL: 492684
+CHECKER: Elapsed time for check: 47.11 seconds
+CHECKER: Unweighted count = 40320
