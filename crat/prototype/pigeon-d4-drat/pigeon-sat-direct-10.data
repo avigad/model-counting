@@ -1,0 +1,477 @@
+c [33mBenchmark Information[0m
+c Number of variables: 100
+c Number of clauses: 460
+c Number of literals: 1000
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -83 
+c top 5: -83 -93 
+c top 5: -83 -93 -43 
+c top 5: -83 -93 -43 -11 
+c unitLits 1048577 4194308 Bytes
+c      16384 |       0.11 |       4332 |       8209 |       3832 |        550 |      75815 |      85904 |          0 |       8209 |         303 |          0 | 
+c      32768 |       0.27 |      10079 |      16405 |       8774 |        551 |     145162 |     165910 |          0 |      16405 |         496 |          0 | 
+c      49152 |       0.43 |      16240 |      24589 |      14080 |        551 |     213987 |     245584 |          0 |      24589 |         598 |          0 | 
+c      65536 |       0.57 |      23220 |      32784 |      19860 |        551 |     290009 |     332687 |          0 |      32784 |         670 |          0 | 
+c      81920 |       0.74 |      30099 |      40976 |      25092 |        551 |     365121 |     418608 |          0 |      40976 |         789 |          0 | 
+c      98304 |       0.91 |      36665 |      49165 |      30058 |        551 |     437841 |     502005 |          0 |      49165 |         880 |          0 | 
+c     114688 |       1.06 |      42849 |      57359 |      34348 |        551 |     510094 |     584593 |          0 |      57359 |         970 |          0 | 
+c     131072 |       1.25 |      48024 |      65548 |      38252 |        552 |     577089 |     661732 |          0 |      65548 |        1080 |          0 | 
+c     147456 |       1.39 |      53567 |      73739 |      41890 |        552 |     649748 |     744405 |          0 |      73739 |        1156 |          0 | 
+c     163840 |       1.53 |      58579 |      81936 |      45632 |        552 |     723500 |     828212 |          0 |      81936 |        1333 |          0 | 
+c     180224 |       1.67 |      64127 |      90125 |      49702 |        553 |     798395 |     913340 |          0 |      90125 |        1516 |          0 | 
+c     196608 |       1.79 |      68527 |      98315 |      52094 |        553 |     875197 |     999532 |          0 |      98315 |        1657 |          0 | 
+c     212992 |       1.95 |      73983 |     106512 |      55528 |        553 |     950700 |    1084938 |          0 |     106512 |        1758 |          0 | 
+c unitLits 2097153 8388612 Bytes
+c     229376 |       2.10 |      78689 |     114695 |      57712 |        565 |    1029643 |    1173176 |          0 |     114695 |        1880 |          0 | 
+c     245760 |       2.28 |      83353 |     122892 |      60722 |        565 |    1096963 |    1250189 |          0 |     122892 |        1953 |          0 | 
+c     262144 |       2.41 |      87271 |     131091 |      62558 |        565 |    1173135 |    1335463 |          0 |     131091 |        2056 |          0 | 
+c     278528 |       2.59 |      91597 |     139276 |      65358 |        565 |    1237559 |    1409483 |          0 |     139276 |        2109 |          0 | 
+c     294912 |       2.71 |      96610 |     147475 |      68378 |        565 |    1319464 |    1501085 |          0 |     147475 |        2211 |          0 | 
+c     311296 |       2.91 |     102886 |     155661 |      73150 |        565 |    1397052 |    1589257 |          0 |     155661 |        2290 |          0 | 
+c     327680 |       3.06 |     108981 |     163855 |      76784 |        565 |    1485861 |    1688073 |          0 |     163855 |        2326 |          0 | 
+c top 5: -83 -93 -43 11 
+c     344064 |       3.32 |     114354 |     172049 |      80424 |        565 |    1560751 |    1772972 |          0 |     172049 |        2369 |          0 | 
+c     360448 |       3.48 |     119392 |     180238 |      83394 |        565 |    1634653 |    1856554 |          0 |     180238 |        2410 |          0 | 
+c top 5: -83 -93 43 
+c top 5: -83 -93 43 -53 
+c     376832 |       3.62 |     124527 |     188435 |      86266 |        565 |    1719929 |    1951456 |          0 |     188435 |        2509 |          0 | 
+c     393216 |       3.79 |     130366 |     196617 |      90152 |        565 |    1799687 |    2041356 |          0 |     196617 |        2565 |          0 | 
+c     409600 |       3.98 |     136301 |     204814 |      93688 |        565 |    1889084 |    2140708 |          0 |     204814 |        2589 |          0 | 
+c unitLits 3145729 12582916 Bytes
+c top 5: -83 93 
+c top 5: -83 93 -47 
+c top 5: -83 93 -47 -37 
+c     425984 |       4.40 |     141756 |     213000 |      97612 |        565 |    1966498 |    2228283 |          0 |     213000 |        2647 |          0 | 
+c     442368 |       4.59 |     148002 |     221199 |     101566 |        565 |    2054654 |    2326601 |          0 |     221199 |        2686 |          0 | 
+c top 5: -83 93 -47 37 
+c top 5: -83 93 47 
+c top 5: -83 93 47 -37 
+c top 5: 83 
+c top 5: 83 -37 
+c top 5: 83 -37 -47 
+c top 5: 83 -37 -47 -57 
+c     458752 |       4.85 |     154064 |     229382 |     106084 |        565 |    2131772 |    2414178 |          0 |     229382 |        2723 |          0 | 
+c top 5: 83 -37 -47 57 
+c top 5: 83 -37 47 
+c top 5: 83 -37 47 -57 
+c     475136 |       5.07 |     160578 |     237585 |     110530 |        565 |    2219472 |    2512286 |          0 |     237585 |        2762 |          0 | 
+c top 5: 83 37 
+c top 5: 83 37 -47 
+c top 5: 83 37 -47 -57 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 478319
+c Number of split formula: 111402
+c Number of decision node: 239159
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 55701
+c Number of backbone calls: 0
+c Number of partitioner calls: 2770
+c Average number of assigned literal to obtain decomposable AND nodes: 73.70/100
+c Minimum number of assigned variable where a decomposable AND appeared: 54
+c 
+c [33mGraph Information[0m
+c Number of nodes: 2234114
+c Number of edges: 2528974
+c 
+c [1m[34mCache Information[0m
+c Memory used: 565 MB
+c
+c Number of positive hit: 161746
+c Number of negative hit: 239159
+c Number of reduceCall: 0
+c
+c Final time: 5.120276
+c 
+s 0.000000
+GEN: Input NNF DAG has 100 inputs, 532732 nodes
+GEN: NNF DAG with ITEs has 449390 nodes
+GEN: Generated POG has 356505 And/Or nodes
+GEN: File 'pigeon-sat-direct-10.crat' has 678189 variables (359248 used) and 8061242 steps
+GEN: Nodes by type
+GEN:    var: 100
+GEN:    neg: 100
+GEN:    conjunct: 237670
+GEN:    disjunct: 118835
+GEN:    TOTAL: 356705
+GEN: Total defining clauses: 2799110
+GEN: Node visits during proof generation (by node type)
+GEN:    conjunct: 237670
+GEN:    disjunct: 118835
+GEN:    TOTAL: 356505
+GEN: Lemmas:  16429 definitions.  68406 shadow nodes (324136 defining clauses), 180325 applications
+GEN: Literal justification clause counts (by number of clauses in justification:
+GEN:    1 : 3287924
+GEN:    2 : 14
+GEN:    3 : 22375
+GEN:    4 : 7608
+GEN:    5 : 5551
+GEN:    6 : 4115
+GEN:    7 : 3177
+GEN:    8 : 1939
+GEN:    9 : 1261
+GEN:    10 : 873
+GEN:    11 : 684
+GEN:    12 : 636
+GEN:    13 : 504
+GEN:    14 : 423
+GEN:    15 : 375
+GEN:    16 : 325
+GEN:    17 : 273
+GEN:    18 : 274
+GEN:    19 : 260
+GEN:    20 : 263
+GEN:    21 : 199
+GEN:    22 : 215
+GEN:    23 : 186
+GEN:    24 : 181
+GEN:    25 : 191
+GEN:    26 : 123
+GEN:    27 : 157
+GEN:    28 : 145
+GEN:    29 : 144
+GEN:    30 : 133
+GEN:    31 : 121
+GEN:    32 : 105
+GEN:    33 : 114
+GEN:    34 : 119
+GEN:    35 : 110
+GEN:    36 : 88
+GEN:    37 : 94
+GEN:    38 : 92
+GEN:    39 : 78
+GEN:    40 : 69
+GEN:    41 : 73
+GEN:    42 : 79
+GEN:    43 : 64
+GEN:    44 : 77
+GEN:    45 : 55
+GEN:    46 : 64
+GEN:    47 : 47
+GEN:    48 : 55
+GEN:    49 : 66
+GEN:    50 : 57
+GEN:    51 : 44
+GEN:    52 : 55
+GEN:    53 : 53
+GEN:    54 : 37
+GEN:    55 : 39
+GEN:    56 : 35
+GEN:    57 : 35
+GEN:    58 : 29
+GEN:    59 : 34
+GEN:    60 : 53
+GEN:    61 : 32
+GEN:    62 : 30
+GEN:    63 : 34
+GEN:    64 : 37
+GEN:    65 : 45
+GEN:    66 : 32
+GEN:    67 : 40
+GEN:    68 : 39
+GEN:    69 : 27
+GEN:    70 : 25
+GEN:    71 : 27
+GEN:    72 : 29
+GEN:    73 : 23
+GEN:    74 : 22
+GEN:    75 : 23
+GEN:    76 : 14
+GEN:    77 : 26
+GEN:    78 : 17
+GEN:    79 : 26
+GEN:    80 : 16
+GEN:    81 : 20
+GEN:    82 : 20
+GEN:    83 : 19
+GEN:    84 : 25
+GEN:    85 : 15
+GEN:    86 : 19
+GEN:    87 : 20
+GEN:    88 : 21
+GEN:    89 : 20
+GEN:    90 : 18
+GEN:    91 : 20
+GEN:    92 : 15
+GEN:    93 : 13
+GEN:    94 : 23
+GEN:    95 : 21
+GEN:    96 : 13
+GEN:    97 : 20
+GEN:    98 : 8
+GEN:    99 : 20
+GEN:    100 : 15
+GEN:    101 : 20
+GEN:    102 : 17
+GEN:    103 : 9
+GEN:    104 : 11
+GEN:    105 : 10
+GEN:    106 : 14
+GEN:    107 : 13
+GEN:    108 : 8
+GEN:    109 : 15
+GEN:    110 : 18
+GEN:    111 : 9
+GEN:    112 : 13
+GEN:    113 : 14
+GEN:    114 : 11
+GEN:    115 : 7
+GEN:    116 : 12
+GEN:    117 : 12
+GEN:    118 : 8
+GEN:    119 : 16
+GEN:    120 : 7
+GEN:    121 : 10
+GEN:    122 : 11
+GEN:    123 : 8
+GEN:    124 : 6
+GEN:    125 : 13
+GEN:    126 : 11
+GEN:    127 : 8
+GEN:    128 : 5
+GEN:    129 : 8
+GEN:    130 : 9
+GEN:    131 : 11
+GEN:    132 : 5
+GEN:    133 : 7
+GEN:    134 : 9
+GEN:    135 : 6
+GEN:    136 : 5
+GEN:    137 : 5
+GEN:    138 : 7
+GEN:    139 : 8
+GEN:    140 : 7
+GEN:    141 : 7
+GEN:    142 : 6
+GEN:    143 : 8
+GEN:    144 : 5
+GEN:    145 : 3
+GEN:    146 : 6
+GEN:    147 : 11
+GEN:    148 : 5
+GEN:    150 : 6
+GEN:    151 : 7
+GEN:    152 : 2
+GEN:    153 : 3
+GEN:    154 : 8
+GEN:    155 : 7
+GEN:    156 : 8
+GEN:    157 : 8
+GEN:    159 : 8
+GEN:    160 : 9
+GEN:    161 : 5
+GEN:    162 : 4
+GEN:    163 : 6
+GEN:    164 : 6
+GEN:    165 : 5
+GEN:    166 : 6
+GEN:    167 : 4
+GEN:    168 : 2
+GEN:    169 : 4
+GEN:    170 : 2
+GEN:    171 : 6
+GEN:    172 : 8
+GEN:    173 : 7
+GEN:    174 : 4
+GEN:    175 : 3
+GEN:    176 : 3
+GEN:    177 : 5
+GEN:    178 : 3
+GEN:    179 : 2
+GEN:    180 : 7
+GEN:    182 : 7
+GEN:    183 : 3
+GEN:    184 : 3
+GEN:    185 : 4
+GEN:    186 : 2
+GEN:    187 : 4
+GEN:    188 : 2
+GEN:    190 : 3
+GEN:    192 : 3
+GEN:    193 : 4
+GEN:    194 : 5
+GEN:    195 : 4
+GEN:    196 : 3
+GEN:    198 : 4
+GEN:    199 : 3
+GEN:    200 : 8
+GEN:    201 : 4
+GEN:    202 : 3
+GEN:    203 : 4
+GEN:    204 : 6
+GEN:    205 : 4
+GEN:    206 : 2
+GEN:    207 : 3
+GEN:    208 : 5
+GEN:    210 : 4
+GEN:    212 : 3
+GEN:    214 : 6
+GEN:    215 : 8
+GEN:    217 : 2
+GEN:    218 : 6
+GEN:    219 : 2
+GEN:    220 : 4
+GEN:    221 : 5
+GEN:    224 : 2
+GEN:    226 : 3
+GEN:    227 : 4
+GEN:    228 : 3
+GEN:    231 : 2
+GEN:    234 : 2
+GEN:    235 : 3
+GEN:    237 : 5
+GEN:    240 : 2
+GEN:    241 : 2
+GEN:    243 : 2
+GEN:    244 : 4
+GEN:    247 : 5
+GEN:    248 : 4
+GEN:    250 : 5
+GEN:    252 : 3
+GEN:    253 : 2
+GEN:    254 : 4
+GEN:    256 : 2
+GEN:    259 : 5
+GEN:    261 : 2
+GEN:    263 : 2
+GEN:    266 : 5
+GEN:    267 : 2
+GEN:    269 : 3
+GEN:    278 : 3
+GEN:    279 : 3
+GEN:    286 : 3
+GEN:    287 : 3
+GEN:    289 : 2
+GEN:    290 : 4
+GEN:    296 : 3
+GEN:    297 : 2
+GEN:    302 : 2
+GEN:    307 : 3
+GEN:    308 : 3
+GEN:    309 : 3
+GEN:    310 : 3
+GEN:    311 : 2
+GEN:    315 : 3
+GEN:    318 : 2
+GEN:    322 : 2
+GEN:    323 : 2
+GEN:    324 : 2
+GEN:    327 : 4
+GEN:    329 : 2
+GEN:    331 : 2
+GEN:    333 : 4
+GEN:    338 : 3
+GEN:    339 : 2
+GEN:    340 : 4
+GEN:    342 : 3
+GEN:    346 : 2
+GEN:    350 : 2
+GEN:    352 : 2
+GEN:    353 : 3
+GEN:    354 : 4
+GEN:    355 : 3
+GEN:    356 : 2
+GEN:    358 : 3
+GEN:    361 : 2
+GEN:    363 : 2
+GEN:    366 : 3
+GEN:    367 : 2
+GEN:    368 : 2
+GEN:    369 : 2
+GEN:    371 : 3
+GEN:    372 : 3
+GEN:    375 : 2
+GEN:    376 : 2
+GEN:    377 : 2
+GEN:    381 : 3
+GEN:    382 : 3
+GEN:    385 : 2
+GEN:    389 : 4
+GEN:    390 : 2
+GEN:    395 : 2
+GEN:    398 : 2
+GEN:    400 : 2
+GEN:    402 : 4
+GEN:    405 : 2
+GEN:    408 : 2
+GEN:    411 : 3
+GEN:    421 : 2
+GEN:    425 : 2
+GEN:    426 : 2
+GEN:    427 : 2
+GEN:    429 : 2
+GEN:    437 : 2
+GEN:    441 : 2
+GEN:    446 : 2
+GEN:    447 : 2
+GEN:    449 : 3
+GEN:    455 : 2
+GEN:    456 : 3
+GEN:    464 : 4
+GEN:    465 : 2
+GEN:    485 : 2
+GEN:    490 : 3
+GEN:    492 : 2
+GEN:    500 : 2
+GEN:    504 : 2
+GEN:    511 : 2
+GEN:    515 : 3
+GEN:    516 : 2
+GEN:    517 : 2
+GEN:    535 : 2
+GEN:    571 : 2
+GEN:    576 : 3
+GEN:    577 : 4
+GEN:    596 : 2
+GEN:    602 : 3
+GEN:    603 : 2
+GEN:    608 : 2
+GEN:    632 : 2
+GEN:    649 : 2
+GEN:    673 : 2
+GEN:    675 : 3
+GEN:    1105 : 2
+GEN:    1 each for counts 149, 158, 181, 189, 191, 197, 209, 211, 213, 216, 222, 223, 225, 229, 232, 236, 238, 239, 242, 245, 246, 257, 258, 260, 264, 271, 272, 273, 276, 277, 281, 282, 283, 291, 292, 293, 294, 298, 299, 300, 301, 304, 306, 312, 314, 320, 325, 326, 335, 343, 345, 347, 349, 357, 360, 362, 364, 373, 374, 378, 379, 384, 386, 387, 391, 392, 393, 394, 396, 397, 399, 403, 404, 410, 415, 416, 423, 430, 431, 432, 433, 436, 444, 452, 453, 454, 459, 460, 466, 469, 474, 475, 476, 479, 481, 484, 486, 487, 488, 494, 495, 496, 501, 502, 507, 508, 513, 514, 518, 519, 521, 529, 532, 533, 536, 546, 550, 553, 558, 564, 565, 574, 579, 580, 584, 588, 592, 595, 599, 601, 604, 613, 631, 634, 637, 638, 644, 648, 650, 654, 655, 656, 659, 666, 668, 669, 671, 676, 678, 679, 680, 685, 690, 691, 699, 715, 736, 751, 753, 758, 763, 767, 781, 789, 810, 820, 831, 835, 837, 845, 854, 860, 863, 867, 879, 880, 881, 888, 901, 906, 927, 929, 947, 955, 969, 972, 982, 984, 987, 992, 993, 995, 998, 1004, 1014, 1017, 1023, 1030, 1045, 1061, 1067, 1075, 1104, 1106, 1110, 1126, 1127, 1128, 1152, 1167, 1192, 1202, 1204, 1205, 1220, 1223, 1233, 1239, 1245, 1278, 1302, 1314, 1332, 1336, 1361, 1363, 1368, 1370, 1392, 1394, 1396, 1431, 1433, 1451, 1459, 1467, 1473, 1534, 1550, 1556, 1562, 1577, 1616, 1652, 1653, 1669, 1707, 1870, 1880, 1996, 1997, 2065, 2070, 2086, 2166, 2193, 2215, 2252, 2333, 2343, 2441, 2483, 2527, 2576, 2592, 2735, 2762, 2804, 2827, 2849, 2879, 2964, 2993, 3011, 3061, 3062, 3141, 3352, 3543, 3850, 3864, 3900, 4365, 5600, 6582, 6674, 8250, 10207, 12365
+GEN:    TOTAL: 4295261
+GEN: RUP clauses for node justification (by node type):
+GEN:    conjunct: 57851
+GEN:    disjunct: 237670
+GEN:    TOTAL: 295521
+GEN: Total clauses: 460 input + 2799110 defining + 324136 lemma defining + 655743 lemma application + 4295261 literal justification + 295521 node justifications = 8370231
+GEN: Elapsed time for generation: 15713.26 seconds
+HINTIFY: Input CNF file pigeon-sat-direct-10.cnf had 100 variables and 460 clauses
+HINTIFY: Augmented CNF file tmp_pigeon-sat-direct-10.acnf has 2743 variables (max=678189) and 15607 clauses
+HINTIFY: DRAT file tmp_pigeon-sat-direct-10.drat has 4295261 clause additions and 12504 clause deletions
+HINTIFY: Added 8590522 hints
+HINTIFY: Elapsed seconds for hint addition: 39.39 split files + 2579.28 DRAT-TRIM + 22.08 insert hints = 2640.75
+CHECKER: Read 460 clauses from file pigeon-sat-direct-10.cnf
+CHECKER: PROOF SUCCESSFUL
+CHECKER: 8061242 total clauses
+CHECKER: 8061242 maximum live clauses
+CHECKER: 10612344 total hints
+CHECKER: 0 added hints
+CHECKER: Command occurences:
+CHECKER:      a   : 5246525
+CHECKER:     dc   : 5246984
+CHECKER:      p   : 240313
+CHECKER:      s   : 118835
+CHECKER:     TOTAL: 10852657
+CHECKER: Elapsed time for check: 12613.60 seconds
+CHECKER: Unweighted count = 3628800
