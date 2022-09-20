@@ -3,7 +3,7 @@ DSHARP = ~/repos/dsharp/dsharp
 D4 = ~/repos/d4/d4
 VLEVEL = 2
 VCLEVEL = 1
-SPLIT=
+SLEVEL = 0
 HLEVEL = 4
 LHEIGHT = 2
 DDNNF = ../ddnnf.py
@@ -18,10 +18,10 @@ HINTIFY = ../hintify.py
 	$(DSHARP) -Fnnf $@ $< | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) $(SPLIT) | tee $*.crat_data
+	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s $(SLEVEL) | tee $*.crat_data
 
 .nnf.scrat:
-	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H 2 -L $(LHEIGHT) -s | tee $*.scrat_data
+	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H 2 -L $(LHEIGHT) -s 1 | tee $*.scrat_data
 
 .crat.check_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@
@@ -39,7 +39,7 @@ HINTIFY = ../hintify.py
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
 
 .d4nnf.d4crat:
-	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) $(SPLIT) | tee $*.d4crat_data
+	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s $(SLEVEL) | tee $*.d4crat_data
 
 .d4crat.d4check_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.d4hinted_crat | tee $@

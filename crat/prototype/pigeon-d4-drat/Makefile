@@ -40,7 +40,7 @@ pigeon-sat-tseitin-$(N).cnf:
 	$(D4) $< -dDNNF -out=$@ | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s | tee $*.crat_data
+	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s 1 | tee $*.crat_data
 
 .crat.hcrat:
 	$(INTERP) $(HINTIFY) -i $*.cnf -p $< -o $@ | tee $*.hint_data

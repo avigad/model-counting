@@ -3,7 +3,6 @@ D4 = ~/repos/d4/d4
 VLEVEL = 1
 HLEVEL = 4
 LHEIGHT = 2
-SPLIT=
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 N=5
@@ -38,7 +37,7 @@ pigeon-sat-tseitin-$(N).cnf:
 	$(D4) $< -dDNNF -out=$@ | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) $(SPLIT) | tee $*.crat_data
+	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT)  | tee $*.crat_data
 
 .crat.check_data:
 	$(INTERP) $(CHECK) -v $(VLEVEL) -i $*.cnf -p $<  | tee $@

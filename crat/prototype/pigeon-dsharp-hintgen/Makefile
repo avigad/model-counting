@@ -3,7 +3,6 @@ DSHARP = ~/repos/dsharp/dsharp
 VLEVEL = 1
 HLEVEL = 4
 LHEIGHT = 2
-SPLIT=
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 N=5
@@ -38,7 +37,7 @@ pigeon-sat-tseitin-$(N).cnf:
 	$(DSHARP) -Fnnf $@ $< | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) $(SPLIT) | tee $*.crat_data
+	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) | tee $*.crat_data
 
 .crat.check_data:
 	$(INTERP) $(CHECK) -v $(VLEVEL) -i $*.cnf -p $<  | tee $@
