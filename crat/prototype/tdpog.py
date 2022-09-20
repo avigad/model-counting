@@ -38,8 +38,11 @@ class Reasoner:
     # Saturate for each category before attempting next during unit propagation
     layered = False
 
-    def __init__(self, inputClauseList):
-        self.solver = Solver(solverId, with_proof = True)
+    def __init__(self, inputClauseList, noSolver = False):
+        if noSolver:
+            self.solver = None
+        else:
+            self.solver = Solver(solverId, with_proof = True)
         clauseList = [tuple(clause) for clause in inputClauseList]
         self.stepList = []
         self.addSolverClauses(clauseList)
@@ -104,13 +107,18 @@ class Reasoner:
 
     # Operations that make use of SAT solver
     def propagate(self, assumptions):
+        if self.solver is None:
+            raise PogException("Can't call propagate without solver")
         prop, lits = self.solver.propagate(assumptions)
         return prop, lits
 
     def addSolverClauses(self, clist):
-        self.solver.append_formula(clist)
+        if self.solver is not None:
+            self.solver.append_formula(clist)
 
     def rupCheck(self, clause):
+        if self.solver is None:
+            raise PogException("Can't call rupCheck without solver")
         assumptions = readwrite.invertClause(clause)
         prop, slits = self.solver.propagate(assumptions)
         result = not prop
@@ -144,6 +152,9 @@ class Reasoner:
             return clauses
         pclause = readwrite.invertClause(context)
         pclause.append(lit)
+        if self.solver is None:
+            clauses.append(pclause)
+            return clauses
         if self.rupCheck(pclause):
             clauses.append(pclause)
             self.addSolverClauses([pclause])
@@ -661,14 +672,14 @@ class Pog:
     lemmaApplicationCount = 0
     lemmaApplicationClauseCount = 0
 
-    def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel, lemmaHeight):
+    def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel, splitMode, lemmaHeight):
         self.verbLevel = verbLevel
         self.hintLevel = hintLevel
         self.lemmaHeight = lemmaHeight
         self.uniqueTable = {}
         self.inputClauseList = readwrite.cleanClauses(inputClauseList)
         self.cwriter = readwrite.CratWriter(variableCount, inputClauseList, fname, verbLevel)
-        self.reasoner = Reasoner(inputClauseList)
+        self.reasoner = Reasoner(inputClauseList, noSolver = splitMode >= 2)
         self.nodeCounts = [0] * NodeType.tcount
         self.nodeVisits = [0] * NodeType.tcount
         self.definingClauseCounts = 0
@@ -1123,23 +1134,6 @@ class Pog:
                 self.generateLemma(root)
                 return self.applyLemma(root, context, parent.lemma)
 
-##         if root.lemma is None:
-##             if parent is None:
-##                 if len(context) == 0:
-##                     # Top level root
-## #                    clist = [] if self.lemmaHeight is None else self.inputClauseList
-##                     clist = self.inputClauseList
-##                     root.lemma = Lemma(clist)
-##                 # Otherwise, generating proof of lemma.  Fall through for this
-##             else:
-##                 # First visit to this node
-##                 root.lemma = parent.lemma.clone()
-##                 if root.wantLemma(self.lemmaHeight):
-##                     self.generateLemma(root)
-##                     # Fall through to Apply newly created lemma
-##        if root.lemma is not None and root.lemma.isLemma: 
-##            return self.applyLemma(root, context, parent.lemma)
-
         self.nodeVisits[root.ntype] += 1
         if root.ntype == NodeType.disjunction:
             return self.validateDisjunction(root, context, parent)
@@ -1323,7 +1317,7 @@ class Pog:
     # Perform mark & sweep to remove any nodes not reachable from root
     # Generate node declarations
     # Construct context sets
-    def finalize(self, splitProof):
+    def finalize(self, splitMode):
         for node in self.nodes:
             node.mark = False
         root = self.nodes[-1]
@@ -1342,7 +1336,7 @@ class Pog:
         if self.lemmaHeight is not None:
             self.addLemmas()
 
-        if splitProof:
+        if splitMode > 0:
             self.cwriter.split()
 
         # Generate node declarations
