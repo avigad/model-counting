@@ -8,12 +8,15 @@ import sys
 import getopt
 import csv
 
+def eprint(s):
+    sys.stderr.write(s + '\n')
+
 
 def usage(name):
-    print("Usage: %s [-h] [-l L0,L1,L2,...,Ln] FILE1.csv FILE2.csv ... FILEn.csv" % name)
-    print("  -h            Print this message")
-    print("  -l LABELS     Provide comma-separated set of heading labels")
-    print("  FILE1.csv ... Source files")
+    eprint("Usage: %s [-h] [-l L0,L1,L2,...,Ln] FILE1.csv FILE2.csv ... FILEn.csv" % name)
+    eprint("  -h            Print this message")
+    eprint("  -l LABELS     Provide comma-separated set of heading labels")
+    eprint("  FILE1.csv ... Source files")
 
 # List of keys in order first encountered
 keys = []
@@ -26,13 +29,13 @@ def addData(fname, first = False):
         infile = open(fname)
         creader = csv.reader(infile)
     except:
-        print("Coudn't open CSV file '%s'" % fname)
+        eprint("Coudn't open CSV file '%s'" % fname)
         sys.exit(1)
     row = 0
     for fields in creader:
         row += 1
         if len(fields) != 2:
-            print("Error in file %s, row %d.  Can only handle CSV files with two items per row" % (fname, row))
+            eprint("Error in file %s, row %d.  Can only handle CSV files with two items per row" % (fname, row))
             sys.exit(1)
         key = fields[0]
         val = fields[1]
@@ -41,10 +44,10 @@ def addData(fname, first = False):
             lines.append(key + "," + val)
         else:
             if row > len(keys):
-                print("File %s, row %d.  Too many entries" % (fname, row))
+                eprint("File %s, row %d.  Too many entries" % (fname, row))
                 sys.exit(1)
             if keys[row-1] != key:
-                print("File %d, row %d.  Expecting key '%s'.  Got '%s'." % (fname, row, keys[row-1], key))
+                eprint("File %s, row %d.  Expecting key '%s'.  Got '%s'." % (fname, row, keys[row-1], key))
                 sys.exit(1)
             lines[row-1] += "," + val
     infile.close()
@@ -70,7 +73,7 @@ def run(name, args):
         elif opt == '-l':
             lstring = val
         else:
-            print("Unknown option '%s'" % opt)
+            eprint("Unknown option '%s'" % opt)
             usage(name)
             sys.exit(1)
     build(lstring, args)
