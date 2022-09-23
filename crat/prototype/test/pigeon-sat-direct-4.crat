@@ -27,1229 +27,890 @@ c 25 i -13 -16 0
 c 26 i -14 -15 0
 c 27 i -14 -16 0
 c 28 i -15 -16 0
-c Defining (negated) conjunction operations to use as shadow clauses for lemmas
-c Completed declarations of shadow operations
-c Justify literal -3 in context [1, -2] with 1 unhinted steps
-29 a -1 2 -3 0 * 0
-c Justify literal -4 in context [1, -2, -3] with 1 unhinted steps
-30 a -1 2 3 -4 0 * 0
-c Justify literal -9 in context [1, -2, -3, -4, 10] with 1 unhinted steps
-31 a -1 2 3 4 -10 -9 0 * 0
-c Justify literal -11 in context [1, -2, -3, -4, 10, -9] with 1 unhinted steps
-32 a -1 2 3 4 -10 9 -11 0 * 0
-c Justify literal -12 in context [1, -2, -3, -4, 10, -9, -11] with 1 unhinted steps
-33 a -1 2 3 4 -10 9 11 -12 0 * 0
-c Justify literal -5 in context [1, -2, -3, -4, 10, -9, -11, -12, 15] with 1 unhinted steps
-34 a -1 2 3 4 -10 9 11 12 -15 -5 0 * 0
-c Justify literal -14 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5] with 1 unhinted steps
-35 a -1 2 3 4 -10 9 11 12 -15 5 -14 0 * 0
-c Justify literal -13 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5, -14] with 1 unhinted steps
-36 a -1 2 3 4 -10 9 11 12 -15 5 14 -13 0 * 0
-c Justify literal -6 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5, -14, -13] with 1 unhinted steps
-37 a -1 2 3 4 -10 9 11 12 -15 5 14 13 -6 0 * 0
-c Justify literal -7 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5, -14, -13, -6] with 1 unhinted steps
-38 a -1 2 3 4 -10 9 11 12 -15 5 14 13 6 -7 0 * 0
-c Justify literal 8 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5, -14, -13, -6, -7] with 1 unhinted steps
-39 a -1 2 3 4 -10 9 11 12 -15 5 14 13 6 7 8 0 * 0
-c Justify literal -16 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5, -14, -13, -6, -7, 8] with 1 unhinted steps
-40 a -1 2 3 4 -10 9 11 12 -15 5 14 13 6 7 -8 -16 0 * 0
-c Justify literal -5 in context [1, -2, -3, -4, 10, -9, -11, -12, -15] with 1 unhinted steps
-41 a -1 2 3 4 -10 9 11 12 15 -5 0 * 0
-c Justify literal -14 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5] with 1 unhinted steps
-42 a -1 2 3 4 -10 9 11 12 15 5 -14 0 * 0
-c Justify literal -13 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5, -14] with 1 unhinted steps
-43 a -1 2 3 4 -10 9 11 12 15 5 14 -13 0 * 0
-c Justify literal -6 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5, -14, -13] with 1 unhinted steps
-44 a -1 2 3 4 -10 9 11 12 15 5 14 13 -6 0 * 0
-c Justify literal 7 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5, -14, -13, -6] with 1 unhinted steps
-45 a -1 2 3 4 -10 9 11 12 15 5 14 13 6 7 0 * 0
-c Justify literal -8 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5, -14, -13, -6, 7] with 1 unhinted steps
-46 a -1 2 3 4 -10 9 11 12 15 5 14 13 6 -7 -8 0 * 0
-c Justify literal 16 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5, -14, -13, -6, 7, -8] with 1 unhinted steps
-47 a -1 2 3 4 -10 9 11 12 15 5 14 13 6 -7 8 16 0 * 0
-c Justify literal -5 in context [1, -2, -3, -4, -10, 7] with 1 unhinted steps
-48 a -1 2 3 4 10 -7 -5 0 * 0
-c Justify literal -9 in context [1, -2, -3, -4, -10, 7, -5] with 1 unhinted steps
-49 a -1 2 3 4 10 -7 5 -9 0 * 0
-c Justify literal -13 in context [1, -2, -3, -4, -10, 7, -5, -9] with 1 unhinted steps
-50 a -1 2 3 4 10 -7 5 9 -13 0 * 0
-c Justify literal -6 in context [1, -2, -3, -4, -10, 7, -5, -9, -13] with 1 unhinted steps
-51 a -1 2 3 4 10 -7 5 9 13 -6 0 * 0
-c Justify literal 14 in context [1, -2, -3, -4, -10, 7, -5, -9, -13, -6] with 1 unhinted steps
-52 a -1 2 3 4 10 -7 5 9 13 6 14 0 * 0
-c Justify literal -11 in context [1, -2, -3, -4, -10, 7, -5, -9, -13, -6, 14] with 1 unhinted steps
-53 a -1 2 3 4 10 -7 5 9 13 6 -14 -11 0 * 0
-c Justify literal -15 in context [1, -2, -3, -4, -10, 7, -5, -9, -13, -6, 14, -11] with 1 unhinted steps
-54 a -1 2 3 4 10 -7 5 9 13 6 -14 11 -15 0 * 0
-c Justify literal -8 in context [1, -2, -3, -4, -10, 7, -5, -9, -13, -6, 14, -11, -15] with 1 unhinted steps
-55 a -1 2 3 4 10 -7 5 9 13 6 -14 11 15 -8 0 * 0
-c Justify literal 12 in context [1, -2, -3, -4, -10, 7, -5, -9, -13, -6, 14, -11, -15, -8] with 1 unhinted steps
-56 a -1 2 3 4 10 -7 5 9 13 6 -14 11 15 8 12 0 * 0
-c Justify literal -16 in context [1, -2, -3, -4, -10, 7, -5, -9, -13, -6, 14, -11, -15, -8, 12] with 1 unhinted steps
-57 a -1 2 3 4 10 -7 5 9 13 6 -14 11 15 8 -12 -16 0 * 0
-c Justify literal -5 in context [1, -2, -3, -4, -10, -7, 12] with 1 unhinted steps
-58 a -1 2 3 4 10 7 -12 -5 0 * 0
-c Justify literal -9 in context [1, -2, -3, -4, -10, -7, 12, -5] with 1 unhinted steps
-59 a -1 2 3 4 10 7 -12 5 -9 0 * 0
-c Justify literal -14 in context [1, -2, -3, -4, -10, -7, 12, -5, -9] with 1 unhinted steps
-60 a -1 2 3 4 10 7 -12 5 9 -14 0 * 0
-c Justify literal -13 in context [1, -2, -3, -4, -10, -7, 12, -5, -9, -14] with 1 unhinted steps
-61 a -1 2 3 4 10 7 -12 5 9 14 -13 0 * 0
-c Justify literal 6 in context [1, -2, -3, -4, -10, -7, 12, -5, -9, -14, -13] with 1 unhinted steps
-62 a -1 2 3 4 10 7 -12 5 9 14 13 6 0 * 0
-c Justify literal -11 in context [1, -2, -3, -4, -10, -7, 12, -5, -9, -14, -13, 6] with 1 unhinted steps
-63 a -1 2 3 4 10 7 -12 5 9 14 13 -6 -11 0 * 0
-c Justify literal 15 in context [1, -2, -3, -4, -10, -7, 12, -5, -9, -14, -13, 6, -11] with 1 unhinted steps
-64 a -1 2 3 4 10 7 -12 5 9 14 13 -6 11 15 0 * 0
-c Justify literal -8 in context [1, -2, -3, -4, -10, -7, 12, -5, -9, -14, -13, 6, -11, 15] with 1 unhinted steps
-65 a -1 2 3 4 10 7 -12 5 9 14 13 -6 11 -15 -8 0 * 0
-c Justify literal -16 in context [1, -2, -3, -4, -10, -7, 12, -5, -9, -14, -13, 6, -11, 15, -8] with 1 unhinted steps
-66 a -1 2 3 4 10 7 -12 5 9 14 13 -6 11 -15 8 -16 0 * 0
-c Justify literal -9 in context [1, -2, -3, -4, -10, -7, -12] with 1 unhinted steps
-67 a -1 2 3 4 10 7 12 -9 0 * 0
-c Justify literal 11 in context [1, -2, -3, -4, -10, -7, -12, -9] with 1 unhinted steps
-68 a -1 2 3 4 10 7 12 9 11 0 * 0
-c Justify literal -15 in context [1, -2, -3, -4, -10, -7, -12, -9, 11] with 1 unhinted steps
-69 a -1 2 3 4 10 7 12 9 -11 -15 0 * 0
-c Justify literal -5 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, 8] with 1 unhinted steps
-70 a -1 2 3 4 10 7 12 9 -11 15 -8 -5 0 * 0
-c Justify literal -13 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, 8, -5] with 1 unhinted steps
-71 a -1 2 3 4 10 7 12 9 -11 15 -8 5 -13 0 * 0
-c Justify literal -6 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, 8, -5, -13] with 1 unhinted steps
-72 a -1 2 3 4 10 7 12 9 -11 15 -8 5 13 -6 0 * 0
-c Justify literal 14 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, 8, -5, -13, -6] with 1 unhinted steps
-73 a -1 2 3 4 10 7 12 9 -11 15 -8 5 13 6 14 0 * 0
-c Justify literal -16 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, 8, -5, -13, -6, 14] with 1 unhinted steps
-74 a -1 2 3 4 10 7 12 9 -11 15 -8 5 13 6 -14 -16 0 * 0
-c Justify literal -5 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, -8] with 1 unhinted steps
-75 a -1 2 3 4 10 7 12 9 -11 15 8 -5 0 * 0
-c Justify literal -14 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, -8, -5] with 1 unhinted steps
-76 a -1 2 3 4 10 7 12 9 -11 15 8 5 -14 0 * 0
-c Justify literal -13 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, -8, -5, -14] with 1 unhinted steps
-77 a -1 2 3 4 10 7 12 9 -11 15 8 5 14 -13 0 * 0
-c Justify literal 6 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, -8, -5, -14, -13] with 1 unhinted steps
-78 a -1 2 3 4 10 7 12 9 -11 15 8 5 14 13 6 0 * 0
-c Justify literal 16 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, -8, -5, -14, -13, 6] with 1 unhinted steps
-79 a -1 2 3 4 10 7 12 9 -11 15 8 5 14 13 -6 16 0 * 0
-c Justify literal -6 in context [-1, 5] with 1 unhinted steps
-80 a 1 -5 -6 0 * 0
-c Justify literal -7 in context [-1, 5, -6] with 1 unhinted steps
-81 a 1 -5 6 -7 0 * 0
-c Justify literal -8 in context [-1, 5, -6, -7] with 1 unhinted steps
-82 a 1 -5 6 7 -8 0 * 0
-c Justify literal -9 in context [-1, 5, -6, -7, -8, 10] with 1 unhinted steps
-83 a 1 -5 6 7 8 -10 -9 0 * 0
-c Justify literal -11 in context [-1, 5, -6, -7, -8, 10, -9] with 1 unhinted steps
-84 a 1 -5 6 7 8 -10 9 -11 0 * 0
-c Justify literal -12 in context [-1, 5, -6, -7, -8, 10, -9, -11] with 1 unhinted steps
-85 a 1 -5 6 7 8 -10 9 11 -12 0 * 0
-c Justify literal -14 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3] with 1 unhinted steps
-86 a 1 -5 6 7 8 -10 9 11 12 -3 -14 0 * 0
-c Justify literal -13 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3, -14] with 1 unhinted steps
-87 a 1 -5 6 7 8 -10 9 11 12 -3 14 -13 0 * 0
-c Justify literal -2 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3, -14, -13] with 1 unhinted steps
-88 a 1 -5 6 7 8 -10 9 11 12 -3 14 13 -2 0 * 0
-c Justify literal -15 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3, -14, -13, -2] with 1 unhinted steps
-89 a 1 -5 6 7 8 -10 9 11 12 -3 14 13 2 -15 0 * 0
-c Justify literal -4 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3, -14, -13, -2, -15] with 1 unhinted steps
-90 a 1 -5 6 7 8 -10 9 11 12 -3 14 13 2 15 -4 0 * 0
-c Justify literal 16 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3, -14, -13, -2, -15, -4] with 1 unhinted steps
-91 a 1 -5 6 7 8 -10 9 11 12 -3 14 13 2 15 4 16 0 * 0
-c Justify literal -14 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3] with 1 unhinted steps
-92 a 1 -5 6 7 8 -10 9 11 12 3 -14 0 * 0
-c Justify literal -13 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3, -14] with 1 unhinted steps
-93 a 1 -5 6 7 8 -10 9 11 12 3 14 -13 0 * 0
-c Justify literal -2 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3, -14, -13] with 1 unhinted steps
-94 a 1 -5 6 7 8 -10 9 11 12 3 14 13 -2 0 * 0
-c Justify literal 15 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3, -14, -13, -2] with 1 unhinted steps
-95 a 1 -5 6 7 8 -10 9 11 12 3 14 13 2 15 0 * 0
-c Justify literal 4 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3, -14, -13, -2, 15] with 1 unhinted steps
-96 a 1 -5 6 7 8 -10 9 11 12 3 14 13 2 -15 4 0 * 0
-c Justify literal -16 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3, -14, -13, -2, 15, 4] with 1 unhinted steps
-97 a 1 -5 6 7 8 -10 9 11 12 3 14 13 2 -15 -4 -16 0 * 0
-c Justify literal -9 in context [-1, 5, -6, -7, -8, -10, 15] with 1 unhinted steps
-98 a 1 -5 6 7 8 10 -15 -9 0 * 0
-c Justify literal -14 in context [-1, 5, -6, -7, -8, -10, 15, -9] with 1 unhinted steps
-99 a 1 -5 6 7 8 10 -15 9 -14 0 * 0
-c Justify literal -13 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14] with 1 unhinted steps
-100 a 1 -5 6 7 8 10 -15 9 14 -13 0 * 0
-c Justify literal 2 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14, -13] with 1 unhinted steps
-101 a 1 -5 6 7 8 10 -15 9 14 13 2 0 * 0
-c Justify literal -3 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14, -13, 2] with 1 unhinted steps
-102 a 1 -5 6 7 8 10 -15 9 14 13 -2 -3 0 * 0
-c Justify literal -11 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14, -13, 2, -3] with 1 unhinted steps
-103 a 1 -5 6 7 8 10 -15 9 14 13 -2 3 -11 0 * 0
-c Justify literal -4 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14, -13, 2, -3, -11] with 1 unhinted steps
-104 a 1 -5 6 7 8 10 -15 9 14 13 -2 3 11 -4 0 * 0
-c Justify literal 12 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14, -13, 2, -3, -11, -4] with 1 unhinted steps
-105 a 1 -5 6 7 8 10 -15 9 14 13 -2 3 11 4 12 0 * 0
-c Justify literal -16 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14, -13, 2, -3, -11, -4, 12] with 1 unhinted steps
-106 a 1 -5 6 7 8 10 -15 9 14 13 -2 3 11 4 -12 -16 0 * 0
-c Justify literal -9 in context [-1, 5, -6, -7, -8, -10, -15, 16] with 1 unhinted steps
-107 a 1 -5 6 7 8 10 15 -16 -9 0 * 0
-c Justify literal -14 in context [-1, 5, -6, -7, -8, -10, -15, 16, -9] with 1 unhinted steps
-108 a 1 -5 6 7 8 10 15 -16 9 -14 0 * 0
-c Justify literal -13 in context [-1, 5, -6, -7, -8, -10, -15, 16, -9, -14] with 1 unhinted steps
-109 a 1 -5 6 7 8 10 15 -16 9 14 -13 0 * 0
-c Justify literal 2 in context [-1, 5, -6, -7, -8, -10, -15, 16, -9, -14, -13] with 1 unhinted steps
-110 a 1 -5 6 7 8 10 15 -16 9 14 13 2 0 * 0
-c Justify literal -3 in context [-1, 5, -6, -7, -8, -10, -15, 16, -9, -14, -13, 2] with 1 unhinted steps
-111 a 1 -5 6 7 8 10 15 -16 9 14 13 -2 -3 0 * 0
-c Justify literal 11 in context [-1, 5, -6, -7, -8, -10, -15, 16, -9, -14, -13, 2, -3] with 1 unhinted steps
-112 a 1 -5 6 7 8 10 15 -16 9 14 13 -2 3 11 0 * 0
-c Justify literal -4 in context [-1, 5, -6, -7, -8, -10, -15, 16, -9, -14, -13, 2, -3, 11] with 1 unhinted steps
-113 a 1 -5 6 7 8 10 15 -16 9 14 13 -2 3 -11 -4 0 * 0
-c Justify literal -12 in context [-1, 5, -6, -7, -8, -10, -15, 16, -9, -14, -13, 2, -3, 11, -4] with 1 unhinted steps
-114 a 1 -5 6 7 8 10 15 -16 9 14 13 -2 3 -11 4 -12 0 * 0
-c Justify literal -9 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3] with 1 unhinted steps
-115 a 1 -5 6 7 8 10 15 16 -3 -9 0 * 0
-c Justify literal -13 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3, -9] with 1 unhinted steps
-116 a 1 -5 6 7 8 10 15 16 -3 9 -13 0 * 0
-c Justify literal -2 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3, -9, -13] with 1 unhinted steps
-117 a 1 -5 6 7 8 10 15 16 -3 9 13 -2 0 * 0
-c Justify literal 14 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3, -9, -13, -2] with 1 unhinted steps
-118 a 1 -5 6 7 8 10 15 16 -3 9 13 2 14 0 * 0
-c Justify literal -11 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3, -9, -13, -2, 14] with 1 unhinted steps
-119 a 1 -5 6 7 8 10 15 16 -3 9 13 2 -14 -11 0 * 0
-c Justify literal -4 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3, -9, -13, -2, 14, -11] with 1 unhinted steps
-120 a 1 -5 6 7 8 10 15 16 -3 9 13 2 -14 11 -4 0 * 0
-c Justify literal 12 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3, -9, -13, -2, 14, -11, -4] with 1 unhinted steps
-121 a 1 -5 6 7 8 10 15 16 -3 9 13 2 -14 11 4 12 0 * 0
-c Justify literal -9 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3] with 1 unhinted steps
-122 a 1 -5 6 7 8 10 15 16 3 -9 0 * 0
-c Justify literal -13 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9] with 1 unhinted steps
-123 a 1 -5 6 7 8 10 15 16 3 9 -13 0 * 0
-c Justify literal -2 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9, -13] with 1 unhinted steps
-124 a 1 -5 6 7 8 10 15 16 3 9 13 -2 0 * 0
-c Justify literal 14 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9, -13, -2] with 1 unhinted steps
-125 a 1 -5 6 7 8 10 15 16 3 9 13 2 14 0 * 0
-c Justify literal 11 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9, -13, -2, 14] with 1 unhinted steps
-126 a 1 -5 6 7 8 10 15 16 3 9 13 2 -14 11 0 * 0
-c Justify literal 4 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9, -13, -2, 14, 11] with 1 unhinted steps
-127 a 1 -5 6 7 8 10 15 16 3 9 13 2 -14 -11 4 0 * 0
-c Justify literal -12 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9, -13, -2, 14, 11, 4] with 1 unhinted steps
-128 a 1 -5 6 7 8 10 15 16 3 9 13 2 -14 -11 -4 -12 0 * 0
-c Justify literal -10 in context [-1, -5, 9] with 1 unhinted steps
-129 a 1 5 -9 -10 0 * 0
-c Justify literal -11 in context [-1, -5, 9, -10] with 1 unhinted steps
-130 a 1 5 -9 10 -11 0 * 0
-c Justify literal -12 in context [-1, -5, 9, -10, -11] with 1 unhinted steps
-131 a 1 5 -9 10 11 -12 0 * 0
-c Justify literal -14 in context [-1, -5, 9, -10, -11, -12, 15] with 1 unhinted steps
-132 a 1 5 -9 10 11 12 -15 -14 0 * 0
-c Justify literal -13 in context [-1, -5, 9, -10, -11, -12, 15, -14] with 1 unhinted steps
-133 a 1 5 -9 10 11 12 -15 14 -13 0 * 0
-c Justify literal -16 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13] with 1 unhinted steps
-134 a 1 5 -9 10 11 12 -15 14 13 -16 0 * 0
-c Justify literal -2 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, 4] with 1 unhinted steps
-135 a 1 5 -9 10 11 12 -15 14 13 16 -4 -2 0 * 0
-c Justify literal 6 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, 4, -2] with 1 unhinted steps
-136 a 1 5 -9 10 11 12 -15 14 13 16 -4 2 6 0 * 0
-c Justify literal -3 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, 4, -2, 6] with 1 unhinted steps
-137 a 1 5 -9 10 11 12 -15 14 13 16 -4 2 -6 -3 0 * 0
-c Justify literal -7 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, 4, -2, 6, -3] with 1 unhinted steps
-138 a 1 5 -9 10 11 12 -15 14 13 16 -4 2 -6 3 -7 0 * 0
-c Justify literal -8 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, 4, -2, 6, -3, -7] with 1 unhinted steps
-139 a 1 5 -9 10 11 12 -15 14 13 16 -4 2 -6 3 7 -8 0 * 0
-c Justify literal 2 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, -4] with 1 unhinted steps
-140 a 1 5 -9 10 11 12 -15 14 13 16 4 2 0 * 0
-c Justify literal -6 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, -4, 2] with 1 unhinted steps
-141 a 1 5 -9 10 11 12 -15 14 13 16 4 -2 -6 0 * 0
-c Justify literal -3 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, -4, 2, -6] with 1 unhinted steps
-142 a 1 5 -9 10 11 12 -15 14 13 16 4 -2 6 -3 0 * 0
-c Justify literal -7 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, -4, 2, -6, -3] with 1 unhinted steps
-143 a 1 5 -9 10 11 12 -15 14 13 16 4 -2 6 3 -7 0 * 0
-c Justify literal 8 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, -4, 2, -6, -3, -7] with 1 unhinted steps
-144 a 1 5 -9 10 11 12 -15 14 13 16 4 -2 6 3 7 8 0 * 0
-c Justify literal -2 in context [-1, -5, 9, -10, -11, -12, -15, 3] with 1 unhinted steps
-145 a 1 5 -9 10 11 12 15 -3 -2 0 * 0
-c Justify literal -4 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2] with 1 unhinted steps
-146 a 1 5 -9 10 11 12 15 -3 2 -4 0 * 0
-c Justify literal -14 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, 16] with 1 unhinted steps
-147 a 1 5 -9 10 11 12 15 -3 2 4 -16 -14 0 * 0
-c Justify literal -13 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, 16, -14] with 1 unhinted steps
-148 a 1 5 -9 10 11 12 15 -3 2 4 -16 14 -13 0 * 0
-c Justify literal 6 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, 16, -14, -13] with 1 unhinted steps
-149 a 1 5 -9 10 11 12 15 -3 2 4 -16 14 13 6 0 * 0
-c Justify literal -7 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, 16, -14, -13, 6] with 1 unhinted steps
-150 a 1 5 -9 10 11 12 15 -3 2 4 -16 14 13 -6 -7 0 * 0
-c Justify literal -8 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, 16, -14, -13, 6, -7] with 1 unhinted steps
-151 a 1 5 -9 10 11 12 15 -3 2 4 -16 14 13 -6 7 -8 0 * 0
-c Justify literal -13 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, -16] with 1 unhinted steps
-152 a 1 5 -9 10 11 12 15 -3 2 4 16 -13 0 * 0
-c Justify literal -6 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, -16, -13] with 1 unhinted steps
-153 a 1 5 -9 10 11 12 15 -3 2 4 16 13 -6 0 * 0
-c Justify literal 14 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, -16, -13, -6] with 1 unhinted steps
-154 a 1 5 -9 10 11 12 15 -3 2 4 16 13 6 14 0 * 0
-c Justify literal -7 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, -16, -13, -6, 14] with 1 unhinted steps
-155 a 1 5 -9 10 11 12 15 -3 2 4 16 13 6 -14 -7 0 * 0
-c Justify literal 8 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, -16, -13, -6, 14, -7] with 1 unhinted steps
-156 a 1 5 -9 10 11 12 15 -3 2 4 16 13 6 -14 7 8 0 * 0
-c Justify literal -6 in context [-1, -5, 9, -10, -11, -12, -15, -3] with 1 unhinted steps
-157 a 1 5 -9 10 11 12 15 3 -6 0 * 0
-c Justify literal 7 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6] with 1 unhinted steps
-158 a 1 5 -9 10 11 12 15 3 6 7 0 * 0
-c Justify literal -8 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7] with 1 unhinted steps
-159 a 1 5 -9 10 11 12 15 3 6 -7 -8 0 * 0
-c Justify literal -14 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, 16] with 1 unhinted steps
-160 a 1 5 -9 10 11 12 15 3 6 -7 8 -16 -14 0 * 0
-c Justify literal -13 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, 16, -14] with 1 unhinted steps
-161 a 1 5 -9 10 11 12 15 3 6 -7 8 -16 14 -13 0 * 0
-c Justify literal 2 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, 16, -14, -13] with 1 unhinted steps
-162 a 1 5 -9 10 11 12 15 3 6 -7 8 -16 14 13 2 0 * 0
-c Justify literal -4 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, 16, -14, -13, 2] with 1 unhinted steps
-163 a 1 5 -9 10 11 12 15 3 6 -7 8 -16 14 13 -2 -4 0 * 0
-c Justify literal -13 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, -16] with 1 unhinted steps
-164 a 1 5 -9 10 11 12 15 3 6 -7 8 16 -13 0 * 0
-c Justify literal -2 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, -16, -13] with 1 unhinted steps
-165 a 1 5 -9 10 11 12 15 3 6 -7 8 16 13 -2 0 * 0
-c Justify literal 14 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, -16, -13, -2] with 1 unhinted steps
-166 a 1 5 -9 10 11 12 15 3 6 -7 8 16 13 2 14 0 * 0
-c Justify literal 4 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, -16, -13, -2, 14] with 1 unhinted steps
-167 a 1 5 -9 10 11 12 15 3 6 -7 8 16 13 2 -14 4 0 * 0
-c Justify literal -14 in context [-1, -5, -9, 13] with 1 unhinted steps
-168 a 1 5 9 -13 -14 0 * 0
-c Justify literal -15 in context [-1, -5, -9, 13, -14] with 1 unhinted steps
-169 a 1 5 9 -13 14 -15 0 * 0
-c Justify literal -16 in context [-1, -5, -9, 13, -14, -15] with 1 unhinted steps
-170 a 1 5 9 -13 14 15 -16 0 * 0
-c Justify literal -3 in context [-1, -5, -9, 13, -14, -15, -16, 2] with 1 unhinted steps
-171 a 1 5 9 -13 14 15 16 -2 -3 0 * 0
-c Justify literal -4 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3] with 1 unhinted steps
-172 a 1 5 9 -13 14 15 16 -2 3 -4 0 * 0
-c Justify literal -6 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, 7] with 1 unhinted steps
-173 a 1 5 9 -13 14 15 16 -2 3 4 -7 -6 0 * 0
-c Justify literal -10 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, 7, -6] with 1 unhinted steps
-174 a 1 5 9 -13 14 15 16 -2 3 4 -7 6 -10 0 * 0
-c Justify literal -11 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, 7, -6, -10] with 1 unhinted steps
-175 a 1 5 9 -13 14 15 16 -2 3 4 -7 6 10 -11 0 * 0
-c Justify literal -8 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, 7, -6, -10, -11] with 1 unhinted steps
-176 a 1 5 9 -13 14 15 16 -2 3 4 -7 6 10 11 -8 0 * 0
-c Justify literal 12 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, 7, -6, -10, -11, -8] with 1 unhinted steps
-177 a 1 5 9 -13 14 15 16 -2 3 4 -7 6 10 11 8 12 0 * 0
-c Justify literal -6 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, -7] with 1 unhinted steps
-178 a 1 5 9 -13 14 15 16 -2 3 4 7 -6 0 * 0
-c Justify literal -10 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, -7, -6] with 1 unhinted steps
-179 a 1 5 9 -13 14 15 16 -2 3 4 7 6 -10 0 * 0
-c Justify literal 11 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, -7, -6, -10] with 1 unhinted steps
-180 a 1 5 9 -13 14 15 16 -2 3 4 7 6 10 11 0 * 0
-c Justify literal 8 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, -7, -6, -10, 11] with 1 unhinted steps
-181 a 1 5 9 -13 14 15 16 -2 3 4 7 6 10 -11 8 0 * 0
-c Justify literal -12 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, -7, -6, -10, 11, 8] with 1 unhinted steps
-182 a 1 5 9 -13 14 15 16 -2 3 4 7 6 10 -11 -8 -12 0 * 0
-c Justify literal -10 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6] with 1 unhinted steps
-183 a 1 5 9 -13 14 15 16 2 -6 -10 0 * 0
-c Justify literal -7 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10] with 1 unhinted steps
-184 a 1 5 9 -13 14 15 16 2 -6 10 -7 0 * 0
-c Justify literal -8 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7] with 1 unhinted steps
-185 a 1 5 9 -13 14 15 16 2 -6 10 7 -8 0 * 0
-c Justify literal -11 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7, -8, 3] with 1 unhinted steps
-186 a 1 5 9 -13 14 15 16 2 -6 10 7 8 -3 -11 0 * 0
-c Justify literal -4 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7, -8, 3, -11] with 1 unhinted steps
-187 a 1 5 9 -13 14 15 16 2 -6 10 7 8 -3 11 -4 0 * 0
-c Justify literal 12 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7, -8, 3, -11, -4] with 1 unhinted steps
-188 a 1 5 9 -13 14 15 16 2 -6 10 7 8 -3 11 4 12 0 * 0
-c Justify literal 11 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7, -8, -3] with 1 unhinted steps
-189 a 1 5 9 -13 14 15 16 2 -6 10 7 8 3 11 0 * 0
-c Justify literal 4 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7, -8, -3, 11] with 1 unhinted steps
-190 a 1 5 9 -13 14 15 16 2 -6 10 7 8 3 -11 4 0 * 0
-c Justify literal -12 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7, -8, -3, 11, 4] with 1 unhinted steps
-191 a 1 5 9 -13 14 15 16 2 -6 10 7 8 3 -11 -4 -12 0 * 0
-c Justify literal 10 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6] with 1 unhinted steps
-192 a 1 5 9 -13 14 15 16 2 6 10 0 * 0
-c Justify literal -11 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10] with 1 unhinted steps
-193 a 1 5 9 -13 14 15 16 2 6 -10 -11 0 * 0
-c Justify literal -12 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11] with 1 unhinted steps
-194 a 1 5 9 -13 14 15 16 2 6 -10 11 -12 0 * 0
-c Justify literal -7 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11, -12, 3] with 1 unhinted steps
-195 a 1 5 9 -13 14 15 16 2 6 -10 11 12 -3 -7 0 * 0
-c Justify literal -4 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11, -12, 3, -7] with 1 unhinted steps
-196 a 1 5 9 -13 14 15 16 2 6 -10 11 12 -3 7 -4 0 * 0
-c Justify literal 8 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11, -12, 3, -7, -4] with 1 unhinted steps
-197 a 1 5 9 -13 14 15 16 2 6 -10 11 12 -3 7 4 8 0 * 0
-c Justify literal 7 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11, -12, -3] with 1 unhinted steps
-198 a 1 5 9 -13 14 15 16 2 6 -10 11 12 3 7 0 * 0
-c Justify literal 4 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11, -12, -3, 7] with 1 unhinted steps
-199 a 1 5 9 -13 14 15 16 2 6 -10 11 12 3 -7 4 0 * 0
-c Justify literal -8 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11, -12, -3, 7, 4] with 1 unhinted steps
-200 a 1 5 9 -13 14 15 16 2 6 -10 11 12 3 -7 -4 -8 0 * 0
-c Node P19 = AND(var-15, -var-5, -var-14, -var-13, -var-6, -var-7, var-8, -var-16)
-100000001 p 19 15 -5 -14 -13 -6 -7 8 -16 0
-c Implicit declarations:
-c 100000001 a 19 -15 5 14 13 6 7 -8 16 0
-c 100000002 a -19 15 0
-c 100000003 a -19 -5 0
-c 100000004 a -19 -14 0
-c 100000005 a -19 -13 0
-c 100000006 a -19 -6 0
-c 100000007 a -19 -7 0
-c 100000008 a -19 8 0
-c 100000009 a -19 -16 0
-c Node P20 = AND(-var-15, -var-5, -var-14, -var-13, -var-6, var-7, -var-8, var-16)
-100000010 p 20 -15 -5 -14 -13 -6 7 -8 16 0
-c Implicit declarations:
-c 100000010 a 20 15 5 14 13 6 -7 8 -16 0
-c 100000011 a -20 -15 0
-c 100000012 a -20 -5 0
-c 100000013 a -20 -14 0
-c 100000014 a -20 -13 0
-c 100000015 a -20 -6 0
-c 100000016 a -20 7 0
-c 100000017 a -20 -8 0
-c 100000018 a -20 16 0
-c Node S21 = OR(P19, P20)
-100000019 s 21 19 20 100000002 100000011 0
-c Implicit declarations:
-c 100000019 a -21 19 20 0
-c 100000020 a 21 -19 0
-c 100000021 a 21 -20 0
-c Node P27 = AND(var-8, -var-5, -var-13, -var-6, var-14, -var-16)
-100000022 p 27 8 -5 -13 -6 14 -16 0
-c Implicit declarations:
-c 100000022 a 27 -8 5 13 6 -14 16 0
-c 100000023 a -27 8 0
-c 100000024 a -27 -5 0
-c 100000025 a -27 -13 0
-c 100000026 a -27 -6 0
-c 100000027 a -27 14 0
-c 100000028 a -27 -16 0
-c Node P28 = AND(-var-8, -var-5, -var-14, -var-13, var-6, var-16)
-100000029 p 28 -8 -5 -14 -13 6 16 0
-c Implicit declarations:
-c 100000029 a 28 8 5 14 13 -6 -16 0
-c 100000030 a -28 -8 0
-c 100000031 a -28 -5 0
-c 100000032 a -28 -14 0
-c 100000033 a -28 -13 0
-c 100000034 a -28 6 0
-c 100000035 a -28 16 0
-c Node S29 = OR(P27, P28)
-100000036 s 29 27 28 100000023 100000030 0
-c Implicit declarations:
-c 100000036 a -29 27 28 0
-c 100000037 a 29 -27 0
-c 100000038 a 29 -28 0
-c Node P31 = AND(var-12, -var-5, -var-9, -var-14, -var-13, var-6, -var-11, var-15, -var-8, -var-16)
-100000039 p 31 12 -5 -9 -14 -13 6 -11 15 -8 -16 0
-c Implicit declarations:
-c 100000039 a 31 -12 5 9 14 13 -6 11 -15 8 16 0
-c 100000040 a -31 12 0
-c 100000041 a -31 -5 0
-c 100000042 a -31 -9 0
-c 100000043 a -31 -14 0
-c 100000044 a -31 -13 0
-c 100000045 a -31 6 0
-c 100000046 a -31 -11 0
-c 100000047 a -31 15 0
-c 100000048 a -31 -8 0
-c 100000049 a -31 -16 0
-c Node P32 = AND(-var-12, -var-9, var-11, -var-15, S29)
-100000050 p 32 -12 -9 11 -15 29 0
-c Implicit declarations:
-c 100000050 a 32 12 9 -11 15 -29 0
-c 100000051 a -32 -12 0
-c 100000052 a -32 -9 0
-c 100000053 a -32 11 0
-c 100000054 a -32 -15 0
-c 100000055 a -32 29 0
-c Node S33 = OR(P31, P32)
-100000056 s 33 31 32 100000040 100000051 0
-c Implicit declarations:
-c 100000056 a -33 31 32 0
-c 100000057 a 33 -31 0
-c 100000058 a 33 -32 0
-c Node P34 = AND(var-7, -var-5, -var-9, -var-13, -var-6, var-14, -var-11, -var-15, -var-8, var-12, -var-16)
-100000059 p 34 7 -5 -9 -13 -6 14 -11 -15 -8 12 -16 0
-c Implicit declarations:
-c 100000059 a 34 -7 5 9 13 6 -14 11 15 8 -12 16 0
-c 100000060 a -34 7 0
-c 100000061 a -34 -5 0
-c 100000062 a -34 -9 0
-c 100000063 a -34 -13 0
-c 100000064 a -34 -6 0
-c 100000065 a -34 14 0
-c 100000066 a -34 -11 0
-c 100000067 a -34 -15 0
-c 100000068 a -34 -8 0
-c 100000069 a -34 12 0
-c 100000070 a -34 -16 0
-c Node P35 = AND(-var-7, S33)
-100000071 p 35 -7 33 0
-c Implicit declarations:
-c 100000071 a 35 7 -33 0
-c 100000072 a -35 -7 0
-c 100000073 a -35 33 0
-c Node S36 = OR(P34, P35)
-100000074 s 36 34 35 100000060 100000072 0
-c Implicit declarations:
-c 100000074 a -36 34 35 0
-c 100000075 a 36 -34 0
-c 100000076 a 36 -35 0
-c Node P37 = AND(var-10, -var-9, -var-11, -var-12, S21)
-100000077 p 37 10 -9 -11 -12 21 0
-c Implicit declarations:
-c 100000077 a 37 -10 9 11 12 -21 0
-c 100000078 a -37 10 0
-c 100000079 a -37 -9 0
-c 100000080 a -37 -11 0
-c 100000081 a -37 -12 0
-c 100000082 a -37 21 0
-c Node P38 = AND(-var-10, S36)
-100000083 p 38 -10 36 0
-c Implicit declarations:
-c 100000083 a 38 10 -36 0
-c 100000084 a -38 -10 0
-c 100000085 a -38 36 0
-c Node S39 = OR(P37, P38)
-100000086 s 39 37 38 100000078 100000084 0
-c Implicit declarations:
-c 100000086 a -39 37 38 0
-c 100000087 a 39 -37 0
-c 100000088 a 39 -38 0
-c Node P43 = AND(var-3, -var-14, -var-13, -var-2, -var-15, -var-4, var-16)
-100000089 p 43 3 -14 -13 -2 -15 -4 16 0
-c Implicit declarations:
-c 100000089 a 43 -3 14 13 2 15 4 -16 0
-c 100000090 a -43 3 0
-c 100000091 a -43 -14 0
-c 100000092 a -43 -13 0
-c 100000093 a -43 -2 0
-c 100000094 a -43 -15 0
-c 100000095 a -43 -4 0
-c 100000096 a -43 16 0
-c Node P44 = AND(-var-3, -var-14, -var-13, -var-2, var-15, var-4, -var-16)
-100000097 p 44 -3 -14 -13 -2 15 4 -16 0
-c Implicit declarations:
-c 100000097 a 44 3 14 13 2 -15 -4 16 0
-c 100000098 a -44 -3 0
-c 100000099 a -44 -14 0
-c 100000100 a -44 -13 0
-c 100000101 a -44 -2 0
-c 100000102 a -44 15 0
-c 100000103 a -44 4 0
-c 100000104 a -44 -16 0
-c Node S45 = OR(P43, P44)
-100000105 s 45 43 44 100000090 100000098 0
-c Implicit declarations:
-c 100000105 a -45 43 44 0
-c 100000106 a 45 -43 0
-c 100000107 a 45 -44 0
-c Node P51 = AND(var-3, -var-9, -var-13, -var-2, var-14, -var-11, -var-4, var-12)
-100000108 p 51 3 -9 -13 -2 14 -11 -4 12 0
-c Implicit declarations:
-c 100000108 a 51 -3 9 13 2 -14 11 4 -12 0
-c 100000109 a -51 3 0
-c 100000110 a -51 -9 0
-c 100000111 a -51 -13 0
-c 100000112 a -51 -2 0
-c 100000113 a -51 14 0
-c 100000114 a -51 -11 0
-c 100000115 a -51 -4 0
-c 100000116 a -51 12 0
-c Node P52 = AND(-var-3, -var-9, -var-13, -var-2, var-14, var-11, var-4, -var-12)
-100000117 p 52 -3 -9 -13 -2 14 11 4 -12 0
-c Implicit declarations:
-c 100000117 a 52 3 9 13 2 -14 -11 -4 12 0
-c 100000118 a -52 -3 0
-c 100000119 a -52 -9 0
-c 100000120 a -52 -13 0
-c 100000121 a -52 -2 0
-c 100000122 a -52 14 0
-c 100000123 a -52 11 0
-c 100000124 a -52 4 0
-c 100000125 a -52 -12 0
-c Node S53 = OR(P51, P52)
-100000126 s 53 51 52 100000109 100000118 0
-c Implicit declarations:
-c 100000126 a -53 51 52 0
-c 100000127 a 53 -51 0
-c 100000128 a 53 -52 0
-c Node P54 = AND(var-16, -var-9, -var-14, -var-13, var-2, -var-3, var-11, -var-4, -var-12)
-100000129 p 54 16 -9 -14 -13 2 -3 11 -4 -12 0
-c Implicit declarations:
-c 100000129 a 54 -16 9 14 13 -2 3 -11 4 12 0
-c 100000130 a -54 16 0
-c 100000131 a -54 -9 0
-c 100000132 a -54 -14 0
-c 100000133 a -54 -13 0
-c 100000134 a -54 2 0
-c 100000135 a -54 -3 0
-c 100000136 a -54 11 0
-c 100000137 a -54 -4 0
-c 100000138 a -54 -12 0
-c Node P55 = AND(-var-16, S53)
-100000139 p 55 -16 53 0
-c Implicit declarations:
-c 100000139 a 55 16 -53 0
-c 100000140 a -55 -16 0
-c 100000141 a -55 53 0
-c Node S56 = OR(P54, P55)
-100000142 s 56 54 55 100000130 100000140 0
-c Implicit declarations:
-c 100000142 a -56 54 55 0
-c 100000143 a 56 -54 0
-c 100000144 a 56 -55 0
-c Node P57 = AND(var-15, -var-9, -var-14, -var-13, var-2, -var-3, -var-11, -var-4, var-12, -var-16)
-100000145 p 57 15 -9 -14 -13 2 -3 -11 -4 12 -16 0
-c Implicit declarations:
-c 100000145 a 57 -15 9 14 13 -2 3 11 4 -12 16 0
-c 100000146 a -57 15 0
-c 100000147 a -57 -9 0
-c 100000148 a -57 -14 0
-c 100000149 a -57 -13 0
-c 100000150 a -57 2 0
-c 100000151 a -57 -3 0
-c 100000152 a -57 -11 0
-c 100000153 a -57 -4 0
-c 100000154 a -57 12 0
-c 100000155 a -57 -16 0
-c Node P58 = AND(-var-15, S56)
-100000156 p 58 -15 56 0
-c Implicit declarations:
-c 100000156 a 58 15 -56 0
-c 100000157 a -58 -15 0
-c 100000158 a -58 56 0
-c Node S59 = OR(P57, P58)
-100000159 s 59 57 58 100000146 100000157 0
-c Implicit declarations:
-c 100000159 a -59 57 58 0
-c 100000160 a 59 -57 0
-c 100000161 a 59 -58 0
-c Node P60 = AND(var-10, -var-9, -var-11, -var-12, S45)
-100000162 p 60 10 -9 -11 -12 45 0
-c Implicit declarations:
-c 100000162 a 60 -10 9 11 12 -45 0
-c 100000163 a -60 10 0
-c 100000164 a -60 -9 0
-c 100000165 a -60 -11 0
-c 100000166 a -60 -12 0
-c 100000167 a -60 45 0
-c Node P61 = AND(-var-10, S59)
-100000168 p 61 -10 59 0
-c Implicit declarations:
-c 100000168 a 61 10 -59 0
-c 100000169 a -61 -10 0
-c 100000170 a -61 59 0
-c Node S62 = OR(P60, P61)
-100000171 s 62 60 61 100000163 100000169 0
-c Implicit declarations:
-c 100000171 a -62 60 61 0
-c 100000172 a 62 -60 0
-c 100000173 a 62 -61 0
-c Node P66 = AND(var-4, -var-2, var-6, -var-3, -var-7, -var-8)
-100000174 p 66 4 -2 6 -3 -7 -8 0
-c Implicit declarations:
-c 100000174 a 66 -4 2 -6 3 7 8 0
-c 100000175 a -66 4 0
-c 100000176 a -66 -2 0
-c 100000177 a -66 6 0
-c 100000178 a -66 -3 0
-c 100000179 a -66 -7 0
-c 100000180 a -66 -8 0
-c Node P67 = AND(-var-4, var-2, -var-6, -var-3, -var-7, var-8)
-100000181 p 67 -4 2 -6 -3 -7 8 0
-c Implicit declarations:
-c 100000181 a 67 4 -2 6 3 7 -8 0
-c 100000182 a -67 -4 0
-c 100000183 a -67 2 0
-c 100000184 a -67 -6 0
-c 100000185 a -67 -3 0
-c 100000186 a -67 -7 0
-c 100000187 a -67 8 0
-c Node S68 = OR(P66, P67)
-100000188 s 68 66 67 100000175 100000182 0
-c Implicit declarations:
-c 100000188 a -68 66 67 0
-c 100000189 a 68 -66 0
-c 100000190 a 68 -67 0
-c Node P72 = AND(var-16, -var-14, -var-13, var-6, -var-7, -var-8)
-100000191 p 72 16 -14 -13 6 -7 -8 0
-c Implicit declarations:
-c 100000191 a 72 -16 14 13 -6 7 8 0
-c 100000192 a -72 16 0
-c 100000193 a -72 -14 0
-c 100000194 a -72 -13 0
-c 100000195 a -72 6 0
-c 100000196 a -72 -7 0
-c 100000197 a -72 -8 0
-c Node P73 = AND(-var-16, -var-13, -var-6, var-14, -var-7, var-8)
-100000198 p 73 -16 -13 -6 14 -7 8 0
-c Implicit declarations:
-c 100000198 a 73 16 13 6 -14 7 -8 0
-c 100000199 a -73 -16 0
-c 100000200 a -73 -13 0
-c 100000201 a -73 -6 0
-c 100000202 a -73 14 0
-c 100000203 a -73 -7 0
-c 100000204 a -73 8 0
-c Node S74 = OR(P72, P73)
-100000205 s 74 72 73 100000192 100000199 0
-c Implicit declarations:
-c 100000205 a -74 72 73 0
-c 100000206 a 74 -72 0
-c 100000207 a 74 -73 0
-c Node P78 = AND(var-16, -var-14, -var-13, var-2, -var-4)
-100000208 p 78 16 -14 -13 2 -4 0
-c Implicit declarations:
-c 100000208 a 78 -16 14 13 -2 4 0
-c 100000209 a -78 16 0
-c 100000210 a -78 -14 0
-c 100000211 a -78 -13 0
-c 100000212 a -78 2 0
-c 100000213 a -78 -4 0
-c Node P79 = AND(-var-16, -var-13, -var-2, var-14, var-4)
-100000214 p 79 -16 -13 -2 14 4 0
-c Implicit declarations:
-c 100000214 a 79 16 13 2 -14 -4 0
-c 100000215 a -79 -16 0
-c 100000216 a -79 -13 0
-c 100000217 a -79 -2 0
-c 100000218 a -79 14 0
-c 100000219 a -79 4 0
-c Node S80 = OR(P78, P79)
-100000220 s 80 78 79 100000209 100000215 0
-c Implicit declarations:
-c 100000220 a -80 78 79 0
-c 100000221 a 80 -78 0
-c 100000222 a 80 -79 0
-c Node P82 = AND(var-3, -var-2, -var-4, S74)
-100000223 p 82 3 -2 -4 74 0
-c Implicit declarations:
-c 100000223 a 82 -3 2 4 -74 0
-c 100000224 a -82 3 0
-c 100000225 a -82 -2 0
-c 100000226 a -82 -4 0
-c 100000227 a -82 74 0
-c Node P83 = AND(-var-3, -var-6, var-7, -var-8, S80)
-100000228 p 83 -3 -6 7 -8 80 0
-c Implicit declarations:
-c 100000228 a 83 3 6 -7 8 -80 0
-c 100000229 a -83 -3 0
-c 100000230 a -83 -6 0
-c 100000231 a -83 7 0
-c 100000232 a -83 -8 0
-c 100000233 a -83 80 0
-c Node S84 = OR(P82, P83)
-100000234 s 84 82 83 100000224 100000229 0
-c Implicit declarations:
-c 100000234 a -84 82 83 0
-c 100000235 a 84 -82 0
-c 100000236 a 84 -83 0
-c Node P85 = AND(var-15, -var-14, -var-13, -var-16, S68)
-100000237 p 85 15 -14 -13 -16 68 0
-c Implicit declarations:
-c 100000237 a 85 -15 14 13 16 -68 0
-c 100000238 a -85 15 0
-c 100000239 a -85 -14 0
-c 100000240 a -85 -13 0
-c 100000241 a -85 -16 0
-c 100000242 a -85 68 0
-c Node P86 = AND(-var-15, S84)
-100000243 p 86 -15 84 0
-c Implicit declarations:
-c 100000243 a 86 15 -84 0
-c 100000244 a -86 -15 0
-c 100000245 a -86 84 0
-c Node S87 = OR(P85, P86)
-100000246 s 87 85 86 100000238 100000244 0
-c Implicit declarations:
-c 100000246 a -87 85 86 0
-c 100000247 a 87 -85 0
-c 100000248 a 87 -86 0
-c Node P91 = AND(var-7, -var-6, -var-10, -var-11, -var-8, var-12)
-100000249 p 91 7 -6 -10 -11 -8 12 0
-c Implicit declarations:
-c 100000249 a 91 -7 6 10 11 8 -12 0
-c 100000250 a -91 7 0
-c 100000251 a -91 -6 0
-c 100000252 a -91 -10 0
-c 100000253 a -91 -11 0
-c 100000254 a -91 -8 0
-c 100000255 a -91 12 0
-c Node P92 = AND(-var-7, -var-6, -var-10, var-11, var-8, -var-12)
-100000256 p 92 -7 -6 -10 11 8 -12 0
-c Implicit declarations:
-c 100000256 a 92 7 6 10 -11 -8 12 0
-c 100000257 a -92 -7 0
-c 100000258 a -92 -6 0
-c 100000259 a -92 -10 0
-c 100000260 a -92 11 0
-c 100000261 a -92 8 0
-c 100000262 a -92 -12 0
-c Node S93 = OR(P91, P92)
-100000263 s 93 91 92 100000250 100000257 0
-c Implicit declarations:
-c 100000263 a -93 91 92 0
-c 100000264 a 93 -91 0
-c 100000265 a 93 -92 0
-c Node P97 = AND(var-3, -var-11, -var-4, var-12)
-100000266 p 97 3 -11 -4 12 0
-c Implicit declarations:
-c 100000266 a 97 -3 11 4 -12 0
-c 100000267 a -97 3 0
-c 100000268 a -97 -11 0
-c 100000269 a -97 -4 0
-c 100000270 a -97 12 0
-c Node P98 = AND(-var-3, var-11, var-4, -var-12)
-100000271 p 98 -3 11 4 -12 0
-c Implicit declarations:
-c 100000271 a 98 3 -11 -4 12 0
-c 100000272 a -98 -3 0
-c 100000273 a -98 11 0
-c 100000274 a -98 4 0
-c 100000275 a -98 -12 0
-c Node S99 = OR(P97, P98)
-100000276 s 99 97 98 100000267 100000272 0
-c Implicit declarations:
-c 100000276 a -99 97 98 0
-c 100000277 a 99 -97 0
-c 100000278 a 99 -98 0
-c Node P103 = AND(var-3, -var-7, -var-4, var-8)
-100000279 p 103 3 -7 -4 8 0
-c Implicit declarations:
-c 100000279 a 103 -3 7 4 -8 0
-c 100000280 a -103 3 0
-c 100000281 a -103 -7 0
-c 100000282 a -103 -4 0
-c 100000283 a -103 8 0
-c Node P104 = AND(-var-3, var-7, var-4, -var-8)
-100000284 p 104 -3 7 4 -8 0
-c Implicit declarations:
-c 100000284 a 104 3 -7 -4 8 0
-c 100000285 a -104 -3 0
-c 100000286 a -104 7 0
-c 100000287 a -104 4 0
-c 100000288 a -104 -8 0
-c Node S105 = OR(P103, P104)
-100000289 s 105 103 104 100000280 100000285 0
-c Implicit declarations:
-c 100000289 a -105 103 104 0
-c 100000290 a 105 -103 0
-c 100000291 a 105 -104 0
-c Node P107 = AND(var-6, -var-10, -var-7, -var-8, S99)
-100000292 p 107 6 -10 -7 -8 99 0
-c Implicit declarations:
-c 100000292 a 107 -6 10 7 8 -99 0
-c 100000293 a -107 6 0
-c 100000294 a -107 -10 0
-c 100000295 a -107 -7 0
-c 100000296 a -107 -8 0
-c 100000297 a -107 99 0
-c Node P108 = AND(-var-6, var-10, -var-11, -var-12, S105)
-100000298 p 108 -6 10 -11 -12 105 0
-c Implicit declarations:
-c 100000298 a 108 6 -10 11 12 -105 0
-c 100000299 a -108 -6 0
-c 100000300 a -108 10 0
-c 100000301 a -108 -11 0
-c 100000302 a -108 -12 0
-c 100000303 a -108 105 0
-c Node S109 = OR(P107, P108)
-100000304 s 109 107 108 100000293 100000299 0
-c Implicit declarations:
-c 100000304 a -109 107 108 0
-c 100000305 a 109 -107 0
-c 100000306 a 109 -108 0
-c Node P110 = AND(var-2, -var-3, -var-4, S93)
-100000307 p 110 2 -3 -4 93 0
-c Implicit declarations:
-c 100000307 a 110 -2 3 4 -93 0
-c 100000308 a -110 2 0
-c 100000309 a -110 -3 0
-c 100000310 a -110 -4 0
-c 100000311 a -110 93 0
-c Node P111 = AND(-var-2, S109)
-100000312 p 111 -2 109 0
-c Implicit declarations:
-c 100000312 a 111 2 -109 0
-c 100000313 a -111 -2 0
-c 100000314 a -111 109 0
-c Node S112 = OR(P110, P111)
-100000315 s 112 110 111 100000308 100000313 0
-c Implicit declarations:
-c 100000315 a -112 110 111 0
-c 100000316 a 112 -110 0
-c 100000317 a 112 -111 0
-c Node P114 = AND(var-9, -var-10, -var-11, -var-12, S87)
-100000318 p 114 9 -10 -11 -12 87 0
-c Implicit declarations:
-c 100000318 a 114 -9 10 11 12 -87 0
-c 100000319 a -114 9 0
-c 100000320 a -114 -10 0
-c 100000321 a -114 -11 0
-c 100000322 a -114 -12 0
-c 100000323 a -114 87 0
-c Node P115 = AND(-var-9, var-13, -var-14, -var-15, -var-16, S112)
-100000324 p 115 -9 13 -14 -15 -16 112 0
-c Implicit declarations:
-c 100000324 a 115 9 -13 14 15 16 -112 0
-c 100000325 a -115 -9 0
-c 100000326 a -115 13 0
-c 100000327 a -115 -14 0
-c 100000328 a -115 -15 0
-c 100000329 a -115 -16 0
-c 100000330 a -115 112 0
-c Node S116 = OR(P114, P115)
-100000331 s 116 114 115 100000319 100000325 0
-c Implicit declarations:
-c 100000331 a -116 114 115 0
-c 100000332 a 116 -114 0
-c 100000333 a 116 -115 0
-c Node P117 = AND(var-5, -var-6, -var-7, -var-8, S62)
-100000334 p 117 5 -6 -7 -8 62 0
-c Implicit declarations:
-c 100000334 a 117 -5 6 7 8 -62 0
-c 100000335 a -117 5 0
-c 100000336 a -117 -6 0
-c 100000337 a -117 -7 0
-c 100000338 a -117 -8 0
-c 100000339 a -117 62 0
-c Node P118 = AND(-var-5, S116)
-100000340 p 118 -5 116 0
-c Implicit declarations:
-c 100000340 a 118 5 -116 0
-c 100000341 a -118 -5 0
-c 100000342 a -118 116 0
-c Node S119 = OR(P117, P118)
-100000343 s 119 117 118 100000335 100000341 0
-c Implicit declarations:
-c 100000343 a -119 117 118 0
-c 100000344 a 119 -117 0
-c 100000345 a 119 -118 0
-c Node P120 = AND(var-1, -var-2, -var-3, -var-4, S39)
-100000346 p 120 1 -2 -3 -4 39 0
-c Implicit declarations:
-c 100000346 a 120 -1 2 3 4 -39 0
-c 100000347 a -120 1 0
-c 100000348 a -120 -2 0
-c 100000349 a -120 -3 0
-c 100000350 a -120 -4 0
-c 100000351 a -120 39 0
-c Node P121 = AND(-var-1, S119)
-100000352 p 121 -1 119 0
-c Implicit declarations:
-c 100000352 a 121 1 -119 0
-c 100000353 a -121 -1 0
-c 100000354 a -121 119 0
-c Node S122 = OR(P120, P121)
-100000355 s 122 120 121 100000347 100000353 0
-c Implicit declarations:
-c 100000355 a -122 120 121 0
-c 100000356 a 122 -120 0
-c 100000357 a 122 -121 0
+c Negated conjunction operations to use as lemma arguments
+c Operations for representing formula
+c P19 = AND(var-15, -var-5, -var-14, -var-13, -var-6, -var-7, var-8, -var-16)
+29 p 19 15 -5 -14 -13 -6 -7 8 -16 0
+c Implicit declarations:
+c 29 a 19 -15 5 14 13 6 7 -8 16 0
+c 30 a -19 15 0
+c 31 a -19 -5 0
+c 32 a -19 -14 0
+c 33 a -19 -13 0
+c 34 a -19 -6 0
+c 35 a -19 -7 0
+c 36 a -19 8 0
+c 37 a -19 -16 0
+c P20 = AND(-var-15, -var-5, -var-14, -var-13, -var-6, var-7, -var-8, var-16)
+38 p 20 -15 -5 -14 -13 -6 7 -8 16 0
+c Implicit declarations:
+c 38 a 20 15 5 14 13 6 -7 8 -16 0
+c 39 a -20 -15 0
+c 40 a -20 -5 0
+c 41 a -20 -14 0
+c 42 a -20 -13 0
+c 43 a -20 -6 0
+c 44 a -20 7 0
+c 45 a -20 -8 0
+c 46 a -20 16 0
+c S21 = OR(P19, P20)
+47 s 21 19 20 30 39 0
+c Implicit declarations:
+c 47 a -21 19 20 0
+c 48 a 21 -19 0
+c 49 a 21 -20 0
+c P27 = AND(var-8, -var-5, -var-13, -var-6, var-14, -var-16)
+50 p 27 8 -5 -13 -6 14 -16 0
+c Implicit declarations:
+c 50 a 27 -8 5 13 6 -14 16 0
+c 51 a -27 8 0
+c 52 a -27 -5 0
+c 53 a -27 -13 0
+c 54 a -27 -6 0
+c 55 a -27 14 0
+c 56 a -27 -16 0
+c P28 = AND(-var-8, -var-5, -var-14, -var-13, var-6, var-16)
+57 p 28 -8 -5 -14 -13 6 16 0
+c Implicit declarations:
+c 57 a 28 8 5 14 13 -6 -16 0
+c 58 a -28 -8 0
+c 59 a -28 -5 0
+c 60 a -28 -14 0
+c 61 a -28 -13 0
+c 62 a -28 6 0
+c 63 a -28 16 0
+c S29 = OR(P27, P28)
+64 s 29 27 28 51 58 0
+c Implicit declarations:
+c 64 a -29 27 28 0
+c 65 a 29 -27 0
+c 66 a 29 -28 0
+c P31 = AND(var-12, -var-5, -var-9, -var-14, -var-13, var-6, -var-11, var-15, -var-8, -var-16)
+67 p 31 12 -5 -9 -14 -13 6 -11 15 -8 -16 0
+c Implicit declarations:
+c 67 a 31 -12 5 9 14 13 -6 11 -15 8 16 0
+c 68 a -31 12 0
+c 69 a -31 -5 0
+c 70 a -31 -9 0
+c 71 a -31 -14 0
+c 72 a -31 -13 0
+c 73 a -31 6 0
+c 74 a -31 -11 0
+c 75 a -31 15 0
+c 76 a -31 -8 0
+c 77 a -31 -16 0
+c P32 = AND(-var-12, -var-9, var-11, -var-15, S29)
+78 p 32 -12 -9 11 -15 29 0
+c Implicit declarations:
+c 78 a 32 12 9 -11 15 -29 0
+c 79 a -32 -12 0
+c 80 a -32 -9 0
+c 81 a -32 11 0
+c 82 a -32 -15 0
+c 83 a -32 29 0
+c S33 = OR(P31, P32)
+84 s 33 31 32 68 79 0
+c Implicit declarations:
+c 84 a -33 31 32 0
+c 85 a 33 -31 0
+c 86 a 33 -32 0
+c P34 = AND(var-7, -var-5, -var-9, -var-13, -var-6, var-14, -var-11, -var-15, -var-8, var-12, -var-16)
+87 p 34 7 -5 -9 -13 -6 14 -11 -15 -8 12 -16 0
+c Implicit declarations:
+c 87 a 34 -7 5 9 13 6 -14 11 15 8 -12 16 0
+c 88 a -34 7 0
+c 89 a -34 -5 0
+c 90 a -34 -9 0
+c 91 a -34 -13 0
+c 92 a -34 -6 0
+c 93 a -34 14 0
+c 94 a -34 -11 0
+c 95 a -34 -15 0
+c 96 a -34 -8 0
+c 97 a -34 12 0
+c 98 a -34 -16 0
+c P35 = AND(-var-7, S33)
+99 p 35 -7 33 0
+c Implicit declarations:
+c 99 a 35 7 -33 0
+c 100 a -35 -7 0
+c 101 a -35 33 0
+c S36 = OR(P34, P35)
+102 s 36 34 35 88 100 0
+c Implicit declarations:
+c 102 a -36 34 35 0
+c 103 a 36 -34 0
+c 104 a 36 -35 0
+c P37 = AND(var-10, -var-9, -var-11, -var-12, S21)
+105 p 37 10 -9 -11 -12 21 0
+c Implicit declarations:
+c 105 a 37 -10 9 11 12 -21 0
+c 106 a -37 10 0
+c 107 a -37 -9 0
+c 108 a -37 -11 0
+c 109 a -37 -12 0
+c 110 a -37 21 0
+c P38 = AND(-var-10, S36)
+111 p 38 -10 36 0
+c Implicit declarations:
+c 111 a 38 10 -36 0
+c 112 a -38 -10 0
+c 113 a -38 36 0
+c S39 = OR(P37, P38)
+114 s 39 37 38 106 112 0
+c Implicit declarations:
+c 114 a -39 37 38 0
+c 115 a 39 -37 0
+c 116 a 39 -38 0
+c P43 = AND(var-3, -var-14, -var-13, -var-2, -var-15, -var-4, var-16)
+117 p 43 3 -14 -13 -2 -15 -4 16 0
+c Implicit declarations:
+c 117 a 43 -3 14 13 2 15 4 -16 0
+c 118 a -43 3 0
+c 119 a -43 -14 0
+c 120 a -43 -13 0
+c 121 a -43 -2 0
+c 122 a -43 -15 0
+c 123 a -43 -4 0
+c 124 a -43 16 0
+c P44 = AND(-var-3, -var-14, -var-13, -var-2, var-15, var-4, -var-16)
+125 p 44 -3 -14 -13 -2 15 4 -16 0
+c Implicit declarations:
+c 125 a 44 3 14 13 2 -15 -4 16 0
+c 126 a -44 -3 0
+c 127 a -44 -14 0
+c 128 a -44 -13 0
+c 129 a -44 -2 0
+c 130 a -44 15 0
+c 131 a -44 4 0
+c 132 a -44 -16 0
+c S45 = OR(P43, P44)
+133 s 45 43 44 118 126 0
+c Implicit declarations:
+c 133 a -45 43 44 0
+c 134 a 45 -43 0
+c 135 a 45 -44 0
+c P51 = AND(var-3, -var-9, -var-13, -var-2, var-14, -var-11, -var-4, var-12)
+136 p 51 3 -9 -13 -2 14 -11 -4 12 0
+c Implicit declarations:
+c 136 a 51 -3 9 13 2 -14 11 4 -12 0
+c 137 a -51 3 0
+c 138 a -51 -9 0
+c 139 a -51 -13 0
+c 140 a -51 -2 0
+c 141 a -51 14 0
+c 142 a -51 -11 0
+c 143 a -51 -4 0
+c 144 a -51 12 0
+c P52 = AND(-var-3, -var-9, -var-13, -var-2, var-14, var-11, var-4, -var-12)
+145 p 52 -3 -9 -13 -2 14 11 4 -12 0
+c Implicit declarations:
+c 145 a 52 3 9 13 2 -14 -11 -4 12 0
+c 146 a -52 -3 0
+c 147 a -52 -9 0
+c 148 a -52 -13 0
+c 149 a -52 -2 0
+c 150 a -52 14 0
+c 151 a -52 11 0
+c 152 a -52 4 0
+c 153 a -52 -12 0
+c S53 = OR(P51, P52)
+154 s 53 51 52 137 146 0
+c Implicit declarations:
+c 154 a -53 51 52 0
+c 155 a 53 -51 0
+c 156 a 53 -52 0
+c P54 = AND(var-16, -var-9, -var-14, -var-13, var-2, -var-3, var-11, -var-4, -var-12)
+157 p 54 16 -9 -14 -13 2 -3 11 -4 -12 0
+c Implicit declarations:
+c 157 a 54 -16 9 14 13 -2 3 -11 4 12 0
+c 158 a -54 16 0
+c 159 a -54 -9 0
+c 160 a -54 -14 0
+c 161 a -54 -13 0
+c 162 a -54 2 0
+c 163 a -54 -3 0
+c 164 a -54 11 0
+c 165 a -54 -4 0
+c 166 a -54 -12 0
+c P55 = AND(-var-16, S53)
+167 p 55 -16 53 0
+c Implicit declarations:
+c 167 a 55 16 -53 0
+c 168 a -55 -16 0
+c 169 a -55 53 0
+c S56 = OR(P54, P55)
+170 s 56 54 55 158 168 0
+c Implicit declarations:
+c 170 a -56 54 55 0
+c 171 a 56 -54 0
+c 172 a 56 -55 0
+c P57 = AND(var-15, -var-9, -var-14, -var-13, var-2, -var-3, -var-11, -var-4, var-12, -var-16)
+173 p 57 15 -9 -14 -13 2 -3 -11 -4 12 -16 0
+c Implicit declarations:
+c 173 a 57 -15 9 14 13 -2 3 11 4 -12 16 0
+c 174 a -57 15 0
+c 175 a -57 -9 0
+c 176 a -57 -14 0
+c 177 a -57 -13 0
+c 178 a -57 2 0
+c 179 a -57 -3 0
+c 180 a -57 -11 0
+c 181 a -57 -4 0
+c 182 a -57 12 0
+c 183 a -57 -16 0
+c P58 = AND(-var-15, S56)
+184 p 58 -15 56 0
+c Implicit declarations:
+c 184 a 58 15 -56 0
+c 185 a -58 -15 0
+c 186 a -58 56 0
+c S59 = OR(P57, P58)
+187 s 59 57 58 174 185 0
+c Implicit declarations:
+c 187 a -59 57 58 0
+c 188 a 59 -57 0
+c 189 a 59 -58 0
+c P60 = AND(var-10, -var-9, -var-11, -var-12, S45)
+190 p 60 10 -9 -11 -12 45 0
+c Implicit declarations:
+c 190 a 60 -10 9 11 12 -45 0
+c 191 a -60 10 0
+c 192 a -60 -9 0
+c 193 a -60 -11 0
+c 194 a -60 -12 0
+c 195 a -60 45 0
+c P61 = AND(-var-10, S59)
+196 p 61 -10 59 0
+c Implicit declarations:
+c 196 a 61 10 -59 0
+c 197 a -61 -10 0
+c 198 a -61 59 0
+c S62 = OR(P60, P61)
+199 s 62 60 61 191 197 0
+c Implicit declarations:
+c 199 a -62 60 61 0
+c 200 a 62 -60 0
+c 201 a 62 -61 0
+c P66 = AND(var-4, -var-2, var-6, -var-3, -var-7, -var-8)
+202 p 66 4 -2 6 -3 -7 -8 0
+c Implicit declarations:
+c 202 a 66 -4 2 -6 3 7 8 0
+c 203 a -66 4 0
+c 204 a -66 -2 0
+c 205 a -66 6 0
+c 206 a -66 -3 0
+c 207 a -66 -7 0
+c 208 a -66 -8 0
+c P67 = AND(-var-4, var-2, -var-6, -var-3, -var-7, var-8)
+209 p 67 -4 2 -6 -3 -7 8 0
+c Implicit declarations:
+c 209 a 67 4 -2 6 3 7 -8 0
+c 210 a -67 -4 0
+c 211 a -67 2 0
+c 212 a -67 -6 0
+c 213 a -67 -3 0
+c 214 a -67 -7 0
+c 215 a -67 8 0
+c S68 = OR(P66, P67)
+216 s 68 66 67 203 210 0
+c Implicit declarations:
+c 216 a -68 66 67 0
+c 217 a 68 -66 0
+c 218 a 68 -67 0
+c P72 = AND(var-16, -var-14, -var-13, var-6, -var-7, -var-8)
+219 p 72 16 -14 -13 6 -7 -8 0
+c Implicit declarations:
+c 219 a 72 -16 14 13 -6 7 8 0
+c 220 a -72 16 0
+c 221 a -72 -14 0
+c 222 a -72 -13 0
+c 223 a -72 6 0
+c 224 a -72 -7 0
+c 225 a -72 -8 0
+c P73 = AND(-var-16, -var-13, -var-6, var-14, -var-7, var-8)
+226 p 73 -16 -13 -6 14 -7 8 0
+c Implicit declarations:
+c 226 a 73 16 13 6 -14 7 -8 0
+c 227 a -73 -16 0
+c 228 a -73 -13 0
+c 229 a -73 -6 0
+c 230 a -73 14 0
+c 231 a -73 -7 0
+c 232 a -73 8 0
+c S74 = OR(P72, P73)
+233 s 74 72 73 220 227 0
+c Implicit declarations:
+c 233 a -74 72 73 0
+c 234 a 74 -72 0
+c 235 a 74 -73 0
+c P78 = AND(var-16, -var-14, -var-13, var-2, -var-4)
+236 p 78 16 -14 -13 2 -4 0
+c Implicit declarations:
+c 236 a 78 -16 14 13 -2 4 0
+c 237 a -78 16 0
+c 238 a -78 -14 0
+c 239 a -78 -13 0
+c 240 a -78 2 0
+c 241 a -78 -4 0
+c P79 = AND(-var-16, -var-13, -var-2, var-14, var-4)
+242 p 79 -16 -13 -2 14 4 0
+c Implicit declarations:
+c 242 a 79 16 13 2 -14 -4 0
+c 243 a -79 -16 0
+c 244 a -79 -13 0
+c 245 a -79 -2 0
+c 246 a -79 14 0
+c 247 a -79 4 0
+c S80 = OR(P78, P79)
+248 s 80 78 79 237 243 0
+c Implicit declarations:
+c 248 a -80 78 79 0
+c 249 a 80 -78 0
+c 250 a 80 -79 0
+c P82 = AND(var-3, -var-2, -var-4, S74)
+251 p 82 3 -2 -4 74 0
+c Implicit declarations:
+c 251 a 82 -3 2 4 -74 0
+c 252 a -82 3 0
+c 253 a -82 -2 0
+c 254 a -82 -4 0
+c 255 a -82 74 0
+c P83 = AND(-var-3, -var-6, var-7, -var-8, S80)
+256 p 83 -3 -6 7 -8 80 0
+c Implicit declarations:
+c 256 a 83 3 6 -7 8 -80 0
+c 257 a -83 -3 0
+c 258 a -83 -6 0
+c 259 a -83 7 0
+c 260 a -83 -8 0
+c 261 a -83 80 0
+c S84 = OR(P82, P83)
+262 s 84 82 83 252 257 0
+c Implicit declarations:
+c 262 a -84 82 83 0
+c 263 a 84 -82 0
+c 264 a 84 -83 0
+c P85 = AND(var-15, -var-14, -var-13, -var-16, S68)
+265 p 85 15 -14 -13 -16 68 0
+c Implicit declarations:
+c 265 a 85 -15 14 13 16 -68 0
+c 266 a -85 15 0
+c 267 a -85 -14 0
+c 268 a -85 -13 0
+c 269 a -85 -16 0
+c 270 a -85 68 0
+c P86 = AND(-var-15, S84)
+271 p 86 -15 84 0
+c Implicit declarations:
+c 271 a 86 15 -84 0
+c 272 a -86 -15 0
+c 273 a -86 84 0
+c S87 = OR(P85, P86)
+274 s 87 85 86 266 272 0
+c Implicit declarations:
+c 274 a -87 85 86 0
+c 275 a 87 -85 0
+c 276 a 87 -86 0
+c P91 = AND(var-7, -var-6, -var-10, -var-11, -var-8, var-12)
+277 p 91 7 -6 -10 -11 -8 12 0
+c Implicit declarations:
+c 277 a 91 -7 6 10 11 8 -12 0
+c 278 a -91 7 0
+c 279 a -91 -6 0
+c 280 a -91 -10 0
+c 281 a -91 -11 0
+c 282 a -91 -8 0
+c 283 a -91 12 0
+c P92 = AND(-var-7, -var-6, -var-10, var-11, var-8, -var-12)
+284 p 92 -7 -6 -10 11 8 -12 0
+c Implicit declarations:
+c 284 a 92 7 6 10 -11 -8 12 0
+c 285 a -92 -7 0
+c 286 a -92 -6 0
+c 287 a -92 -10 0
+c 288 a -92 11 0
+c 289 a -92 8 0
+c 290 a -92 -12 0
+c S93 = OR(P91, P92)
+291 s 93 91 92 278 285 0
+c Implicit declarations:
+c 291 a -93 91 92 0
+c 292 a 93 -91 0
+c 293 a 93 -92 0
+c P97 = AND(var-3, -var-11, -var-4, var-12)
+294 p 97 3 -11 -4 12 0
+c Implicit declarations:
+c 294 a 97 -3 11 4 -12 0
+c 295 a -97 3 0
+c 296 a -97 -11 0
+c 297 a -97 -4 0
+c 298 a -97 12 0
+c P98 = AND(-var-3, var-11, var-4, -var-12)
+299 p 98 -3 11 4 -12 0
+c Implicit declarations:
+c 299 a 98 3 -11 -4 12 0
+c 300 a -98 -3 0
+c 301 a -98 11 0
+c 302 a -98 4 0
+c 303 a -98 -12 0
+c S99 = OR(P97, P98)
+304 s 99 97 98 295 300 0
+c Implicit declarations:
+c 304 a -99 97 98 0
+c 305 a 99 -97 0
+c 306 a 99 -98 0
+c P103 = AND(var-3, -var-7, -var-4, var-8)
+307 p 103 3 -7 -4 8 0
+c Implicit declarations:
+c 307 a 103 -3 7 4 -8 0
+c 308 a -103 3 0
+c 309 a -103 -7 0
+c 310 a -103 -4 0
+c 311 a -103 8 0
+c P104 = AND(-var-3, var-7, var-4, -var-8)
+312 p 104 -3 7 4 -8 0
+c Implicit declarations:
+c 312 a 104 3 -7 -4 8 0
+c 313 a -104 -3 0
+c 314 a -104 7 0
+c 315 a -104 4 0
+c 316 a -104 -8 0
+c S105 = OR(P103, P104)
+317 s 105 103 104 308 313 0
+c Implicit declarations:
+c 317 a -105 103 104 0
+c 318 a 105 -103 0
+c 319 a 105 -104 0
+c P107 = AND(var-6, -var-10, -var-7, -var-8, S99)
+320 p 107 6 -10 -7 -8 99 0
+c Implicit declarations:
+c 320 a 107 -6 10 7 8 -99 0
+c 321 a -107 6 0
+c 322 a -107 -10 0
+c 323 a -107 -7 0
+c 324 a -107 -8 0
+c 325 a -107 99 0
+c P108 = AND(-var-6, var-10, -var-11, -var-12, S105)
+326 p 108 -6 10 -11 -12 105 0
+c Implicit declarations:
+c 326 a 108 6 -10 11 12 -105 0
+c 327 a -108 -6 0
+c 328 a -108 10 0
+c 329 a -108 -11 0
+c 330 a -108 -12 0
+c 331 a -108 105 0
+c S109 = OR(P107, P108)
+332 s 109 107 108 321 327 0
+c Implicit declarations:
+c 332 a -109 107 108 0
+c 333 a 109 -107 0
+c 334 a 109 -108 0
+c P110 = AND(var-2, -var-3, -var-4, S93)
+335 p 110 2 -3 -4 93 0
+c Implicit declarations:
+c 335 a 110 -2 3 4 -93 0
+c 336 a -110 2 0
+c 337 a -110 -3 0
+c 338 a -110 -4 0
+c 339 a -110 93 0
+c P111 = AND(-var-2, S109)
+340 p 111 -2 109 0
+c Implicit declarations:
+c 340 a 111 2 -109 0
+c 341 a -111 -2 0
+c 342 a -111 109 0
+c S112 = OR(P110, P111)
+343 s 112 110 111 336 341 0
+c Implicit declarations:
+c 343 a -112 110 111 0
+c 344 a 112 -110 0
+c 345 a 112 -111 0
+c P114 = AND(var-9, -var-10, -var-11, -var-12, S87)
+346 p 114 9 -10 -11 -12 87 0
+c Implicit declarations:
+c 346 a 114 -9 10 11 12 -87 0
+c 347 a -114 9 0
+c 348 a -114 -10 0
+c 349 a -114 -11 0
+c 350 a -114 -12 0
+c 351 a -114 87 0
+c P115 = AND(-var-9, var-13, -var-14, -var-15, -var-16, S112)
+352 p 115 -9 13 -14 -15 -16 112 0
+c Implicit declarations:
+c 352 a 115 9 -13 14 15 16 -112 0
+c 353 a -115 -9 0
+c 354 a -115 13 0
+c 355 a -115 -14 0
+c 356 a -115 -15 0
+c 357 a -115 -16 0
+c 358 a -115 112 0
+c S116 = OR(P114, P115)
+359 s 116 114 115 347 353 0
+c Implicit declarations:
+c 359 a -116 114 115 0
+c 360 a 116 -114 0
+c 361 a 116 -115 0
+c P117 = AND(var-5, -var-6, -var-7, -var-8, S62)
+362 p 117 5 -6 -7 -8 62 0
+c Implicit declarations:
+c 362 a 117 -5 6 7 8 -62 0
+c 363 a -117 5 0
+c 364 a -117 -6 0
+c 365 a -117 -7 0
+c 366 a -117 -8 0
+c 367 a -117 62 0
+c P118 = AND(-var-5, S116)
+368 p 118 -5 116 0
+c Implicit declarations:
+c 368 a 118 5 -116 0
+c 369 a -118 -5 0
+c 370 a -118 116 0
+c S119 = OR(P117, P118)
+371 s 119 117 118 363 369 0
+c Implicit declarations:
+c 371 a -119 117 118 0
+c 372 a 119 -117 0
+c 373 a 119 -118 0
+c P120 = AND(var-1, -var-2, -var-3, -var-4, S39)
+374 p 120 1 -2 -3 -4 39 0
+c Implicit declarations:
+c 374 a 120 -1 2 3 4 -39 0
+c 375 a -120 1 0
+c 376 a -120 -2 0
+c 377 a -120 -3 0
+c 378 a -120 -4 0
+c 379 a -120 39 0
+c P121 = AND(-var-1, S119)
+380 p 121 -1 119 0
+c Implicit declarations:
+c 380 a 121 1 -119 0
+c 381 a -121 -1 0
+c 382 a -121 119 0
+c S122 = OR(P120, P121)
+383 s 122 120 121 375 381 0
+c Implicit declarations:
+c 383 a -122 120 121 0
+c 384 a 122 -120 0
+c 385 a 122 -121 0
+c Justify literal -5 in context [1, -2, -3, -4, 10, -9, -11, -12, 15] with single RUP step
+386 a -5 -1 2 3 4 -10 9 11 12 -15 0 13 28 4 0
+c Justify literal -6 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5, -14, -13] with single RUP step
+387 a -6 -1 2 3 4 -10 9 11 12 -15 5 14 13 0 15 28 4 0
+c Justify literal -7 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5, -14, -13, -6] with single RUP step
+388 a -7 -1 2 3 4 -10 9 11 12 -15 5 14 13 6 0 16 28 4 0
+c Justify literal 8 in context [1, -2, -3, -4, 10, -9, -11, -12, 15, -5, -14, -13, -6, -7] with single RUP step
+389 a 8 -1 2 3 4 -10 9 11 12 -15 5 14 13 6 7 0 4 28 0
+c Justify literal -5 in context [1, -2, -3, -4, 10, -9, -11, -12, -15] with single RUP step
+390 a -5 -1 2 3 4 -10 9 11 12 15 0 3 12 0
+c Justify literal -14 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5] with single RUP step
+391 a -14 -1 2 3 4 -10 9 11 12 15 5 0 3 16 27 4 0
+c Justify literal -13 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5, -14] with single RUP step
+392 a -13 -1 2 3 4 -10 9 11 12 15 5 14 0 3 16 25 4 0
+c Justify literal -6 in context [1, -2, -3, -4, 10, -9, -11, -12, -15, -5, -14, -13] with single RUP step
+393 a -6 -1 2 3 4 -10 9 11 12 15 5 14 13 0 3 14 0
 c Assert ITE at node S21
-100000358 a -15 21 -1 2 3 4 -10 9 11 12 0 34 35 36 37 38 39 40 100000001 100000020 0
-100000359 a 21 -1 2 3 4 -10 9 11 12 0 100000358 41 42 43 44 45 46 47 100000010 100000021 0
+394 a -15 21 -1 2 3 4 -10 9 11 12 0 386 26 24 387 388 389 28 29 48 0
+395 a 21 -1 2 3 4 -10 9 11 12 0 394 390 391 392 393 3 16 4 38 49 0
+c Justify literal -9 in context [1, -2, -3, -4, -10, 7, -5] with single RUP step
+396 a -9 -1 2 3 4 10 -7 5 0 14 16 19 2 4 27 0
+c Justify literal -13 in context [1, -2, -3, -4, -10, 7, -5, -9] with single RUP step
+397 a -13 -1 2 3 4 10 -7 5 9 0 14 23 2 0
+c Justify literal -11 in context [1, -2, -3, -4, -10, 7, -5, -9, -13, -6, 14] with single RUP step
+398 a -11 -1 2 3 4 10 -7 5 9 13 6 -14 0 16 22 27 4 0
+c Justify literal 12 in context [1, -2, -3, -4, -10, 7, -5, -9, -13, -6, 14, -11, -15, -8] with single RUP step
+399 a 12 -1 2 3 4 10 -7 5 9 13 6 -14 11 15 8 0 4 27 0
+c Justify literal -5 in context [1, -2, -3, -4, -10, -7, 12] with single RUP step
+400 a -5 -1 2 3 4 10 7 -12 0 11 22 2 3 26 0
+c Justify literal -14 in context [1, -2, -3, -4, -10, -7, 12, -5, -9] with single RUP step
+401 a -14 -1 2 3 4 10 7 -12 5 9 0 22 26 3 0
+c Justify literal -13 in context [1, -2, -3, -4, -10, -7, 12, -5, -9, -14] with single RUP step
+402 a -13 -1 2 3 4 10 7 -12 5 9 14 0 22 24 3 0
+c Justify literal -9 in context [1, -2, -3, -4, -10, -7, -12] with single RUP step
+403 a -9 -1 2 3 4 10 7 12 0 18 3 26 28 2 4 15 0
+c Justify literal 11 in context [1, -2, -3, -4, -10, -7, -12, -9] with single RUP step
+404 a 11 -1 2 3 4 10 7 12 9 0 3 26 28 2 4 15 0
+c Justify literal -15 in context [1, -2, -3, -4, -10, -7, -12, -9, 11] with single RUP step
+405 a -15 -1 2 3 4 10 7 12 9 -11 0 26 28 2 4 15 0
+c Justify literal -13 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, 8, -5] with single RUP step
+406 a -13 -1 2 3 4 10 7 12 9 -11 15 -8 5 0 15 23 2 0
+c Justify literal -5 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, -8] with single RUP step
+407 a -5 -1 2 3 4 10 7 12 9 -11 15 8 0 4 11 27 2 0
+c Justify literal -14 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, -8, -5] with single RUP step
+408 a -14 -1 2 3 4 10 7 12 9 -11 15 8 5 0 4 27 0
+c Justify literal -13 in context [1, -2, -3, -4, -10, -7, -12, -9, 11, -15, -8, -5, -14] with single RUP step
+409 a -13 -1 2 3 4 10 7 12 9 -11 15 8 5 14 0 4 25 0
 c Assert ITE at node S29
-100000360 a -8 29 -1 2 3 4 10 7 12 9 -11 15 0 70 71 72 73 74 100000022 100000037 0
-100000361 a 29 -1 2 3 4 10 7 12 9 -11 15 0 100000360 75 76 77 78 79 100000029 100000038 0
+410 a -8 29 -1 2 3 4 10 7 12 9 -11 15 0 13 406 15 2 27 50 65 0
+411 a 29 -1 2 3 4 10 7 12 9 -11 15 0 410 407 408 409 2 4 57 66 0
 c Assert ITE at node S33
-100000362 a -12 33 -1 2 3 4 10 7 0 58 59 60 61 62 63 64 65 66 100000039 100000057 0
-100000363 a 33 -1 2 3 4 10 7 0 100000362 67 68 69 100000361 100000050 100000058 0
+412 a -12 33 -1 2 3 4 10 7 0 400 19 401 402 2 22 3 15 28 67 85 0
+413 a 33 -1 2 3 4 10 7 0 412 403 404 405 411 78 86 0
 c Assert ITE at node S36
-100000364 a -7 36 -1 2 3 4 10 0 48 49 50 51 52 53 54 55 56 57 100000059 100000075 0
-100000365 a 36 -1 2 3 4 10 0 100000364 100000363 100000071 100000076 0
+414 a -7 36 -1 2 3 4 10 0 12 396 397 14 2 398 26 16 399 27 87 103 0
+415 a 36 -1 2 3 4 10 0 414 413 99 104 0
 c Assert ITE at node S39
-100000366 a -10 39 -1 2 3 4 0 31 32 33 100000359 100000077 100000087 0
-100000367 a 39 -1 2 3 4 0 100000366 100000365 100000083 100000088 0
+416 a -10 39 -1 2 3 4 0 17 20 21 395 105 115 0
+417 a 39 -1 2 3 4 0 416 415 111 116 0
+c Justify literal -14 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3] with single RUP step
+418 a -14 1 -5 6 7 8 -10 9 11 12 -3 0 10 27 4 0
+c Justify literal -13 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3, -14] with single RUP step
+419 a -13 1 -5 6 7 8 -10 9 11 12 -3 14 0 10 25 4 0
+c Justify literal -15 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, 3, -14, -13, -2] with single RUP step
+420 a -15 1 -5 6 7 8 -10 9 11 12 -3 14 13 2 0 10 28 4 0
+c Justify literal -14 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3] with single RUP step
+421 a -14 1 -5 6 7 8 -10 9 11 12 3 0 3 26 0
+c Justify literal -13 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3, -14] with single RUP step
+422 a -13 1 -5 6 7 8 -10 9 11 12 3 14 0 3 24 0
+c Justify literal -2 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3, -14, -13] with single RUP step
+423 a -2 1 -5 6 7 8 -10 9 11 12 3 14 13 0 3 9 28 4 0
+c Justify literal 4 in context [-1, 5, -6, -7, -8, 10, -9, -11, -12, -3, -14, -13, -2, 15] with single RUP step
+424 a 4 1 -5 6 7 8 -10 9 11 12 3 14 13 2 -15 0 4 28 0
 c Assert ITE at node S45
-100000368 a -3 45 1 -5 6 7 8 -10 9 11 12 0 86 87 88 89 90 91 100000089 100000106 0
-100000369 a 45 1 -5 6 7 8 -10 9 11 12 0 100000368 92 93 94 95 96 97 100000097 100000107 0
+425 a -3 45 1 -5 6 7 8 -10 9 11 12 0 418 419 8 420 10 4 117 134 0
+426 a 45 1 -5 6 7 8 -10 9 11 12 0 425 421 422 423 3 424 28 125 135 0
+c Justify literal -9 in context [-1, 5, -6, -7, -8, -10, 15] with single RUP step
+427 a -9 1 -5 6 7 8 10 -15 0 19 26 28 2 4 9 0
+c Justify literal -11 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14, -13, 2, -3] with single RUP step
+428 a -11 1 -5 6 7 8 10 -15 9 14 13 -2 3 0 9 22 28 4 0
+c Justify literal 12 in context [-1, 5, -6, -7, -8, -10, 15, -9, -14, -13, 2, -3, -11, -4] with single RUP step
+429 a 12 1 -5 6 7 8 10 -15 9 14 13 -2 3 11 4 0 4 28 0
+c Justify literal -9 in context [-1, 5, -6, -7, -8, -10, -15, 16] with single RUP step
+430 a -9 1 -5 6 7 8 10 15 -16 0 18 27 2 3 8 0
+c Justify literal -9 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3] with single RUP step
+431 a -9 1 -5 6 7 8 10 15 16 -3 0 10 19 4 0
+c Justify literal -13 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3, -9] with single RUP step
+432 a -13 1 -5 6 7 8 10 15 16 -3 9 0 8 23 2 0
+c Justify literal -11 in context [-1, 5, -6, -7, -8, -10, -15, -16, 3, -9, -13, -2, 14] with single RUP step
+433 a -11 1 -5 6 7 8 10 15 16 -3 9 13 2 -14 0 10 22 4 0
+c Justify literal -9 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3] with single RUP step
+434 a -9 1 -5 6 7 8 10 15 16 3 0 3 18 0
+c Justify literal -13 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9] with single RUP step
+435 a -13 1 -5 6 7 8 10 15 16 3 9 0 3 22 23 2 4 9 0
+c Justify literal -2 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9, -13] with single RUP step
+436 a -2 1 -5 6 7 8 10 15 16 3 9 13 0 3 9 22 4 0
+c Justify literal 4 in context [-1, 5, -6, -7, -8, -10, -15, -16, -3, -9, -13, -2, 14, 11] with single RUP step
+437 a 4 1 -5 6 7 8 10 15 16 3 9 13 2 -14 -11 0 4 22 0
 c Assert ITE at node S53
-100000370 a -3 53 1 -5 6 7 8 10 15 16 0 115 116 117 118 119 120 121 100000108 100000127 0
-100000371 a 53 1 -5 6 7 8 10 15 16 0 100000370 122 123 124 125 126 127 128 100000117 100000128 0
+438 a -3 53 1 -5 6 7 8 10 15 16 0 431 432 8 2 433 10 4 136 155 0
+439 a 53 1 -5 6 7 8 10 15 16 0 438 434 435 436 2 3 437 22 145 156 0
 c Assert ITE at node S56
-100000372 a -16 56 1 -5 6 7 8 10 15 0 107 108 109 110 111 112 113 114 100000129 100000143 0
-100000373 a 56 1 -5 6 7 8 10 15 0 100000372 100000371 100000139 100000144 0
+440 a -16 56 1 -5 6 7 8 10 15 0 430 27 25 2 8 3 9 22 157 171 0
+441 a 56 1 -5 6 7 8 10 15 0 440 439 167 172 0
 c Assert ITE at node S59
-100000374 a -15 59 1 -5 6 7 8 10 0 98 99 100 101 102 103 104 105 106 100000145 100000160 0
-100000375 a 59 1 -5 6 7 8 10 0 100000374 100000373 100000156 100000161 0
+442 a -15 59 1 -5 6 7 8 10 0 427 26 24 2 8 428 9 429 28 173 188 0
+443 a 59 1 -5 6 7 8 10 0 442 441 184 189 0
 c Assert ITE at node S62
-100000376 a -10 62 1 -5 6 7 8 0 83 84 85 100000369 100000162 100000172 0
-100000377 a 62 1 -5 6 7 8 0 100000376 100000375 100000168 100000173 0
+444 a -10 62 1 -5 6 7 8 0 17 20 21 426 190 200 0
+445 a 62 1 -5 6 7 8 0 444 443 196 201 0
+c Justify literal 2 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, -4] with single RUP step
+446 a 2 1 5 -9 10 11 12 -15 14 13 16 4 0 2 4 15 0
+c Justify literal -6 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, -4, 2] with single RUP step
+447 a -6 1 5 -9 10 11 12 -15 14 13 16 4 -2 0 4 15 0
+c Justify literal -7 in context [-1, -5, 9, -10, -11, -12, 15, -14, -13, -16, -4, 2, -6, -3] with single RUP step
+448 a -7 1 5 -9 10 11 12 -15 14 13 16 4 -2 6 3 0 4 16 0
 c Assert ITE at node S68
-100000378 a -4 68 1 5 -9 10 11 12 -15 14 13 16 0 135 136 137 138 139 100000174 100000189 0
-100000379 a 68 1 5 -9 10 11 12 -15 14 13 16 0 100000378 140 141 142 143 144 100000181 100000190 0
+449 a -4 68 1 5 -9 10 11 12 -15 14 13 16 0 9 2 10 14 15 202 217 0
+450 a 68 1 5 -9 10 11 12 -15 14 13 16 0 449 446 447 8 448 4 209 218 0
+c Justify literal -13 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, -16] with single RUP step
+451 a -13 1 5 -9 10 11 12 15 -3 2 4 16 0 4 15 23 2 0
+c Justify literal -6 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, -16, -13] with single RUP step
+452 a -6 1 5 -9 10 11 12 15 -3 2 4 16 13 0 4 15 0
+c Justify literal -7 in context [-1, -5, 9, -10, -11, -12, -15, 3, -2, -4, -16, -13, -6, 14] with single RUP step
+453 a -7 1 5 -9 10 11 12 15 -3 2 4 16 13 6 -14 0 4 16 0
 c Assert ITE at node S74
-100000380 a -16 74 1 5 -9 10 11 12 15 -3 2 4 0 147 148 149 150 151 100000191 100000206 0
-100000381 a 74 1 5 -9 10 11 12 15 -3 2 4 0 100000380 152 153 154 155 156 100000198 100000207 0
+454 a -16 74 1 5 -9 10 11 12 15 -3 2 4 0 27 25 2 14 15 219 234 0
+455 a 74 1 5 -9 10 11 12 15 -3 2 4 0 454 451 452 2 453 4 226 235 0
+c Justify literal -6 in context [-1, -5, 9, -10, -11, -12, -15, -3] with single RUP step
+456 a -6 1 5 -9 10 11 12 15 3 0 3 14 0
+c Justify literal -13 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, -16] with single RUP step
+457 a -13 1 5 -9 10 11 12 15 3 6 -7 8 16 0 4 9 23 2 0
+c Justify literal -2 in context [-1, -5, 9, -10, -11, -12, -15, -3, -6, 7, -8, -16, -13] with single RUP step
+458 a -2 1 5 -9 10 11 12 15 3 6 -7 8 16 13 0 4 9 0
 c Assert ITE at node S80
-100000382 a -16 80 1 5 -9 10 11 12 15 3 6 -7 8 0 160 161 162 163 100000208 100000221 0
-100000383 a 80 1 5 -9 10 11 12 15 3 6 -7 8 0 100000382 164 165 166 167 100000214 100000222 0
+459 a -16 80 1 5 -9 10 11 12 15 3 6 -7 8 0 27 25 2 9 236 249 0
+460 a 80 1 5 -9 10 11 12 15 3 6 -7 8 0 459 457 458 2 4 242 250 0
 c Assert ITE at node S84
-100000384 a -3 84 1 5 -9 10 11 12 15 0 145 146 100000381 100000223 100000235 0
-100000385 a 84 1 5 -9 10 11 12 15 0 100000384 157 158 159 100000383 100000228 100000236 0
+461 a -3 84 1 5 -9 10 11 12 15 0 8 10 455 251 263 0
+462 a 84 1 5 -9 10 11 12 15 0 461 456 3 16 460 256 264 0
 c Assert ITE at node S87
-100000386 a -15 87 1 5 -9 10 11 12 0 132 133 134 100000379 100000237 100000247 0
-100000387 a 87 1 5 -9 10 11 12 0 100000386 100000385 100000243 100000248 0
+463 a -15 87 1 5 -9 10 11 12 0 26 24 28 450 265 275 0
+464 a 87 1 5 -9 10 11 12 0 463 462 271 276 0
+c Justify literal -10 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, 7, -6] with single RUP step
+465 a -10 1 5 9 -13 14 15 16 -2 3 4 -7 6 0 16 21 4 0
+c Justify literal -11 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, 7, -6, -10] with single RUP step
+466 a -11 1 5 9 -13 14 15 16 -2 3 4 -7 6 10 0 16 22 4 0
+c Justify literal -6 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, -7] with single RUP step
+467 a -6 1 5 9 -13 14 15 16 -2 3 4 7 0 3 15 22 4 0
+c Justify literal -10 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, -7, -6] with single RUP step
+468 a -10 1 5 9 -13 14 15 16 -2 3 4 7 6 0 3 20 0
+c Justify literal 8 in context [-1, -5, -9, 13, -14, -15, -16, 2, -3, -4, -7, -6, -10, 11] with single RUP step
+469 a 8 1 5 9 -13 14 15 16 -2 3 4 7 6 10 -11 0 4 22 0
 c Assert ITE at node S93
-100000388 a -7 93 1 5 9 -13 14 15 16 -2 3 4 0 173 174 175 176 177 100000249 100000264 0
-100000389 a 93 1 5 9 -13 14 15 16 -2 3 4 0 100000388 178 179 180 181 182 100000256 100000265 0
+470 a -7 93 1 5 9 -13 14 15 16 -2 3 4 0 14 465 466 16 4 277 292 0
+471 a 93 1 5 9 -13 14 15 16 -2 3 4 0 470 467 468 3 469 22 284 293 0
+c Justify literal -10 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6] with single RUP step
+472 a -10 1 5 9 -13 14 15 16 2 -6 0 14 15 20 21 3 4 10 0
+c Justify literal -11 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7, -8, 3] with single RUP step
+473 a -11 1 5 9 -13 14 15 16 2 -6 10 7 8 -3 0 10 22 4 0
+c Justify literal 4 in context [-1, -5, -9, 13, -14, -15, -16, -2, 6, -10, -7, -8, -3, 11] with single RUP step
+474 a 4 1 5 9 -13 14 15 16 2 -6 10 7 8 3 -11 0 4 22 0
 c Assert ITE at node S99
-100000390 a -3 99 1 5 9 -13 14 15 16 2 -6 10 7 8 0 186 187 188 100000266 100000277 0
-100000391 a 99 1 5 9 -13 14 15 16 2 -6 10 7 8 0 100000390 189 190 191 100000271 100000278 0
+475 a -3 99 1 5 9 -13 14 15 16 2 -6 10 7 8 0 473 10 4 294 305 0
+476 a 99 1 5 9 -13 14 15 16 2 -6 10 7 8 0 475 3 474 22 299 306 0
+c Justify literal -7 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11, -12, 3] with single RUP step
+477 a -7 1 5 9 -13 14 15 16 2 6 -10 11 12 -3 0 10 16 4 0
+c Justify literal 4 in context [-1, -5, -9, 13, -14, -15, -16, -2, -6, 10, -11, -12, -3, 7] with single RUP step
+478 a 4 1 5 9 -13 14 15 16 2 6 -10 11 12 3 -7 0 4 16 0
 c Assert ITE at node S105
-100000392 a -3 105 1 5 9 -13 14 15 16 2 6 -10 11 12 0 195 196 197 100000279 100000290 0
-100000393 a 105 1 5 9 -13 14 15 16 2 6 -10 11 12 0 100000392 198 199 200 100000284 100000291 0
+479 a -3 105 1 5 9 -13 14 15 16 2 6 -10 11 12 0 477 10 4 307 318 0
+480 a 105 1 5 9 -13 14 15 16 2 6 -10 11 12 0 479 3 478 16 312 319 0
 c Assert ITE at node S109
-100000394 a -6 109 1 5 9 -13 14 15 16 2 0 183 184 185 100000391 100000292 100000305 0
-100000395 a 109 1 5 9 -13 14 15 16 2 0 100000394 192 193 194 100000393 100000298 100000306 0
+481 a -6 109 1 5 9 -13 14 15 16 2 0 472 14 15 476 320 333 0
+482 a 109 1 5 9 -13 14 15 16 2 0 481 2 20 21 480 326 334 0
 c Assert ITE at node S112
-100000396 a -2 112 1 5 9 -13 14 15 16 0 171 172 100000389 100000307 100000316 0
-100000397 a 112 1 5 9 -13 14 15 16 0 100000396 100000395 100000312 100000317 0
+483 a -2 112 1 5 9 -13 14 15 16 0 8 9 471 335 344 0
+484 a 112 1 5 9 -13 14 15 16 0 483 482 340 345 0
 c Assert ITE at node S116
-100000398 a -9 116 1 5 0 129 130 131 100000387 100000318 100000332 0
-100000399 a 116 1 5 0 100000398 1 168 169 170 100000397 100000324 100000333 0
+485 a -9 116 1 5 0 17 18 19 464 346 360 0
+486 a 116 1 5 0 485 1 23 24 25 484 352 361 0
 c Assert ITE at node S119
-100000400 a -5 119 1 0 80 81 82 100000377 100000334 100000344 0
-100000401 a 119 1 0 100000400 100000399 100000340 100000345 0
+487 a -5 119 1 0 11 12 13 445 362 372 0
+488 a 119 1 0 487 486 368 373 0
 c Assert ITE at node S122 (root)
-100000402 a -1 122 0 5 29 30 100000367 100000346 100000356 0
-100000403 a 122 0 100000402 100000401 100000352 100000357 0
-c Delete all but final asserted clauses
-dc 100000402 5 29 30 100000367 100000346 100000356 0
-dc 100000401 100000400 100000399 100000340 100000345 0
-dc 100000400 80 81 82 100000377 100000334 100000344 0
-dc 100000399 100000398 1 168 169 170 100000397 100000324 100000333 0
-dc 100000398 129 130 131 100000387 100000318 100000332 0
-dc 100000397 100000396 100000395 100000312 100000317 0
-dc 100000396 171 172 100000389 100000307 100000316 0
-dc 100000395 100000394 192 193 194 100000393 100000298 100000306 0
-dc 100000394 183 184 185 100000391 100000292 100000305 0
-dc 100000393 100000392 198 199 200 100000284 100000291 0
-dc 100000392 195 196 197 100000279 100000290 0
-dc 100000391 100000390 189 190 191 100000271 100000278 0
-dc 100000390 186 187 188 100000266 100000277 0
-dc 100000389 100000388 178 179 180 181 182 100000256 100000265 0
-dc 100000388 173 174 175 176 177 100000249 100000264 0
-dc 100000387 100000386 100000385 100000243 100000248 0
-dc 100000386 132 133 134 100000379 100000237 100000247 0
-dc 100000385 100000384 157 158 159 100000383 100000228 100000236 0
-dc 100000384 145 146 100000381 100000223 100000235 0
-dc 100000383 100000382 164 165 166 167 100000214 100000222 0
-dc 100000382 160 161 162 163 100000208 100000221 0
-dc 100000381 100000380 152 153 154 155 156 100000198 100000207 0
-dc 100000380 147 148 149 150 151 100000191 100000206 0
-dc 100000379 100000378 140 141 142 143 144 100000181 100000190 0
-dc 100000378 135 136 137 138 139 100000174 100000189 0
-dc 100000377 100000376 100000375 100000168 100000173 0
-dc 100000376 83 84 85 100000369 100000162 100000172 0
-dc 100000375 100000374 100000373 100000156 100000161 0
-dc 100000374 98 99 100 101 102 103 104 105 106 100000145 100000160 0
-dc 100000373 100000372 100000371 100000139 100000144 0
-dc 100000372 107 108 109 110 111 112 113 114 100000129 100000143 0
-dc 100000371 100000370 122 123 124 125 126 127 128 100000117 100000128 0
-dc 100000370 115 116 117 118 119 120 121 100000108 100000127 0
-dc 100000369 100000368 92 93 94 95 96 97 100000097 100000107 0
-dc 100000368 86 87 88 89 90 91 100000089 100000106 0
-dc 100000367 100000366 100000365 100000083 100000088 0
-dc 100000366 31 32 33 100000359 100000077 100000087 0
-dc 100000365 100000364 100000363 100000071 100000076 0
-dc 100000364 48 49 50 51 52 53 54 55 56 57 100000059 100000075 0
-dc 100000363 100000362 67 68 69 100000361 100000050 100000058 0
-dc 100000362 58 59 60 61 62 63 64 65 66 100000039 100000057 0
-dc 100000361 100000360 75 76 77 78 79 100000029 100000038 0
-dc 100000360 70 71 72 73 74 100000022 100000037 0
-dc 100000359 100000358 41 42 43 44 45 46 47 100000010 100000021 0
-dc 100000358 34 35 36 37 38 39 40 100000001 100000020 0
-dc 200 * 0
-dc 199 * 0
-dc 198 * 0
-dc 197 * 0
-dc 196 * 0
-dc 195 * 0
-dc 194 * 0
-dc 193 * 0
-dc 192 * 0
-dc 191 * 0
-dc 190 * 0
-dc 189 * 0
-dc 188 * 0
-dc 187 * 0
-dc 186 * 0
-dc 185 * 0
-dc 184 * 0
-dc 183 * 0
-dc 182 * 0
-dc 181 * 0
-dc 180 * 0
-dc 179 * 0
-dc 178 * 0
-dc 177 * 0
-dc 176 * 0
-dc 175 * 0
-dc 174 * 0
-dc 173 * 0
-dc 172 * 0
-dc 171 * 0
-dc 170 * 0
-dc 169 * 0
-dc 168 * 0
-dc 167 * 0
-dc 166 * 0
-dc 165 * 0
-dc 164 * 0
-dc 163 * 0
-dc 162 * 0
-dc 161 * 0
-dc 160 * 0
-dc 159 * 0
-dc 158 * 0
-dc 157 * 0
-dc 156 * 0
-dc 155 * 0
-dc 154 * 0
-dc 153 * 0
-dc 152 * 0
-dc 151 * 0
-dc 150 * 0
-dc 149 * 0
-dc 148 * 0
-dc 147 * 0
-dc 146 * 0
-dc 145 * 0
-dc 144 * 0
-dc 143 * 0
-dc 142 * 0
-dc 141 * 0
-dc 140 * 0
-dc 139 * 0
-dc 138 * 0
-dc 137 * 0
-dc 136 * 0
-dc 135 * 0
-dc 134 * 0
-dc 133 * 0
-dc 132 * 0
-dc 131 * 0
-dc 130 * 0
-dc 129 * 0
-dc 128 * 0
-dc 127 * 0
-dc 126 * 0
-dc 125 * 0
-dc 124 * 0
-dc 123 * 0
-dc 122 * 0
-dc 121 * 0
-dc 120 * 0
-dc 119 * 0
-dc 118 * 0
-dc 117 * 0
-dc 116 * 0
-dc 115 * 0
-dc 114 * 0
-dc 113 * 0
-dc 112 * 0
-dc 111 * 0
-dc 110 * 0
-dc 109 * 0
-dc 108 * 0
-dc 107 * 0
-dc 106 * 0
-dc 105 * 0
-dc 104 * 0
-dc 103 * 0
-dc 102 * 0
-dc 101 * 0
-dc 100 * 0
-dc 99 * 0
-dc 98 * 0
-dc 97 * 0
-dc 96 * 0
-dc 95 * 0
-dc 94 * 0
-dc 93 * 0
-dc 92 * 0
-dc 91 * 0
-dc 90 * 0
-dc 89 * 0
-dc 88 * 0
-dc 87 * 0
-dc 86 * 0
-dc 85 * 0
-dc 84 * 0
-dc 83 * 0
-dc 82 * 0
-dc 81 * 0
-dc 80 * 0
-dc 79 * 0
-dc 78 * 0
-dc 77 * 0
-dc 76 * 0
-dc 75 * 0
-dc 74 * 0
-dc 73 * 0
-dc 72 * 0
-dc 71 * 0
-dc 70 * 0
-dc 69 * 0
-dc 68 * 0
-dc 67 * 0
-dc 66 * 0
-dc 65 * 0
-dc 64 * 0
-dc 63 * 0
-dc 62 * 0
-dc 61 * 0
-dc 60 * 0
-dc 59 * 0
-dc 58 * 0
-dc 57 * 0
-dc 56 * 0
-dc 55 * 0
-dc 54 * 0
-dc 53 * 0
-dc 52 * 0
-dc 51 * 0
-dc 50 * 0
-dc 49 * 0
-dc 48 * 0
-dc 47 * 0
-dc 46 * 0
-dc 45 * 0
-dc 44 * 0
-dc 43 * 0
-dc 42 * 0
-dc 41 * 0
-dc 40 * 0
-dc 39 * 0
-dc 38 * 0
-dc 37 * 0
-dc 36 * 0
-dc 35 * 0
-dc 34 * 0
-dc 33 * 0
-dc 32 * 0
-dc 31 * 0
-dc 30 * 0
-dc 29 * 0
+489 a -1 122 0 5 6 7 417 374 384 0
+490 a 122 0 489 488 380 385 0
+c Delete all but final asserted clause
+dc 489 5 6 7 417 374 384 0
+dc 488 487 486 368 373 0
+dc 487 11 12 13 445 362 372 0
+dc 486 485 1 23 24 25 484 352 361 0
+dc 485 17 18 19 464 346 360 0
+dc 484 483 482 340 345 0
+dc 483 8 9 471 335 344 0
+dc 482 481 2 20 21 480 326 334 0
+dc 481 472 14 15 476 320 333 0
+dc 480 479 3 478 16 312 319 0
+dc 479 477 10 4 307 318 0
+dc 478 4 16 0
+dc 477 10 16 4 0
+dc 476 475 3 474 22 299 306 0
+dc 475 473 10 4 294 305 0
+dc 474 4 22 0
+dc 473 10 22 4 0
+dc 472 14 15 20 21 3 4 10 0
+dc 471 470 467 468 3 469 22 284 293 0
+dc 470 14 465 466 16 4 277 292 0
+dc 469 4 22 0
+dc 468 3 20 0
+dc 467 3 15 22 4 0
+dc 466 16 22 4 0
+dc 465 16 21 4 0
+dc 464 463 462 271 276 0
+dc 463 26 24 28 450 265 275 0
+dc 462 461 456 3 16 460 256 264 0
+dc 461 8 10 455 251 263 0
+dc 460 459 457 458 2 4 242 250 0
+dc 459 27 25 2 9 236 249 0
+dc 458 4 9 0
+dc 457 4 9 23 2 0
+dc 456 3 14 0
+dc 455 454 451 452 2 453 4 226 235 0
+dc 454 27 25 2 14 15 219 234 0
+dc 453 4 16 0
+dc 452 4 15 0
+dc 451 4 15 23 2 0
+dc 450 449 446 447 8 448 4 209 218 0
+dc 449 9 2 10 14 15 202 217 0
+dc 448 4 16 0
+dc 447 4 15 0
+dc 446 2 4 15 0
+dc 445 444 443 196 201 0
+dc 444 17 20 21 426 190 200 0
+dc 443 442 441 184 189 0
+dc 442 427 26 24 2 8 428 9 429 28 173 188 0
+dc 441 440 439 167 172 0
+dc 440 430 27 25 2 8 3 9 22 157 171 0
+dc 439 438 434 435 436 2 3 437 22 145 156 0
+dc 438 431 432 8 2 433 10 4 136 155 0
+dc 437 4 22 0
+dc 436 3 9 22 4 0
+dc 435 3 22 23 2 4 9 0
+dc 434 3 18 0
+dc 433 10 22 4 0
+dc 432 8 23 2 0
+dc 431 10 19 4 0
+dc 430 18 27 2 3 8 0
+dc 429 4 28 0
+dc 428 9 22 28 4 0
+dc 427 19 26 28 2 4 9 0
+dc 426 425 421 422 423 3 424 28 125 135 0
+dc 425 418 419 8 420 10 4 117 134 0
+dc 424 4 28 0
+dc 423 3 9 28 4 0
+dc 422 3 24 0
+dc 421 3 26 0
+dc 420 10 28 4 0
+dc 419 10 25 4 0
+dc 418 10 27 4 0
+dc 417 416 415 111 116 0
+dc 416 17 20 21 395 105 115 0
+dc 415 414 413 99 104 0
+dc 414 12 396 397 14 2 398 26 16 399 27 87 103 0
+dc 413 412 403 404 405 411 78 86 0
+dc 412 400 19 401 402 2 22 3 15 28 67 85 0
+dc 411 410 407 408 409 2 4 57 66 0
+dc 410 13 406 15 2 27 50 65 0
+dc 409 4 25 0
+dc 408 4 27 0
+dc 407 4 11 27 2 0
+dc 406 15 23 2 0
+dc 405 26 28 2 4 15 0
+dc 404 3 26 28 2 4 15 0
+dc 403 18 3 26 28 2 4 15 0
+dc 402 22 24 3 0
+dc 401 22 26 3 0
+dc 400 11 22 2 3 26 0
+dc 399 4 27 0
+dc 398 16 22 27 4 0
+dc 397 14 23 2 0
+dc 396 14 16 19 2 4 27 0
+dc 395 394 390 391 392 393 3 16 4 38 49 0
+dc 394 386 26 24 387 388 389 28 29 48 0
+dc 393 3 14 0
+dc 392 3 16 25 4 0
+dc 391 3 16 27 4 0
+dc 390 3 12 0
+dc 389 4 28 0
+dc 388 16 28 4 0
+dc 387 15 28 4 0
+dc 386 13 28 4 0
 c Delete input clauses
-dc 1 100000347 100000335 100000319 100000326 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 2 100000078 100000065 100000045 100000027 100000034 100000036 100000055 100000056 100000073 100000074 100000085 100000086 100000351 100000163 100000150 100000134 100000113 100000122 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000177 100000183 100000188 100000242 100000195 100000202 100000205 100000227 100000212 100000218 100000220 100000233 100000234 100000245 100000246 100000323 100000308 100000293 100000300 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 3 100000002 100000016 100000019 100000082 100000060 100000047 100000053 100000056 100000073 100000074 100000085 100000086 100000351 100000090 100000102 100000105 100000167 100000146 100000136 100000109 100000123 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000238 100000224 100000231 100000234 100000245 100000246 100000323 100000250 100000260 100000263 100000311 100000267 100000273 100000276 100000297 100000280 100000286 100000289 100000303 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 4 100000008 100000018 100000019 100000082 100000069 100000040 100000023 100000035 100000036 100000055 100000056 100000073 100000074 100000085 100000086 100000351 100000096 100000103 100000105 100000167 100000154 100000130 100000116 100000124 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000175 100000187 100000188 100000242 100000192 100000204 100000205 100000227 100000209 100000219 100000220 100000233 100000234 100000245 100000246 100000323 100000255 100000261 100000263 100000311 100000270 100000274 100000276 100000297 100000283 100000287 100000289 100000303 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 5 100000348 100000353 100000355 100000403 0
-dc 6 100000349 100000353 100000355 100000403 0
-dc 7 100000350 100000353 100000355 100000403 0
-dc 8 100000348 100000093 100000098 100000105 100000167 100000151 100000135 100000112 100000118 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000176 100000185 100000188 100000242 100000225 100000229 100000234 100000245 100000246 100000323 100000309 100000313 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 9 100000348 100000093 100000101 100000105 100000167 100000153 100000137 100000112 100000121 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000176 100000182 100000188 100000242 100000225 100000213 100000217 100000220 100000233 100000234 100000245 100000246 100000323 100000310 100000313 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 10 100000349 100000095 100000098 100000105 100000167 100000151 100000135 100000115 100000118 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000178 100000182 100000188 100000242 100000226 100000229 100000234 100000245 100000246 100000323 100000309 100000269 100000272 100000276 100000297 100000282 100000285 100000289 100000303 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 11 100000003 100000012 100000019 100000082 100000061 100000041 100000024 100000031 100000036 100000055 100000056 100000073 100000074 100000085 100000086 100000351 100000336 100000341 100000343 100000354 100000355 100000403 0
-dc 12 100000003 100000012 100000019 100000082 100000061 100000072 100000074 100000085 100000086 100000351 100000337 100000341 100000343 100000354 100000355 100000403 0
-dc 13 100000003 100000012 100000019 100000082 100000061 100000041 100000024 100000030 100000036 100000055 100000056 100000073 100000074 100000085 100000086 100000351 100000338 100000341 100000343 100000354 100000355 100000403 0
-dc 14 100000006 100000015 100000019 100000082 100000064 100000072 100000074 100000085 100000086 100000351 100000336 100000179 100000184 100000188 100000242 100000196 100000201 100000205 100000227 100000230 100000234 100000245 100000246 100000323 100000251 100000257 100000263 100000311 100000295 100000299 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 15 100000006 100000015 100000019 100000082 100000064 100000048 100000026 100000030 100000036 100000055 100000056 100000073 100000074 100000085 100000086 100000351 100000336 100000180 100000184 100000188 100000242 100000197 100000201 100000205 100000227 100000230 100000234 100000245 100000246 100000323 100000251 100000258 100000263 100000311 100000296 100000299 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 16 100000007 100000017 100000019 100000082 100000068 100000072 100000074 100000085 100000086 100000351 100000337 100000179 100000186 100000188 100000242 100000196 100000203 100000205 100000227 100000232 100000234 100000245 100000246 100000323 100000254 100000257 100000263 100000311 100000295 100000281 100000288 100000289 100000303 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 17 100000079 100000084 100000086 100000351 100000164 100000169 100000171 100000339 100000320 100000325 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 18 100000079 100000062 100000042 100000052 100000056 100000073 100000074 100000085 100000086 100000351 100000164 100000147 100000131 100000110 100000119 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000321 100000325 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 19 100000079 100000062 100000042 100000051 100000056 100000073 100000074 100000085 100000086 100000351 100000164 100000147 100000131 100000110 100000119 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000322 100000325 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 20 100000080 100000084 100000086 100000351 100000165 100000169 100000171 100000339 100000320 100000252 100000259 100000263 100000311 100000294 100000301 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 21 100000081 100000084 100000086 100000351 100000166 100000169 100000171 100000339 100000320 100000252 100000259 100000263 100000311 100000294 100000302 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 22 100000080 100000066 100000046 100000051 100000056 100000073 100000074 100000085 100000086 100000351 100000165 100000152 100000138 100000114 100000125 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000321 100000253 100000262 100000263 100000311 100000268 100000275 100000276 100000297 100000301 100000304 100000314 100000315 100000330 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 23 100000004 100000013 100000019 100000082 100000063 100000043 100000025 100000032 100000036 100000055 100000056 100000073 100000074 100000085 100000086 100000351 100000091 100000099 100000105 100000167 100000148 100000132 100000111 100000120 100000126 100000141 100000142 100000158 100000159 100000170 100000171 100000339 100000239 100000193 100000200 100000205 100000227 100000210 100000216 100000220 100000233 100000234 100000245 100000246 100000323 100000327 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 24 100000005 100000011 100000019 100000082 100000063 100000044 100000054 100000056 100000073 100000074 100000085 100000086 100000351 100000092 100000100 100000105 100000167 100000149 100000157 100000159 100000170 100000171 100000339 100000240 100000244 100000246 100000323 100000328 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 25 100000005 100000014 100000019 100000082 100000063 100000044 100000025 100000033 100000036 100000055 100000056 100000073 100000074 100000085 100000086 100000351 100000092 100000100 100000105 100000167 100000149 100000133 100000140 100000142 100000158 100000159 100000170 100000171 100000339 100000240 100000194 100000199 100000205 100000227 100000211 100000215 100000220 100000233 100000234 100000245 100000246 100000323 100000329 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 26 100000004 100000011 100000019 100000082 100000067 100000043 100000054 100000056 100000073 100000074 100000085 100000086 100000351 100000091 100000099 100000105 100000167 100000148 100000157 100000159 100000170 100000171 100000339 100000239 100000244 100000246 100000323 100000327 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 27 100000004 100000013 100000019 100000082 100000070 100000043 100000028 100000032 100000036 100000055 100000056 100000073 100000074 100000085 100000086 100000351 100000091 100000099 100000105 100000167 100000148 100000132 100000140 100000142 100000158 100000159 100000170 100000171 100000339 100000239 100000193 100000199 100000205 100000227 100000210 100000215 100000220 100000233 100000234 100000245 100000246 100000323 100000327 100000331 100000342 100000343 100000354 100000355 100000403 0
-dc 28 100000009 100000011 100000019 100000082 100000067 100000049 100000054 100000056 100000073 100000074 100000085 100000086 100000351 100000094 100000104 100000105 100000167 100000155 100000157 100000159 100000170 100000171 100000339 100000241 100000244 100000246 100000323 100000328 100000331 100000342 100000343 100000354 100000355 100000403 0
+dc 1 375 363 347 354 359 370 371 382 383 490 0
+dc 2 106 93 73 55 62 64 83 84 101 102 113 114 379 191 178 162 141 150 154 169 170 186 187 198 199 367 205 211 216 270 223 230 233 255 240 246 248 261 262 273 274 351 336 321 328 332 342 343 358 359 370 371 382 383 490 0
+dc 3 30 44 47 110 88 75 81 84 101 102 113 114 379 118 130 133 195 174 164 137 151 154 169 170 186 187 198 199 367 266 252 259 262 273 274 351 278 288 291 339 295 301 304 325 308 314 317 331 332 342 343 358 359 370 371 382 383 490 0
+dc 4 36 46 47 110 97 68 51 63 64 83 84 101 102 113 114 379 124 131 133 195 182 158 144 152 154 169 170 186 187 198 199 367 203 215 216 270 220 232 233 255 237 247 248 261 262 273 274 351 283 289 291 339 298 302 304 325 311 315 317 331 332 342 343 358 359 370 371 382 383 490 0
+dc 5 376 381 383 490 0
+dc 6 377 381 383 490 0
+dc 7 378 381 383 490 0
+dc 8 376 121 126 133 195 179 163 140 146 154 169 170 186 187 198 199 367 204 213 216 270 253 257 262 273 274 351 337 341 343 358 359 370 371 382 383 490 0
+dc 9 376 121 129 133 195 181 165 140 149 154 169 170 186 187 198 199 367 204 210 216 270 253 241 245 248 261 262 273 274 351 338 341 343 358 359 370 371 382 383 490 0
+dc 10 377 123 126 133 195 179 163 143 146 154 169 170 186 187 198 199 367 206 210 216 270 254 257 262 273 274 351 337 297 300 304 325 310 313 317 331 332 342 343 358 359 370 371 382 383 490 0
+dc 11 31 40 47 110 89 69 52 59 64 83 84 101 102 113 114 379 364 369 371 382 383 490 0
+dc 12 31 40 47 110 89 100 102 113 114 379 365 369 371 382 383 490 0
+dc 13 31 40 47 110 89 69 52 58 64 83 84 101 102 113 114 379 366 369 371 382 383 490 0
+dc 14 34 43 47 110 92 100 102 113 114 379 364 207 212 216 270 224 229 233 255 258 262 273 274 351 279 285 291 339 323 327 332 342 343 358 359 370 371 382 383 490 0
+dc 15 34 43 47 110 92 76 54 58 64 83 84 101 102 113 114 379 364 208 212 216 270 225 229 233 255 258 262 273 274 351 279 286 291 339 324 327 332 342 343 358 359 370 371 382 383 490 0
+dc 16 35 45 47 110 96 100 102 113 114 379 365 207 214 216 270 224 231 233 255 260 262 273 274 351 282 285 291 339 323 309 316 317 331 332 342 343 358 359 370 371 382 383 490 0
+dc 17 107 112 114 379 192 197 199 367 348 353 359 370 371 382 383 490 0
+dc 18 107 90 70 80 84 101 102 113 114 379 192 175 159 138 147 154 169 170 186 187 198 199 367 349 353 359 370 371 382 383 490 0
+dc 19 107 90 70 79 84 101 102 113 114 379 192 175 159 138 147 154 169 170 186 187 198 199 367 350 353 359 370 371 382 383 490 0
+dc 20 108 112 114 379 193 197 199 367 348 280 287 291 339 322 329 332 342 343 358 359 370 371 382 383 490 0
+dc 21 109 112 114 379 194 197 199 367 348 280 287 291 339 322 330 332 342 343 358 359 370 371 382 383 490 0
+dc 22 108 94 74 79 84 101 102 113 114 379 193 180 166 142 153 154 169 170 186 187 198 199 367 349 281 290 291 339 296 303 304 325 329 332 342 343 358 359 370 371 382 383 490 0
+dc 23 32 41 47 110 91 71 53 60 64 83 84 101 102 113 114 379 119 127 133 195 176 160 139 148 154 169 170 186 187 198 199 367 267 221 228 233 255 238 244 248 261 262 273 274 351 355 359 370 371 382 383 490 0
+dc 24 33 39 47 110 91 72 82 84 101 102 113 114 379 120 128 133 195 177 185 187 198 199 367 268 272 274 351 356 359 370 371 382 383 490 0
+dc 25 33 42 47 110 91 72 53 61 64 83 84 101 102 113 114 379 120 128 133 195 177 161 168 170 186 187 198 199 367 268 222 227 233 255 239 243 248 261 262 273 274 351 357 359 370 371 382 383 490 0
+dc 26 32 39 47 110 95 71 82 84 101 102 113 114 379 119 127 133 195 176 185 187 198 199 367 267 272 274 351 355 359 370 371 382 383 490 0
+dc 27 32 41 47 110 98 71 56 60 64 83 84 101 102 113 114 379 119 127 133 195 176 160 168 170 186 187 198 199 367 267 221 227 233 255 238 243 248 261 262 273 274 351 355 359 370 371 382 383 490 0
+dc 28 37 39 47 110 95 77 82 84 101 102 113 114 379 122 132 133 195 183 185 187 198 199 367 269 272 274 351 356 359 370 371 382 383 490 0
