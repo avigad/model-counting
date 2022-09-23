@@ -30,23 +30,39 @@ import readwrite
 
 
 def usage(name):
-    print("Usage: %s [-h] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
+    print("Usage: %s [-h] [-s SMODE] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
     print(" -h           Print this message")
+    print(" -s SMODE     Set mode for splitting proof: 1=all steps included (default) 2=requires SAT solver")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -i FILE.cnf  Input CNF")
     print(" -p IFILE.crat Input CRAT")
     print(" -o OFILE.crat Output CRAT")
 
 # Where is the binary?
-path = os.path.dirname(os.path.realpath(__file__)) + "/crat-lrat"
-prog = path + "/" + "crat-lrat"
+dpath = os.path.dirname(os.path.realpath(__file__)) + "/crat-lrat"
+drat_trim_prog = dpath + "/" + "crat-lrat"
 
+interpreter = "python3"
+jpath = os.path.dirname(os.path.realpath(__file__))
+justify_prog = jpath + "/" + "justify.py"
+
+# Clauses requiring hint addition
+# First clause Id
 hintStart = 0
+# Mapping from original Id to new Id for hint addition/deletion
+hintIdMap = {}
+# List of hints
 hintList = []
+# For split mode 2, list of asserted clauses
+clauseList = []
+
+# Temporary file names.  Optionally deleted
 tmpList = []
+
+
 # Debugging options
 genLrat = False
-deleteTempFiles = True
+deleteTempFiles = False
 
 # Make up a name for intermediate files
 def getRoot(cnfName):
@@ -58,14 +74,14 @@ def getRoot(cnfName):
     return ".".join(fields)
 
 def splitFiles(cnfName, cratName, verbLevel):
+    global tmpList
     try:
         cnfReader = readwrite.CnfReader(cnfName, verbLevel)
     except readwrite.ReadWriteException as ex:
         print("ERROR: Couldn't read input CNF file: %s" % str(ex))
         return
-    root = getRoot(cnfName)
-    acnfName = root + ".acnf"
     cnfWriter = readwrite.AugmentedCnfWriter(cnfReader.nvar, acnfName, verbLevel)
+    tmpList.append(acnfName)
     if verbLevel >= 2:
         cnfWriter.doComment("Original CNF clauses")
     for clause in cnfReader.clauses:
@@ -79,11 +95,11 @@ def splitFiles(cnfName, cratName, verbLevel):
         return
 
     try:
-        dratName = root + ".drat"
         dratWriter = readwrite.DratWriter(dratName)
-    except:
-        print("ERROR: Couldn't open output DRAT file '%s'" % dratName)
+    except Exception as ex:
+        print("ERROR: Couldn't open output DRAT file '%s' (%s)" % (dratName, str(ex)))
         return
+    tmpList.append(dratName)
 
     lineNumber = 0
     getProducts = True
@@ -144,19 +160,15 @@ def fixLine(line):
     return line
    
 
-def genHints(root):
-    global hintStart, hintList, tmpList
-    acnfName = root + ".acnf"    
-    dratName = root + ".drat"
-    args = [prog, acnfName, dratName, "-f"]
+def genHints(verbLevel):
+    global hintStart, hintIdMap, hintList
+    args = [drat_trim_prog, acnfName, dratName, "-f"]
     proc = subprocess.Popen(args, stdout=subprocess.PIPE)
-    tmpList += [acnfName, dratName]
     
     lineNumber = 0
 
     lfile = None
     if genLrat:
-        lratName = root + ".lrat"
         try:
             lfile = open(lratName, 'w')
         except:
@@ -192,18 +204,25 @@ def genHints(root):
                 sys.exit(1)
             hstring = " ".join(hints)
             hintList.append(hstring)
+            hintIdMap[id] = id
         else:
             print("LRAT.  Couldn't get hints from line #%d: %s" % (lineNumber, str(line)))
             sys.exit(1)
     if genLrat:
         lfile.close()
 
-def getHint(cid):
-    if cid < hintStart or cid >= hintStart + len(hintList):
-        return None
-    return hintList[cid - hintStart]
+def newClauseId(cid):
+    if cid < hintStart or cid >= hintStart + len(hintIdMap):
+        return cid
+    return hintIdMap[cid]
 
-def insertHints(icratName, hcratName):
+def getHint(cid):
+    if cid < hintStart or cid >= hintStart + len(hintIdMap):
+        return None
+    ncid = newClauseId(cid)
+    return hintList[ncid - hintStart]
+
+def insertHintsMode1(icratName, hcratName, verbLevel):
     hcount = 0
     try:
         ifile = open(icratName, 'r')
@@ -246,16 +265,258 @@ def insertHints(icratName, hcratName):
     ofile.close()
     print("HINTIFY: Added %d hints" % hcount)
 
+def justifyAssertions(verbLevel):
+    global tmpList
+    args = [interpreter, justify_prog, '-v', str(verbLevel), '-i', acnfName, '-d', dratName, '-o', lratName]
+    if verbLevel >= 2:
+        print("HINTIFY: Running '%s'" % " ".join(args))
+    tmpList.append(lratName)
+    proc = subprocess.Popen(args)
+    proc.wait()
+    if proc.returncode != 0:
+        astring = " ".join(args)
+        print("ERROR: Running '%s' gave return code of %d" % (astring, proc.returncode))
+        sys.exit(1)
+
+def insertHintsMode1(icratName, hcratName, verbLevel):
+    ahcount = 0
+    dhcount = 0
+    try:
+        ifile = open(icratName, 'r')
+    except:
+        print("Couldn't open input CRAT file '%s'" % icratName)
+        sys.exit(1)
+    try:
+        ofile = open(hcratName, 'w')
+    except:
+        print("Couldn't open output CRAT file '%s'" % hcratName)
+        sys.exit(1)
+    lineNumber = 0
+    for line in ifile:
+        lineNumber += 1
+        line = readwrite.trim(line)
+        if len(line) == 0 or line[0] == 'c':
+            ofile.write(line + '\n')
+            continue
+        fields = line.split()
+        if fields[1] == 'a':
+            cmd = fields[1]
+            id = int(fields[0])
+        elif fields[0] == 'dc':
+            cmd = fields[0]
+            id = int(fields[1])
+        else:
+            ofile.write(line + '\n')
+            continue
+        lhint = fields[-2]
+        if lhint == '*':
+            hstring = getHint(id)
+            if hstring is not None:
+                fields[-2] = hstring
+                nline = " ".join(fields)
+                line = nline
+                if cmd == 'a':
+                    ahcount += 1
+                else:
+                    dhcount += 1
+        ofile.write(line + '\n')
+    ifile.close()
+    ofile.close()
+    if verbLevel >= 1:
+        print("HINTIFY: Added hints to %d assertions and %d deletions.  Total = %d" % (ahcount, dhcount, ahcount+dhcount))
+
+
+# For mode 2, need to construct mapping from asserted clauses to
+# position in sequence
+# Also store the clauses and the hints to enable deletion
+def buildHints(verbLevel):
+    global hintIdMap, hintList, clauseList
+    dreader = readwrite.DratReader(dratName)
+    lreader = readwrite.LratReader(lratName)
+    initialId = hintStart
+
+    isteps = 0
+    lsteps = 0
+    while True:
+        key, dclause = dreader.readStep()
+        if key is None:
+            break
+        elif key == 'd':
+            continue
+        isteps += 1
+        while True:
+            key, id, lclause, hints = lreader.readStep()
+            print("DEBUG.  lreader got (%s, %s, %s, %s)" % (str(key), str(id), str(lclause), str(hints)))
+            if key is None:
+                print("Ran out of clauses in LRAT file while justifying assertion #%d %s" % (initialId, str(dclause)))
+                sys.exit(1)
+            elif key == 'a':
+                lsteps += 1
+                clauseList.append(lclause)
+                hintList.append(hints)
+                if readwrite.testClauseEquality(dclause, lclause):
+                    hintIdMap[initialId] = id
+                    if verbLevel >= 3:
+                        print("Assertion #%d --> Proof step %d" % (initialId, id))
+                    break
+        initialId += 1
+    if verbLevel >= 2:
+        print("HINTIFY: Replaced %d assertions with %d clauses" % (isteps, lsteps))
+    dreader.finish()
+    lreader.finish()
+
+# Given list of integers encoding clause + hints
+# Fix the hints to be to the correct points in the proof
+# Return (vals, changed)
+def fixHints(vals, verbLevel):
+    gotClause = False
+    changed = False
+    nvals = []
+    for val in vals:
+        if val == 0:
+            nvals.append(val)
+            if not gotClause:
+                gotClause = True
+        elif gotClause:
+            nval = newClauseId(val)
+            nvals.append(nval)
+            changed = changed or (nval != val)
+        else:
+            nvals.append(val)
+    if verbLevel >= 3 and changed:
+        sline = " ".join([str(val) for val in vals])
+        nsline = " ".join([str(val) for val in nvals])
+        print("Clause + Remapped hints: %s --> %s" % (sline, nsline))
+    return (nvals, changed)
+
+
+# Convert input CRAT file into hinted CRAT file
+# for case where assertions in CRAT required justification by 
+# SAT solver
+def insertHintsMode2(icratName, hcratName, verbLevel):
+    # Operation proceeds in several phases:
+    # Phase 1: Process lemma argument operations in input CRAT.  Pass to HCRAT
+    # Phase 2: Replace unhinted assertions in input CRAT with sequence of hinted clauses from LRAT file
+    #          Also build hintIdMap
+    # Phase 3: Process remaining operations and hinted assertions in input CRAT.
+    #          Must renumber clause Ids in hints
+    # Phase 4: Replace sequence of unhinted clause deletions with deletions of all hinted clauses from LRAT file in reverse order
+    # Phase 5: Process input clause deletions from input CRAT.  Pass to HCRAT
+
+    global hintStart
+
+    # Flags to signal phase transitions
+    replacedAssertions = False
+    replacedDeletions = False
+
+    # (Added,deleted) (additions,assertions)
+    aacount = 0
+    dacount = 0
+    adcount = 0
+    ddcount = 0
+    cacount = 0
+    cdcount = 0
+
+    try:
+        ifile = open(icratName, 'r')
+    except:
+        print("Couldn't open input CRAT file '%s'" % icratName)
+        sys.exit(1)
+    try:
+        ofile = open(hcratName, 'w')
+    except:
+        print("Couldn't open output CRAT file '%s'" % hcratName)
+        sys.exit(1)
+    lineNumber = 0
+    for line in ifile:
+        lineNumber += 1
+        line = readwrite.trim(line)
+        if len(line) == 0 or line[0] == 'c':
+            ofile.write(line + '\n')
+            continue
+        fields = line.split()
+        if len(fields) < 2:
+            ofile.write(line + '\n')
+            continue
+        if fields[0] == 'dc':
+            cmd = fields[0]
+            id = int(fields[1])
+        elif fields[1] == 'a':
+            cmd = fields[1]
+            id = int(fields[0])
+        else:
+            ofile.write(line + '\n')
+            continue
+        lhint = fields[-2]
+        if cmd == 'a' and lhint == '*':
+            if replacedAssertions:
+                # Assertion is obsolete.
+                dacount += 1
+                continue
+            else:
+                hintStart = id
+                buildHints(verbLevel)
+                # Dump all of the clauses and hints from the  LRAT file
+                for clause, hints in zip(clauseList, hintList):
+                    sclause = " ".join([str(lit) for lit in clause])
+                    shint = " ".join([str(hint) for hint in hints])
+                    ofile.write("%d a %s 0 %s 0\n" % (id, sclause, shint))
+                    id += 1
+                    aacount += 1
+                replacedAssertions = True
+                dacount += 1
+        elif cmd == 'dc' and lhint == '*':
+            if replacedDeletions:
+                # Deletion is obsolete
+                ddcount += 1
+                continue
+            else:
+                cid = hintStart + len(clauseList) - 1
+                while cid >= hintStart:
+                    clause = clauseList[cid-hintStart]
+                    sclause = " ".join([str(lit) for lit in clause])
+                    hints = hintList[cid-hintStart]
+                    shint = " ".join([str(hint) for hint in hints])
+                    ofile.write("dc %d %s 0 %s 0\n" % (cid, sclause, shint))
+                    cid -= 1
+                    adcount += 1
+                replacedDeletionss = True
+                ddcount += 1
+        else:
+            # Hinted assertion or deletion.  Must remap hints
+            nfields,changed = fixHints([int(field) for field in fields[2:]], verbLevel)
+            if changed:
+                if cmd == 'a':
+                    cacount += 1
+                else:
+                    cdcount += 1
+            sfields = [str(val) for val in nfields]
+            if cmd == 'a':
+                ofile.write("%d a %s\n" % (id, " ".join(sfields)))
+            else:
+                ofile.write("dc %d %s\n" % (id, " ".join(sfields)))
+
+    if verbLevel >= 1:
+        print("HINTIFY: %d unhinted assertions --> %d hinted assertions" % (dacount, aacount))
+        print("HINTIFY: %d unhinted deletions --> %d hinted deletions" % (ddcount, adcount))
+        print("HINTIFY: %d assertions, %d deletions with changed hints" % (cacount, cdcount))
+    ifile.close()
+    ofile.close()
+
 def run(name, args):
+    global acnfName, dratName, lratName
     cnfName = None
     cratName = None
     hcratName = None
+    splitMode = 1
     verbLevel = 1
-    optList, args = getopt.getopt(args, "hv:i:p:o:v:")
+    optList, args = getopt.getopt(args, "hs:v:i:p:o:v:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
+        elif opt == '-s':
+            splitMode = int(val)
         elif opt == '-v':
             verbLevel = int(val)
         elif opt == '-i':
@@ -272,19 +533,23 @@ def run(name, args):
         usage(name)
         return
     root = getRoot(cnfName)
+    dratName = root + ".drat"
+    acnfName = root + ".acnf"
+    lratName = root + ".lrat"
+
     t0 = datetime.datetime.now()
     splitFiles(cnfName, cratName, verbLevel)
     t1 = datetime.datetime.now()
-    genHints(root)
-    t2 = datetime.datetime.now()
-    insertHints(cratName, hcratName)
-    t3 = datetime.datetime.now()
-    if deleteTempFiles:
-        for tname in tmpList:
-            try:
-                os.remove(tname)
-            except:
-                continue
+    if splitMode == 1:
+        genHints(verbLevel)
+        t2 = datetime.datetime.now()
+        insertHintsMode1(cratName, hcratName, verbLevel)
+        t3 = datetime.datetime.now()
+    else:
+        justifyAssertions(verbLevel)
+        t2 = datetime.datetime.now()
+        insertHintsMode2(cratName, hcratName, verbLevel)
+        t3 = datetime.datetime.now()        
     d1 = t1 - t0
     d2 = t2 - t1
     d3 = t3 - t2
@@ -293,25 +558,19 @@ def run(name, args):
     s2 = d2.seconds + 1e-6 * d2.microseconds
     s3 = d3.seconds + 1e-6 * d3.microseconds
     s  = d.seconds  + 1e-6 * d.microseconds
-    print("HINTIFY: Elapsed seconds for hint addition: %.2f split files + %.2f DRAT-TRIM + %.2f insert hints = %.2f" %
-          (s1, s2, s3, s))
+    if splitMode == 1:
+        dstring = "HINTIFY: Elapsed seconds for hint addition: %.2f split files + %.2f DRAT-TRIM + %.2f insert hints = %.2f"
+    else:
+        dstring = "HINTIFY: Elapsed seconds for hint generation: %.2f split files + %.2f justify/DRAT-TRIM + %.2f insert hints = %.2f"
+    print(dstring % (s1, s2, s3, s))
+
+
+    if deleteTempFiles:
+        for tname in tmpList:
+            try:
+                os.remove(tname)
+            except:
+                continue
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
-                            
-            
-            
-                
-            
-            
-
-        
-        
-            
-        
-    
-
-    
-    
-
-

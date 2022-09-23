@@ -76,6 +76,23 @@ def cleanClauses(clist):
         nlist.append(nclause)
     return nlist
 
+# Test two clauses for equality.  Assumes syntactically equivalent
+def testClauseEquality(clause1, clause2, quick = False):
+       
+    if clause1 is None or clause2 is None:
+        return False
+    if clause1 == tautologyId and clause2 == tautologyId:
+        return True
+    if len(clause1) != len(clause2):
+        return False
+    if not quick:
+        clause1 = cleanClause(clause1)
+        clause2 = cleanClause(clause2)
+    for l1,l2 in zip(clause1, clause2):
+        if l1 != l2:
+            return False
+    return True
+
 # Clause comparison.  Assumes both have been processed by cleanClause
 def testClauseSubset(clause1, clause2):
     if clause1 is None or clause2 is None:
@@ -215,6 +232,7 @@ class CnfReader():
                 clauseCount += 1
         if clauseCount != nclause:
             raise ReadWriteException("Line %d: Got %d clauses.  Expected %d" % (lineNumber, clauseCount, nclause))
+        self.file.close()
 
 # Grab list of clauses out of file that may contain other info
 # Interesting lines will contain marker and have list of literals following that
@@ -224,6 +242,7 @@ class ClauseReader():
     clauses = []
     verbLevel = 1
     marker = ""
+    lineNumber = 0
 
     def __init__(self, fname = None, marker = "", verbLevel = 1):
         self.marker = marker
@@ -238,19 +257,13 @@ class ClauseReader():
             except Exception:
                 raise ReadWriteException("Could not open file '%s'" % fname)
         self.clauses = []
-        try:
-            self.readClauses()
-        except Exception as ex:
-            if opened:
-                self.file.close()
-            raise ex
-        if opened:
-            self.file.close()
+        self.lineNumber = 0
 
-    def readClauses(self):
-        lineNumber = 0
+    def readClause(self):
+        found = False
+        clause = None
         for line in self.file:
-            lineNumber += 1
+            self.lineNumber += 1
             if self.marker not in line:
                 continue
             line = trim(line)
@@ -264,20 +277,164 @@ class ClauseReader():
                         pos = ipos
                         break
                 if pos < 0:
-                    raise ReadWriteException("Line #%d.  Marker '%s' not isolated in line '%s'" % (lineNumber, self.marker, line))
+                    raise ReadWriteException("Line #%d.  Marker '%s' not isolated in line '%s'" % (self.lineNumber, self.marker, line))
                 fields = fields[pos+1:]
             try:
                 lits = [int(f) for f in fields]
             except:
-                raise ReadWriteException("Line #%d.  Non-integer literal in line '%s'" % (lineNumber, line))
+                raise ReadWriteException("Line #%d.  Non-integer literal in line '%s'" % (self.lineNumber, line))
             if len(lits) == 0:
                 continue
             if lits[-1] != 0:
-                raise ReadWriteException("Line #%d.  List of literals must be terminated by 0. Line = '%s'" % (lineNumber, line))
+                raise ReadWriteException("Line #%d.  List of literals must be terminated by 0. Line = '%s'" % (self.lineNumber, line))
             lits = lits[:-1]
-            self.clauses.append(lits)
+            found = True
+            clause = lits
+            break
+        return (found, clause)
+
+
+    def readClauses(self):
+        self.clauses = []
+        while True:
+            (found, clause) = self.readClause()
+            if not found:
+                break
+            self.clauses.append(clause)
         if self.verbLevel >= 1:
             print("Clause reader read %d clauses" % len(self.clauses))
+
+# Grab list of clauses out of file that may contain other info
+# Interesting lines will contain marker and have list of literals following that
+class DratReader():
+
+    file = None
+    verbLevel = 1
+    lineNumber = 0
+
+
+    def __init__(self, fname = None, verbLevel = 1):
+        self.verbLevel = verbLevel
+        if fname is None:
+            opened = False
+            self.file = sys.stdin
+        else:
+            try:
+                self.file = open(fname, 'r')
+            except Exception:
+                raise ReadWriteException("Could not open file '%s'" % fname)
+            opened = True
+        self.lineNumber = 0
+
+    # Read addition or deletion step
+    # Return (key, clause)
+    # Where key is 'a', 'd', or None
+    def readStep(self):
+        key = None
+        clause = None
+        for line in self.file:
+            self.lineNumber += 1
+            line = trim(line)
+            fields = line.split()
+            if len(fields) == 0 or fields[0] == 'c':
+                continue
+            if fields[0] == 'd':
+                key = 'd'
+                fields = fields[1:]
+            else:
+                key = 'a'
+            try:
+                lits = [int(f) for f in fields]
+            except:
+                raise ReadWriteException("Line #%d.  Non-integer literal in line '%s'" % (self.lineNumber, line))
+            if len(lits) == 0:
+                continue
+            if lits[-1] != 0:
+                raise ReadWriteException("Line #%d.  List of literals must be terminated by 0. Line = '%s'" % (self.lineNumber, line))
+            clause = lits[:-1]
+            break
+        return (key, clause)
+
+    def finish(self):
+        self.file.close()
+
+# Read lines from LRAT file
+class LratReader():
+
+    file = None
+    verbLevel = 1
+    lineNumber = 0
+
+    def __init__(self, fname = None, verbLevel = 1):
+        self.verbLevel = verbLevel
+        if fname is None:
+            opened = False
+            self.file = sys.stdin
+        else:
+            try:
+                self.file = open(fname, 'r')
+            except Exception:
+                raise ReadWriteException("Could not open file '%s'" % fname)
+            opened = True
+        self.lineNumber = 0
+
+    # Read addition or deletion step
+    # Return (key, id, clause, hints)
+    # key = 'a' for addition, 'd' for deletion, and None for end of file
+    def readStep(self):
+        key = None
+        id = 0
+        clause = []
+        hints = []
+        fields = []
+        for line in self.file:
+            self.lineNumber += 1
+            line = trim(line)
+            fields = line.split()
+            if len(fields) > 0 and fields[0] != 'c':
+                break
+        if len(fields) == 0 or fields[0] == 'c':
+            return (key, id, clause, hints)
+        try:
+            id = int(fields[0])
+            fields = fields[1:]
+        except:
+            raise ReadWriteException("Line #%d.  Couldn't extract clause Id from line '%s'" % (self.lineNumber, line))
+        if len(fields) >= 1 and fields[0] == 'd':
+            key = 'd'
+            fields = fields[1:]
+        else:
+            key = 'a'
+        try:
+            vals = [int(f) for f in fields]
+        except:
+            raise ReadWriteException("Line #%d.  Non-integer literal in line '%s'" % (self.lineNumber, line))
+        gotClause = False
+        gotHints = False
+        for v in vals:
+            if v == 0:
+                if not gotClause:
+                    gotClause = True
+                elif not gotHints:
+                    gotHints = True
+                else:
+                    ReadWriteException("Line #%d.  Too many 0's in line '%s'" % (self.lineNumber, line))
+            else:
+                if not gotClause:
+                    clause.append(v)
+                elif not gotHints:
+                    hints.append(v)
+                else:
+                    ReadWriteException("Line #%d.  Value beyond second zero in line '%s'" % (self.lineNumber, line))
+        if not gotClause:
+            ReadWriteException("Line #%d.  Couldn't extract literals in line '%s'" % (self.lineNumber, line))
+        if not gotHints:
+            ReadWriteException("Line #%d.  Couldn't extract hints in line '%s'" % (self.lineNumber, line))
+        return (key, id, clause, hints)
+
+    def finish(self):
+        self.file.close()
+
 
 # Generic writer
 class Writer:
@@ -325,9 +482,9 @@ class Writer:
 class DratWriter(Writer):
     additions = 0
     deletions = 0
-    
-    def __init__(self, fname):
-        Writer.__init__(self, 0, fname)
+
+    def __init__(self, fname, verbLevel=1):
+        Writer.__init__(self, 0, fname, verbLevel=verbLevel)
         self.additions = 0
         self.deletions = 0
 
@@ -342,6 +499,7 @@ class DratWriter(Writer):
         line = " ".join(slits)
         self.show(line)
         self.deletions += 1
+
 
 # Creating CNF
 class CnfWriter(Writer):

@@ -113,7 +113,7 @@ import tdpog
 # true node of index 4 and the literals -2 and 3 are set to true.
 
 def usage(name):
-    print("Usage: %s [-h] [-d][-s SPLITMODE] [-v VLEVEL] [-H hlevel] [-L lheight] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
+    print("Usage: %s [-h] [-d][-s SMODE] [-v VLEVEL] [-H hlevel] [-L lheight] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
     print(" -h           Print this message")
     print(" -d           Use NNF format defined for D4 model counter")
     print(" -s SMODE     Set mode for splitting proof: 0=None, 1=all steps included 2=requires SAT solver.  1&2 require HLEVEL = 2 or 3")
