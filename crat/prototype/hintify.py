@@ -343,10 +343,11 @@ def buildHints(verbLevel):
             break
         elif key == 'd':
             continue
+        if verbLevel >= 3:
+            print("HINTIFY: Expanding Assertion #%d: %s" % (initialId, str(dclause)))
         isteps += 1
         while True:
             key, id, lclause, hints = lreader.readStep()
-            print("DEBUG.  lreader got (%s, %s, %s, %s)" % (str(key), str(id), str(lclause), str(hints)))
             if key is None:
                 print("Ran out of clauses in LRAT file while justifying assertion #%d %s" % (initialId, str(dclause)))
                 sys.exit(1)
@@ -354,6 +355,8 @@ def buildHints(verbLevel):
                 lsteps += 1
                 clauseList.append(lclause)
                 hintList.append(hints)
+                if verbLevel >= 3:
+                    print("HINTIFY:      Clause %s, Hints %s" % (str(lclause), str(hints)))
                 if readwrite.testClauseEquality(dclause, lclause):
                     hintIdMap[initialId] = id
                     if verbLevel >= 3:
@@ -480,7 +483,7 @@ def insertHintsMode2(icratName, hcratName, verbLevel):
                     ofile.write("dc %d %s 0 %s 0\n" % (cid, sclause, shint))
                     cid -= 1
                     adcount += 1
-                replacedDeletionss = True
+                replacedDeletions = True
                 ddcount += 1
         else:
             # Hinted assertion or deletion.  Must remap hints
