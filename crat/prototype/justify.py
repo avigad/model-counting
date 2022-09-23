@@ -221,7 +221,7 @@ class Justifier:
 
 # Make up a name for intermediate files
 def getRoot(cnfName):
-    prefix = "tmp_"
+    prefix = ""
     fields = cnfName.split(".")
     if len(fields) > 0:
         fields = fields[:-1]
@@ -329,7 +329,7 @@ def run(name, args):
     s1 = d1.seconds + 1e-6 * d1.microseconds
     s2 = d2.seconds + 1e-6 * d2.microseconds
     s  = d.seconds  + 1e-6 * d.microseconds
-    print("JUSTIFY: Elapsed seconds for justifications: %.2f expand DRAT + %.2f DRAT-TRIM = %.2f" %
+    print("JUSTIFY: Elapsed seconds for justifications: %.2f SAT Solver + %.2f DRAT-TRIM = %.2f" %
           (s1, s2, s))
 
 if __name__ == "__main__":

@@ -59,10 +59,9 @@ clauseList = []
 # Temporary file names.  Optionally deleted
 tmpList = []
 
-
 # Debugging options
 genLrat = False
-deleteTempFiles = False
+deleteTempFiles = True
 
 # Make up a name for intermediate files
 def getRoot(cnfName):
@@ -371,8 +370,8 @@ def buildHints(verbLevel):
 # Given list of integers encoding clause + hints
 # Fix the hints to be to the correct points in the proof
 # Return (vals, changed)
-def fixHints(vals, verbLevel):
-    gotClause = False
+def fixHints(vals, hintOnly, verbLevel):
+    gotClause = hintOnly
     changed = False
     nvals = []
     for val in vals:
@@ -476,28 +475,31 @@ def insertHintsMode2(icratName, hcratName, verbLevel):
             else:
                 cid = hintStart + len(clauseList) - 1
                 while cid >= hintStart:
-                    clause = clauseList[cid-hintStart]
-                    sclause = " ".join([str(lit) for lit in clause])
                     hints = hintList[cid-hintStart]
                     shint = " ".join([str(hint) for hint in hints])
-                    ofile.write("dc %d %s 0 %s 0\n" % (cid, sclause, shint))
+                    ofile.write("dc %d %s 0\n" % (cid, shint))
                     cid -= 1
                     adcount += 1
                 replacedDeletions = True
                 ddcount += 1
         else:
             # Hinted assertion or deletion.  Must remap hints
-            nfields,changed = fixHints([int(field) for field in fields[2:]], verbLevel)
+            hintOnly = cmd == 'dc'
+            nfields,changed = fixHints([int(field) for field in fields[2:]], hintOnly, verbLevel)
             if changed:
                 if cmd == 'a':
                     cacount += 1
                 else:
                     cdcount += 1
+                if verbLevel >= 3:
+                    ofile.write("c Was: %s\n" % line)
             sfields = [str(val) for val in nfields]
             if cmd == 'a':
                 ofile.write("%d a %s\n" % (id, " ".join(sfields)))
-            else:
+            elif cmd == 'dc':
                 ofile.write("dc %d %s\n" % (id, " ".join(sfields)))
+            else:
+                raise Exception("Unknown CRAT command '%s'" % str(cmd))
 
     if verbLevel >= 1:
         print("HINTIFY: %d unhinted assertions --> %d hinted assertions" % (dacount, aacount))
