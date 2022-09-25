@@ -1,0 +1,539 @@
+c [33mBenchmark Information[0m
+c Number of variables: 100
+c Number of clauses: 460
+c Number of literals: 1000
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -83 
+c top 5: -83 -93 
+c top 5: -83 -93 -43 
+c top 5: -83 -93 -43 -11 
+c unitLits 1048577 4194308 Bytes
+c      16384 |       0.11 |       4332 |       8209 |       3832 |        550 |      75815 |      85904 |          0 |       8209 |         303 |          0 | 
+c      32768 |       0.27 |      10079 |      16405 |       8774 |        551 |     145162 |     165910 |          0 |      16405 |         496 |          0 | 
+c      49152 |       0.44 |      16240 |      24589 |      14080 |        551 |     213987 |     245584 |          0 |      24589 |         598 |          0 | 
+c      65536 |       0.58 |      23220 |      32784 |      19860 |        551 |     290009 |     332687 |          0 |      32784 |         670 |          0 | 
+c      81920 |       0.74 |      30099 |      40976 |      25092 |        552 |     365121 |     418608 |          0 |      40976 |         789 |          0 | 
+c      98304 |       0.91 |      36665 |      49165 |      30058 |        552 |     437841 |     502005 |          0 |      49165 |         880 |          0 | 
+c     114688 |       1.06 |      42849 |      57359 |      34348 |        552 |     510094 |     584593 |          0 |      57359 |         970 |          0 | 
+c     131072 |       1.25 |      48024 |      65548 |      38252 |        552 |     577089 |     661732 |          0 |      65548 |        1080 |          0 | 
+c     147456 |       1.39 |      53567 |      73739 |      41890 |        552 |     649748 |     744405 |          0 |      73739 |        1156 |          0 | 
+c     163840 |       1.53 |      58579 |      81936 |      45632 |        552 |     723500 |     828212 |          0 |      81936 |        1333 |          0 | 
+c     180224 |       1.67 |      64127 |      90125 |      49702 |        552 |     798395 |     913340 |          0 |      90125 |        1516 |          0 | 
+c     196608 |       1.79 |      68527 |      98315 |      52094 |        552 |     875197 |     999532 |          0 |      98315 |        1657 |          0 | 
+c     212992 |       1.95 |      73983 |     106512 |      55528 |        552 |     950700 |    1084938 |          0 |     106512 |        1758 |          0 | 
+c unitLits 2097153 8388612 Bytes
+c     229376 |       2.10 |      78689 |     114695 |      57712 |        564 |    1029643 |    1173176 |          0 |     114695 |        1880 |          0 | 
+c     245760 |       2.28 |      83353 |     122892 |      60722 |        564 |    1096963 |    1250189 |          0 |     122892 |        1953 |          0 | 
+c     262144 |       2.41 |      87271 |     131091 |      62558 |        564 |    1173135 |    1335463 |          0 |     131091 |        2056 |          0 | 
+c     278528 |       2.58 |      91597 |     139276 |      65358 |        564 |    1237559 |    1409483 |          0 |     139276 |        2109 |          0 | 
+c     294912 |       2.71 |      96610 |     147475 |      68378 |        564 |    1319464 |    1501085 |          0 |     147475 |        2211 |          0 | 
+c     311296 |       2.90 |     102886 |     155661 |      73150 |        564 |    1397052 |    1589257 |          0 |     155661 |        2290 |          0 | 
+c     327680 |       3.05 |     108981 |     163855 |      76784 |        564 |    1485861 |    1688073 |          0 |     163855 |        2326 |          0 | 
+c top 5: -83 -93 -43 11 
+c     344064 |       3.32 |     114354 |     172049 |      80424 |        564 |    1560751 |    1772972 |          0 |     172049 |        2369 |          0 | 
+c     360448 |       3.47 |     119392 |     180238 |      83394 |        564 |    1634653 |    1856554 |          0 |     180238 |        2410 |          0 | 
+c top 5: -83 -93 43 
+c top 5: -83 -93 43 -53 
+c     376832 |       3.61 |     124527 |     188435 |      86266 |        564 |    1719929 |    1951456 |          0 |     188435 |        2509 |          0 | 
+c     393216 |       3.78 |     130366 |     196617 |      90152 |        564 |    1799687 |    2041356 |          0 |     196617 |        2565 |          0 | 
+c     409600 |       3.97 |     136301 |     204814 |      93688 |        565 |    1889084 |    2140708 |          0 |     204814 |        2589 |          0 | 
+c unitLits 3145729 12582916 Bytes
+c top 5: -83 93 
+c top 5: -83 93 -47 
+c top 5: -83 93 -47 -37 
+c     425984 |       4.40 |     141756 |     213000 |      97612 |        565 |    1966498 |    2228283 |          0 |     213000 |        2647 |          0 | 
+c     442368 |       4.59 |     148002 |     221199 |     101566 |        565 |    2054654 |    2326601 |          0 |     221199 |        2686 |          0 | 
+c top 5: -83 93 -47 37 
+c top 5: -83 93 47 
+c top 5: -83 93 47 -37 
+c top 5: 83 
+c top 5: 83 -37 
+c top 5: 83 -37 -47 
+c top 5: 83 -37 -47 -57 
+c     458752 |       4.85 |     154064 |     229382 |     106084 |        565 |    2131772 |    2414178 |          0 |     229382 |        2723 |          0 | 
+c top 5: 83 -37 -47 57 
+c top 5: 83 -37 47 
+c top 5: 83 -37 47 -57 
+c     475136 |       5.07 |     160578 |     237585 |     110530 |        565 |    2219472 |    2512286 |          0 |     237585 |        2762 |          0 | 
+c top 5: 83 37 
+c top 5: 83 37 -47 
+c top 5: 83 37 -47 -57 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 478319
+c Number of split formula: 111402
+c Number of decision node: 239159
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 55701
+c Number of backbone calls: 0
+c Number of partitioner calls: 2770
+c Average number of assigned literal to obtain decomposable AND nodes: 73.70/100
+c Minimum number of assigned variable where a decomposable AND appeared: 54
+c 
+c [33mGraph Information[0m
+c Number of nodes: 2234114
+c Number of edges: 2528974
+c 
+c [1m[34mCache Information[0m
+c Memory used: 565 MB
+c
+c Number of positive hit: 161746
+c Number of negative hit: 239159
+c Number of reduceCall: 0
+c
+c Final time: 5.119994
+c 
+s 0.000000
+GEN: Input NNF DAG has 100 inputs, 532732 nodes
+GEN: NNF DAG with ITEs has 449390 nodes
+GEN: Generated POG has 356505 And/Or nodes
+GEN: File 'pigeon-sat-direct-10.crat' has 678189 variables (359248 used) and 7110825 steps
+GEN: Nodes by type
+GEN:    var: 100
+GEN:    neg: 100
+GEN:    conjunct: 237670
+GEN:    disjunct: 118835
+GEN:    TOTAL: 356705
+GEN: Total defining clauses: 2799110
+GEN: Node visits during proof generation (by node type)
+GEN:    conjunct: 237670
+GEN:    disjunct: 118835
+GEN:    TOTAL: 356505
+GEN: Lemmas:  16429 definitions.  68406 shadow nodes (324136 defining clauses), 180325 applications
+GEN: Literal justification clause counts (by number of clauses in justification:
+GEN:    1 : 3344844
+GEN:    TOTAL: 3344844
+GEN: RUP clauses for node justification (by node type):
+GEN:    conjunct: 57851
+GEN:    disjunct: 237670
+GEN:    TOTAL: 295521
+GEN: Total clauses: 460 input + 2799110 defining + 324136 lemma defining + 655743 lemma application + 3344844 literal justification + 295521 node justifications = 7419814
+GEN: Elapsed time for generation: 385.24 seconds
+JUSTIFY: 15607 input clauses --> 3103 after deletions
+JUSTIFY: Input DRAT 12504 deletions, 3344844 assertions
+JUSTIFY: Proof step counts (by number of clauses in proof:
+JUSTIFY:    1 : 3112947
+JUSTIFY:    2 : 180721
+JUSTIFY:    3 : 22456
+JUSTIFY:    4 : 6136
+JUSTIFY:    5 : 4393
+JUSTIFY:    6 : 3073
+JUSTIFY:    7 : 2279
+JUSTIFY:    8 : 1291
+JUSTIFY:    9 : 873
+JUSTIFY:    10 : 644
+JUSTIFY:    11 : 561
+JUSTIFY:    12 : 480
+JUSTIFY:    13 : 418
+JUSTIFY:    14 : 397
+JUSTIFY:    15 : 338
+JUSTIFY:    16 : 361
+JUSTIFY:    17 : 290
+JUSTIFY:    18 : 300
+JUSTIFY:    19 : 252
+JUSTIFY:    20 : 236
+JUSTIFY:    21 : 237
+JUSTIFY:    22 : 211
+JUSTIFY:    23 : 209
+JUSTIFY:    24 : 171
+JUSTIFY:    25 : 167
+JUSTIFY:    26 : 169
+JUSTIFY:    27 : 165
+JUSTIFY:    28 : 132
+JUSTIFY:    29 : 128
+JUSTIFY:    30 : 113
+JUSTIFY:    31 : 115
+JUSTIFY:    32 : 127
+JUSTIFY:    33 : 102
+JUSTIFY:    34 : 99
+JUSTIFY:    35 : 84
+JUSTIFY:    36 : 100
+JUSTIFY:    37 : 95
+JUSTIFY:    38 : 88
+JUSTIFY:    39 : 82
+JUSTIFY:    40 : 77
+JUSTIFY:    41 : 91
+JUSTIFY:    42 : 74
+JUSTIFY:    43 : 65
+JUSTIFY:    44 : 67
+JUSTIFY:    45 : 69
+JUSTIFY:    46 : 47
+JUSTIFY:    47 : 55
+JUSTIFY:    48 : 64
+JUSTIFY:    49 : 65
+JUSTIFY:    50 : 49
+JUSTIFY:    51 : 47
+JUSTIFY:    52 : 47
+JUSTIFY:    53 : 39
+JUSTIFY:    54 : 50
+JUSTIFY:    55 : 37
+JUSTIFY:    56 : 43
+JUSTIFY:    57 : 35
+JUSTIFY:    58 : 41
+JUSTIFY:    59 : 41
+JUSTIFY:    60 : 34
+JUSTIFY:    61 : 40
+JUSTIFY:    62 : 31
+JUSTIFY:    63 : 37
+JUSTIFY:    64 : 28
+JUSTIFY:    65 : 37
+JUSTIFY:    66 : 28
+JUSTIFY:    67 : 29
+JUSTIFY:    68 : 28
+JUSTIFY:    69 : 33
+JUSTIFY:    70 : 39
+JUSTIFY:    71 : 29
+JUSTIFY:    72 : 22
+JUSTIFY:    73 : 33
+JUSTIFY:    74 : 26
+JUSTIFY:    75 : 30
+JUSTIFY:    76 : 26
+JUSTIFY:    77 : 28
+JUSTIFY:    78 : 25
+JUSTIFY:    79 : 22
+JUSTIFY:    80 : 22
+JUSTIFY:    81 : 30
+JUSTIFY:    82 : 20
+JUSTIFY:    83 : 23
+JUSTIFY:    84 : 15
+JUSTIFY:    85 : 23
+JUSTIFY:    86 : 29
+JUSTIFY:    87 : 18
+JUSTIFY:    88 : 21
+JUSTIFY:    89 : 14
+JUSTIFY:    90 : 16
+JUSTIFY:    91 : 18
+JUSTIFY:    92 : 14
+JUSTIFY:    93 : 19
+JUSTIFY:    94 : 25
+JUSTIFY:    95 : 23
+JUSTIFY:    96 : 20
+JUSTIFY:    97 : 14
+JUSTIFY:    98 : 15
+JUSTIFY:    99 : 16
+JUSTIFY:    100 : 16
+JUSTIFY:    101 : 13
+JUSTIFY:    102 : 19
+JUSTIFY:    103 : 20
+JUSTIFY:    104 : 17
+JUSTIFY:    105 : 14
+JUSTIFY:    106 : 15
+JUSTIFY:    107 : 17
+JUSTIFY:    108 : 15
+JUSTIFY:    109 : 13
+JUSTIFY:    110 : 10
+JUSTIFY:    111 : 17
+JUSTIFY:    112 : 11
+JUSTIFY:    113 : 18
+JUSTIFY:    114 : 11
+JUSTIFY:    115 : 8
+JUSTIFY:    116 : 13
+JUSTIFY:    117 : 14
+JUSTIFY:    118 : 13
+JUSTIFY:    119 : 11
+JUSTIFY:    120 : 8
+JUSTIFY:    121 : 11
+JUSTIFY:    122 : 14
+JUSTIFY:    123 : 15
+JUSTIFY:    124 : 17
+JUSTIFY:    125 : 10
+JUSTIFY:    126 : 8
+JUSTIFY:    127 : 8
+JUSTIFY:    128 : 12
+JUSTIFY:    129 : 11
+JUSTIFY:    130 : 7
+JUSTIFY:    131 : 12
+JUSTIFY:    132 : 15
+JUSTIFY:    133 : 6
+JUSTIFY:    134 : 6
+JUSTIFY:    135 : 7
+JUSTIFY:    136 : 7
+JUSTIFY:    137 : 7
+JUSTIFY:    138 : 9
+JUSTIFY:    139 : 4
+JUSTIFY:    140 : 13
+JUSTIFY:    141 : 5
+JUSTIFY:    142 : 8
+JUSTIFY:    143 : 12
+JUSTIFY:    144 : 8
+JUSTIFY:    145 : 9
+JUSTIFY:    146 : 5
+JUSTIFY:    147 : 8
+JUSTIFY:    148 : 9
+JUSTIFY:    149 : 5
+JUSTIFY:    150 : 9
+JUSTIFY:    151 : 10
+JUSTIFY:    152 : 5
+JUSTIFY:    153 : 14
+JUSTIFY:    154 : 7
+JUSTIFY:    155 : 3
+JUSTIFY:    156 : 7
+JUSTIFY:    157 : 9
+JUSTIFY:    158 : 6
+JUSTIFY:    159 : 7
+JUSTIFY:    160 : 9
+JUSTIFY:    161 : 11
+JUSTIFY:    162 : 3
+JUSTIFY:    163 : 5
+JUSTIFY:    164 : 5
+JUSTIFY:    165 : 4
+JUSTIFY:    166 : 8
+JUSTIFY:    167 : 2
+JUSTIFY:    168 : 3
+JUSTIFY:    169 : 7
+JUSTIFY:    170 : 12
+JUSTIFY:    171 : 8
+JUSTIFY:    172 : 7
+JUSTIFY:    173 : 5
+JUSTIFY:    174 : 9
+JUSTIFY:    175 : 2
+JUSTIFY:    176 : 6
+JUSTIFY:    177 : 4
+JUSTIFY:    178 : 2
+JUSTIFY:    179 : 7
+JUSTIFY:    180 : 3
+JUSTIFY:    181 : 2
+JUSTIFY:    182 : 7
+JUSTIFY:    183 : 8
+JUSTIFY:    184 : 3
+JUSTIFY:    185 : 6
+JUSTIFY:    186 : 4
+JUSTIFY:    187 : 5
+JUSTIFY:    189 : 4
+JUSTIFY:    190 : 2
+JUSTIFY:    191 : 5
+JUSTIFY:    192 : 2
+JUSTIFY:    193 : 2
+JUSTIFY:    194 : 4
+JUSTIFY:    195 : 9
+JUSTIFY:    196 : 6
+JUSTIFY:    197 : 4
+JUSTIFY:    198 : 7
+JUSTIFY:    199 : 2
+JUSTIFY:    200 : 5
+JUSTIFY:    201 : 2
+JUSTIFY:    202 : 4
+JUSTIFY:    203 : 2
+JUSTIFY:    204 : 2
+JUSTIFY:    205 : 11
+JUSTIFY:    206 : 7
+JUSTIFY:    207 : 8
+JUSTIFY:    208 : 5
+JUSTIFY:    209 : 3
+JUSTIFY:    210 : 3
+JUSTIFY:    211 : 7
+JUSTIFY:    212 : 4
+JUSTIFY:    213 : 4
+JUSTIFY:    214 : 4
+JUSTIFY:    215 : 4
+JUSTIFY:    216 : 7
+JUSTIFY:    217 : 2
+JUSTIFY:    218 : 8
+JUSTIFY:    219 : 4
+JUSTIFY:    220 : 5
+JUSTIFY:    221 : 3
+JUSTIFY:    222 : 4
+JUSTIFY:    223 : 2
+JUSTIFY:    224 : 4
+JUSTIFY:    225 : 5
+JUSTIFY:    226 : 2
+JUSTIFY:    227 : 2
+JUSTIFY:    228 : 2
+JUSTIFY:    229 : 4
+JUSTIFY:    231 : 2
+JUSTIFY:    232 : 2
+JUSTIFY:    233 : 2
+JUSTIFY:    234 : 5
+JUSTIFY:    235 : 2
+JUSTIFY:    236 : 5
+JUSTIFY:    237 : 2
+JUSTIFY:    238 : 3
+JUSTIFY:    240 : 3
+JUSTIFY:    241 : 2
+JUSTIFY:    242 : 5
+JUSTIFY:    243 : 5
+JUSTIFY:    244 : 3
+JUSTIFY:    245 : 3
+JUSTIFY:    246 : 2
+JUSTIFY:    247 : 5
+JUSTIFY:    248 : 3
+JUSTIFY:    249 : 6
+JUSTIFY:    251 : 2
+JUSTIFY:    254 : 2
+JUSTIFY:    255 : 3
+JUSTIFY:    256 : 3
+JUSTIFY:    257 : 3
+JUSTIFY:    258 : 2
+JUSTIFY:    259 : 2
+JUSTIFY:    263 : 4
+JUSTIFY:    264 : 3
+JUSTIFY:    265 : 4
+JUSTIFY:    266 : 2
+JUSTIFY:    269 : 4
+JUSTIFY:    270 : 4
+JUSTIFY:    271 : 2
+JUSTIFY:    272 : 2
+JUSTIFY:    273 : 3
+JUSTIFY:    275 : 2
+JUSTIFY:    276 : 5
+JUSTIFY:    277 : 2
+JUSTIFY:    278 : 3
+JUSTIFY:    279 : 6
+JUSTIFY:    281 : 2
+JUSTIFY:    282 : 6
+JUSTIFY:    283 : 3
+JUSTIFY:    284 : 2
+JUSTIFY:    285 : 2
+JUSTIFY:    286 : 2
+JUSTIFY:    288 : 3
+JUSTIFY:    289 : 3
+JUSTIFY:    292 : 2
+JUSTIFY:    293 : 5
+JUSTIFY:    295 : 3
+JUSTIFY:    296 : 6
+JUSTIFY:    298 : 2
+JUSTIFY:    299 : 6
+JUSTIFY:    300 : 2
+JUSTIFY:    302 : 2
+JUSTIFY:    303 : 3
+JUSTIFY:    305 : 2
+JUSTIFY:    306 : 3
+JUSTIFY:    310 : 2
+JUSTIFY:    312 : 2
+JUSTIFY:    313 : 3
+JUSTIFY:    314 : 2
+JUSTIFY:    318 : 3
+JUSTIFY:    319 : 4
+JUSTIFY:    321 : 3
+JUSTIFY:    325 : 2
+JUSTIFY:    327 : 3
+JUSTIFY:    328 : 3
+JUSTIFY:    329 : 3
+JUSTIFY:    330 : 3
+JUSTIFY:    331 : 5
+JUSTIFY:    332 : 3
+JUSTIFY:    333 : 2
+JUSTIFY:    334 : 3
+JUSTIFY:    336 : 4
+JUSTIFY:    337 : 3
+JUSTIFY:    338 : 2
+JUSTIFY:    341 : 3
+JUSTIFY:    342 : 3
+JUSTIFY:    343 : 2
+JUSTIFY:    344 : 2
+JUSTIFY:    345 : 3
+JUSTIFY:    348 : 2
+JUSTIFY:    349 : 2
+JUSTIFY:    354 : 5
+JUSTIFY:    355 : 2
+JUSTIFY:    359 : 2
+JUSTIFY:    362 : 2
+JUSTIFY:    363 : 4
+JUSTIFY:    372 : 2
+JUSTIFY:    374 : 3
+JUSTIFY:    376 : 2
+JUSTIFY:    380 : 2
+JUSTIFY:    383 : 2
+JUSTIFY:    385 : 2
+JUSTIFY:    386 : 3
+JUSTIFY:    388 : 3
+JUSTIFY:    392 : 3
+JUSTIFY:    393 : 5
+JUSTIFY:    394 : 4
+JUSTIFY:    395 : 2
+JUSTIFY:    396 : 2
+JUSTIFY:    398 : 2
+JUSTIFY:    399 : 3
+JUSTIFY:    402 : 2
+JUSTIFY:    403 : 3
+JUSTIFY:    404 : 2
+JUSTIFY:    405 : 2
+JUSTIFY:    415 : 3
+JUSTIFY:    423 : 2
+JUSTIFY:    424 : 2
+JUSTIFY:    426 : 2
+JUSTIFY:    431 : 2
+JUSTIFY:    434 : 2
+JUSTIFY:    436 : 2
+JUSTIFY:    437 : 2
+JUSTIFY:    438 : 2
+JUSTIFY:    440 : 2
+JUSTIFY:    446 : 2
+JUSTIFY:    449 : 4
+JUSTIFY:    451 : 4
+JUSTIFY:    452 : 2
+JUSTIFY:    453 : 2
+JUSTIFY:    456 : 4
+JUSTIFY:    477 : 2
+JUSTIFY:    479 : 2
+JUSTIFY:    480 : 3
+JUSTIFY:    487 : 3
+JUSTIFY:    492 : 2
+JUSTIFY:    519 : 2
+JUSTIFY:    523 : 3
+JUSTIFY:    525 : 2
+JUSTIFY:    532 : 3
+JUSTIFY:    536 : 2
+JUSTIFY:    549 : 2
+JUSTIFY:    561 : 2
+JUSTIFY:    566 : 2
+JUSTIFY:    584 : 2
+JUSTIFY:    590 : 2
+JUSTIFY:    597 : 2
+JUSTIFY:    615 : 2
+JUSTIFY:    626 : 2
+JUSTIFY:    685 : 2
+JUSTIFY:    693 : 2
+JUSTIFY:    702 : 2
+JUSTIFY:    716 : 2
+JUSTIFY:    717 : 2
+JUSTIFY:    754 : 2
+JUSTIFY:    764 : 2
+JUSTIFY:    899 : 3
+JUSTIFY:    941 : 2
+JUSTIFY:    1127 : 2
+JUSTIFY:    1146 : 2
+JUSTIFY:    1276 : 3
+JUSTIFY:    1480 : 2
+JUSTIFY:    2014 : 2
+JUSTIFY:    1 each for counts 188, 230, 239, 252, 253, 260, 261, 262, 267, 280, 287, 290, 294, 297, 301, 311, 315, 317, 320, 322, 323, 324, 326, 335, 340, 346, 347, 352, 353, 357, 358, 361, 364, 365, 367, 370, 378, 379, 381, 382, 384, 397, 400, 401, 406, 407, 409, 410, 413, 414, 420, 421, 422, 425, 430, 435, 439, 445, 447, 458, 459, 461, 462, 464, 467, 468, 470, 471, 475, 481, 493, 497, 500, 503, 504, 505, 509, 510, 511, 530, 535, 540, 542, 544, 550, 551, 555, 560, 565, 569, 570, 572, 573, 574, 580, 595, 596, 599, 602, 607, 617, 619, 628, 636, 637, 638, 639, 642, 643, 646, 648, 650, 651, 657, 658, 659, 662, 666, 671, 676, 679, 681, 683, 684, 687, 688, 691, 694, 701, 707, 709, 713, 714, 732, 733, 739, 740, 751, 753, 760, 766, 768, 770, 771, 775, 778, 783, 784, 789, 794, 798, 803, 826, 829, 835, 839, 844, 852, 858, 862, 864, 869, 873, 891, 893, 896, 910, 913, 915, 916, 919, 920, 927, 932, 933, 947, 952, 964, 972, 974, 975, 981, 992, 1005, 1008, 1036, 1037, 1064, 1068, 1078, 1079, 1083, 1092, 1093, 1100, 1102, 1114, 1130, 1140, 1149, 1153, 1178, 1181, 1204, 1227, 1232, 1241, 1251, 1270, 1271, 1275, 1277, 1284, 1294, 1317, 1338, 1361, 1371, 1404, 1413, 1449, 1459, 1476, 1500, 1510, 1513, 1516, 1517, 1523, 1524, 1542, 1552, 1554, 1559, 1572, 1594, 1597, 1600, 1618, 1629, 1630, 1658, 1675, 1695, 1698, 1721, 1760, 1789, 1846, 1871, 1889, 1936, 1943, 2002, 2047, 2073, 2116, 2132, 2143, 2151, 2160, 2204, 2248, 2278, 2281, 2295, 2471, 2512, 2578, 2676, 2703, 2705, 2767, 2775, 2786, 2787, 2832, 2847, 2951, 2971, 2997, 3051, 3160, 3233, 3588, 3622, 4133, 4312, 4493, 4546, 4600, 4744, 4842, 5146, 5170, 5683, 6582, 6847, 7649, 8250, 13638, 15069, 18991
+JUSTIFY:    TOTAL: 4628428
+JUSTIFY: Elapsed seconds for justifications: 12725.83 SAT Solver + 3101.63 DRAT-TRIM = 15827.46
+HINTIFY: Input CNF file pigeon-sat-direct-10.cnf had 100 variables and 460 clauses
+HINTIFY: Augmented CNF file tmp_pigeon-sat-direct-10.acnf has 2743 variables (max=678189) and 15607 clauses
+HINTIFY: DRAT file tmp_pigeon-sat-direct-10.drat has 3344844 clause additions and 12504 clause deletions
+HINTIFY: 3344844 unhinted assertions --> 4628428 hinted assertions
+HINTIFY: 3344844 unhinted deletions --> 4628428 hinted deletions
+HINTIFY: 506073 assertions, 506073 deletions with changed hints
+HINTIFY: Elapsed seconds for hint generation: 34.13 split files + 15827.52 justify/DRAT-TRIM + 168.71 insert hints = 16030.36
+CHECKER: Read 460 clauses from file pigeon-sat-direct-10.cnf
+CHECKER: PROOF SUCCESSFUL
+CHECKER: 8394409 total clauses
+CHECKER: 8394409 maximum live clauses
+CHECKER: 11278678 total hints
+CHECKER: 0 added hints
+CHECKER: Command occurences:
+CHECKER:      a   : 5579692
+CHECKER:     dc   : 5580151
+CHECKER:      p   : 240313
+CHECKER:      s   : 118835
+CHECKER:     TOTAL: 11518991
+CHECKER: Elapsed time for check: 12620.02 seconds
+CHECKER: Unweighted count = 3628800

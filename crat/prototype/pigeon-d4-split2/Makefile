@@ -74,14 +74,14 @@ data:
 	$(INTERP) $(GRAB) -1 "HINTIFY: Elapsed seconds" pigeon-sat-tseitin-*.data > pst-hintify-seconds.csv
 	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-direct-*.data > psd-check-seconds.csv
 	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-tseitin-*.data > pst-check-seconds.csv
-	$(INTERP) $(MERGE) -l "NNF nodes,POG nodes,Assertions,Just clauses,~Tot clauses,D4 secs,Gen secs,Hint secs,Check secs" \
+	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Assertions,Just clauses,STot clauses,D4 secs,Gen secs,Hint secs,Check secs" \
 		pst-nnf-nodes.csv pst-pog-nodes.csv pst-assertion-clauses.csv pst-justification-clauses.csv pst-total-clauses.csv \
 		pst-d4-seconds.csv \
-		pst-generate-seconds.csv pst-hintify-seconds.csv pst-check-seconds.csv > pst-data.csv
-	$(INTERP) $(MERGE) -l "NNF nodes,POG nodes,Assertions,Just clauses,~Tot clauses,Gen secs,Hint secs,Check secs" \
+		pst-generate-seconds.csv pst-hintify-seconds.csv pst-check-seconds.csv > pst-split2-data.csv
+	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Assertions,Just clauses,STot clauses,D4 secs,Gen secs,Hint secs,Check secs" \
 		psd-nnf-nodes.csv psd-pog-nodes.csv psd-assertion-clauses.csv psd-justification-clauses.csv psd-total-clauses.csv \
 		psd-d4-seconds.csv \
-		psd-generate-seconds.csv psd-hintify-seconds.csv psd-check-seconds.csv > psd-data.csv
+		psd-generate-seconds.csv psd-hintify-seconds.csv psd-check-seconds.csv > psd-split2-data.csv
 
 
 
