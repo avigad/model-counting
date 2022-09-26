@@ -30,8 +30,9 @@ import readwrite
 
 
 def usage(name):
-    print("Usage: %s [-h] [-s SMODE] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
+    print("Usage: %s [-h] [-k] [-s SMODE] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
     print(" -h           Print this message")
+    print(" -k           Keep intermediate files")
     print(" -s SMODE     Set mode for splitting proof: 1=all steps included (default) 2=requires SAT solver")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -i FILE.cnf  Input CNF")
@@ -61,7 +62,6 @@ tmpList = []
 
 # Debugging options
 genLrat = False
-deleteTempFiles = True
 
 # Make up a name for intermediate files
 def getRoot(cnfName):
@@ -515,11 +515,14 @@ def run(name, args):
     hcratName = None
     splitMode = 1
     verbLevel = 1
-    optList, args = getopt.getopt(args, "hs:v:i:p:o:v:")
+    keepTemp = False
+    optList, args = getopt.getopt(args, "hks:v:i:p:o:v:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
+        elif opt == '-k':
+            keepTemp = True
         elif opt == '-s':
             splitMode = int(val)
         elif opt == '-v':
@@ -570,7 +573,7 @@ def run(name, args):
     print(dstring % (s1, s2, s3, s))
 
 
-    if deleteTempFiles:
+    if not keepTemp:
         for tname in tmpList:
             try:
                 os.remove(tname)
