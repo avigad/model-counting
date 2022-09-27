@@ -60,8 +60,8 @@ data:
 	$(INTERP) $(GRAB) -1 "Input NNF" pigeon-sat-tseitin-*.data > pst-nnf-nodes.csv
 	$(INTERP) $(GRAB) "Generated POG" pigeon-sat-direct-*.data > psd-pog-nodes.csv
 	$(INTERP) $(GRAB) "Generated POG" pigeon-sat-tseitin-*.data > pst-pog-nodes.csv
-	$(INTERP) $(GRAB) -1 "Total clauses" pigeon-sat-direct-*.data > psd-total-clauses.csv
-	$(INTERP) $(GRAB) -1 "Total clauses" pigeon-sat-tseitin-*.data > pst-total-clauses.csv
+	$(INTERP) $(GRAB) "total clauses" pigeon-sat-direct-*.data > psd-total-clauses.csv
+	$(INTERP) $(GRAB) "total clauses" pigeon-sat-tseitin-*.data > pst-total-clauses.csv
 	$(INTERP) $(GRAB)  5 "Total clauses" pigeon-sat-direct-*.data > psd-justification-clauses.csv
 	$(INTERP) $(GRAB)  5 "Total clauses" pigeon-sat-tseitin-*.data > pst-justification-clauses.csv
 	$(INTERP) $(GRAB)   "Final time:" pigeon-sat-direct-*.data > psd-d4-seconds.csv

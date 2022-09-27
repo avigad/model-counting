@@ -30,7 +30,7 @@ HINTIFY = ../hintify.py
 	$(INTERP) $(CHECK) -v $(VLEVEL) -i $*.cnf -p $<  | tee $@
 
 .scrat.hcrat:
-	$(INTERP) $(HINTIFY) -i $*.cnf -p $< -o $@ | tee $*.hcrat_data
+	$(INTERP) $(HINTIFY) -i $*.cnf -p $< -o $@ -s $(SLEVEL) | tee $*.hcrat_data
 
 .hcrat.hcheck_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@	
