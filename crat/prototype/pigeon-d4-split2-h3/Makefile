@@ -77,11 +77,11 @@ data:
 	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Assertions,Just clauses,STot clauses,D4 secs,Gen secs,Hint secs,Check secs" \
 		pst-nnf-nodes.csv pst-pog-nodes.csv pst-assertion-clauses.csv pst-justification-clauses.csv pst-total-clauses.csv \
 		pst-d4-seconds.csv \
-		pst-generate-seconds.csv pst-hintify-seconds.csv pst-check-seconds.csv > pst-split2-data.csv
+		pst-generate-seconds.csv pst-hintify-seconds.csv pst-check-seconds.csv > pst-split2-h3-data.csv
 	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Assertions,Just clauses,STot clauses,D4 secs,Gen secs,Hint secs,Check secs" \
 		psd-nnf-nodes.csv psd-pog-nodes.csv psd-assertion-clauses.csv psd-justification-clauses.csv psd-total-clauses.csv \
 		psd-d4-seconds.csv \
-		psd-generate-seconds.csv psd-hintify-seconds.csv psd-check-seconds.csv > psd-split2-data.csv
+		psd-generate-seconds.csv psd-hintify-seconds.csv psd-check-seconds.csv > psd-split2-h3-data.csv
 
 
 
