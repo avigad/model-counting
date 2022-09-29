@@ -1,0 +1,102 @@
+c [33mBenchmark Information[0m
+c Number of variables: 16
+c Number of clauses: 28
+c Number of literals: 64
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -11 
+c top 5: -11 -15 
+c top 5: -11 -15 -2 
+c top 5: -11 -15 -2 -6 
+c unitLits 1048577 4194308 Bytes
+c top 5: -11 -15 -2 6 
+c top 5: -11 15 
+c top 5: -11 15 -5 
+c top 5: -11 15 -5 -12 
+c top 5: -11 15 5 
+c top 5: 11 
+c top 5: 11 -15 
+c top 5: 11 -15 -5 
+c top 5: 11 -15 -5 -16 
+c top 5: 11 -15 5 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 45
+c Number of split formula: 2
+c Number of decision node: 22
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 1
+c Number of backbone calls: 0
+c Number of partitioner calls: 1
+c Average number of assigned literal to obtain decomposable AND nodes: 8.00/16
+c Minimum number of assigned variable where a decomposable AND appeared: 8
+c 
+c [33mGraph Information[0m
+c Number of nodes: 205
+c Number of edges: 228
+c 
+c [1m[34mCache Information[0m
+c Memory used: 560 MB
+c
+c Number of positive hit: 3
+c Number of negative hit: 22
+c Number of reduceCall: 0
+c
+c Final time: 0.000324
+c 
+s 0.000000
+GEN: Input NNF DAG has 16 inputs, 95 nodes
+GEN: NNF DAG with ITEs has 78 nodes
+GEN: Generated POG has 57 And/Or nodes
+GEN: File 'pigeon-sat-direct-4.crat' has 111 variables (79 used) and 448 steps
+GEN: Nodes by type
+GEN:    var: 16
+GEN:    neg: 16
+GEN:    conjunct: 38
+GEN:    disjunct: 19
+GEN:    TOTAL: 89
+GEN: Total defining clauses: 295
+GEN: Node visits during proof generation (by node type)
+GEN:    conjunct: 38
+GEN:    disjunct: 19
+GEN:    TOTAL: 57
+GEN: Lemmas:  3 definitions.  6 shadow nodes (18 defining clauses), 6 applications
+GEN: Literal justification clause counts (by number of clauses in justification:
+GEN:    1 : 47
+GEN:    TOTAL: 50
+GEN: RUP clauses for node justification (by node type):
+GEN:    conjunct: 1
+GEN:    disjunct: 38
+GEN:    TOTAL: 39
+GEN: Total clauses: 28 input + 295 defining + 18 lemma defining + 18 lemma application + 50 literal justification + 39 node justifications = 448
+GEN: Elapsed time for generation: 0.01 seconds
+CHECKER: Read 28 clauses from file pigeon-sat-direct-4.cnf
+CHECKER: PROOF SUCCESSFUL
+CHECKER: 448 total clauses
+CHECKER: 448 maximum live clauses
+CHECKER: 260 total hints
+CHECKER: 0 added hints
+CHECKER: Command occurences:
+CHECKER:      a   : 107
+CHECKER:     dc   : 134
+CHECKER:      p   : 44
+CHECKER:      s   : 19
+CHECKER:     TOTAL: 304
+CHECKER: Elapsed time for check: 0.00 seconds
+CHECKER: Unweighted count = 24

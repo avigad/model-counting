@@ -8,6 +8,8 @@ CHECK = ../crat_checker.py
 N=5
 BDIR = ../../../benchmarks/generators
 PGEN = $(BDIR)/gen_pigeon.py
+GRAB = ../../../tools/grab_data.py
+MERGE = ../../../tools/merge_csv.py
 
 pst: pigeon-sat-tseitin-$(N).cnf
 psd: pigeon-sat-direct-$(N).cnf
@@ -48,3 +50,26 @@ clean:
 superclean: clean
 	rm -f *.cnf *.nnf *.crat *data
 
+data:
+	$(INTERP) $(GRAB) -1 "Input NNF" pigeon-sat-direct-*.data > psd-nnf-nodes.csv
+	$(INTERP) $(GRAB) -1 "Input NNF" pigeon-sat-tseitin-*.data > pst-nnf-nodes.csv
+	$(INTERP) $(GRAB) "Generated POG" pigeon-sat-direct-*.data > psd-pog-nodes.csv
+	$(INTERP) $(GRAB) "Generated POG" pigeon-sat-tseitin-*.data > pst-pog-nodes.csv
+	$(INTERP) $(GRAB) "Total clauses" pigeon-sat-direct-*.data > psd-total-clauses.csv
+	$(INTERP) $(GRAB) "Total clauses" pigeon-sat-tseitin-*.data > pst-total-clauses.csv
+	$(INTERP) $(GRAB)  5 "Total clauses" pigeon-sat-direct-*.data > psd-justification-clauses.csv
+	$(INTERP) $(GRAB)  5 "Total clauses" pigeon-sat-tseitin-*.data > pst-justification-clauses.csv
+	$(INTERP) $(GRAB)   "Final time:" pigeon-sat-direct-*.data > psd-d4-seconds.csv
+	$(INTERP) $(GRAB)   "Final time:" pigeon-sat-tseitin-*.data > pst-d4-seconds.csv
+	$(INTERP) $(GRAB) "GEN: Elapsed time" pigeon-sat-direct-*.data > psd-generate-seconds.csv
+	$(INTERP) $(GRAB) "GEN: Elapsed time" pigeon-sat-tseitin-*.data > pst-generate-seconds.csv
+	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-direct-*.data > psd-check-seconds.csv
+	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-tseitin-*.data > pst-check-seconds.csv
+	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Just clauses,Tot clauses,D4 secs,Gen secs,Check secs" \
+		pst-nnf-nodes.csv pst-pog-nodes.csv pst-justification-clauses.csv pst-total-clauses.csv \
+		pst-d4-seconds.csv \
+		pst-generate-seconds.csv pst-check-seconds.csv > pst-hintgen-data.csv
+	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Just clauses,Tot clauses,D4 secs,Gen secs,Check secs" \
+		psd-nnf-nodes.csv psd-pog-nodes.csv psd-justification-clauses.csv psd-total-clauses.csv \
+		psd-d4-seconds.csv \
+		psd-generate-seconds.csv psd-check-seconds.csv > psd-hintgen-data.csv
