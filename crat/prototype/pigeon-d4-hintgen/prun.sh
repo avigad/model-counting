@@ -5,3 +5,8 @@ do
     make pst-all N=$N
 done
 
+for N in {10..11}
+do
+    make pst-all N=$N
+done
+
