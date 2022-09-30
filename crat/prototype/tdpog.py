@@ -5,6 +5,12 @@ import sys
 from pysat.solvers import Solver
 import readwrite
 
+# Global options
+# Should input clauses stored in dictionary?
+mapInputClauseSetting = True
+# What categories of clauses should be checked?
+maxCategorySetting = 0
+
 # Use glucose4 as solver
 solverId = 'g4'
 
@@ -31,7 +37,7 @@ class Reasoner:
     stepMap = {}
     # For each category, highest numbered step
     stepMax = {}
-    # Create dictionary of input clauses mapping tuple of literals to clause Id
+    # (Optionally) create dictionary of input clauses mapping tuple of literals to clause Id
     inputClauseMap = {}
 
     ## Options
@@ -43,7 +49,10 @@ class Reasoner:
             self.solver = None
         else:
             self.solver = Solver(solverId, with_proof = True)
-        clauseList = [tuple(clause) for clause in inputClauseList]
+        if mapInputClauseSetting:
+            clauseList = [tuple(readwrite.cleanClause(clause)) for clause in inputClauseList]
+        else:
+            clauseList = inputClauseList
         self.stepList = []
         self.addSolverClauses(clauseList)
         self.stepList = []
@@ -53,7 +62,8 @@ class Reasoner:
         cid = 1
         for clause in clauseList:
             self.addStep(0, cid, clause)
-            self.inputClauseMap[clause] = cid
+            if mapInputClauseSetting:
+                self.inputClauseMap[clause] = cid
             cid += 1
 
     # Add proof step.  Assuming step numbers are always increasing
@@ -83,12 +93,13 @@ class Reasoner:
         return cid
 
     # Find clause that is subset of target
-    def findClauseId(self, tclause, maxCategory, inputOnly = False):
-        tclause = readwrite.cleanClause(tclause)
-        if tclause in self.inputClauseMap:
-            return self.inputClauseMap[tclause]
-        if inputOnly:
-            return -1
+    def findClauseId(self, tclause, maxCategory):
+        if mapInputClauseSetting:
+            tclause = readwrite.cleanClause(tclause)
+            if tclause in self.inputClauseMap:
+                return self.inputClauseMap[tclause]
+            if maxCategory == 0:
+                return -1
         maxCid = self.getMaxStep(maxCategory)
         for (cat,cid,clause) in self.stepList:
             if cid > maxCid:
@@ -875,7 +886,7 @@ class Pog:
         if self.hintLevel >= 2:
             # See if can find matching input clause
             tclause = [lit] + readwrite.invertClause(context)
-            cid = self.reasoner.findClauseId(tclause, 0, inputOnly = True)
+            cid = self.reasoner.findClauseId(tclause, maxCategorySetting)
             if cid > 0:
                 if self.verbLevel >= 3:
                     print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), lit, str(context)))
@@ -1007,7 +1018,7 @@ class Pog:
         if self.hintLevel >= 2:
             if ntchild is None:
                 tclause = readwrite.invertClause(lits + context)
-                lcid = self.reasoner.findClauseId(tclause, 0)
+                lcid = self.reasoner.findClauseId(tclause, maxCategorySetting)
                 if lcid <= 0:
                     raise PogException("Couldn't find input clause represented by negated disjunction %s" % (str(root)))
             else:
