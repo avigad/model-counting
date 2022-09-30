@@ -76,8 +76,67 @@ def cleanClauses(clist):
         nlist.append(nclause)
     return nlist
 
+## Clause for supporting clause testing
+class ClauseChecker:
+    # Generation counter
+    generation = 1
+    maxVariable = 0
+    # Arrays, indexed by variable
+    # Indicate last generation for which literal occurred positively & negatively
+    occurPos = [0]
+    occurNeg = [0]
+
+    def __init__(self, maxVariable = 1):
+        self.maxVariable = 0
+        self.getReady(maxVariable)
+
+    def getReady(self, maxVariable):
+        if maxVariable <= self.maxVariable:
+            self.generation += 1
+            return
+        self.generation = 1
+        self.occurPos = [0] * (maxVariable + 1)
+        self.occurNeg = [0] * (maxVariable + 1)
+        self.maxVariable = maxVariable
+
+    def mark(self, lit):
+        if lit > 0:
+            self.occurPos[lit] = self.generation
+        else:
+            self.occurNeg[-lit] = self.generation
+
+    def checkMark(self, lit):
+        if lit > 0:
+            return self.occurPos[lit] == self.generation
+        else:
+            return self.occurNeg[-lit] == self.generation
+        
+
+    def subsetTest(self, clause1, clause2):
+        if len(clause1) > len(clause2):
+            return False
+        m1 = max([abs(lit) for lit in clause1])
+        m2 = max([abs(lit) for lit in clause2])
+        self.getReady(max(m1, m2))
+        for lit in clause2:
+            self.mark(lit)
+        ok = True
+        for lit in clause1:
+            if not self.checkMark(lit):
+                ok = False
+                break
+        return ok
+            
+    def equalityTest(self, clause1, clause2):
+        if len(clause1) != len(clause2):
+            return False
+        return self.subsetTest(clause1, clause2)
+        
+checker = None        
+        
+        
 # Test two clauses for equality.  Assumes syntactically equivalent
-def testClauseEquality(clause1, clause2, quick = False):
+def oldTestClauseEquality(clause1, clause2, quick = False):
        
     if clause1 is None or clause2 is None:
         return False
@@ -94,7 +153,7 @@ def testClauseEquality(clause1, clause2, quick = False):
     return True
 
 # Clause comparison.  Assumes both have been processed by cleanClause
-def testClauseSubset(clause1, clause2):
+def oldTestClauseSubset(clause1, clause2):
     if clause1 is None or clause2 is None:
         return False
     if clause2 == tautologyId:
@@ -119,6 +178,35 @@ def testClauseSubset(clause1, clause2):
             return False
     return True
 
+
+# Test two clauses for equality.  
+def testClauseEquality(clause1, clause2):
+    global checker
+    if checker is None:
+        checker = ClauseChecker()
+    rnew = checker.equalityTest(clause1, clause2)
+    return rnew
+#    rold = oldTestEquality(clause1, clause2)
+#    if rnew != rold:
+#        print("Mismatch testing equality of clauses %s and %s.  Old = %s, New = %s" % (str(clause1), str(clause2), str(rold), str(rnew)))
+#    return rold
+
+            
+
+# Clause comparison.  
+def testClauseSubset(clause1, clause2):
+    global checker
+    if checker is None:
+        checker = ClauseChecker()
+    rnew = checker.subsetTest(clause1, clause2)
+    return rnew
+#    rold = oldTestSubset(clause1, clause2)
+#    return rold
+#    if rnew != rold:
+#        print("Mismatch testing clause %s subset of %s.  Old = %s, New = %s" % (str(clause1), str(clause2), str(rold), str(rnew)))
+#    return rold
+
+
 def regularClause(clause):
     return clause is not None
 
@@ -137,7 +225,6 @@ def invertClause(literalList):
 
 # Eliminate any falsified literals
 # If some literal satisfied, return tautology
-# Assumes clause processed by cleanClause
 def unitReduce(clause, unitSet):
     if clause == tautologyId:
         return clause
