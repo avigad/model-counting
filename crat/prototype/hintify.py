@@ -30,9 +30,10 @@ import readwrite
 
 
 def usage(name):
-    print("Usage: %s [-h] [-k] [-s SMODE] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
+    print("Usage: %s [-h] [-d] [-k] [-s SMODE] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
     print(" -h           Print this message")
     print(" -k           Keep intermediate files")
+    print(" -y           PySAT Mode: Don't use Cadical")
     print(" -s SMODE     Set mode for splitting proof: 1=all steps included (default) 2=requires SAT solver")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -i FILE.cnf  Input CNF")
@@ -43,6 +44,7 @@ def usage(name):
 acnfName = ""
 icnfName = ""
 dratName = ""
+xdratName = ""
 rupName = ""
 lratName = ""
 
@@ -89,7 +91,7 @@ def getRoot(cnfName):
     fields[0] = prefix + fields[0]
     return ".".join(fields)
 
-def splitFiles(cnfName, cratName, dratMode, verbLevel):
+def splitFiles(cnfName, cratName, pysatMode, verbLevel):
     global tmpList
     try:
         cnfReader = readwrite.CnfReader(cnfName, verbLevel)
@@ -105,36 +107,35 @@ def splitFiles(cnfName, cratName, dratMode, verbLevel):
 
     tmpList.append(acnfName)
 
-    if dratMode:
+    try:
+        dratWriter = readwrite.DratWriter(dratName)
+    except Exception as ex:
+        print("ERROR: Couldn't open output DRAT file '%s' (%s)" % (dratName, str(ex)))
+        sys.exit(1)
+    tmpList.append(dratName)
+
+    if pysatMode:
         icnfWriter = None
-        try:
-            dratWriter = readwrite.DratWriter(dratName)
-        except Exception as ex:
-            print("ERROR: Couldn't open output DRAT file '%s' (%s)" % (dratName, str(ex)))
-            sys.exit(1)
-        tmpList.append(dratName)
     else:
-        dratWriter = None
+        # Convert assertions to both DRAT and ICNF formats
         try:
             icnfWriter = readwrite.AugmentedCnfWriter(cnfReader.nvar, icnfName, verbLevel)
         except Exception as ex:
             print("ERROR: Couldn't open output ICNF file '%s' (%s)" % (icnfName, str(ex)))
             sys.exit(1)
         tmpList.append(icnfName)
-
-
     if verbLevel >= 2:
         cnfWriter.doComment("Original CNF clauses")
-        if not dratMode:
+        if not pysatMode:
             icnfWriter.doComment("Original CNF clauses")
     for clause in cnfReader.clauses:
         cnfWriter.doClause(clause)
-        if not dratMode:
+        if not pysatMode:
             icnfWriter.doClause(clause)
 
     if verbLevel >= 2:
         cnfWriter.doComment("Lemma argument clauses")
-        if not dratMode:
+        if not pysatMode:
             icnfWriter.doComment("Lemma argument clauses")
 
 
@@ -169,7 +170,7 @@ def splitFiles(cnfName, cratName, dratMode, verbLevel):
                 var = ilist[0]
                 args = ilist[1:]
                 cnfWriter.doProduct(var, args, dwriter = dratWriter)
-                if not dratMode:
+                if not pysatMode:
                     icnfWriter.doProduct(var, args)
             except:
                 print("ERROR: File %s, line #%d.  Couldn't parse product line '%s' in CRAT file" % (cratName, lineNumber, line))                
@@ -179,9 +180,8 @@ def splitFiles(cnfName, cratName, dratMode, verbLevel):
             if rest[-2] == '*':
                 try:
                     lits = [int(r) for r in rest[:-3]]
-                    if dratMode:
-                        dratWriter.doStep(lits)
-                    else:
+                    dratWriter.doStep(lits)
+                    if not pysatMode:
                         icnfWriter.doCube(lits)
                 except:
                     print("ERROR:  File %s, line #%d. Couldn't generate DRAT step from line %s" % (cratName, lineNumber, line))
@@ -195,11 +195,13 @@ def splitFiles(cnfName, cratName, dratMode, verbLevel):
     cnfWriter.finish()
     vcount = cnfWriter.variableCount()
     vmax = cnfWriter.expectedVariableCount
-    if dratMode:
+    if pysatMode:
         print("HINTIFY: Augmented CNF file %s has %d variables (max=%d) and %d clauses" % (acnfName, vcount, vmax, cnfWriter.clauseCount))
         dratWriter.finish()
         print("HINTIFY: DRAT file %s has %d clause additions and %d clause deletions" % (dratName, dratWriter.additions, dratWriter.deletions))
     else:
+        dratWriter.finish()
+        print("HINTIFY: DRAT file %s has %d clause additions" % (dratName, dratWriter.additions))
         icnfWriter.finish(incremental = True)
         print("HINTIFY: Incremental CNF file %s has %d variables (max=%d), %d clauses, and %d assumptions" % (icnfName, vcount, vmax, icnfWriter.clauseCount, icnfWriter.cubeCount))
 
@@ -296,9 +298,9 @@ def filterDeletions(fnameSource, fnameDest):
     outfile.close()
             
 
-def justifyAssertions(dratMode, verbLevel):
+def justifyAssertions(pysatMode, verbLevel):
     global tmpList
-    if dratMode:
+    if pysatMode:
         args = [interpreter, justify_prog, '-v', str(verbLevel), '-i', acnfName, '-d', dratName, '-o', lratName]
         if verbLevel >= 2:
             print("HINTIFY: Running '%s'" % " ".join(args))
@@ -310,15 +312,15 @@ def justifyAssertions(dratMode, verbLevel):
             print("ERROR: Running '%s' gave return code of %d" % (astring, proc.returncode))
             sys.exit(1)
     else:
-        args = [cadical_prog, icnfName, dratName, "--no-binary"]
-        tmpList.append(dratName)
+        args = [cadical_prog, icnfName, xdratName, "--no-binary", "-q"]
+        tmpList.append(xdratName)
         proc = subprocess.Popen(args)
         proc.wait()
         if proc.returncode not in [0,20]:
             astring = " ".join(args)
             print("ERROR: Running '%s' gave return code of %d" % (astring, proc.returncode))
             sys.exit(1)
-        filterDeletions(dratName, rupName)
+        filterDeletions(xdratName, rupName)
         tmpList.append(rupName)
         try:
             lfile = open(lratName, 'w')
@@ -572,11 +574,11 @@ def insertHintsMode2(icratName, hcratName, verbLevel):
     ofile.close()
 
 def run(name, args):
-    global acnfName, dratName, icnfName, rupName, lratName
+    global acnfName, dratName, xdratName, icnfName, rupName, lratName
     cnfName = None
     cratName = None
     hcratName = None
-    dratMode = False
+    pysatMode = False
     splitMode = 1
     verbLevel = 1
     keepTemp = False
@@ -588,7 +590,7 @@ def run(name, args):
         elif opt == '-k':
             keepTemp = True
         elif opt == '-d':
-            dratMode = True
+            pysatMode = True
         elif opt == '-s':
             splitMode = int(val)
         elif opt == '-v':
@@ -608,13 +610,14 @@ def run(name, args):
         return
     root = getRoot(cnfName)
     dratName = root + ".drat"
+    xdratName = root + ".xdrat"
     rupName = root + ".rup"
     acnfName = root + ".acnf"
     icnfName = root + ".icnf"
     lratName = root + ".lrat"
 
     t0 = datetime.datetime.now()
-    splitFiles(cnfName, cratName, dratMode, verbLevel)
+    splitFiles(cnfName, cratName, pysatMode, verbLevel)
     t1 = datetime.datetime.now()
     if splitMode == 1:
         genHints(verbLevel)
@@ -622,7 +625,7 @@ def run(name, args):
         insertHintsMode1(cratName, hcratName, verbLevel)
         t3 = datetime.datetime.now()
     else:
-        justifyAssertions(dratMode, verbLevel)
+        justifyAssertions(pysatMode, verbLevel)
         t2 = datetime.datetime.now()
         insertHintsMode2(cratName, hcratName, verbLevel)
         t3 = datetime.datetime.now()        
