@@ -326,8 +326,11 @@ def justifyAssertions(pysatMode, verbLevel):
     else:
         args = [cadical_prog, icnfName, xdratName, "--no-binary", "-q"]
         tmpList.append(xdratName)
+        sstart = datetime.datetime.now()
         proc = subprocess.Popen(args)
         proc.wait()
+        sdelta = datetime.datetime.now() - sstart
+        ssecs = sdelta.seconds + 1e-6 * sdelta.microseconds
         if proc.returncode not in [0,20]:
             astring = " ".join(args)
             print("ERROR: Running '%s' gave return code of %d" % (astring, proc.returncode))
@@ -341,13 +344,17 @@ def justifyAssertions(pysatMode, verbLevel):
             sys.exit(1)
         tmpList.append(lratName)
         args = [drat_trim_prog, acnfName, rupName, "-f"]
+        dstart = datetime.datetime.now()
         proc = subprocess.Popen(args, stdout=lfile)
         proc.wait()
+        ddelta = datetime.datetime.now() - sstart
+        dsecs = sdelta.seconds + 1e-6 * ddelta.microseconds
         if proc.returncode not in [0,1]:
             astring = " ".join(args)
             print("ERROR: Running '%s' gave return code of %d" % (astring, proc.returncode))
             sys.exit(1)
         lfile.close()
+        print("HINTIFY: Cadical %.2f seconds.  Drat-trim %.2f seconds" % (ssecs, dsecs))
 
 def insertHintsMode1(icratName, hcratName, verbLevel):
     ahcount = 0
