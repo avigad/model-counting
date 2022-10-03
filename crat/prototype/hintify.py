@@ -347,7 +347,7 @@ def justifyAssertions(pysatMode, verbLevel):
         dstart = datetime.datetime.now()
         proc = subprocess.Popen(args, stdout=lfile)
         proc.wait()
-        ddelta = datetime.datetime.now() - sstart
+        ddelta = datetime.datetime.now() - dstart
         dsecs = ddelta.seconds + 1e-6 * ddelta.microseconds
         if proc.returncode not in [0,1]:
             astring = " ".join(args)
