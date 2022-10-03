@@ -645,12 +645,16 @@ class AugmentedCnfWriter(CnfWriter):
         self.cubeCount = 0
 
     # Optionally have the DRAT file delete all but the first clause
-    def doProduct(self, var, args, dwriter = None):
+    def doProduct(self, var, args, dwriter = None, firstClauseOnly = False):
         self.expectedVariableCount = max(self.expectedVariableCount, var)
         lits = [var] + [-arg for arg in args]
         id = self.doClause(lits)
         for arg in args:
-            lits = [-var, arg]
+            if firstClauseOnly:
+                # Insert tautology as placeholder
+                lits = [-var, var]
+            else:
+                lits = [-var, arg]
             self.doClause(lits)
             if dwriter is not None:
                 dwriter.doDelete(lits)

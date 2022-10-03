@@ -169,9 +169,10 @@ def splitFiles(cnfName, cratName, pysatMode, verbLevel):
                 ilist = [int(r) for r in rest[:-1]]
                 var = ilist[0]
                 args = ilist[1:]
-                cnfWriter.doProduct(var, args, dwriter = dratWriter)
+                fco = not pysatMode
+                cnfWriter.doProduct(var, args, dwriter = dratWriter, firstClauseOnly = fco)
                 if not pysatMode:
-                    icnfWriter.doProduct(var, args)
+                    icnfWriter.doProduct(var, args, firstClauseOnly = fco)
             except:
                 print("ERROR: File %s, line #%d.  Couldn't parse product line '%s' in CRAT file" % (cratName, lineNumber, line))                
                 return
@@ -279,6 +280,9 @@ def getHint(cid):
     return hintList[ncid - hintStart]
 
 def filterDeletions(fnameSource, fnameDest):
+    passCount = 0
+    duplicateCount = 0
+    lastLine = ""
     try:
         infile = open(fnameSource, 'r')
     except Exception as ex:
@@ -290,12 +294,20 @@ def filterDeletions(fnameSource, fnameDest):
         print("ERROR: Filter program could not open output file '%s': %s" % (fnameDest, str(ex)))
         sys.exit(1)
     for line in infile:
+        if line == lastLine:
+            # Skip duplicate line
+            duplicateCount += 1
+            continue
+        lastLine = line
         while len(line) > 0 and line[0] == ' ':
             line = line[1:]
         if len(line) > 0 and line[0] != 'd':
             outfile.write(line)
+            passCount += 1
     infile.close()
     outfile.close()
+    if duplicateCount > 0:
+        print("HINTIFY: Filtered %d duplicate lines.  Kept %d lines" % (duplicateCount, passCount))
             
 
 def justifyAssertions(pysatMode, verbLevel):
