@@ -43,7 +43,7 @@ pigeon-sat-tseitin-$(N).cnf:
 	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s 2 | tee $*.crat_data
 
 .crat.hcrat:
-	$(INTERP) $(HINTIFY) -s 2 -i $*.cnf -p $< -o $@ | tee $*.hint_data
+	$(INTERP) $(HINTIFY) -d -s 2 -i $*.cnf -p $< -o $@ | tee $*.hint_data
 
 .hcrat.check_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@

@@ -1,6 +1,6 @@
 INTERP = python3
-D4 = ~/GitHub/d4/d4
-VLEVEL = 1
+D4 = ~/repos/d4/d4
+VLEVEL = 2
 VCLEVEL = 1
 HLEVEL = 2
 LHEIGHT = 2

@@ -587,7 +587,6 @@ class DratWriter(Writer):
         self.show(line)
         self.deletions += 1
 
-
 # Creating CNF
 class CnfWriter(Writer):
     clauseCount = 0
@@ -621,12 +620,15 @@ class CnfWriter(Writer):
     def variableCount(self):
         return len(self.vset)
 
-    def finish(self):
+    def finish(self, incremental = False):
         if self.isNull:
             return
         if self.outfile is None:
             return
-        self.show("p cnf %d %d" % (self.expectedVariableCount, self.clauseCount))
+        if incremental:
+            self.show("p inccnf")
+        else:
+            self.show("p cnf %d %d" % (self.expectedVariableCount, self.clauseCount))
         for line in self.outputList:
             self.show(line)
         self.outfile.close()
@@ -636,6 +638,12 @@ class CnfWriter(Writer):
 # Version that allows adding clauses for product operators
 class AugmentedCnfWriter(CnfWriter):
     
+    cubeCount = 0
+
+    def __init__(self, count, fname, verbLevel = 1):
+        CnfWriter.__init__(self, count, fname, verbLevel)
+        self.cubeCount = 0
+
     # Optionally have the DRAT file delete all but the first clause
     def doProduct(self, var, args, dwriter = None):
         self.expectedVariableCount = max(self.expectedVariableCount, var)
@@ -647,6 +655,13 @@ class AugmentedCnfWriter(CnfWriter):
             if dwriter is not None:
                 dwriter.doDelete(lits)
         return id
+
+    def doCube(self, lits):
+        slits = [str(-lit) for lit in lits] + ['0']
+        line = "a " + " ".join(slits)
+        self.outputList.append(line)
+        self.cubeCount += 1
+
 
 # Enable permuting of variables before emitting CNF
 class Permuter:
