@@ -31,10 +31,10 @@ psd-all: pigeon-sat-direct-$(N).cnf pigeon-sat-direct-$(N).nnf pigeon-sat-direct
 		> pigeon-sat-direct-$(N).data
 
 pigeon-sat-direct-$(N).cnf:
-	$(INTERP) $(PGEN) -n $(N) -v -r pigeon-sat-direct-$(N) -n $(N) -p $(N)
+	$(INTERP) $(PGEN) -n $(N) -r pigeon-sat-direct-$(N) -n $(N) -p $(N)
 
 pigeon-sat-tseitin-$(N).cnf:
-	$(INTERP) $(PGEN) -n $(N) -v -L -r pigeon-sat-tseitin-$(N) -n $(N) -p $(N)
+	$(INTERP) $(PGEN) -n $(N) -L -r pigeon-sat-tseitin-$(N) -n $(N) -p $(N)
 
 .SUFFIXES: .cnf .nnf .crat .hcrat .check_data
 
@@ -79,9 +79,9 @@ data:
 	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,Check secs" \
 		pst-nnf-nodes.csv pst-pog-nodes.csv pst-assertion-clauses.csv pst-justification-clauses.csv pst-total-clauses.csv \
 		pst-d4-seconds.csv \
-		pst-generate-seconds.csv pst-hintify-seconds.csv pst-check-seconds.csv > pst-split2-nj-data.csv
+		pst-generate-seconds.csv pst-hintify-seconds.csv pst-check-seconds.csv > pst-split2-cadical-data.csv
 	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,Check secs" \
 		psd-nnf-nodes.csv psd-pog-nodes.csv psd-assertion-clauses.csv psd-justification-clauses.csv psd-total-clauses.csv \
 		psd-d4-seconds.csv \
-		psd-generate-seconds.csv psd-hintify-seconds.csv psd-check-seconds.csv > psd-split2-nj-data.csv
+		psd-generate-seconds.csv psd-hintify-seconds.csv psd-check-seconds.csv > psd-split2-cadicalk-data.csv
 
