@@ -348,7 +348,7 @@ def justifyAssertions(pysatMode, verbLevel):
         proc = subprocess.Popen(args, stdout=lfile)
         proc.wait()
         ddelta = datetime.datetime.now() - sstart
-        dsecs = sdelta.seconds + 1e-6 * ddelta.microseconds
+        dsecs = ddelta.seconds + 1e-6 * ddelta.microseconds
         if proc.returncode not in [0,1]:
             astring = " ".join(args)
             print("ERROR: Running '%s' gave return code of %d" % (astring, proc.returncode))
