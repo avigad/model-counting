@@ -12,7 +12,8 @@ PGEN = $(BDIR)/gen_pigeon.py
 HINTIFY = ../hintify.py
 GRAB = ../../../tools/grab_data.py
 MERGE = ../../../tools/merge_csv.py
-KEEP=-k
+#KEEP=-k
+KEEP=
 
 pst: pigeon-sat-tseitin-$(N).cnf
 psd: pigeon-sat-direct-$(N).cnf
