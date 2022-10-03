@@ -66,8 +66,8 @@ data:
 	$(INTERP) $(GRAB) "total clauses" pigeon-sat-tseitin-*.data > pst-total-clauses.csv
 	$(INTERP) $(GRAB)  "unhinted assertions" pigeon-sat-direct-*.data > psd-assertion-clauses.csv
 	$(INTERP) $(GRAB)  "unhinted assertions" pigeon-sat-tseitin-*.data > pst-assertion-clauses.csv
-	$(INTERP) $(GRAB)  "JUSTIFY:    TOTAL:" pigeon-sat-direct-*.data > psd-justification-clauses.csv
-	$(INTERP) $(GRAB)  "JUSTIFY:    TOTAL:" pigeon-sat-tseitin-*.data > pst-justification-clauses.csv
+	$(INTERP) $(GRAB)  -1 "unhinted assertions" pigeon-sat-direct-*.data > psd-justification-clauses.csv
+	$(INTERP) $(GRAB)  -1 "unhinted assertions" pigeon-sat-tseitin-*.data > pst-justification-clauses.csv
 	$(INTERP) $(GRAB)   "Final time:" pigeon-sat-direct-*.data > psd-d4-seconds.csv
 	$(INTERP) $(GRAB)   "Final time:" pigeon-sat-tseitin-*.data > pst-d4-seconds.csv
 	$(INTERP) $(GRAB) "GEN: Elapsed time" pigeon-sat-direct-*.data > psd-generate-seconds.csv
