@@ -50,6 +50,9 @@ def addData(fname, first = False):
                 eprint("File %s, row %d.  Expecting key '%s'.  Got '%s'." % (fname, row, keys[row-1], key))
                 sys.exit(1)
             lines[row-1] += "," + val
+    while row < len(lines):
+        lines[row] += ","
+        row += 1
     infile.close()
         
 def build(lstring, flist):
