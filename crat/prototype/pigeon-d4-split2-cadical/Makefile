@@ -92,14 +92,14 @@ data:
 	$(INTERP) $(GRAB) 2 "HINTIFY: Cadical" pigeon-sat-tseitin-*.data > pst-drat-trim-seconds.csv
 	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-direct-*.data > psd-check-seconds.csv
 	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-tseitin-*.data > pst-check-seconds.csv
-	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,(Cadical),(Drat-Trim),Hint secs,Check secs" \
+	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,(Cadical),(Drat-Trim),Check secs" \
 		pst-nnf-nodes.csv pst-pog-nodes.csv pst-assertion-clauses.csv pst-justification-clauses.csv pst-total-clauses.csv \
 		pst-d4-seconds.csv \
-		pst-generate-seconds.csv pst-cadical-seconds.csv pst-drat-trim-seconds.csv pst-hintify-seconds.csv \
+		pst-generate-seconds.csv pst-hintify-seconds.csv  pst-cadical-seconds.csv pst-drat-trim-seconds.csv \
 		pst-check-seconds.csv > pst-split2-cadical-data.csv
-	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,(Cadical),(Drat-Trim),Hint secs,Check secs" \
+	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,(Cadical),(Drat-Trim),Check secs" \
 		psd-nnf-nodes.csv psd-pog-nodes.csv psd-assertion-clauses.csv psd-justification-clauses.csv psd-total-clauses.csv \
 		psd-d4-seconds.csv \
-		psd-generate-seconds.csv psd-cadical-seconds.csv psd-drat-trim-seconds.csv psd-hintify-seconds.csv \
+		psd-generate-seconds.csv psd-hintify-seconds.csv psd-cadical-seconds.csv psd-drat-trim-seconds.csv  \
 		psd-check-seconds.csv > psd-split2-cadical-data.csv
 
