@@ -1278,7 +1278,7 @@ class Pog:
                     continue
                 print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeCounts[t]))
                 nnode += self.nodeCounts[t]
-            print("GEN:    TOTAL: %d" % nnode)
+            print("GEN:   POG TOTAL: %d" % nnode)
             print("GEN: Total defining clauses: %d" % ndclause)
             nvnode = 0
             print("GEN: Node visits during proof generation (by node type)")
@@ -1287,7 +1287,7 @@ class Pog:
                     continue
                 print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeVisits[t]))
                 nvnode += self.nodeVisits[t]
-            print("GEN:    TOTAL: %d" % nvnode)
+            print("GEN:   VIS TOTAL: %d" % nvnode)
             nldclause = self.lemmaShadowNodeClauseCount
             nlaclause = self.lemmaApplicationClauseCount
             if self.lemmaCount > 0:
@@ -1305,7 +1305,7 @@ class Pog:
                     print("GEN:    %d : %d" % (count, nc))
             if len(singletons) > 1:
                 print("GEN:    1 each for counts %s" % ", ".join(singletons))
-            print("GEN:    TOTAL: %d" % nlclause)
+            print("GEN:   LIT TOTAL: %d" % nlclause)
             nnclause = 0
             print("GEN: RUP clauses for node justification (by node type):")
             for t in range(NodeType.tcount):
@@ -1313,7 +1313,7 @@ class Pog:
                     continue
                 print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeClauseCounts[t]))
                 nnclause += self.nodeClauseCounts[t]
-            print("GEN:    TOTAL: %d" % nnclause)
+            print("GEN:   RUP TOTAL: %d" % nnclause)
             niclause = len(self.inputClauseList)
             nclause = niclause + ndclause + nldclause + nlaclause + nlclause + nnclause
             print("GEN: Total clauses: %d input + %d defining + %d lemma defining + %d lemma application + %d literal justification + %d node justifications = %d" % (niclause, ndclause, nldclause, nlaclause, nlclause, nnclause, nclause))

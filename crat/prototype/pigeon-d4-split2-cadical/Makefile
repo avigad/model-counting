@@ -30,6 +30,10 @@ psd-all: pigeon-sat-direct-$(N).cnf pigeon-sat-direct-$(N).nnf pigeon-sat-direct
 		pigeon-sat-direct-$(N).hint_data pigeon-sat-direct-$(N).check_data \
 		> pigeon-sat-direct-$(N).data
 
+pst-crat: pigeon-sat-tseitin-$(N).cnf pigeon-sat-tseitin-$(N).crat
+psd-crat: pigeon-sat-direct-$(N).cnf  pigeon-sat-direct-$(N).crat
+
+
 pigeon-sat-direct-$(N).cnf:
 	$(INTERP) $(PGEN) -n $(N) -r pigeon-sat-direct-$(N) -n $(N) -p $(N)
 
@@ -60,8 +64,8 @@ superclean: clean
 data:
 	$(INTERP) $(GRAB) -1 "Input NNF" pigeon-sat-direct-*.data > psd-nnf-nodes.csv
 	$(INTERP) $(GRAB) -1 "Input NNF" pigeon-sat-tseitin-*.data > pst-nnf-nodes.csv
-	$(INTERP) $(GRAB) "Generated POG" pigeon-sat-direct-*.data > psd-pog-nodes.csv
-	$(INTERP) $(GRAB) "Generated POG" pigeon-sat-tseitin-*.data > pst-pog-nodes.csv
+	$(INTERP) $(GRAB) "POG TOTAL" pigeon-sat-direct-*.data > psd-pog-nodes.csv
+	$(INTERP) $(GRAB) "POG TOTAL:" pigeon-sat-tseitin-*.data > pst-pog-nodes.csv
 	$(INTERP) $(GRAB) "total clauses" pigeon-sat-direct-*.data > psd-total-clauses.csv
 	$(INTERP) $(GRAB) "total clauses" pigeon-sat-tseitin-*.data > pst-total-clauses.csv
 	$(INTERP) $(GRAB)  "unhinted assertions" pigeon-sat-direct-*.data > psd-assertion-clauses.csv
