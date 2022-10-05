@@ -80,22 +80,22 @@ GEN:    var: 112
 GEN:    neg: 112
 GEN:    conjunct: 5630
 GEN:    disjunct: 2815
-GEN:    TOTAL: 8669
+GEN:   POG TOTAL: 8669
 GEN: Total defining clauses: 81916
 GEN: Node visits during proof generation (by node type)
 GEN:    conjunct: 5630
 GEN:    disjunct: 2815
-GEN:    TOTAL: 8445
+GEN:   VIS TOTAL: 8445
 GEN: Lemmas:  460 definitions.  3259 shadow nodes (11925 defining clauses), 3189 applications
 GEN: Literal justification clause counts (by number of clauses in justification:
 GEN:    1 : 74915
-GEN:    TOTAL: 74915
+GEN:   LIT TOTAL: 74915
 GEN: RUP clauses for node justification (by node type):
 GEN:    conjunct: 1041
 GEN:    disjunct: 5630
-GEN:    TOTAL: 6671
+GEN:   RUP TOTAL: 6671
 GEN: Total clauses: 208 input + 81916 defining + 11925 lemma defining + 19102 lemma application + 74915 literal justification + 6671 node justifications = 194737
-GEN: Elapsed time for generation: 6.94 seconds
+GEN: Elapsed time for generation: 6.93 seconds
 s UNSATISFIABLE
 HINTIFY: Input CNF file pigeon-sat-tseitin-8.cnf had 112 variables and 208 clauses
 HINTIFY: DRAT file tmp_pigeon-sat-tseitin-8.drat has 74915 clause additions

@@ -31,7 +31,15 @@ psd-all: pigeon-sat-direct-$(N).cnf pigeon-sat-direct-$(N).nnf pigeon-sat-direct
 		> pigeon-sat-direct-$(N).data
 
 pst-crat: pigeon-sat-tseitin-$(N).cnf pigeon-sat-tseitin-$(N).crat
+	cat pigeon-sat-tseitin-$(N).nnf_data pigeon-sat-tseitin-$(N).crat_data \
+		pigeon-sat-tseitin-$(N).hint_data pigeon-sat-tseitin-$(N).check_data \
+		> pigeon-sat-tseitin-$(N).data
+
+
 psd-crat: pigeon-sat-direct-$(N).cnf  pigeon-sat-direct-$(N).crat
+	cat pigeon-sat-direct-$(N).nnf_data pigeon-sat-direct-$(N).crat_data \
+		pigeon-sat-direct-$(N).hint_data pigeon-sat-direct-$(N).check_data \
+		> pigeon-sat-direct-$(N).data
 
 
 pigeon-sat-direct-$(N).cnf:

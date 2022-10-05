@@ -79,20 +79,20 @@ GEN:    var: 64
 GEN:    neg: 64
 GEN:    conjunct: 19608
 GEN:    disjunct: 9804
-GEN:    TOTAL: 29540
+GEN:   POG TOTAL: 29540
 GEN: Total defining clauses: 219496
 GEN: Node visits during proof generation (by node type)
 GEN:    conjunct: 19608
 GEN:    disjunct: 9804
-GEN:    TOTAL: 29412
+GEN:   VIS TOTAL: 29412
 GEN: Lemmas:  1569 definitions.  5310 shadow nodes (20149 defining clauses), 10825 applications
 GEN: Literal justification clause counts (by number of clauses in justification:
 GEN:    1 : 157820
-GEN:    TOTAL: 157820
+GEN:   LIT TOTAL: 157820
 GEN: RUP clauses for node justification (by node type):
 GEN:    conjunct: 2096
 GEN:    disjunct: 19608
-GEN:    TOTAL: 21704
+GEN:   RUP TOTAL: 21704
 GEN: Total clauses: 232 input + 219496 defining + 20149 lemma defining + 36777 lemma application + 157820 literal justification + 21704 node justifications = 456178
 GEN: Elapsed time for generation: 15.35 seconds
 s UNSATISFIABLE
