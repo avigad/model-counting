@@ -232,6 +232,8 @@ def withTraces (f : Array String → String) (x : CheckerM Unit) : CheckerM Unit
     try x
     finally
       modify fun st => { st with trace := prevTrace.push <| f st.trace }
+  else
+    x
 
 def log_ (msg : Unit → String) : CheckerM Unit := do
   modify fun st =>
