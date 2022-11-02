@@ -160,6 +160,7 @@ end CountingScheme
 
 structure CheckerState where
   inputCnf : Array (Array Int)
+  verbose : Bool := false
   originalVars : Nat := inputCnf.flatten.map Int.natAbs |>.getMax? (· < ·) |>.getD 0
   /-- The clause database. -/
   clauseDb' : ClauseDb Nat Int := {}
@@ -226,13 +227,20 @@ namespace CheckerState
 abbrev CheckerM := ExceptT CheckerError <| StateM CheckerState
 
 def withTraces (f : Array String → String) (x : CheckerM Unit) : CheckerM Unit := do
-  let prevTrace ← modifyGet fun st => (st.trace, { st with trace := #[] })
-  try x
-  finally
-    modify fun st => { st with trace := prevTrace.push <| f st.trace }
+  if (← get).verbose then
+    let prevTrace ← modifyGet fun st => (st.trace, { st with trace := #[] })
+    try x
+    finally
+      modify fun st => { st with trace := prevTrace.push <| f st.trace }
 
-def log (msg : Unit → String) : CheckerM Unit := do
-  modify fun st => { st with trace := st.trace.push <| msg () }
+def log_ (msg : Unit → String) : CheckerM Unit := do
+  modify fun st =>
+    if st.verbose then { st with trace := st.trace.push <| msg () }
+    else st
+
+syntax "log! " interpolatedStr(term) : term
+macro_rules
+  | `(log! $interpStr) => `(log_ fun _ => s!$interpStr)
 
 def addClause (idx : Nat) (C : Array Int) (schemaDef : Bool) : CheckerM Unit := do
   let st ← get
@@ -244,14 +252,14 @@ def addClause (idx : Nat) (C : Array Int) (schemaDef : Bool) : CheckerM Unit := 
             schemaDefs := st.schemaDefs.insert idx }
   else
     set { st with clauseDb' := st.clauseDb'.addClause idx C }
-  log fun _ => s!"adding clause {idx} ↦ {C}"
+  log! "adding clause {idx} ↦ {C}"
 
 def delClause (idx : Nat) : CheckerM Unit := do
   let st ← get
   if !st.clauseDb'.contains idx then
     throw <| .wrongClauseIdx idx
   set { st with clauseDb' := st.clauseDb'.delClause idx }
-  log fun _ => s!"deleting ({st.clauseDb'.getClause idx})"
+  log! "deleting ({st.clauseDb'.getClause idx})"
 
 def getClause (idx : Nat) : CheckerM (Array Int) := do
   let st ← get
@@ -312,7 +320,7 @@ def checkAtWithHints (C : Array Int) (hints : Array Nat) : CheckerM Unit := do
   let st ← get
   match st.clauseDb'.unitPropWithHints (C.toList.map Int.neg) hints with
   | .contradiction =>
-    log fun _ => s!"{C} implied by UP"
+    log! "{C} implied by UP"
     return
   | .extended τ => throw <| .upNoContradiction τ
   | .wrongHint hint => throw <| .hintNotUnit hint
@@ -362,7 +370,7 @@ def update (step : CratStep Nat Nat Int) : CheckerM Unit :=
 
 def checkFinalState : CheckerM Unit := do
   let st ← get
-  log fun _ => s!"final clauses:\n\t{st.clauseDb'}"
+  log! "final clauses:\n\t{st.clauseDb'}"
 
   -- Check that the final state of the database is just one unit clause
   -- and everything else is schema definitions. In particular, all input
@@ -392,10 +400,10 @@ def checkAux (pf : List (CratStep Nat Nat Int)) : ExceptT String (StateM Checker
       update step
   ExceptT.adapt toString <| checkFinalState
 
-def check (cnf : Array (Array Int)) (pf : List (CratStep Nat Nat Int)) (traces := false) : IO Unit := do
-  let mut st : CheckerState := { inputCnf := cnf }
+def check (cnf : Array (Array Int)) (pf : List (CratStep Nat Nat Int)) (verbose := false) : IO Unit := do
+  let mut st : CheckerState := { inputCnf := cnf, verbose }
   let (ret, st') := checkAux pf |>.run st |>.run
-  if traces then
+  if verbose then
     for t in st'.trace do
       IO.println t
   if let .error e := ret then

@@ -27,7 +27,7 @@ def runCheckCmd (p : Cli.Parsed) : IO UInt32 := do
     let pf ← CratStep.readDimacsFile cratFname.value
     IO.print "done.\nChecking.."
     (← IO.getStdout).flush
-    CheckerState.check cnf pf.toList (traces := p.hasFlag "verbose")
+    CheckerState.check cnf pf.toList (verbose := p.hasFlag "verbose")
     IO.println "\nPROOF SUCCESSFUL"
     return 0
   catch e =>
