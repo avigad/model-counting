@@ -245,23 +245,22 @@ macro_rules
   | `(log! $interpStr) => `(log_ fun _ => s!$interpStr)
 
 def addClause (idx : Nat) (C : Array Int) (schemaDef : Bool) : CheckerM Unit := do
-  let st ← get
-  if st.clauseDb'.contains idx then
+  if (← get).clauseDb'.contains idx then
     throw <| .duplicateClauseIdx idx
-  if schemaDef then
-    set { st with
-            clauseDb' := st.clauseDb'.addClause idx C
-            schemaDefs := st.schemaDefs.insert idx }
-  else
-    set { st with clauseDb' := st.clauseDb'.addClause idx C }
   log! "adding clause {idx} ↦ {C}"
+  modify fun st =>
+    if schemaDef then
+      { st with
+        clauseDb' := st.clauseDb'.addClause idx C
+        schemaDefs := st.schemaDefs.insert idx }
+    else
+      { st with clauseDb' := st.clauseDb'.addClause idx C }
 
 def delClause (idx : Nat) : CheckerM Unit := do
-  let st ← get
-  if !st.clauseDb'.contains idx then
+  if !(← get).clauseDb'.contains idx then
     throw <| .wrongClauseIdx idx
-  set { st with clauseDb' := st.clauseDb'.delClause idx }
-  log! "deleting ({st.clauseDb'.getClause idx})"
+  log! "deleting {(← get).clauseDb'.getClause idx}"
+  modify fun st => { st with clauseDb' := st.clauseDb'.delClause idx }
 
 def getClause (idx : Nat) : CheckerM (Array Int) := do
   let st ← get
