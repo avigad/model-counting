@@ -5,10 +5,11 @@ package ProofChecker
 
 lean_lib ProofChecker
 
-require Cli from git"https://github.com/mhuisi/lean4-cli"@"nightly"
 require std from git"https://github.com/leanprover/std4"@"main"
+require mathlib from git"https://github.com/leanprover-community/mathlib4"@"master"
+require Cli from git"https://github.com/mhuisi/lean4-cli"@"nightly"
 
-@[defaultTarget]
+@[default_target]
 lean_exe checker {
   root := `Main
 }
