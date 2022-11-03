@@ -33,7 +33,7 @@ def usage(name):
     print("Usage: %s [-h] [-d] [-k] [-s SMODE] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
     print(" -h           Print this message")
     print(" -k           Keep intermediate files")
-    print(" -y           PySAT Mode: Don't use Cadical")
+    print(" -d           PySAT Mode: Don't use Cadical")
     print(" -s SMODE     Set mode for splitting proof: 1=all steps included (default) 2=requires SAT solver")
     print(" -v VLEVEL    Set verbosity level (0-3)")
     print(" -i FILE.cnf  Input CNF")
