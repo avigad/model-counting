@@ -27,9 +27,10 @@ import getopt
 import datetime
 
 def usage(name):
-    print("Usage: %s [-v] [-L] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn] [-o FILE.crat]" % name)
+    print("Usage: %s [-v] [-L] [-H] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn] [-o FILE.crat]" % name)
     print("   -v VLEVEL    Set verbosity level (0-3)")
     print("   -L           Lax mode: Don't attempt validation of *'ed hints")
+    print("   -H           Hints-required mode: Don't allow *'ed hints")
     print("   -w WEIGHTS   Provide colon-separated set of input weights.")
     print("                Each should be between 0 and 100 (will be scaled by 1/100)")
     print("   -o FILE.crat Produce CRAT output file with all hints present")
@@ -504,12 +505,14 @@ class ClauseManager:
     root = None
     verbose = False
     laxMode = False
+    requireHintsMode = False
     uncheckedCount = 0
 
-    def __init__(self, clauseCount, verbose, laxMode):
+    def __init__(self, clauseCount, verbose, laxMode, requireHintsMode):
         self.inputClauseCount = clauseCount
         self.verbose = verbose
         self.laxMode = laxMode
+        self.requireHintsMode = requireHintsMode
         self.uncheckedCount = 0
         self.clauseDict = {}
         self.definingClauseSet = set([])
@@ -666,6 +669,8 @@ class ClauseManager:
     def checkRup(self, clause, hints):
         self.totalHintCount += 1
         if len(hints) == 1 and hints[0] == '*':
+            if self.requireHintsMode:
+                return (False, "RUP failed for clause %s: No hints provided" % (showClause(clause)), hints)
             self.addedHintCount += 1
             if self.laxMode:
                 self.uncheckedCount += 1
@@ -862,10 +867,10 @@ class Prover:
     cratWriter = None
 
 
-    def __init__(self, creader, verbose = False, laxMode = False, cratWriter=None):
+    def __init__(self, creader, verbose = False, laxMode = False, requireHintsMode=False, cratWriter=None):
         self.verbose = verbose
         self.lineNumber = 0
-        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode)
+        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode, requireHintsMode)
         self.omgr = OperationManager(self.cmgr, creader.nvar)
         self.cratWriter = cratWriter
         self.failed = False
@@ -1138,8 +1143,9 @@ def run(name, args):
     cratName = None
     verbLevel = 1
     laxMode = False
+    requireHintsMode = False
     weights = None
-    optList, args = getopt.getopt(args, "hv:Li:p:w:o:")
+    optList, args = getopt.getopt(args, "hv:LHi:p:w:o:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -1148,6 +1154,8 @@ def run(name, args):
             verbLevel = int(val)
         elif opt == '-L':
             laxMode = True
+        elif opt == '-H':
+            requireHintsMode = True
         elif opt == '-i':
             cnfName = val
         elif opt == '-p':
@@ -1184,7 +1192,7 @@ def run(name, args):
     cratWriter = None
     if cratName is not None:
         cratWriter = CratWriter(creader.nvar, creader.clauses, cratName, verbLevel)
-    prover = Prover(creader, verbose, laxMode, cratWriter)
+    prover = Prover(creader, verbose, laxMode, requireHintsMode, cratWriter)
     prover.prove(proofName)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
