@@ -6,10 +6,12 @@ from pysat.solvers import Solver
 import readwrite
 
 # Global options
-# Should input clauses stored in dictionary?
+# Should input clauses be stored in dictionary?
 mapInputClauseSetting = True
 # What categories of clauses should be checked?
 maxCategorySetting = 0
+# Should context be extended each time literal added?
+extendContext = True
 
 # Use glucose4 as solver
 solverId = 'g4'
@@ -964,7 +966,8 @@ class Pog:
         for c in root.children:
             clit = c.getLit()
             if clit is None:
-                chints = self.validateUp(c, ncontext, root)
+                ucontext = ncontext if extendContext else context
+                chints = self.validateUp(c, ucontext, root)
                 hints += chints
                 vcount += 1
                 if self.verbLevel >= 3:
