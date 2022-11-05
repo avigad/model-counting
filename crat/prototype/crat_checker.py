@@ -685,7 +685,10 @@ class ClauseManager:
                 return (False, "RUP failed: %s" % msg, hints)
             uresult, ulit = self.unitProp(rclause, unitSet)
             if uresult == "none":
-                return (False, "RUP failed for clause %s: No unit literal found in clause #%d %s" % (showClause(clause) ,id, showClause(rclause)), hints)
+                print ("WARNING.  RUP failed for clause %s: No unit literal found in clause #%d (= %s)" % (showClause(clause) ,id, showClause(rclause)))
+                unitList = sorted(list(unitSet), key = lambda lit : abs(lit))
+                print ("Learned unit literals = %s" % unitList)
+                return (False, "RUP failed for clause %s: No unit literal found in clause #%d (= %s)" % (showClause(clause) ,id, showClause(rclause)), hints)
             elif uresult == "satisfied":
                 return (False, "RUP failed for clause %s: Satisfied literal %s in clause #%d. RUP clause:%s" % (showClause(clause), ulit, id, showClause(rclause)), hints)
             elif uresult == "conflict":
