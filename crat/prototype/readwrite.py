@@ -999,7 +999,6 @@ class CratWriter(SplitWriter):
         return v
 
     def finalizeAnd(self, ilist, xvar):
-        # Never add operations to lower after split
         step = self.incrStep()
         self.doLine([step, 'p', xvar] + ilist + [0])
         cpos = [xvar] + [-i for i in ilist]
