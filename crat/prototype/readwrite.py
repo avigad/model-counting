@@ -639,10 +639,13 @@ class CnfWriter(Writer):
 class AugmentedCnfWriter(CnfWriter):
     
     cubeCount = 0
+    tautologyCount = 0
 
     def __init__(self, count, fname, verbLevel = 1):
         CnfWriter.__init__(self, count, fname, verbLevel)
         self.cubeCount = 0
+        self.tautologyCount = 0
+
 
     # Optionally have the DRAT file delete all but the first clause
     def doProduct(self, var, args, dwriter = None, firstClauseOnly = False):
@@ -653,6 +656,7 @@ class AugmentedCnfWriter(CnfWriter):
             if firstClauseOnly:
                 # Insert tautology as placeholder
                 lits = [-var, var]
+                self.tautologyCount += 1
             else:
                 lits = [-var, arg]
             self.doClause(lits)

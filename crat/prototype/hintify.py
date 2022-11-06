@@ -204,7 +204,8 @@ def splitFiles(cnfName, cratName, pysatMode, verbLevel):
         dratWriter.finish()
         print("HINTIFY: DRAT file %s has %d clause additions" % (dratName, dratWriter.additions))
         icnfWriter.finish(incremental = True)
-        print("HINTIFY: Incremental CNF file %s has %d variables (max=%d), %d clauses, and %d assumptions" % (icnfName, vcount, vmax, icnfWriter.clauseCount, icnfWriter.cubeCount))
+        print("HINTIFY: Incremental CNF file %s has %d variables (max=%d), %d clauses (including %d tautologies), and %d assumptions" % 
+              (icnfName, vcount, vmax, icnfWriter.clauseCount, icnfWriter.tautologyCount, icnfWriter.cubeCount))
 
 def fixLine(line):
     line = line.decode('utf-8')
