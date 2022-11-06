@@ -672,8 +672,9 @@ class Pog:
     # Constant Nodes
     leaf1 = None
     leaf0 = None
-    # Mapping (ntype, arg1, ..., argk) to nodes
+    # Mappings (ntype, arg1, ..., argk) to nodes
     uniqueTable = {}
+    uniqueArgTable = {}
     # All Nodes
     nodes = []
     # Mapping from xlit to node
@@ -711,6 +712,7 @@ class Pog:
         self.hintLevel = hintLevel
         self.lemmaHeight = lemmaHeight
         self.uniqueTable = {}
+        self.uniqueArgTable = {}
         self.inputClauseList = readwrite.cleanClauses(inputClauseList)
         self.cwriter = readwrite.CratWriter(variableCount, inputClauseList, fname, verbLevel)
         self.reasoner = Reasoner(inputClauseList, noSolver = splitMode >= 2)
@@ -734,11 +736,15 @@ class Pog:
             self.store(v)
             self.addNegation(v)
         
-    def lookup(self, ntype, children):
+    def lookup(self, ntype, children, forLemma = False):
         n = ProtoNode(ntype, children)
         key = n.key()
-        if key in self.uniqueTable:
-            return self.uniqueTable[key]
+        if forLemma:
+            if key in self.uniqueArgTable:
+                return self.uniqueArgTable[key]
+        else:
+            if key in self.uniqueTable:
+                return self.uniqueTable[key]
         return None
 
     # Return node with associated xlit
@@ -749,8 +755,10 @@ class Pog:
 
     def store(self, node, forLemma=False):
         key = node.key()
-        self.uniqueTable[key] = node
-        if not forLemma:
+        if forLemma:
+            self.uniqueArgTable[key] = node
+        else:
+            self.uniqueTable[key] = node
             self.nodes.append(node)
         self.nodeMap[node.xlit] = node
 
@@ -800,7 +808,7 @@ class Pog:
             ln = self.addConjunction(lchildren[1:])
             ln.literalGroup = True
             children =  [lchildren[0], ln] + ntchildren
-        n = self.lookup(NodeType.conjunction, children)
+        n = self.lookup(NodeType.conjunction, children, forLemma=forLemma)
         if n is None:
             xlit = self.cwriter.newXvar()
             n = Conjunction(children, xlit)
