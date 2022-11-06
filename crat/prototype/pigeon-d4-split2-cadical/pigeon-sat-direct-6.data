@@ -76,49 +76,50 @@ GEN: Input NNF DAG has 36 inputs, 1715 nodes
 
 GEN: ITE extraction:
 GEN: NNF DAG with ITEs has 1461 nodes
-GEN: File 'pigeon-sat-direct-6.crat' has 2318 variables (1354 used) and 15099 steps
+GEN: File 'pigeon-sat-direct-6.crat' has 2546 variables (1582 used) and 14253 steps
 GEN: Nodes by type
 GEN:    var: 36
 GEN:    neg: 36
-GEN:    conjunct: 854
+GEN:    conjunct: 1082
 GEN:    disjunct: 427
-GEN:   POG TOTAL: 1353
-GEN: Total defining clauses: 8432
+GEN:   POG TOTAL: 1581
+GEN: Total defining clauses: 8649
 GEN: Node visits during proof generation (by node type)
-GEN:    conjunct: 854
+GEN:    conjunct: 1159
 GEN:    disjunct: 427
-GEN:   VIS TOTAL: 1281
+GEN:   VIS TOTAL: 1586
 GEN: Lemmas:  43 definitions.  90 shadow nodes (278 defining clauses), 219 applications
+GEN: Calls to SAT Solver: 0
 GEN: Literal justification clause counts (by number of clauses in justification:
-GEN:    1 : 4852
-GEN:   LIT TOTAL: 4852
+GEN:    1 : 3561
+GEN:   LIT TOTAL: 3561
 GEN: RUP clauses for node justification (by node type):
-GEN:    conjunct: 82
+GEN:    conjunct: 310
 GEN:    disjunct: 854
-GEN:   RUP TOTAL: 936
-GEN: Total clauses: 96 input + 8432 defining + 278 lemma defining + 665 lemma application + 4852 literal justification + 936 node justifications = 15259
+GEN:   RUP TOTAL: 1164
+GEN: Total clauses: 96 input + 8649 defining + 278 lemma defining + 665 lemma application + 3561 literal justification + 1164 node justifications = 14413
 GEN: Elapsed time for generation: 0.31 seconds
 s UNSATISFIABLE
 HINTIFY: Input CNF file pigeon-sat-direct-6.cnf had 36 variables and 96 clauses
-HINTIFY: DRAT file tmp_pigeon-sat-direct-6.drat has 4852 clause additions
-HINTIFY: Incremental CNF file tmp_pigeon-sat-direct-6.icnf has 73 variables (max=2318), 214 clauses, and 4852 assumptions
-HINTIFY: Filtered 318 duplicate lines.  Kept 6029 lines
+HINTIFY: DRAT file tmp_pigeon-sat-direct-6.drat has 3561 clause additions
+HINTIFY: Incremental CNF file tmp_pigeon-sat-direct-6.icnf has 301 variables (max=2546), 1723 clauses, and 3561 assumptions
+HINTIFY: Filtered 1402 duplicate lines.  Kept 4741 lines
 HINTIFY: Cadical 0.04 seconds.  Drat-trim 0.06 seconds
-HINTIFY: 4852 unhinted assertions --> 2922 hinted assertions
-HINTIFY: 4852 unhinted deletions --> 2922 hinted deletions
-HINTIFY: 672 assertions, 672 deletions with changed hints
-HINTIFY: Elapsed seconds for hint generation: 0.06 split files + 0.10 justify/DRAT-TRIM + 0.14 insert hints = 0.30
+HINTIFY: 3561 unhinted assertions --> 2762 hinted assertions
+HINTIFY: 3561 unhinted deletions --> 2762 hinted deletions
+HINTIFY: 668 assertions, 668 deletions with changed hints
+HINTIFY: Elapsed seconds for hint generation: 0.05 split files + 0.10 justify/DRAT-TRIM + 0.12 insert hints = 0.27
 CHECKER: Read 96 clauses from file pigeon-sat-direct-6.cnf
 CHECKER: PROOF SUCCESSFUL
-CHECKER: 13169 total clauses
-CHECKER: 13169 maximum live clauses
-CHECKER: 9568 total hints
+CHECKER: 13454 total clauses
+CHECKER: 13454 maximum live clauses
+CHECKER: 9704 total hints
 CHECKER: 0 added hints
 CHECKER: Command occurences:
-CHECKER:      a   : 4523
-CHECKER:     dc   : 4618
-CHECKER:      p   : 891
+CHECKER:      a   : 4591
+CHECKER:     dc   : 4686
+CHECKER:      p   : 1119
 CHECKER:      s   : 427
-CHECKER:     TOTAL: 10459
+CHECKER:     TOTAL: 10823
 CHECKER: Elapsed time for check: 0.24 seconds
 CHECKER: Unweighted count = 720
