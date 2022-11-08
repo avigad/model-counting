@@ -29,15 +29,30 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <sys/time.h>
+#include <limits.h>
+
 
 #define ERROUT stdout
 
 /* Options */
-int verb_level = 1;
+int verb_level = 3;
 
 /* Information for error reporting */
 char *current_file = "";
 int line_count = 0;
+
+/*============================================
+  Utility functions
+============================================*/
+
+double tod() {
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) == 0)
+	return (double) tv.tv_sec + 1e-6 * tv.tv_usec;
+    else
+	return 0.0;
+}
 
 
 /*============================================
@@ -300,7 +315,7 @@ typedef enum { PHASE_0, PHASE_1, PHASE_NONE } phase_t;
   Any entry with value < |lset_generation| indicates neither literal in set
  */
 
-int lset_generation = 1;
+int lset_generation = 0;
 int *lset_array = NULL;
 size_t lset_asize = 0;
 
@@ -703,6 +718,93 @@ void clause_show_all(FILE *out) {
 }
 
 /*============================================
+  RUP
+============================================*/
+
+#define RUP_CONFLICT INT_MAX
+#define RUP_STALL 0
+
+void rup_error(char *msg) {
+    fprintf(ERROUT, "ERROR: File %s, Line %d.  RUP error in function %s\n", current_file, line_count+1, msg);
+    exit(1);
+}
+
+
+/* Initialize lset to complement of literals */
+void rup_setup(int *lits) {
+    lset_clear();
+    int lit;
+    while ((lit = *lits) != 0) {
+	lset_add_lit(-lit);
+	lits++;
+    }
+}
+
+int rup_unit_prop(int cid) {
+    int *lits = clause_locate(cid);
+    if (lits == NULL) {
+	fprintf(ERROUT, "Clause #%d deleted or never existed\n", cid);
+	rup_error("rup_unit_prop");
+    }
+    int unit = RUP_CONFLICT;
+    int lit;
+    while ((lit = *lits) != 0) {
+	lits++;
+	int var = IABS(lit);
+	int rlit = lset_get_lit(var);
+	if (rlit == lit)
+	    return RUP_STALL;
+	else if (rlit == -lit)
+	    continue;
+	else if (unit == RUP_CONFLICT)
+	    unit = lit;
+	else
+	    return RUP_STALL;
+    }
+    return unit;
+}
+
+
+/* Run RUP on hints from file.  Assume already set up  */
+void rup_run() {
+    bool conflict = false;
+    int steps = 0;
+    while (true) {
+	token_t token = token_next();
+	if (token != TOK_INT) {
+	    fprintf(ERROUT, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
+	    rup_error("rup_run");
+	} else if (token_value == 0) {
+	    if (!conflict) {
+		fprintf(ERROUT, "RUP failure.  Didn't have conflict on final clause\n");
+		rup_error("rup_run");
+	    } else if (verb_level >= 3) {
+		printf("Line %d.  RUP succeeded in %d steps\n", line_count+1, steps);
+	    }
+	    return;
+	} else {
+	    int cid = token_value;
+	    int unit = rup_unit_prop(cid);
+	    steps ++;
+	    if (unit == RUP_CONFLICT)
+		conflict = true;
+	    else if (unit == RUP_STALL) {
+		fprintf(ERROUT, "RUP failure.  Clause %d did not cause unit propagation\n", cid);
+		if (verb_level >= 2) {
+		    fprintf(ERROUT, "Added literals: ");
+		    lset_show(ERROUT);
+		    fprintf(ERROUT, "\n");
+		}
+		rup_error("rup_run");
+	    } else
+		lset_add_lit(unit);
+	}
+
+    }
+}
+
+
+/*============================================
   Processing files
 ============================================*/
 
@@ -786,7 +888,7 @@ void cnf_read(char *fname) {
     }
     token_finish();
     if (verb_level >= 1) {
-	printf("Read CNF file with %d variables and %d clauses\n", input_variable_count, input_clause_count);
+	printf("CHECK: Read CNF file with %d variables and %d clauses\n", input_variable_count, input_clause_count);
     }
 }
 
@@ -941,7 +1043,7 @@ void crat_delete_clause() {
 void crat_add_product(int cid) {
     token_t token = token_next();
     if (token != TOK_INT) {
-	fprintf(ERROUT, "Expected operation number.  Got '%s' instead\n", token_last);
+	fprintf(ERROUT, "Expected operation number.  Got %s ('%s') instead\n", token_name[token], token_last);
 	crat_error("crat_add_product");
     } 
     int nid = token_value;
@@ -954,7 +1056,7 @@ void crat_add_product(int cid) {
     while (true) {
 	token = token_next();
 	if (token != TOK_INT) {
-	    fprintf(ERROUT, "Expected product operation argument.  Got '%s' instead\n", token_last);
+	    fprintf(ERROUT, "Expected product operation argument.  Got %s ('%s') instead\n", token_name[token], token_last);
 	    crat_error("crat_add_product");
 	}
 	if (token_value == 0)
@@ -997,7 +1099,11 @@ void crat_add_product(int cid) {
     }
 
     /* Done */
-    token_find_eol();
+    token = token_next();
+    if (token != TOK_EOL) {
+	fprintf(ERROUT, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
+	crat_error("crat_add_product");
+    }
 
     /* Add clauses */
     clause_new(cid);
@@ -1020,7 +1126,7 @@ void crat_add_product(int cid) {
 void crat_add_sum(int cid) {
     token_t token = token_next();
     if (token != TOK_INT) {
-	fprintf(ERROUT, "Expected operation number.  Got '%s' instead\n", token_last);
+	fprintf(ERROUT, "Expected operation number.  Got %s ('%s') instead\n", token_name[token], token_last);
 	crat_error("crat_add_sum");
     } 
     int nid = token_value;
@@ -1062,8 +1168,17 @@ void crat_add_sum(int cid) {
     }
     ilist_free(local_dependency_list);
     
-    /* Skip the other stuff for now */
-    token_find_eol();    
+    /* Prove mutual exclusion */
+    int ex_lits[3] = { -node->children[0], -node->children[1], 0 };
+    rup_setup(ex_lits);
+    rup_run();
+
+    /* Done */
+    token = token_next();
+    if (token != TOK_EOL) {
+	fprintf(ERROUT, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
+	crat_error("crat_add_sum");
+    }
 
     /* Add sum clause */
     clause_new(cid);
@@ -1166,10 +1281,10 @@ void crat_read(char *fname) {
     token_finish();
     if (verb_level >= 1) {
 	int all_clause_count = crat_assertion_count + crat_operation_clause_count;
-	printf("Read CRAT file with %d operation,  %d+%d=%d clauses\n",
+	printf("CHECK: Read CRAT file with %d operation,  %d+%d=%d clauses\n",
 	       crat_operation_count, crat_assertion_count,
 	       crat_operation_clause_count, all_clause_count);
-	printf("Deleted %d input and asserted clauses\n", crat_assertion_deletion_count);
+	printf("CHECK: Deleted %d input and asserted clauses\n", crat_assertion_deletion_count);
     }
 }
 
@@ -1178,6 +1293,7 @@ int main(int argc, char *argv[]) {
 	fprintf(ERROUT, "Usage: %s FILE.cnf [FILE.crat]\n", argv[0]);
 	return 1;
     }
+    double start = tod();
     cnf_read(argv[1]);
     if (verb_level >= 3)
 	cnf_show(stdout);
@@ -1190,8 +1306,12 @@ int main(int argc, char *argv[]) {
 	}
 	int root = crat_final_root();
 	if (verb_level >= 1) {
-	    printf("Final root literal %d\n", root);
+	    printf("CHECK: Final root literal %d\n", root);
 	}
+    }
+    if (verb_level >= 1) {
+	double secs = tod() - start;
+	printf("CHECK: Elapsed seconds: %.3f\n", secs);
     }
     return 0;
 }
