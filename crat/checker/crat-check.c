@@ -938,7 +938,7 @@ void cnf_read(char *fname) {
     }
     token_finish();
     if (verb_level >= 1) {
-	printf("CHECK: Read CNF file with %d variables and %d clauses\n", input_variable_count, input_clause_count);
+	printf("FCHECK: Read CNF file with %d variables and %d clauses\n", input_variable_count, input_clause_count);
     }
 }
 
@@ -1361,10 +1361,10 @@ void crat_read(char *fname) {
     token_finish();
     if (verb_level >= 1) {
 	int all_clause_count = crat_assertion_count + crat_operation_clause_count;
-	printf("CHECK: Read CRAT file with %d operation,  %d+%d=%d clauses\n",
+	printf("FCHECK: Read CRAT file with %d operation,  %d+%d=%d clauses\n",
 	       crat_operation_count, crat_assertion_count,
 	       crat_operation_clause_count, all_clause_count);
-	printf("CHECK: Deleted %d input and asserted clauses\n", crat_assertion_deletion_count);
+	printf("FCHECK: Deleted %d input and asserted clauses\n", crat_assertion_deletion_count);
     }
 }
 
@@ -1382,13 +1382,13 @@ void run(char *cnf_name, char *crat_name) {
 	}
 	int root = crat_final_root();
 	if (verb_level >= 1) {
-	    printf("CHECK: Final root literal %d\n", root);
+	    printf("FCHECK: Final root literal %d\n", root);
 	}
-	printf("CHECK: SUCCESS.  CRAT representation verified\n");
+	printf("FCHECK: SUCCESS.  CRAT representation verified\n");
     }
     if (verb_level >= 1) {
 	double secs = tod() - start;
-	printf("CHECK: Elapsed seconds: %.3f\n", secs);
+	printf("FCHECK: Elapsed seconds: %.3f\n", secs);
     }
 }
 
