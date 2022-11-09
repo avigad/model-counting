@@ -679,7 +679,8 @@ class ClauseManager:
             if hints is None:
                 return (False, "RUP failed for clause %s: Couldn't generate hints" % (showClause(clause)), hints)
         unitSet = set([-lit for lit in clause])
-        for id in hints:
+        for idx in range(len(hints)):
+            id = hints[idx]
             rclause, msg = self.findClause(id)
             if rclause is None:
                 return (False, "RUP failed: %s" % msg, hints)
@@ -692,6 +693,8 @@ class ClauseManager:
             elif uresult == "satisfied":
                 return (False, "RUP failed for clause %s: Satisfied literal %s in clause #%d. RUP clause:%s" % (showClause(clause), ulit, id, showClause(rclause)), hints)
             elif uresult == "conflict":
+                if idx != len(hints)-1:
+                    return (False, "RUP failed for clause %s: Hit conflict with hint clause #%d." % (showClause(clause), id), hints)
                 return (True, "", hints)
         return (False, "RUP failed: No conflict found", hints)
 
