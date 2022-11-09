@@ -455,6 +455,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
   be either supplied explicitly or inferred by the proof checker.
 \item
   Deleting clauses requires proving that the resulting formula is not weaker.
+  That is, it should not allow any additional satisfying assignment.
   \begin{itemize}
     \item For an input clause or a clause declared by RUP addition, its
       deletion must be accompanied by a sequence of remaining clauses
@@ -479,8 +480,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
   \begin{tabular}{lllll}
     \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
     \midrule
-    \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\tt i}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Input clause} \\
-    $C$ & {\tt a} & $L^{*}$ {\tt 0} & $C^{+}$  {\tt 0} & Add RUP clause.  Explicit hint \\
+    \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\tt a}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{$C^{+}$ {\tt 0}}  & \makebox[20mm][l]{Add RUP clause.  Explicit hint} \\
     $C$ & {\tt a} & $L^{*}$ {\tt 0} &  {\tt * 0} & Add RUP clause.  Inferred hint \\
      & {\tt dc} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause.  Explicit hint \\
      & {\tt dc} & $C$             & {\tt * 0} & Delete RUP clause.  Inferred hint \\
@@ -496,6 +496,7 @@ quantified Boolean formulas (QBF).  The following are its key properties:
 \end{table}
 
 Table~\ref{tab:crat:syntax} shows the declarations that can occur in a CRAT file.
+The checker is provided with the input formula as a separate file.
 As with other clausal proof formats, a variable is
 represented by a positive integer $v$, with the first ones being input
 variables and successive ones being extension variables.  Literal $l$
@@ -507,8 +508,8 @@ such that clause $C$ can only reference clauses $C'$ such that $C' < C$.
 Clause identifiers need not be consecutive.
 
 The first set of proof rules are similar to those in other clausal
-proofs.  Our syntax optionally allows input clauses to be listed with
-a rule of type {\tt i}.  Clauses can be added via RUP addition
+proofs.
+Clauses can be added via RUP addition
 (command {\tt a}), with the sequence of antecedent clauses (the
 ``hint'') either provided explicitly or to be inferred (indicated by the character `{\tt *}') by the proof
 checker.  Similarly for clause deletion (command {\tt dc}).
@@ -575,9 +576,13 @@ addition and each clause deletion preserves equivalence.  With CRAT,
 however, clauses are defined both explicitly and implicitly.  Starting
 with the set of input clauses, the proof consists of a sequence of steps that
 both add and delete clauses.  Each addition must be truth preserving
-and each deletion must be falsehood preserving.  At the end, all input
-clauses must have been deleted, and among the remaining clauses there
-must be only a single unit clause consisting of some variable or its
+and each deletion must be falsehood preserving.  At the end, the following conditions must hold:
+\begin{itemize}
+\item All of the input clauses should have been deleted.
+\item There should be exactly one clause left that was added via RUP addition, and this should be a unit clause.
+\end{itemize}
+The remaining
+unit clause consists of some variable or its
 complement.  Except for trivial cases, the final literal will be an
 extension variable or its complement.  That literal will indicate the
 root of the POG as the (possibly negated) output of a POG
