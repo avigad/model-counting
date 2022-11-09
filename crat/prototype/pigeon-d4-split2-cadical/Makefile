@@ -6,6 +6,7 @@ HLEVEL = 2
 LHEIGHT = 2
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
+FCHECK = ../../checker/crat-check
 N=5
 BDIR = ../../../benchmarks/generators
 PGEN = $(BDIR)/gen_pigeon.py
@@ -19,15 +20,15 @@ pst: pigeon-sat-tseitin-$(N).cnf
 psd: pigeon-sat-direct-$(N).cnf
 
 pst-all: pigeon-sat-tseitin-$(N).cnf pigeon-sat-tseitin-$(N).nnf pigeon-sat-tseitin-$(N).crat \
-		pigeon-sat-tseitin-$(N).hcrat pigeon-sat-tseitin-$(N).check_data
+		pigeon-sat-tseitin-$(N).hcrat pigeon-sat-tseitin-$(N).check_data  pigeon-sat-tseitin-$(N).fcheck_data
 	cat pigeon-sat-tseitin-$(N).nnf_data pigeon-sat-tseitin-$(N).crat_data \
-		pigeon-sat-tseitin-$(N).hint_data pigeon-sat-tseitin-$(N).check_data \
+		pigeon-sat-tseitin-$(N).hint_data pigeon-sat-tseitin-$(N).check_data pigeon-sat-tseitin-$(N).fcheck_data \
 		> pigeon-sat-tseitin-$(N).data
 
 psd-all: pigeon-sat-direct-$(N).cnf pigeon-sat-direct-$(N).nnf pigeon-sat-direct-$(N).crat \
-		pigeon-sat-direct-$(N).hcrat pigeon-sat-direct-$(N).check_data
+		pigeon-sat-direct-$(N).hcrat pigeon-sat-direct-$(N).check_data pigeon-sat-direct-$(N).fcheck_data
 	cat pigeon-sat-direct-$(N).nnf_data pigeon-sat-direct-$(N).crat_data \
-		pigeon-sat-direct-$(N).hint_data pigeon-sat-direct-$(N).check_data \
+		pigeon-sat-direct-$(N).hint_data pigeon-sat-direct-$(N).check_data pigeon-sat-direct-$(N).fcheck_data \
 		> pigeon-sat-direct-$(N).data
 
 pst-crat: pigeon-sat-tseitin-$(N).cnf pigeon-sat-tseitin-$(N).crat
@@ -48,7 +49,7 @@ pigeon-sat-direct-$(N).cnf:
 pigeon-sat-tseitin-$(N).cnf:
 	$(INTERP) $(PGEN) -n $(N) -L -r pigeon-sat-tseitin-$(N) -n $(N) -p $(N)
 
-.SUFFIXES: .cnf .nnf .crat .hcrat .check_data
+.SUFFIXES: .cnf .nnf .crat .hcrat .check_data .fcheck_data
 
 .cnf.nnf:
 	$(D4) $< -no-rnd-init -dDNNF -out=$@ | tee $*.nnf_data
@@ -60,8 +61,10 @@ pigeon-sat-tseitin-$(N).cnf:
 	$(INTERP) $(HINTIFY) $(KEEP) -s 2 -i $*.cnf -p $< -o $@ | tee $*.hint_data
 
 .hcrat.check_data:
-	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@
+	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< | tee $@
 
+.hcrat.fcheck_data:
+	$(FCHECK)  -v $(VCLEVEL) $*.cnf $< | tee $@
 
 clean:
 	rm -f *~
@@ -92,14 +95,16 @@ data:
 	$(INTERP) $(GRAB) 2 "HINTIFY: Cadical" pigeon-sat-tseitin-*.data > pst-drat-trim-seconds.csv
 	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-direct-*.data > psd-check-seconds.csv
 	$(INTERP) $(GRAB) "CHECKER: Elapsed time" pigeon-sat-tseitin-*.data > pst-check-seconds.csv
-	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,(Cadical),(Drat-Trim),Check secs" \
+	$(INTERP) $(GRAB) "FCHECK: Elapsed seconds" pigeon-sat-direct-*.data > psd-fcheck-seconds.csv
+	$(INTERP) $(GRAB) "FCHECK: Elapsed seconds" pigeon-sat-tseitin-*.data > pst-fcheck-seconds.csv
+	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,(Cadical),(Drat-Trim),Check secs,FCheck secs" \
 		pst-nnf-nodes.csv pst-pog-nodes.csv pst-assertion-clauses.csv pst-justification-clauses.csv pst-total-clauses.csv \
 		pst-d4-seconds.csv \
 		pst-generate-seconds.csv pst-hintify-seconds.csv  pst-cadical-seconds.csv pst-drat-trim-seconds.csv \
-		pst-check-seconds.csv > pst-split2-cadical-data.csv
+		pst-check-seconds.csv pst-fcheck-seconds.csv > pst-split2-cadical-data.csv
 	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,(Cadical),(Drat-Trim),Check secs" \
 		psd-nnf-nodes.csv psd-pog-nodes.csv psd-assertion-clauses.csv psd-justification-clauses.csv psd-total-clauses.csv \
 		psd-d4-seconds.csv \
 		psd-generate-seconds.csv psd-hintify-seconds.csv psd-cadical-seconds.csv psd-drat-trim-seconds.csv  \
-		psd-check-seconds.csv > psd-split2-cadical-data.csv
+		psd-check-seconds.csv psd-fcheck-seconds.csv > psd-split2-cadical-data.csv
 
