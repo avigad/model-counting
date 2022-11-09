@@ -60,69 +60,72 @@ c Number of nodes: 33522
 c Number of edges: 37777
 c 
 c [1m[34mCache Information[0m
-c Memory used: 550 MB
+c Memory used: 558 MB
 c
 c Number of positive hit: 1613
 c Number of negative hit: 3629
 c Number of reduceCall: 0
 c
-c Final time: 0.026555
+c Final time: 0.041472
 c 
-s 0.000000
+s 0
 GEN: Input NNF DAG has 49 inputs, 8431 nodes
 GEN: NNF DAG with ITEs has 7291 nodes
-GEN: Generated POG has 6114 And/Or nodes
-GEN: File 'pigeon-sat-direct-7.crat' has 11411 variables (6311 used) and 64971 steps
+GEN: Generated POG has 7421 And/Or nodes
+GEN: File 'pigeon-sat-direct-7.crat' has 12716 variables (7618 used) and 64435 steps
 GEN: Nodes by type
 GEN:    var: 49
 GEN:    neg: 49
-GEN:    conjunct: 4076
+GEN:    conjunct: 5383
 GEN:    disjunct: 2038
-GEN:    TOTAL: 6212
-GEN: Total defining clauses: 42536
+GEN:   POG TOTAL: 7519
+GEN: Total defining clauses: 42352
 GEN: Node visits during proof generation (by node type)
-GEN:    conjunct: 4076
+GEN:    conjunct: 6030
 GEN:    disjunct: 2038
-GEN:    TOTAL: 6114
+GEN:   VIS TOTAL: 8068
 GEN: Lemmas:  270 definitions.  651 shadow nodes (2136 defining clauses), 1893 applications
+GEN: Calls to SAT Solver: 826
 GEN: Literal justification clause counts (by number of clauses in justification:
-GEN:    1 : 9464
-GEN:    3 : 114
-GEN:    4 : 53
-GEN:    5 : 25
-GEN:    6 : 13
-GEN:    7 : 8
-GEN:    8 : 5
-GEN:    9 : 5
-GEN:    10 : 2
+GEN:    1 : 5357
+GEN:    2 : 18
+GEN:    3 : 385
+GEN:    4 : 165
+GEN:    5 : 113
+GEN:    6 : 54
+GEN:    7 : 30
+GEN:    8 : 16
+GEN:    9 : 3
+GEN:    10 : 4
 GEN:    11 : 2
-GEN:    12 : 2
-GEN:    13 : 2
+GEN:    12 : 4
+GEN:    13 : 6
 GEN:    14 : 2
-GEN:    15 : 2
+GEN:    15 : 3
 GEN:    16 : 2
-GEN:    17 : 3
+GEN:    18 : 2
 GEN:    19 : 2
-GEN:    20 : 2
-GEN:    1 each for counts 2, 25, 26, 31, 34, 35, 42, 45, 54, 94, 106
-GEN:    TOTAL: 11167
+GEN:    23 : 2
+GEN:    34 : 3
+GEN:    1 each for counts 20, 21, 22, 32, 35, 40, 58, 65, 99, 128
+GEN:   LIT TOTAL: 9497
 GEN: RUP clauses for node justification (by node type):
-GEN:    conjunct: 636
+GEN:    conjunct: 1954
 GEN:    disjunct: 4076
-GEN:    TOTAL: 4712
-GEN: Total clauses: 154 input + 42536 defining + 2136 lemma defining + 5875 lemma application + 11167 literal justification + 4712 node justifications = 66580
-GEN: Elapsed time for generation: 11.17 seconds
+GEN:   RUP TOTAL: 6030
+GEN: Total clauses: 154 input + 42352 defining + 2136 lemma defining + 5875 lemma application + 9497 literal justification + 6030 node justifications = 66044
+GEN: Elapsed time for generation: 36.91 seconds
 CHECKER: Read 154 clauses from file pigeon-sat-direct-7.cnf
 CHECKER: PROOF SUCCESSFUL
-CHECKER: 64971 total clauses
-CHECKER: 64971 maximum live clauses
-CHECKER: 45699 total hints
+CHECKER: 64435 total clauses
+CHECKER: 64435 maximum live clauses
+CHECKER: 44995 total hints
 CHECKER: 0 added hints
 CHECKER: Command occurences:
-CHECKER:      a   : 21754
-CHECKER:     dc   : 21907
-CHECKER:      p   : 4224
+CHECKER:      a   : 21402
+CHECKER:     dc   : 21555
+CHECKER:      p   : 5531
 CHECKER:      s   : 2038
-CHECKER:     TOTAL: 49923
-CHECKER: Elapsed time for check: 1.73 seconds
+CHECKER:     TOTAL: 50526
+CHECKER: Elapsed time for check: 2.82 seconds
 CHECKER: Unweighted count = 5040

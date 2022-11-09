@@ -25,102 +25,116 @@ c top 5: -34 -35 -46 -54
 c unitLits 1048577 4194308 Bytes
 c top 5: -34 -35 -46 54 
 c top 5: -34 -35 46 
-c top 5: -34 -35 46 -54 
+c top 5: -34 -35 46 -37 
+c top 5: -34 -35 46 37 
 c top 5: -34 35 
-c top 5: -34 35 -53 
-c top 5: -34 35 -53 -45 
-c top 5: -34 35 -53 45 
-c top 5: -34 35 53 
-c top 5: -34 35 53 -45 
+c top 5: -34 35 -45 
+c top 5: -34 35 -45 -53 
+c top 5: -34 35 -45 53 
+c top 5: -34 35 45 
+c top 5: -34 35 45 -53 
 c top 5: 34 
-c top 5: 34 -53 
-c top 5: 34 -53 -45 
-c top 5: 34 -53 -45 -52 
-c top 5: 34 -53 -45 52 
-c top 5: 34 -53 45 
-c top 5: 34 -53 45 -52 
-c top 5: 34 53 
-c top 5: 34 53 -45 
-c top 5: 34 53 -45 -46 
+c top 5: 34 -45 
+c top 5: 34 -45 -53 
+c top 5: 34 -45 -53 -54 
+c top 5: 34 -45 -53 54 
+c top 5: 34 -45 53 
+c top 5: 34 -45 53 -46 
+c top 5: 34 45 
+c top 5: 34 45 -53 
+c top 5: 34 45 -53 -54 
 c ----------------------------------------------------------------------------------------------------------------------------------------------------------
 c
 c [1m[31mStatistics [0m
 c [33mCompilation Information[0m
-c Number of compiled node: 8295
-c Number of split formula: 2070
-c Number of decision node: 4147
+c Number of compiled node: 7773
+c Number of split formula: 1836
+c Number of decision node: 3886
 c Number of node built on domain constraints: 0
-c Number of decomposable AND nodes: 1035
+c Number of decomposable AND nodes: 918
 c Number of backbone calls: 0
-c Number of partitioner calls: 507
-c Average number of assigned literal to obtain decomposable AND nodes: 84.18/112
+c Number of partitioner calls: 454
+c Average number of assigned literal to obtain decomposable AND nodes: 83.54/112
 c Minimum number of assigned variable where a decomposable AND appeared: 56
 c 
 c [33mGraph Information[0m
-c Number of nodes: 68680
-c Number of edges: 73862
+c Number of nodes: 63159
+c Number of edges: 67963
 c 
 c [1m[34mCache Information[0m
-c Memory used: 550 MB
+c Memory used: 562 MB
 c
-c Number of positive hit: 2723
-c Number of negative hit: 4147
+c Number of positive hit: 2470
+c Number of negative hit: 3886
 c Number of reduceCall: 0
 c
-c Final time: 0.096025
+c Final time: 0.134659
 c 
-s 0.000000
-GEN: Input NNF DAG has 112 inputs, 11038 nodes
-GEN: NNF DAG with ITEs has 10799 nodes
-GEN: Generated POG has 8445 And/Or nodes
-GEN: File 'pigeon-sat-tseitin-8.crat' has 16573 variables (8860 used) and 142220 steps
+s 0
+GEN: Input NNF DAG has 112 inputs, 10298 nodes
+GEN: NNF DAG with ITEs has 10043 nodes
+GEN: Generated POG has 10403 And/Or nodes
+GEN: File 'pigeon-sat-tseitin-8.crat' has 17988 variables (10830 used) and 115632 steps
 GEN: Nodes by type
 GEN:    var: 112
 GEN:    neg: 112
-GEN:    conjunct: 5630
-GEN:    disjunct: 2815
-GEN:    TOTAL: 8669
-GEN: Total defining clauses: 81916
+GEN:    conjunct: 7769
+GEN:    disjunct: 2634
+GEN:   POG TOTAL: 10627
+GEN: Total defining clauses: 71134
 GEN: Node visits during proof generation (by node type)
-GEN:    conjunct: 5630
-GEN:    disjunct: 2815
-GEN:    TOTAL: 8445
-GEN: Lemmas:  460 definitions.  3259 shadow nodes (11925 defining clauses), 3189 applications
+GEN:    conjunct: 9152
+GEN:    disjunct: 2634
+GEN:   VIS TOTAL: 11786
+GEN: Lemmas:  449 definitions.  3209 shadow nodes (11777 defining clauses), 2921 applications
+GEN: Calls to SAT Solver: 1409
 GEN: Literal justification clause counts (by number of clauses in justification:
-GEN:    1 : 27996
-GEN:    3 : 405
-GEN:    4 : 186
-GEN:    5 : 95
-GEN:    6 : 32
-GEN:    7 : 22
-GEN:    8 : 16
-GEN:    9 : 5
-GEN:    10 : 4
-GEN:    11 : 6
-GEN:    12 : 4
-GEN:    14 : 6
-GEN:    15 : 3
-GEN:    16 : 3
-GEN:    31 : 2
-GEN:    1 each for counts 18, 19, 20, 21, 23, 24, 26, 45, 47, 54, 56, 58, 61, 62, 64, 74, 86, 122, 127, 164, 186, 535
-GEN:    TOTAL: 33234
+GEN:    1 : 7454
+GEN:    2 : 95
+GEN:    3 : 486
+GEN:    4 : 282
+GEN:    5 : 147
+GEN:    6 : 89
+GEN:    7 : 86
+GEN:    8 : 45
+GEN:    9 : 30
+GEN:    10 : 24
+GEN:    11 : 24
+GEN:    12 : 13
+GEN:    13 : 13
+GEN:    14 : 9
+GEN:    15 : 7
+GEN:    16 : 5
+GEN:    17 : 4
+GEN:    18 : 3
+GEN:    19 : 4
+GEN:    20 : 5
+GEN:    23 : 2
+GEN:    37 : 3
+GEN:    40 : 2
+GEN:    42 : 2
+GEN:    45 : 2
+GEN:    57 : 2
+GEN:    76 : 2
+GEN:    1 each for counts 21, 24, 25, 26, 28, 29, 30, 33, 34, 35, 36, 38, 39, 41, 55, 58, 77, 80, 81, 151, 166, 176, 234
+GEN:   LIT TOTAL: 16363
 GEN: RUP clauses for node justification (by node type):
-GEN:    conjunct: 1041
-GEN:    disjunct: 5630
-GEN:    TOTAL: 6671
-GEN: Total clauses: 208 input + 81916 defining + 11925 lemma defining + 19102 lemma application + 33234 literal justification + 6671 node justifications = 153056
-GEN: Elapsed time for generation: 194.10 seconds
+GEN:    conjunct: 3884
+GEN:    disjunct: 5268
+GEN:   RUP TOTAL: 9152
+GEN: Total clauses: 208 input + 71134 defining + 11777 lemma defining + 17642 lemma application + 16363 literal justification + 9152 node justifications = 126276
+GEN: Elapsed time for generation: 267.23 seconds
 CHECKER: Read 208 clauses from file pigeon-sat-tseitin-8.cnf
 CHECKER: PROOF SUCCESSFUL
-CHECKER: 142220 total clauses
-CHECKER: 142220 maximum live clauses
-CHECKER: 121036 total hints
+CHECKER: 115632 total clauses
+CHECKER: 115632 maximum live clauses
+CHECKER: 89155 total hints
 CHECKER: 0 added hints
 CHECKER: Command occurences:
-CHECKER:      a   : 59007
-CHECKER:     dc   : 59214
-CHECKER:      p   : 5933
-CHECKER:      s   : 2815
-CHECKER:     TOTAL: 126969
-CHECKER: Elapsed time for check: 5.65 seconds
+CHECKER:      a   : 43157
+CHECKER:     dc   : 43364
+CHECKER:      p   : 8084
+CHECKER:      s   : 2634
+CHECKER:     TOTAL: 97239
+CHECKER: Elapsed time for check: 6.82 seconds
 CHECKER: Unweighted count = 40320
