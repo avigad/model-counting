@@ -1166,13 +1166,18 @@ class Pog:
                         pos += 1
                 # See if there are other literals that must be justified
                 ncontext = context + alits
+                conflict = False
                 for lit in iclause:
                     if -lit not in context and lit not in clause and -lit not in alits and -lit not in root.lemma.assignedLiteralSet:
-                        self.addComment("Lemma %s.  Justify additional literal %d in context %s" % (str(root), -lit, str(ncontext)))
+                        self.addComment("Lemma %s.  Justify additional literal %d from input clause %d in context %s" % (str(root), -lit, icid, str(ncontext)))
                         chints = self.validateUnit(-lit, ncontext)
+                        if len(chints) == 1 and chints[0] == ahints[-1]:
+                            conflict = True
+                            break
                         ahints += chints
                         ncontext.append(-lit)
-                ahints += [icid]
+                if not conflict:
+                    ahints += [icid]
                 lhints.append(self.cwriter.doClause(aclause, ahints))
             else:
                 self.cwriter.doClause(aclause)
