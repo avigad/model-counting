@@ -35,8 +35,16 @@
 
 #define ERROUT stdout
 
+#define MIN_SIZE 10
+#define MAX_GAP 10
+#define GROW_RATIO 1.45
+
+
 /* Options */
 int verb_level = 3;
+
+/* Allow RUP proofs that encounter conflict before final hint */
+bool early_rup = true;
 
 /* Information for error reporting */
 char *current_file = "";
@@ -132,7 +140,7 @@ ilist ilist_resize(ilist ils, int nlength) {
 	    int *p = ILIST_BASE(ils);
 	    int old_tml = true_max_length;
 	    /* Dynamically resize */
-	    true_max_length *= 2;
+	    true_max_length = (int) (true_max_length * GROW_RATIO);
 	    if (nlength > true_max_length)
 		true_max_length = nlength;
 	    p = realloc(p, (true_max_length + ILIST_OVHD) * sizeof(int));
@@ -316,9 +324,6 @@ ilist ilist_singleton(int v) {
 int lset_generation = 0;
 int *lset_array = NULL;
 size_t lset_asize = 0;
-
-#define MIN_SIZE 10
-#define GROW_RATIO 1.45
 
 void lset_error(char *msg) {
     fprintf(ERROUT, "ERROR: File %s, Line %d.  lset error in function %s\n", current_file, line_count+1, msg);
@@ -573,7 +578,7 @@ int clause_last_id = 0;
 
 typedef struct BELE {
     int start_id;  // Clause ID of initial entry
-    int length;    // Number of clauses in block
+    int length;    // Number of (possibly null) clauses in block
     ilist offset;  // Sequence of clause offsets
     struct BELE *next; 
 } clause_block_t;
@@ -610,10 +615,13 @@ void clause_init() {
 int *clause_locate(int cid) {
     clause_block_t *block = clause_set;
     while (true) {
-	if (block == NULL || cid < block->start_id)
+	if (block == NULL)
 	    return NULL;
-	if (cid - block->start_id <  block->length) {
-	    int offset = block->offset[cid - block->start_id];
+	int pos = cid - block->start_id;
+	if (pos < 0)
+	    return NULL;
+	if (pos <  block->length) {
+	    int offset = block->offset[pos];
 	    if (offset < 0)
 		return NULL;
 	    return clause_list + offset;
@@ -625,16 +633,18 @@ int *clause_locate(int cid) {
 bool clause_delete(int cid) {
     clause_block_t *block = clause_set;
     while (true) {
-	if (block == NULL || cid < block->start_id)
+	if (block == NULL)
 	    return false;
-	if (cid - block->start_id <  block->length) {
-	    bool deleted = block->offset[cid - block->start_id] >= 0;
-	    block->offset[cid - block->start_id] = -1;
+	int pos = cid - block->start_id;
+	if (pos < 0)
+	    return false;
+	if (pos <  block->length) {
+	    bool deleted = block->offset[pos] >= 0;
+	    block->offset[pos] = -1;
 	    return deleted;
 	}
 	block = block->next;
     }
-    return false;
 }
 
 void clause_new(int cid) {
@@ -644,7 +654,7 @@ void clause_new(int cid) {
 	fprintf(ERROUT, "Can't add clause %d.  Clause Id already defined\n", cid);
 	clause_error("clause_new");
     }
-    if (cid > clause_last_id + 1) {
+    if (cid > clause_last_id + MAX_GAP) {
 	/* Need to start new block */
 	clause_block_t *nlast = malloc(sizeof(clause_block_t));
 	if (nlast == NULL) {
@@ -660,6 +670,13 @@ void clause_new(int cid) {
 	nlast->next = NULL;
 	clause_set_last->next = nlast;
 	clause_set_last = nlast;
+    } else {
+	/* Fill in with null clauses */
+	int ncid;
+	for (ncid = clause_last_id+1; ncid < cid; ncid++) {
+	    clause_set_last->offset = ilist_push(clause_set_last->offset, -1);
+	    clause_set_last->length ++;
+	}
     }
     clause_set_last->offset = ilist_push(clause_set_last->offset, clause_next_pos);
     clause_set_last->length ++;
@@ -784,11 +801,27 @@ void rup_run() {
 	    if (!conflict) {
 		fprintf(ERROUT, "RUP failure.  Didn't have conflict on final clause\n");
 		rup_error("rup_run");
-	    } else if (verb_level >= 3) {
+	    } else if (verb_level >= 3)
 		printf("Line %d.  RUP succeeded in %d steps\n", line_count+1, steps);
-	    }
 	    return;
 	} else {
+	    if (conflict) {
+		if (early_rup) {
+		    while (token_value != 0) {
+			token = token_next();
+			if (token != TOK_INT) {
+			    fprintf(ERROUT, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
+			    rup_error("rup_run");
+			}
+		    }
+		    if (verb_level >= 3)
+			printf("Line %d.  RUP succeeded in %d steps\n", line_count+1, steps);
+		    return;
+		} else {
+		    fprintf(ERROUT, "RUP failure.  Encountered conflict after processing %d hints.  Not at end of hints list\n", steps);
+		    rup_error("rup_run");
+		}
+	    }
 	    int cid = token_value;
 	    int unit = rup_unit_prop(cid);
 	    steps ++;
