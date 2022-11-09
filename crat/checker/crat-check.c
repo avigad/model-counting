@@ -581,7 +581,7 @@ int clause_last_id = 0;
 
 /*
   Assume that clauses come in consecutively numbered blocks, but with gaps between them
-  Maintain as linked list of blocks
+  Maintain as array of blocks
  */
 
 
@@ -589,11 +589,10 @@ typedef struct BELE {
     int start_id;  // Clause ID of initial entry
     int length;    // Number of (possibly null) clauses in block
     ilist offset;  // Sequence of clause offsets
-    struct BELE *next; 
 } clause_block_t;
 
-clause_block_t *clause_set = NULL;
-clause_block_t *clause_set_last = NULL;
+clause_block_t *clause_blocks = NULL;
+int clause_block_alloc = 0;
 int clause_block_count = 0;
 
 void clause_error(char *msg) {
@@ -609,53 +608,72 @@ void clause_init() {
 	fprintf(ERROUT, "Couldn't allocate space for clauses\n");
 	clause_error("clause_init");
     }
-    clause_set = malloc(sizeof(clause_block_t));
-    clause_block_count ++;
-    if (clause_set == NULL) {
+
+    clause_block_alloc = 10;
+    clause_blocks = calloc(clause_block_alloc, sizeof(clause_block_t));
+    if (clause_blocks == NULL) {
 	fprintf(ERROUT, "Couldn't allocate space for clause block\n");
 	clause_error("clause_init");
     }
-    clause_set->start_id = 1;
-    clause_set->length = 0;
-    clause_set->offset = ilist_new(100);
-    clause_set->next = NULL;
-    clause_set_last = clause_set;
+    clause_block_count = 1;
+    clause_blocks[clause_block_count-1].start_id = 1;
+    clause_blocks[clause_block_count-1].length = 0;
+    clause_blocks[clause_block_count-1].offset = ilist_new(10);
 }
 
-/* Get start of clause */
+/* Return -1, 0, or +1 depending on whether clause is below, within, or beyond block */
+int clause_probe_block(int bid, int cid) {
+    int pos = cid - clause_blocks[bid].start_id;
+    if (pos < 0)
+	return -1;
+    if (pos >= clause_blocks[bid].length)
+	return +1;
+    return 0;
+}
+
+int *clause_locate_within(int bid, int cid) {
+    int pos = cid - clause_blocks[bid].start_id;
+    int offset = clause_blocks[bid].offset[pos];
+    if (offset < 0)
+	return NULL;
+    return clause_list + offset;
+}
+
+/* Use binary search.  Know that llid <= bid <= rrid */
 int *clause_locate(int cid) {
-    clause_block_t *block = clause_set;
-    while (true) {
-	if (block == NULL)
-	    return NULL;
-	int pos = cid - block->start_id;
-	if (pos < 0)
-	    return NULL;
-	if (pos <  block->length) {
-	    int offset = block->offset[pos];
-	    if (offset < 0)
-		return NULL;
-	    return clause_list + offset;
-	}
-	block = block->next;
+    int lid = 0;
+    int rid = clause_block_count - 1;
+    while (lid <= rid) {
+	int bid = (lid + rid)/2;
+	int sense = clause_probe_block(bid, cid);
+	if (sense < 0)
+	    rid = bid-1;
+	else if (sense > 0)
+	    lid = bid+1;
+	else
+	    return clause_locate_within(bid, cid);
     }
+    return NULL;
 }
 
 bool clause_delete(int cid) {
-    clause_block_t *block = clause_set;
-    while (true) {
-	if (block == NULL)
-	    return false;
-	int pos = cid - block->start_id;
-	if (pos < 0)
-	    return false;
-	if (pos <  block->length) {
-	    bool deleted = block->offset[pos] >= 0;
-	    block->offset[pos] = -1;
+    int lid = 0;
+    int rid = clause_block_count - 1;
+    while (lid <= rid) {
+	int bid = (lid + rid)/2;
+	int sense = clause_probe_block(bid, cid);
+	if (sense < 0)
+	    rid = bid-1;
+	else if (sense > 0)
+	    lid = bid+1;
+	else {
+	    int pos = cid - clause_blocks[bid].start_id;
+	    bool deleted = clause_blocks[bid].offset[pos] >= 0;
+	    clause_blocks[bid].offset[pos] = -1;
 	    return deleted;
 	}
-	block = block->next;
     }
+    return false;
 }
 
 void clause_new(int cid) {
@@ -665,33 +683,39 @@ void clause_new(int cid) {
 	fprintf(ERROUT, "Can't add clause %d.  Clause Id already defined\n", cid);
 	clause_error("clause_new");
     }
+    if (cid < clause_last_id) {
+	fprintf(ERROUT, "Can't add clause %d.  Already added clause %d\n", cid, clause_last_id);
+	clause_error("clause_new");
+    }
+
     if (cid > clause_last_id + MAX_GAP) {
 	/* Need to start new block */
-	clause_block_t *nlast = malloc(sizeof(clause_block_t));
-	clause_block_count ++;
-	if (nlast == NULL) {
-	    fprintf(ERROUT, "Couldn't allocate space for clause block\n");
-	    clause_error("clause_new");
+	if (clause_block_count == clause_block_alloc) {
+	    /* Need more blocks */
+	    clause_block_alloc = (int) (clause_block_alloc * GROW_RATIO);
+	    clause_blocks = realloc(clause_blocks, clause_block_alloc * sizeof(clause_block_t));
+	    if (clause_blocks == NULL) {
+		fprintf(ERROUT, "Failed to add enough clause blocks for %d blocks\n", clause_block_alloc);
+		clause_error("clause_new");
+	    }
 	}
+	clause_block_count++;
 	if (verb_level >= 3) {
 	    printf("Starting new clause block.  Id = %d\n", cid);
 	}
-	nlast->start_id = cid;
-	nlast->length = 0;
-	nlast->offset = ilist_new(MIN_SIZE);
-	nlast->next = NULL;
-	clause_set_last->next = nlast;
-	clause_set_last = nlast;
+	clause_blocks[clause_block_count-1].start_id = cid;
+	clause_blocks[clause_block_count-1].length = 0;
+	clause_blocks[clause_block_count-1].offset = ilist_new(MIN_SIZE);
     } else {
 	/* Fill in with null clauses */
 	int ncid;
 	for (ncid = clause_last_id+1; ncid < cid; ncid++) {
-	    clause_set_last->offset = ilist_push(clause_set_last->offset, -1);
-	    clause_set_last->length ++;
+	    clause_blocks[clause_block_count-1].offset = ilist_push(clause_blocks[clause_block_count-1].offset, -1);
+	    clause_blocks[clause_block_count-1].length ++;
 	}
     }
-    clause_set_last->offset = ilist_push(clause_set_last->offset, clause_next_pos);
-    clause_set_last->length ++;
+    clause_blocks[clause_block_count-1].offset = ilist_push(clause_blocks[clause_block_count-1].offset, clause_next_pos);
+    clause_blocks[clause_block_count-1].length ++;
     clause_last_id = cid;
     clause_count ++;
 }
@@ -742,13 +766,12 @@ void clause_show(FILE *out, int cid, bool endline) {
 }
 
 void clause_show_all(FILE *out) {
-   clause_block_t *block = clause_set;
-    while (block != NULL) {
+    int bid;
+    for (bid = 0; bid < clause_block_count; bid++) {
 	int i;
-	for (i = 0; i < block->length; i++) {
-	    clause_show(out, block->start_id + i, true);
+	for (i = 0; i < clause_blocks[bid].length; i++) {
+	    clause_show(out, clause_blocks[bid].start_id + i, true);
 	}
-	block = block->next;
     }
 }
 
@@ -1300,10 +1323,10 @@ int crat_final_root() {
 	for (i = 0; i <= n; i++)
 	    clause_delete(node->cid + i);
     }
-    clause_block_t *block = clause_set;
-    while (block != NULL) {
-	for (i = 0; i < block->length; i++) {
-	    int cid = block->start_id + i;
+    int bid;
+    for (bid = 0; bid < clause_block_count; bid++) {
+	for (i = 0; i < clause_blocks[bid].length; i++) {
+	    int cid = clause_blocks[bid].start_id + i;
 	    int *lits = clause_locate(cid);
 	    if (lits != NULL) {
 		if (clause_is_unit(lits)) {
@@ -1319,7 +1342,6 @@ int crat_final_root() {
 		}
 	    }
 	}
-	block = block->next;
     }
     if (root == 0) {
 	fprintf(ERROUT, "Didn't find root node\n");
