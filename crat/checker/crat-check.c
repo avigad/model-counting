@@ -378,7 +378,7 @@ void lset_check_size(int var) {
 }
 
 int lset_get_lit(int var) {
-    if (var > lset_asize)
+    if (var <= 0 || var > lset_asize)
 	return 0;
     int g = lset_array[var-1];
     if (g == lset_generation)
@@ -502,7 +502,7 @@ token_t token_next() {
 		done = true;
 	    } else {
 		ttype = TOK_INT;
-		mag = 10 * mag + digittoint(c);
+		mag = 10 * mag + (c - '0');
 		token_last[token_pos++] = c;
 		token_last[token_pos] = '\0';
 		token_value = sign * mag;
@@ -1052,11 +1052,13 @@ void crat_add_clause(int cid) {
 	}
 
 	int lit = token_value;
-	clause_add_literal(lit);
-	lset_add_lit(-lit);
 
-	if (token_value == 0)
+	if (lit == 0)
 	    break;
+	else {
+	    clause_add_literal(lit);
+	    lset_add_lit(-lit);
+	}
     }
     rup_run();
 
