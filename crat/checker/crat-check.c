@@ -594,6 +594,7 @@ typedef struct BELE {
 
 clause_block_t *clause_set = NULL;
 clause_block_t *clause_set_last = NULL;
+int clause_block_count = 0;
 
 void clause_error(char *msg) {
     fprintf(ERROUT, "ERROR: File %s, Line %d.  clause error in function %s\n", current_file, line_count+1, msg);
@@ -609,6 +610,7 @@ void clause_init() {
 	clause_error("clause_init");
     }
     clause_set = malloc(sizeof(clause_block_t));
+    clause_block_count ++;
     if (clause_set == NULL) {
 	fprintf(ERROUT, "Couldn't allocate space for clause block\n");
 	clause_error("clause_init");
@@ -666,6 +668,7 @@ void clause_new(int cid) {
     if (cid > clause_last_id + MAX_GAP) {
 	/* Need to start new block */
 	clause_block_t *nlast = malloc(sizeof(clause_block_t));
+	clause_block_count ++;
 	if (nlast == NULL) {
 	    fprintf(ERROUT, "Couldn't allocate space for clause block\n");
 	    clause_error("clause_new");
@@ -1364,6 +1367,7 @@ void crat_read(char *fname) {
 	printf("FCHECK: Read CRAT file with %d operation,  %d+%d=%d clauses\n",
 	       crat_operation_count, crat_assertion_count,
 	       crat_operation_clause_count, all_clause_count);
+	printf("FCHECK: Clauses divided into %d blocks\n", clause_block_count);
 	printf("FCHECK: Deleted %d input and asserted clauses\n", crat_assertion_deletion_count);
     }
 }
