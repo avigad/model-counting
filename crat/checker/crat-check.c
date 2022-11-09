@@ -304,11 +304,9 @@ ilist ilist_singleton(int v) {
   Set of literals
 ============================================*/
 
-/* Phases of literals */
-typedef enum { PHASE_0, PHASE_1, PHASE_NONE } phase_t;
 
 /*
-  Represent as array indexed by variable.
+  Represent set of literals as array indexed by variable.
   Maintain counter "current_generation"
   Entry +lset_generation indicates positive literal
   Entry -lset_generation indicates negative literal
@@ -374,49 +372,44 @@ void lset_check_size(int var) {
     lset_asize = nasize;
 }
 
-phase_t lset_get_phase(int var) {
+int lset_get_lit(int var) {
     if (var > lset_asize)
-	return PHASE_NONE;
+	return 0;
     int g = lset_array[var-1];
     if (g == lset_generation)
-	return PHASE_1;
+	return var;
     if (g == -lset_generation)
-	return PHASE_0;
-    return PHASE_NONE;
-}
-    
-int lset_get_lit(int var) {
-    phase_t phase = lset_get_phase(var);
-    if (phase == PHASE_NONE)
-	return 0;
-    return phase == PHASE_1 ? var : -var;
+	return -var;
+    return 0;
 }
 
 void lset_add_lit(int lit) {
     int var = IABS(lit);
-    phase_t nphase = lit < 0 ? PHASE_0 : PHASE_1;
     lset_check_size(var);
-    int ophase = lset_get_phase(var);
-    if (ophase != PHASE_NONE && ophase != nphase) {
-	int olit = ophase == 1 ? var  : -var;
+
+    int olit = lset_get_lit(var);
+
+    if (olit != 0 && olit != lit) {
 	fprintf(ERROUT, "Attempt to add literal %d.  Already have %d\n", lit, olit);
 	lset_error("add_lit");
     }
-    int val = nphase == PHASE_1 ? lset_generation : -lset_generation;
+    int val = lit > 0 ? lset_generation : -lset_generation;
     lset_array[var-1] = val;
 }
 
 void lset_show(FILE *out) {
     int var;
     fprintf(out, "[");
+    bool first = true;
     for (var = 1; var <= lset_asize; var++) {
-	int lit = lset_get_phase(var);
+	int lit = lset_get_lit(var);
 	if (lit == 0)
 	    continue;
-	if (var == 1)
+	if (first)
 	    fprintf(out, "%d", lit);
 	else
 	    fprintf(out, ", %d", lit);
+	first = false;
     }
     fprintf(out, "]");
 }
@@ -449,6 +442,7 @@ void token_setup(char *fname) {
 	fprintf(ERROUT, "Couldn't open file '%s'\n", fname);
 	token_error("token_setup");
     }
+    line_count = 0;
 }
 
 void token_finish() {
@@ -509,8 +503,9 @@ token_t token_next() {
 		token_value = sign * mag;
 	    }
 	} else if (isspace(c)) {
-	    if (c == '\n')
+	    if (c == '\n') {
 		ungetc(c, token_file);
+	    }
 	    done = true;
 	} else if (c == '*') {
 	    if (ttype != TOK_NONE) {
@@ -535,6 +530,15 @@ token_t token_next() {
     if (verb_level >= 4)
 	printf("Read token.  Line = %d.  Token = '%s'.  Type = %s\n", line_count+1, token_last, token_name[ttype]);
     return ttype;
+}
+
+void token_confirm_eol() {
+    /* Done */
+    token_t token = token_next();
+    if (token != TOK_EOL) {
+	fprintf(ERROUT, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
+	token_error("token_confirm_eol");
+    }
 }
 
 void token_find_eol() {
@@ -694,7 +698,7 @@ bool clause_is_unit(int *lits) {
 	&& lits[1] == 0;
 }
 
-void clause_show(FILE *out, int cid) {
+void clause_show(FILE *out, int cid, bool endline) {
     int *loc = clause_locate(cid);
     if (loc == NULL) {
 	return;
@@ -704,15 +708,17 @@ void clause_show(FILE *out, int cid) {
 	fprintf(out, " %d", *loc);
 	loc++;
     }
-    fprintf(out, "\n");
+    if (endline)
+	fprintf(out, "\n");
 }
 
 void clause_show_all(FILE *out) {
    clause_block_t *block = clause_set;
     while (block != NULL) {
 	int i;
-	for (i = 0; i < block->length; i++)
-	    clause_show(out, block->start_id + i);
+	for (i = 0; i < block->length; i++) {
+	    clause_show(out, block->start_id + i, true);
+	}
 	block = block->next;
     }
 }
@@ -794,6 +800,8 @@ void rup_run() {
 		    fprintf(ERROUT, "Added literals: ");
 		    lset_show(ERROUT);
 		    fprintf(ERROUT, "\n");
+		    fprintf(ERROUT, "Clause ");
+		    clause_show(ERROUT, cid, true);
 		}
 		rup_error("rup_run");
 	    } else
@@ -898,7 +906,7 @@ void cnf_show(FILE *out) {
 	return;
     printf("CNF File.  %d clauses\n", input_clause_count);
     for (cid = 1; cid <= input_clause_count; cid++) {
-	clause_show(out, cid);
+	clause_show(out, cid, true);
     }
 }
 
@@ -994,13 +1002,14 @@ void crat_show(FILE *out) {
 	int i;
 	for (i = 0; i <= n; i++) {
 	    fprintf(out, "  ");
-	    clause_show(out, node->cid + i);
+	    clause_show(out, node->cid + i, true);
 	}
     }
 }
 
 /* Handlers for different command types.  Each starts after parsing command token */
 void crat_add_clause(int cid) {
+    lset_clear();
     clause_new(cid);
     while (true) {
 	token_t token = token_next();
@@ -1008,13 +1017,24 @@ void crat_add_clause(int cid) {
 	    fprintf(ERROUT, "Unexpected token '%s'\n", token_last);
 	    crat_error("crat_add_clause");
 	}
-	clause_add_literal(token_value);
+
+	int lit = token_value;
+	clause_add_literal(lit);
+	lset_add_lit(-lit);
+
 	if (token_value == 0)
 	    break;
     }
-    /* Skip rest of stuff for now */
-    token_find_eol();
+    rup_run();
+
+    token_confirm_eol();
+
     crat_assertion_count ++;
+
+    if (verb_level >= 3) {
+	printf("Line %d.  Processed clause %d addition\n", line_count, cid);
+    }
+
 }
 void crat_delete_clause() {
     /* Before start deletions, lets show what was there */ 
@@ -1030,14 +1050,25 @@ void crat_delete_clause() {
 	crat_error("crat_delete_clause");
     }
     int cid = token_value;
+    int *lits = clause_locate(cid);
+    rup_setup(lits);
+
     bool deleted = clause_delete(cid);
     if (!deleted) {
 	fprintf(ERROUT, "Could not delete clause %d.  Never defined or already deleted\n", cid);
 	crat_error("crat_delete_clause");
     }
-    /* Skip justification for now */
+
+    rup_run();
+
     token_find_eol();
     crat_assertion_deletion_count ++;
+
+    if (verb_level >= 3) {
+	printf("Line %d.  Processed clause %d deletion\n", line_count, cid);
+    }
+    
+
 }
 
 void crat_add_product(int cid) {
@@ -1121,6 +1152,11 @@ void crat_add_product(int cid) {
     }
     crat_operation_count ++;
     crat_operation_clause_count += n;
+
+    if (verb_level >= 3) {
+	printf("Line %d.  Processed product %d addition\n", line_count, nid);
+    }
+    
 }
 
 void crat_add_sum(int cid) {
@@ -1169,16 +1205,12 @@ void crat_add_sum(int cid) {
     ilist_free(local_dependency_list);
     
     /* Prove mutual exclusion */
-    int ex_lits[3] = { -node->children[0], -node->children[1], 0 };
-    rup_setup(ex_lits);
+    lset_clear();
+    lset_add_lit(node->children[0]);
+    lset_add_lit(node->children[1]);
     rup_run();
 
-    /* Done */
-    token = token_next();
-    if (token != TOK_EOL) {
-	fprintf(ERROUT, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
-	crat_error("crat_add_sum");
-    }
+    token_confirm_eol();
 
     /* Add sum clause */
     clause_new(cid);
@@ -1196,6 +1228,11 @@ void crat_add_sum(int cid) {
     }
     crat_operation_count ++;
     crat_operation_clause_count += n;
+
+    if (verb_level >= 3) {
+	printf("Line %d.  Processed sum %d addition\n", line_count, nid);
+    }
+    
 }
 
 void crat_delete_operation() {
