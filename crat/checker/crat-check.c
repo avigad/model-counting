@@ -50,6 +50,15 @@ bool early_rup = true;
 char *current_file = "";
 int line_count = 0;
 
+void usage(char *name) {
+    printf("Usage: %s [-h] [-v VERB] FILE.cnf [FILE.crat]\n", name);
+    printf(" -h VERB      Print this message\n");
+    printf(" -v           Set verbosity level\n");
+    printf("    FILE.cnf  Input CNF file\n");
+    printf("    FILE.crat Input CRAT file\n");
+    exit(0);
+}
+
 /*============================================
   Utility functions
 ============================================*/
@@ -1052,13 +1061,12 @@ void crat_add_clause(int cid) {
 	}
 
 	int lit = token_value;
+	clause_add_literal(lit);
 
 	if (lit == 0)
 	    break;
-	else {
-	    clause_add_literal(lit);
+	else
 	    lset_add_lit(-lit);
-	}
     }
     rup_run();
 
@@ -1360,17 +1368,13 @@ void crat_read(char *fname) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    if (argc <= 1) {
-	fprintf(ERROUT, "Usage: %s FILE.cnf [FILE.crat]\n", argv[0]);
-	return 1;
-    }
+void run(char *cnf_name, char *crat_name) {
     double start = tod();
-    cnf_read(argv[1]);
+    cnf_read(cnf_name);
     if (verb_level >= 3)
 	cnf_show(stdout);
-    if (argc >= 3) {
-	crat_read(argv[2]);
+    if (crat_name != NULL) {
+	crat_read(crat_name);
 	if (verb_level >= 3) {
 	    crat_show(stdout);
 	    printf("All clauses:\n");
@@ -1380,10 +1384,44 @@ int main(int argc, char *argv[]) {
 	if (verb_level >= 1) {
 	    printf("CHECK: Final root literal %d\n", root);
 	}
+	printf("CHECK: SUCCESS.  CRAT representation verified\n");
     }
     if (verb_level >= 1) {
 	double secs = tod() - start;
 	printf("CHECK: Elapsed seconds: %.3f\n", secs);
     }
+}
+
+int main(int argc, char *argv[]) {
+    char *cnf_name = NULL;
+    char *crat_name = NULL;
+    verb_level = 1;
+    if (argc <= 1) 
+	usage(argv[0]);
+    int argi;
+    char *istring;
+    for (argi = 1; argi < argc && argv[argi][0] == '-'; argi++) {
+	switch (argv[argi][1]) {
+	case 'h':
+	    usage(argv[0]);
+	    break;
+	case 'v':
+	    istring = argv[++argi];
+	    verb_level = atoi(istring);
+	    break;
+	default:
+	    printf("Unknown command line option '%s'\n", argv[argi]);
+	    usage(argv[0]);
+	}
+    }
+    if (argi == argc) {
+	printf("Require CNF file\n");
+	usage(argv[0]);
+    }
+    cnf_name = argv[argi++];
+    if (argi < argc) {
+	crat_name = argv[argi++];
+    }
+    run(cnf_name, crat_name);
     return 0;
 }
