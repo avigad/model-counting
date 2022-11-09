@@ -37,6 +37,14 @@ def usage(name):
 
 
 ######################################################################################
+# Design options
+######################################################################################
+
+## Allow RUP proofs to encounter conflict before last clause
+earlyRup = True
+
+
+######################################################################################
 # CRAT Syntax
 ######################################################################################
 # Notation
@@ -693,9 +701,10 @@ class ClauseManager:
             elif uresult == "satisfied":
                 return (False, "RUP failed for clause %s: Satisfied literal %s in clause #%d. RUP clause:%s" % (showClause(clause), ulit, id, showClause(rclause)), hints)
             elif uresult == "conflict":
-                if idx != len(hints)-1:
+                if idx != len(hints)-1 and not earlyRup:
                     return (False, "RUP failed for clause %s: Hit conflict with hint clause #%d." % (showClause(clause), id), hints)
-                return (True, "", hints)
+                else:
+                    return (True, "", hints)
         return (False, "RUP failed: No conflict found", hints)
 
     def checkFinal(self):

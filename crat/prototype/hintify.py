@@ -463,6 +463,7 @@ def fixHints(vals, hintOnly, verbLevel):
     gotClause = hintOnly
     changed = False
     nvals = []
+    lastHint = 0
     for val in vals:
         if val == 0:
             nvals.append(val)
@@ -470,6 +471,12 @@ def fixHints(vals, hintOnly, verbLevel):
                 gotClause = True
         elif gotClause:
             nval = newClauseId(val)
+            if nval == lastHint:
+                # Duplicate hints indicate that a conflict has been detected
+                nvals.append(0)
+                changed = True
+                break
+            lastHint = nval
             nvals.append(nval)
             changed = changed or (nval != val)
         else:
