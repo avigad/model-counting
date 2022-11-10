@@ -102,7 +102,7 @@ data:
 		pst-d4-seconds.csv \
 		pst-generate-seconds.csv pst-hintify-seconds.csv  pst-cadical-seconds.csv pst-drat-trim-seconds.csv \
 		pst-check-seconds.csv pst-fcheck-seconds.csv > pst-split2-cadical-data.csv
-	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,(Cadical),(Drat-Trim),Check secs" \
+	$(INTERP) $(MERGE) -l "N,NNF nodes,POG nodes,Unhinted Asserts,Just clauses,Tot clauses,D4 secs,Gen secs,Hint secs,(Cadical),(Drat-Trim),Check secs,FCheck secs" \
 		psd-nnf-nodes.csv psd-pog-nodes.csv psd-assertion-clauses.csv psd-justification-clauses.csv psd-total-clauses.csv \
 		psd-d4-seconds.csv \
 		psd-generate-seconds.csv psd-hintify-seconds.csv psd-cadical-seconds.csv psd-drat-trim-seconds.csv  \
