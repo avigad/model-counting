@@ -153,9 +153,8 @@ CHECKER:     TOTAL: 6085769
 CHECKER: Elapsed time for check: 11272.20 seconds
 CHECKER: Unweighted count = 3628800
 FCHECK: Read CNF file with 100 variables and 460 clauses
-FCHECK: Read CRAT file with 430458 operation,  2827426+1968421=4795847 clauses
-FCHECK: Clauses divided into 76158 blocks
+FCHECK: Read CRAT file with 430458 operations,  2827426 asserted + 1968421 defining = 4795847 clauses
 FCHECK: Deleted 2827885 input and asserted clauses
 FCHECK: Final root literal 746716
 FCHECK: SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 57.078
+FCHECK: Elapsed seconds: 54.479
