@@ -5,7 +5,7 @@ do
     make psd-all N=$N
 done
 
-for N in {11..12}
+for N in {11..13}
 do
     make pst-all N=$N
 done

@@ -125,3 +125,10 @@ CHECKER:      s   : 64
 CHECKER:     TOTAL: 1611
 CHECKER: Elapsed time for check: 0.03 seconds
 CHECKER: Unweighted count = 120
+FCHECK: Read CNF file with 40 variables and 70 clauses
+FCHECK: Read CRAT file with 258 operation,  642+1148=1790 clauses
+FCHECK: Clauses divided into 2 blocks
+FCHECK: Deleted 711 input and asserted clauses
+FCHECK: Final root literal 434
+FCHECK: SUCCESS.  CRAT representation verified
+FCHECK: Elapsed seconds: 0.008

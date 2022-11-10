@@ -99,25 +99,32 @@ GEN: Total clauses: 208 input + 76867 defining + 11925 lemma defining + 19102 le
 GEN: Elapsed time for generation: 5.66 seconds
 s UNSATISFIABLE
 HINTIFY: Input CNF file pigeon-sat-tseitin-8.cnf had 112 variables and 208 clauses
-HINTIFY: DRAT file tmp_pigeon-sat-tseitin-8.drat has 33526 clause additions
-HINTIFY: Incremental CNF file tmp_pigeon-sat-tseitin-8.icnf has 3138 variables (max=19294), 37638 clauses, and 33526 assumptions
-HINTIFY: Filtered 40105 duplicate lines.  Kept 58712 lines
-HINTIFY: Cadical 1.39 seconds.  Drat-trim 1.18 seconds
-HINTIFY: 33526 unhinted assertions --> 39732 hinted assertions
-HINTIFY: 33526 unhinted deletions --> 39732 hinted deletions
-HINTIFY: 11034 assertions, 11034 deletions with changed hints
-HINTIFY: Elapsed seconds for hint generation: 0.83 split files + 2.61 justify/DRAT-TRIM + 2.07 insert hints = 5.50
+HINTIFY: DRAT file tmp_pigeon-sat-tseitin-8.drat has 31951 clause additions
+HINTIFY: Incremental CNF file tmp_pigeon-sat-tseitin-8.icnf has 2912 variables (max=18012), 34080 clauses (including 31072 tautologies), and 31951 assumptions
+HINTIFY: Filtered 35368 duplicate lines.  Kept 53448 lines
+HINTIFY: Cadical 1.29 seconds.  Drat-trim 1.21 seconds
+HINTIFY: 31951 unhinted assertions --> 35993 hinted assertions
+HINTIFY: 31951 unhinted deletions --> 35993 hinted deletions
+HINTIFY: 10553 assertions, 10553 deletions with changed hints
+HINTIFY: Elapsed seconds for hint generation: 0.83 split files + 2.54 justify/DRAT-TRIM + 2.01 insert hints = 5.37
 CHECKER: Read 208 clauses from file pigeon-sat-tseitin-8.cnf
 CHECKER: PROOF SUCCESSFUL
-CHECKER: 146826 total clauses
-CHECKER: 146826 maximum live clauses
-CHECKER: 140346 total hints
+CHECKER: 134813 total clauses
+CHECKER: 134813 maximum live clauses
+CHECKER: 128880 total hints
 CHECKER: 0 added hints
 CHECKER: Command occurences:
-CHECKER:      a   : 68662
-CHECKER:     dc   : 68869
-CHECKER:      p   : 8656
-CHECKER:      s   : 2815
-CHECKER:     TOTAL: 149002
-CHECKER: Elapsed time for check: 6.75 seconds
+CHECKER:      a   : 63014
+CHECKER:     dc   : 63221
+CHECKER:      p   : 8090
+CHECKER:      s   : 2645
+CHECKER:     TOTAL: 136970
+CHECKER: Elapsed time for check: 5.75 seconds
 CHECKER: Unweighted count = 40320
+FCHECK: Read CNF file with 112 variables and 208 clauses
+FCHECK: Read CRAT file with 10735 operation,  63014+60856=123870 clauses
+FCHECK: Clauses divided into 359 blocks
+FCHECK: Deleted 63221 input and asserted clauses
+FCHECK: Final root literal 17704
+FCHECK: SUCCESS.  CRAT representation verified
+FCHECK: Elapsed seconds: 0.963
