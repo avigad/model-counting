@@ -65,15 +65,15 @@ c Number of nodes: 11970
 c Number of edges: 13014
 c 
 c [1m[34mCache Information[0m
-c Memory used: 562 MB
+c Memory used: 550 MB
 c
 c Number of positive hit: 379
 c Number of negative hit: 864
 c Number of reduceCall: 0
 c
-c Final time: 0.021689
+c Final time: 0.013434
 c 
-s 0
+s 0.000000
 GEN: Input NNF DAG has 84 inputs, 2426 nodes
 
 GEN: ITE extraction:
@@ -100,17 +100,17 @@ GEN:    conjunct: 701
 GEN:    disjunct: 1212
 GEN:   RUP TOTAL: 1913
 GEN: Total clauses: 154 input + 13715 defining + 1761 lemma defining + 2863 lemma application + 5041 literal justification + 1913 node justifications = 25447
-GEN: Elapsed time for generation: 1.11 seconds
+GEN: Elapsed time for generation: 0.72 seconds
 s UNSATISFIABLE
 HINTIFY: Input CNF file pigeon-sat-tseitin-7.cnf had 84 variables and 154 clauses
 HINTIFY: DRAT file tmp_pigeon-sat-tseitin-7.drat has 5041 clause additions
 HINTIFY: Incremental CNF file tmp_pigeon-sat-tseitin-7.icnf has 752 variables (max=4164), 5292 clauses (including 4470 tautologies), and 5041 assumptions
 HINTIFY: Filtered 4378 duplicate lines.  Kept 8653 lines
-HINTIFY: Cadical 0.15 seconds.  Drat-trim 0.19 seconds
+HINTIFY: Cadical 0.09 seconds.  Drat-trim 0.10 seconds
 HINTIFY: 5041 unhinted assertions --> 5375 hinted assertions
 HINTIFY: 5041 unhinted deletions --> 5375 hinted deletions
 HINTIFY: 1363 assertions, 1363 deletions with changed hints
-HINTIFY: Elapsed seconds for hint generation: 0.18 split files + 0.34 justify/DRAT-TRIM + 0.45 insert hints = 0.98
+HINTIFY: Elapsed seconds for hint generation: 0.13 split files + 0.19 justify/DRAT-TRIM + 0.32 insert hints = 0.64
 CHECKER: Read 154 clauses from file pigeon-sat-tseitin-7.cnf
 CHECKER: PROOF SUCCESSFUL
 CHECKER: 24894 total clauses
@@ -123,5 +123,12 @@ CHECKER:     dc   : 10304
 CHECKER:      p   : 1880
 CHECKER:      s   : 606
 CHECKER:     TOTAL: 22941
-CHECKER: Elapsed time for check: 1.00 seconds
+CHECKER: Elapsed time for check: 0.59 seconds
 CHECKER: Unweighted count = 5040
+FCHECK: Read CNF file with 84 variables and 154 clauses
+FCHECK: Read CRAT file with 2486 operation,  10151+12103=22254 clauses
+FCHECK: Clauses divided into 18 blocks
+FCHECK: Deleted 10304 input and asserted clauses
+FCHECK: Final root literal 3913
+FCHECK: SUCCESS.  CRAT representation verified
+FCHECK: Elapsed seconds: 0.130
