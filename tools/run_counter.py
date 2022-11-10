@@ -48,16 +48,19 @@ def runProgram(prefix, commandList, timeLimit, logFile):
         logFile.write(result)
         logFile.close()
         return False
+    ok = True
     if cp.returncode != 0:
         result += "%s ERROR: Return code = %d\n" % (prefix, cp.returncode)
+        ok = False
+    outcome = "normal" if ok else "failed"
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     result += "%s LOG: Elapsed time = %.3f seconds\n" % (prefix, seconds)
-    result += "%s OUTCOME: Normal\n" % (prefix)
+    result += "%s OUTCOME: %s\n" % (prefix, outcome)
     print("%s Elapsed time: %.3f seconds" % (prefix, seconds))
     logFile.write(cp.stdout)
     logFile.write(result)
-    return True
+    return ok
 
 def runD4(root, home, timeLimit, logFile):
     cnfName = home + "/" + root + ".cnf"
@@ -106,6 +109,7 @@ def runSequence(root, home, timeLimit):
     result += "%s LOG: Elapsed time = %.3f seconds\n" % (prefix, seconds)
     outcome = "normal" if ok else "failed"
     result += "%s OUTCOME: %s\n" % (prefix, outcome)
+    print("%s OUTCOME: %s" % (prefix, outcome))
     print("%s Elapsed time: %.3f seconds" % (prefix, seconds))
     logFile.write(result)
     logFile.close()

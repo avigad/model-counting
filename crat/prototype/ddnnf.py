@@ -840,6 +840,7 @@ def run(name, args):
     print("GEN: Elapsed time for generation: %.2f seconds" % seconds)
 
 if __name__ == "__main__":
+#    run(sys.argv[0], sys.argv[1:])
     try:
         run(sys.argv[0], sys.argv[1:])
     except Exception as ex:

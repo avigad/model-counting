@@ -335,7 +335,7 @@ def justifyAssertions(pysatMode, verbLevel):
         proc.wait()
         sdelta = datetime.datetime.now() - sstart
         ssecs = sdelta.seconds + 1e-6 * sdelta.microseconds
-        if proc.returncode not in [0,20]:
+        if proc.returncode not in [0,10,20]:
             astring = " ".join(args)
             print("ERROR: Running '%s' gave return code of %d" % (astring, proc.returncode))
             sys.exit(1)
