@@ -60,6 +60,15 @@ void usage(char *name) {
 }
 
 /*============================================
+  Global variables
+============================================*/
+
+int input_clause_count = 0;
+int input_variable_count = 0;
+int variable_limit = 0;
+
+
+/*============================================
   Utility functions
 ============================================*/
 
@@ -579,6 +588,14 @@ int clause_asize = 0;
 int clause_count = 0;
 int clause_last_id = 0;
 
+/* 
+   For each extension variable, count of number of clauses containing
+   reference to it.
+   Indexed by xvar - (input_variable_count + 1);
+*/
+ilist clause_xvar_reference = NULL;
+
+
 /*
   Assume that clauses come in consecutively numbered blocks, but with gaps between them
   Maintain as array of blocks
@@ -619,6 +636,7 @@ void clause_init() {
     clause_blocks[clause_block_count-1].start_id = 1;
     clause_blocks[clause_block_count-1].length = 0;
     clause_blocks[clause_block_count-1].offset = ilist_new(10);
+    clause_xvar_reference = ilist_new(MIN_SIZE);
 }
 
 /* Return -1, 0, or +1 depending on whether clause is below, within, or beyond block */
@@ -668,9 +686,24 @@ bool clause_delete(int cid) {
 	    lid = bid+1;
 	else {
 	    int pos = cid - clause_blocks[bid].start_id;
-	    bool deleted = clause_blocks[bid].offset[pos] >= 0;
+	    int offset = clause_blocks[bid].offset[pos];
+	    bool deleting = offset >= 0;
+	    if (deleting) {
+		int *loc = clause_list + offset;
+		while (*loc) {
+		    int lit = *loc++;
+		    int var = IABS(lit);
+		    if (var > input_variable_count) {
+			if (var > variable_limit) {
+			    fprintf(ERROUT, "Deleting clause with literal %d.  Exceeds variable limit of %d\n", lit, variable_limit);
+			    clause_error("clause_delete");
+			}
+			clause_xvar_reference[var-input_variable_count-1] --;
+		    }
+		}
+	    }
 	    clause_blocks[bid].offset[pos] = -1;
-	    return deleted;
+	    return deleting;
 	}
     }
     return false;
@@ -735,6 +768,14 @@ void clause_add_literal(int lit) {
 	}
     }
     clause_list[clause_next_pos++] = lit;
+    int var = IABS(lit);
+    if (var > input_variable_count) {
+	if (var > variable_limit) {
+	    fprintf(ERROUT, "Adding clause with literal %d.  Exceeds variable limit of %d\n", lit, variable_limit);
+	    clause_error("clause_delete");
+	}
+	clause_xvar_reference[var-input_variable_count-1] ++;
+    }
 }
 
 /* Number of literals in clause (not counting terminating 0) */
@@ -829,7 +870,10 @@ void rup_run() {
     int steps = 0;
     while (true) {
 	token_t token = token_next();
-	if (token != TOK_INT) {
+	if (token == TOK_STAR) {
+	    fprintf(ERROUT, "This checker requires explicit hints\n");
+	    rup_error("rup_run");
+	} else 	if (token != TOK_INT) {
 	    fprintf(ERROUT, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
 	    rup_error("rup_run");
 	} else if (token_value == 0) {
@@ -884,14 +928,13 @@ void rup_run() {
   Processing files
 ============================================*/
 
-int input_clause_count = 0;
-int input_variable_count = 0;
-
 void cnf_read(char *fname) {
     token_setup(fname);
     /* Find and parse header */
     while (true) {
 	token_t token = token_next();
+	if (token == TOK_EOL)
+	    continue;
 	if (token != TOK_STRING) {
 	    fprintf(ERROUT, "Unexpected token '%s' while looking for CNF header\n", token_last);
 	    token_error("cnf_read");
@@ -914,6 +957,7 @@ void cnf_read(char *fname) {
 		token_error("cnf_read");
 	    }
 	    input_variable_count = token_value;
+	    variable_limit = input_variable_count;
 	    token = token_next();
 	    if (token != TOK_INT) {
 		fprintf(ERROUT, "ERROR: Invalid CNF clause count '%s'\n", token_last);
@@ -938,6 +982,8 @@ void cnf_read(char *fname) {
 	token_t token = token_next();
 	if (token == TOK_EOF)
 	    break;
+	else if (token == TOK_EOL)
+	    continue;
 	else if (token == TOK_STRING && token_last[0] == 'c')
 	    token_find_eol();
 	else if (token == TOK_EOL)
@@ -991,6 +1037,7 @@ typedef struct {
 node_t *node_list = NULL;
 int node_asize = 0;
 int node_count = 0;
+int node_deleted_count = 0;
 
 
 void crat_error(char *msg) {
@@ -1032,11 +1079,13 @@ node_t *node_new(node_type_t type, int id, int cid) {
 	    node_list[idx].cid = 0;
 	    node_list[idx].dependency_list = NULL;
 	    node_list[idx].children = NULL;
+	    clause_xvar_reference = ilist_push(clause_xvar_reference, 0);
 	}
 	if (verb_level >= 3) {
 	    printf("Resized node array %d --> %d\n", node_asize, nasize);
 	}
 	node_asize = nasize;
+	variable_limit = node_asize + input_variable_count;
     }
     node_t *node = node_find(id);
     if (node->type != NODE_NONE) {
@@ -1305,8 +1354,35 @@ void crat_add_sum(int cid) {
 }
 
 void crat_delete_operation() {
-    /* Skip for now */
-    token_find_eol();
+    token_t token = token_next();
+    if (token != TOK_INT) {
+	fprintf(ERROUT, "Expecting integer operation ID.  Got %s ('%s') instead\n", token_name[token], token_last);
+	crat_error("crat_delete_operation");
+    }
+    int id = token_value;
+    node_t *node = node_find(id);
+    if (node == NULL || node->type == NODE_NONE) {
+	fprintf(ERROUT, "Cannot delete operation #%d.  Already deleted or never defined\n", id);
+	crat_error("crat_delete_operation");
+    }
+    int i;
+    for (i = 0; i <= ilist_length(node->children); i++) {
+	int cid = node->cid + i;
+	if (!clause_delete(cid)) {
+	    fprintf(ERROUT, "Cannot delete operation #%d.  Defining clause #%d never defined or already deleted\n", id, cid);
+	    crat_error("crat_delete_operation");		
+	}
+    }
+    int refs = clause_xvar_reference[id-input_variable_count-1];
+    if (refs != 0) {
+	fprintf(ERROUT, "Cannot delete operation #%d.  %d clauses still contain reference to it\n", id, refs);
+	crat_error("crat_delete_operation");		
+    }
+    node->type = NODE_NONE;
+    node_count --;
+    node_deleted_count ++;
+    if (verb_level >= 3)
+	printf("Line %d.  Processed node %d deletion\n", line_count, id);
 }
 
 /* Check end condition.  Return literal representation of root node */
@@ -1358,6 +1434,8 @@ void crat_read(char *fname) {
 	token_t token = token_next();
 	if (token == TOK_EOF)
 	    break;
+	if (token == TOK_EOL)
+	    continue;
 	if (token == TOK_STRING && token_last[0] == 'c') {
 	    token_find_eol();
 	    continue;
@@ -1386,7 +1464,7 @@ void crat_read(char *fname) {
     token_finish();
     if (verb_level >= 1) {
 	int all_clause_count = crat_assertion_count + crat_operation_clause_count;
-	printf("FCHECK: Read CRAT file with %d operation,  %d+%d=%d clauses\n",
+	printf("FCHECK: Read CRAT file with %d operations,  %d asserted + %d defining = %d clauses\n",
 	       crat_operation_count, crat_assertion_count,
 	       crat_operation_clause_count, all_clause_count);
 	printf("FCHECK: Clauses divided into %d blocks\n", clause_block_count);
