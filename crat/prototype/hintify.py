@@ -88,7 +88,10 @@ def getRoot(cnfName):
     fields = cnfName.split(".")
     if len(fields) > 0:
         fields = fields[:-1]
-    fields[0] = prefix + fields[0]
+    if fields[0] == "":
+        fields[1] = readwrite.addPrefix(fields[1], prefix)
+    else:
+        fields[0] = readwrite.addPrefix(fields[0], prefix)
     return ".".join(fields)
 
 def splitFiles(cnfName, cratName, pysatMode, verbLevel):
@@ -679,4 +682,10 @@ def run(name, args):
                 continue
 
 if __name__ == "__main__":
-    run(sys.argv[0], sys.argv[1:])
+#    run(sys.argv[0], sys.argv[1:])
+    try:
+        run(sys.argv[0], sys.argv[1:])
+    except Exception as ex:
+        print("ERROR: Progam %s raised exception %s" % (sys.argv[0], str(ex)))
+        sys.exit(1)
+    sys.exit(0)

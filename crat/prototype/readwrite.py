@@ -18,6 +18,7 @@
 ########################################################################################
 
 import os
+import sys
 
 class ReadWriteException(Exception):
 
@@ -27,14 +28,17 @@ class ReadWriteException(Exception):
     def __str__(self):
         return "ReadWrite Exception: " + str(self.value)
 
-
-
 # Code for reading and generating CNF, order, schedule, and crat proof files
 
 def trim(s):
     while len(s) > 0 and s[-1] in '\r\n':
         s = s[:-1]
     return s
+
+def addPrefix(path, prefix):
+    pfields = path.split("/")
+    pfields[-1] = prefix + pfields[-1]
+    return "/".join(pfields)
 
 tautologyId = 1000 * 1000 * 1000
 
@@ -910,11 +914,11 @@ class SplitWriter(Writer):
         self.ufname = ""
 
     def split(self):
-        self.ufname = "upper_" + self.fname
+        self.ufname = addPrefix(self.fname, "upper_")
         try:
             self.upperOutfile = open(self.ufname, 'w')
         except:
-            raise ReadWriteException("Couldn't open supplementary file '%s' when splitting" % ufname)
+            raise ReadWriteException("Couldn't open supplementary file '%s' when splitting" % self.ufname)
         self.isSplit = True
 
     def show(self, line, splitLower = False):
