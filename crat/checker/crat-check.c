@@ -31,24 +31,11 @@
 #include <stdbool.h>
 #include <sys/time.h>
 #include <limits.h>
+#include <stdarg.h>
 
 
-#define ERROUT stdout
-
-#define MIN_SIZE 10
-#define MAX_GAP 10
-#define GROW_RATIO 1.45
 
 
-/* Options */
-int verb_level = 3;
-
-/* Allow RUP proofs that encounter conflict before final hint */
-bool early_rup = true;
-
-/* Information for error reporting */
-char *current_file = "";
-int line_count = 0;
 
 void usage(char *name) {
     printf("Usage: %s [-h] [-v VERB] FILE.cnf [FILE.crat]\n", name);
@@ -60,8 +47,29 @@ void usage(char *name) {
 }
 
 /*============================================
+  Macro parameters
+============================================*/
+
+#define ERROUT stdout
+#define MIN_SIZE 10
+#define MAX_GAP 10
+#define GROW_RATIO 1.45
+#define DPREFIX "FCHECK"
+
+/*============================================
   Global variables
 ============================================*/
+
+/* Options */
+int verb_level = 3;
+
+/* Allow RUP proofs that encounter conflict before final hint */
+bool early_rup = true;
+
+/* Information for error reporting */
+char *current_file = "";
+int line_count = 0;
+
 
 int input_clause_count = 0;
 int input_variable_count = 0;
@@ -78,6 +86,33 @@ double tod() {
 	return (double) tv.tv_sec + 1e-6 * tv.tv_usec;
     else
 	return 0.0;
+}
+
+void err_printf(char *fun, char *fmt, ...) {
+    va_list ap;
+    fprintf(ERROUT, "ERROR. File %s. Line %d. Function %s. ", current_file, line_count+1, fun);
+    va_start(ap, fmt);
+    vfprintf(ERROUT, fmt, ap);
+    va_end(ap);
+    exit(1);
+}
+
+void info_printf(int vlevel, char *fmt, ...) {
+    if (vlevel > verb_level)
+	return;
+    va_list ap;
+    fprintf(stdout, "File %s. Line %d:", current_file, line_count+1);
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    va_end(ap);
+}
+
+void data_printf(char *fmt, ...) {
+    va_list ap;
+    fprintf(stdout, "%s: ", DPREFIX);
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    va_end(ap);
 }
 
 
@@ -110,21 +145,13 @@ typedef int *ilist;
 
 
 
-ilist ilist_error(char *msg) {
-    fprintf(ERROUT, "ERROR: File %s, Line %d.  ilist error in function %s\n", current_file, line_count+1, msg);
-    exit(1);
-    return NULL;
-}
-
 /* Allocate a new ilist. */
 ilist ilist_new(int max_length) {
     if (max_length == 0)
 	max_length++;
     int *p = calloc(max_length + ILIST_OVHD, sizeof(int));
-    if (p == NULL) {
-	fprintf(ERROUT, "Failed to allocate ilist of length %d\n", max_length);
-	return ilist_error("ilist_new");
-    }
+    if (p == NULL)
+	err_printf("ilist_new", "Failed to allocate ilist of length %d\n", max_length);
     ilist result = p+ILIST_OVHD;
     ILIST_LENGTH(result) = 0;
     ILIST_MAXLENGTHFIELD(result) = -max_length;
@@ -162,17 +189,14 @@ ilist ilist_resize(ilist ils, int nlength) {
 	    if (nlength > true_max_length)
 		true_max_length = nlength;
 	    p = realloc(p, (true_max_length + ILIST_OVHD) * sizeof(int));
-	    if (p == NULL) {
-		/* Need to throw error here */
-		fprintf(ERROUT, "Failed to grow ilist allocation from %d to %d\n",
+	    if (p == NULL)
+		err_printf((char *) __func__, "Failed to grow ilist allocation from %d to %d\n",
 			old_tml, true_max_length);
-		return ilist_error("resize (dynamic)");
-	    }
 	    ils = p+ILIST_OVHD;
 	    ILIST_MAXLENGTHFIELD(ils) = -true_max_length;
 	} else 
 	    /* Need to throw an error here */
-	    return ilist_error("resize (static)");
+	    err_printf((char *) __func__, "Cannot resize static ilist beyond initial allocation %d", true_max_length);
     }
     ILIST_LENGTH(ils) = nlength;
     return ils;
@@ -186,10 +210,9 @@ ilist ilist_push(ilist ils, int val) {
     int length = ILIST_LENGTH(ils);
     int nlength = length+1;
     ils = ilist_resize(ils, nlength);
-    if (!ils) {
+    if (!ils)
 	/* Want to throw an exception here */
-	return ilist_error("push");
-    }
+	err_printf((char *) __func__, "Couldn't allocate space for list of length %d", nlength);
     ils[length] = val;
     ILIST_LENGTH(ils) = nlength;
     return ils;
@@ -343,21 +366,13 @@ int lset_generation = 0;
 int *lset_array = NULL;
 size_t lset_asize = 0;
 
-void lset_error(char *msg) {
-    fprintf(ERROUT, "ERROR: File %s, Line %d.  lset error in function %s\n", current_file, line_count+1, msg);
-    exit(1);
-}
-
-
 void lset_init(int var) {
     lset_asize = MIN_SIZE;
     if (var > lset_asize)
 	lset_asize = var;
     lset_array = calloc(lset_asize, sizeof(int));
-    if (lset_array == NULL) {
-	fprintf(ERROUT, "Couldn't allocate initial literal array of size %zd\n", lset_asize);
-	lset_error("lset_init");
-    }
+    if (lset_array == NULL)
+	err_printf((char *) __func__, "Couldn't allocate initial literal array of size %zd\n", lset_asize);
     lset_generation = 1;
 }
 
@@ -386,8 +401,7 @@ void lset_check_size(int var) {
 	printf("Resizing lset array %zd --> %zd\n", lset_asize, nasize);
     }
     if (lset_array == NULL) {
-	fprintf(ERROUT, "Couldn't grow literal array size to %zd\n", nasize);
-	lset_error("lset_check_size");
+	err_printf((char *) __func__, "Couldn't grow literal array size to %zd\n", nasize);
     }
     int nvar;
     for (nvar = lset_asize+1; nvar <= nasize; nvar++)
@@ -412,10 +426,8 @@ void lset_add_lit(int lit) {
 
     int olit = lset_get_lit(var);
 
-    if (olit != 0 && olit != lit) {
-	fprintf(ERROUT, "Attempt to add literal %d.  Already have %d\n", lit, olit);
-	lset_error("add_lit");
-    }
+    if (olit != 0 && olit != lit)
+	err_printf((char *) __func__, "Attempt to add literal %d.  Already have %d\n", lit, olit);
     int val = lit > 0 ? lset_generation : -lset_generation;
     lset_array[var-1] = val;
 }
@@ -451,20 +463,12 @@ int token_value = 0;
 FILE *token_file = NULL;
 int token_pos = 0;
 
-void token_error(char *msg) {
-    fprintf(ERROUT, "ERROR: File %s, Line %d.  token error in function %s\n", current_file, line_count+1, msg);
-    exit(1);
-}
-
-
 
 void token_setup(char *fname) {
     token_file = fopen(fname, "r");
     current_file = strdup(fname);
-    if (token_file == NULL) {
-	fprintf(ERROUT, "Couldn't open file '%s'\n", fname);
-	token_error("token_setup");
-    }
+    if (token_file == NULL)
+	err_printf((char *) __func__, "Couldn't open file '%s'\n", fname);
     line_count = 0;
 }
 
@@ -558,10 +562,8 @@ token_t token_next() {
 void token_confirm_eol() {
     /* Done */
     token_t token = token_next();
-    if (token != TOK_EOL) {
-	fprintf(ERROUT, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
-	token_error("token_confirm_eol");
-    }
+    if (token != TOK_EOL)
+	err_printf((char *) __func__, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
 }
 
 void token_find_eol() {
@@ -612,26 +614,17 @@ clause_block_t *clause_blocks = NULL;
 int clause_block_alloc = 0;
 int clause_block_count = 0;
 
-void clause_error(char *msg) {
-    fprintf(ERROUT, "ERROR: File %s, Line %d.  clause error in function %s\n", current_file, line_count+1, msg);
-    exit(1);
-}
-
 /* Operations */
 void clause_init() {
     clause_asize = MIN_SIZE;
     clause_list = calloc(clause_asize, sizeof(int));
-    if (clause_list == NULL) {
-	fprintf(ERROUT, "Couldn't allocate space for clauses\n");
-	clause_error("clause_init");
-    }
+    if (clause_list == NULL)
+	err_printf((char *) __func__, "Couldn't allocate space for clauses\n");
 
     clause_block_alloc = 10;
     clause_blocks = calloc(clause_block_alloc, sizeof(clause_block_t));
-    if (clause_blocks == NULL) {
-	fprintf(ERROUT, "Couldn't allocate space for clause block\n");
-	clause_error("clause_init");
-    }
+    if (clause_blocks == NULL)
+	err_printf((char *) __func__, "Couldn't allocate space for clause block\n");
     clause_block_count = 1;
     clause_blocks[clause_block_count-1].start_id = 1;
     clause_blocks[clause_block_count-1].length = 0;
@@ -694,10 +687,8 @@ bool clause_delete(int cid) {
 		    int lit = *loc++;
 		    int var = IABS(lit);
 		    if (var > input_variable_count) {
-			if (var > variable_limit) {
-			    fprintf(ERROUT, "Deleting clause with literal %d.  Exceeds variable limit of %d\n", lit, variable_limit);
-			    clause_error("clause_delete");
-			}
+			if (var > variable_limit)
+			    err_printf((char *) __func__, "Deleting clause with literal %d.  Exceeds variable limit of %d\n", lit, variable_limit);
 			clause_xvar_reference[var-input_variable_count-1] --;
 		    }
 		}
@@ -712,14 +703,11 @@ bool clause_delete(int cid) {
 void clause_new(int cid) {
     if (clause_last_id == 0)
 	clause_init();
-    if (clause_locate(cid) != NULL) {
-	fprintf(ERROUT, "Can't add clause %d.  Clause Id already defined\n", cid);
-	clause_error("clause_new");
-    }
-    if (cid < clause_last_id) {
-	fprintf(ERROUT, "Can't add clause %d.  Already added clause %d\n", cid, clause_last_id);
-	clause_error("clause_new");
-    }
+    if (clause_locate(cid) != NULL)
+	err_printf((char *) __func__, "Can't add clause %d.  Clause Id already defined\n", cid);
+
+    if (cid < clause_last_id)
+	err_printf((char *) __func__, "Can't add clause %d.  Already added clause %d\n", cid, clause_last_id);
 
     if (cid > clause_last_id + MAX_GAP) {
 	/* Need to start new block */
@@ -727,10 +715,8 @@ void clause_new(int cid) {
 	    /* Need more blocks */
 	    clause_block_alloc = (int) (clause_block_alloc * GROW_RATIO);
 	    clause_blocks = realloc(clause_blocks, clause_block_alloc * sizeof(clause_block_t));
-	    if (clause_blocks == NULL) {
-		fprintf(ERROUT, "Failed to add enough clause blocks for %d blocks\n", clause_block_alloc);
-		clause_error("clause_new");
-	    }
+	    if (clause_blocks == NULL)
+		err_printf((char *) __func__, "Failed to add enough clause blocks for %d blocks\n", clause_block_alloc);
 	}
 	clause_block_count++;
 	if (verb_level >= 3) {
@@ -762,18 +748,14 @@ void clause_add_literal(int lit) {
 	if (verb_level >= 3) {
 	    printf("Resizing clause list %d --> %d\n", oasize, clause_asize);
 	}
-	if (clause_list == NULL) {
-	    fprintf(ERROUT, "Couldn't allocate space for clauses\n");
-	    clause_error("clause_add_literal");
-	}
+	if (clause_list == NULL)
+	    err_printf((char *) __func__, "Couldn't allocate space for clauses\n");
     }
     clause_list[clause_next_pos++] = lit;
     int var = IABS(lit);
     if (var > input_variable_count) {
-	if (var > variable_limit) {
-	    fprintf(ERROUT, "Adding clause with literal %d.  Exceeds variable limit of %d\n", lit, variable_limit);
-	    clause_error("clause_delete");
-	}
+	if (var > variable_limit)
+	    err_printf((char *) __func__, "Adding clause with literal %d.  Exceeds variable limit of %d\n", lit, variable_limit);
 	clause_xvar_reference[var-input_variable_count-1] ++;
     }
 }
@@ -823,12 +805,6 @@ void clause_show_all(FILE *out) {
 #define RUP_CONFLICT INT_MAX
 #define RUP_STALL 0
 
-void rup_error(char *msg) {
-    fprintf(ERROUT, "ERROR: File %s, Line %d.  RUP error in function %s\n", current_file, line_count+1, msg);
-    exit(1);
-}
-
-
 /* Initialize lset to complement of literals */
 void rup_setup(int *lits) {
     lset_clear();
@@ -841,10 +817,8 @@ void rup_setup(int *lits) {
 
 int rup_unit_prop(int cid) {
     int *lits = clause_locate(cid);
-    if (lits == NULL) {
-	fprintf(ERROUT, "Clause #%d deleted or never existed\n", cid);
-	rup_error("rup_unit_prop");
-    }
+    if (lits == NULL)
+	err_printf((char *) __func__, "Clause #%d deleted or never existed\n", cid);
     int unit = RUP_CONFLICT;
     int lit;
     while ((lit = *lits) != 0) {
@@ -870,17 +844,14 @@ void rup_run() {
     int steps = 0;
     while (true) {
 	token_t token = token_next();
-	if (token == TOK_STAR) {
-	    fprintf(ERROUT, "This checker requires explicit hints\n");
-	    rup_error("rup_run");
-	} else 	if (token != TOK_INT) {
-	    fprintf(ERROUT, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
-	    rup_error("rup_run");
-	} else if (token_value == 0) {
-	    if (!conflict) {
-		fprintf(ERROUT, "RUP failure.  Didn't have conflict on final clause\n");
-		rup_error("rup_run");
-	    } else if (verb_level >= 3)
+	if (token == TOK_STAR)
+	    err_printf((char *) __func__, "This checker requires explicit hints\n");
+	else if (token != TOK_INT)
+	    err_printf((char *) __func__, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
+	else if (token_value == 0) {
+	    if (!conflict)
+		err_printf((char *) __func__, "RUP failure.  Didn't have conflict on final clause\n");
+	    else if (verb_level >= 3)
 		printf("Line %d.  RUP succeeded in %d steps\n", line_count+1, steps);
 	    return;
 	} else {
@@ -888,18 +859,15 @@ void rup_run() {
 		if (early_rup) {
 		    while (token_value != 0) {
 			token = token_next();
-			if (token != TOK_INT) {
-			    fprintf(ERROUT, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
-			    rup_error("rup_run");
-			}
+			if (token != TOK_INT)
+			    err_printf((char *) __func__, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
 		    }
 		    if (verb_level >= 3)
 			printf("Line %d.  RUP succeeded in %d steps\n", line_count+1, steps);
 		    return;
-		} else {
-		    fprintf(ERROUT, "RUP failure.  Encountered conflict after processing %d hints.  Not at end of hints list\n", steps);
-		    rup_error("rup_run");
-		}
+		} else
+		    err_printf((char *) __func__, 
+			       "RUP failure.  Encountered conflict after processing %d hints.  Not at end of hints list\n", steps);
 	    }
 	    int cid = token_value;
 	    int unit = rup_unit_prop(cid);
@@ -907,15 +875,14 @@ void rup_run() {
 	    if (unit == RUP_CONFLICT)
 		conflict = true;
 	    else if (unit == RUP_STALL) {
-		fprintf(ERROUT, "RUP failure.  Clause %d did not cause unit propagation\n", cid);
+		fprintf(ERROUT, "ERROR: Clause %d did not cause unit propagation\n", cid);
 		if (verb_level >= 2) {
-		    fprintf(ERROUT, "Added literals: ");
+		    fprintf(ERROUT, "    Added literals: ");
 		    lset_show(ERROUT);
-		    fprintf(ERROUT, "\n");
-		    fprintf(ERROUT, "Clause ");
+		    fprintf(ERROUT, "\n    Clause ");
 		    clause_show(ERROUT, cid, true);
 		}
-		rup_error("rup_run");
+		err_printf((char *) __func__, "RUP failure\n");
 	    } else
 		lset_add_lit(unit);
 	}
@@ -935,45 +902,31 @@ void cnf_read(char *fname) {
 	token_t token = token_next();
 	if (token == TOK_EOL)
 	    continue;
-	if (token != TOK_STRING) {
-	    fprintf(ERROUT, "Unexpected token '%s' while looking for CNF header\n", token_last);
-	    token_error("cnf_read");
-	}
+	if (token != TOK_STRING)
+	    err_printf((char *) __func__, "Unexpected token '%s' while looking for CNF header\n", token_last);
 	if (token_last[0] == 'c')
 	    token_find_eol();
 	else if (token_last[0] == 'p') {
-	    if (token_last[1] != '\0') {
-		fprintf(ERROUT, "ERROR: Invalid CNF field '%s'\n", token_last);
-		token_error("cnf_read");
-	    }
+	    if (token_last[1] != '\0')
+		err_printf((char *) __func__, "Invalid CNF field '%s'\n", token_last);
 	    token = token_next();
-	    if (strcmp(token_last, "cnf") != 0) {
-		fprintf(ERROUT, "ERROR: Expected field 'cnf'.  Got '%s'\n", token_last);
-		token_error("cnf_read");
-	    }
+	    if (strcmp(token_last, "cnf") != 0)
+		err_printf((char *) __func__, "Expected field 'cnf'.  Got '%s'\n", token_last);
 	    token = token_next();
-	    if (token != TOK_INT) {
-		fprintf(ERROUT, "ERROR: Invalid CNF variable count '%s'\n", token_last);
-		token_error("cnf_read");
-	    }
+	    if (token != TOK_INT)
+		err_printf((char *) __func__, "Invalid CNF variable count '%s'\n", token_last);
 	    input_variable_count = token_value;
 	    variable_limit = input_variable_count;
 	    token = token_next();
-	    if (token != TOK_INT) {
-		fprintf(ERROUT, "ERROR: Invalid CNF clause count '%s'\n", token_last);
-		token_error("cnf_read");
-	    }
+	    if (token != TOK_INT)
+		err_printf((char *) __func__, "Invalid CNF clause count '%s'\n", token_last);
 	    input_clause_count = token_value;
 	    token = token_next();
-	    if (token != TOK_EOL) {
-		fprintf(ERROUT, "ERROR: Invalid field in CNF header '%s'\n", token_last);
-		token_error("cnf_read");
-	    }
+	    if (token != TOK_EOL)
+		err_printf((char *) __func__, "Invalid field in CNF header '%s'\n", token_last);
 	    break;
-	} else {
-	    fprintf(ERROUT, "Unexpected token '%s' while reading CNF header\n", token_last);
-	    token_error("cnf_read");
-	}
+	} else
+	    err_printf((char *) __func__, "Unexpected token '%s' while reading CNF header\n", token_last);
     }
     /* Read clauses */
     int found_clause_count = 0;
@@ -999,15 +952,11 @@ void cnf_read(char *fname) {
 		within_clause = false;
 	    }
 	}
-	else {
-	    fprintf(ERROUT, "Unexpected token '%s' found in CNF file\n", token_last);
-	    token_error("cnf_read");
-	}
+	else
+	    err_printf((char *) __func__, "Unexpected token '%s' found in CNF file\n", token_last);
     }
-    if (found_clause_count != input_clause_count) {
-	fprintf(ERROUT, "Invalid CNF.  Expected %d clauses.  Found %d\n", input_clause_count, found_clause_count);
-	token_error("cnf_read");
-    }
+    if (found_clause_count != input_clause_count)
+	err_printf((char *) __func__, "Invalid CNF.  Expected %d clauses.  Found %d\n", input_clause_count, found_clause_count);
     token_finish();
     if (verb_level >= 1) {
 	printf("FCHECK: Read CNF file with %d variables and %d clauses\n", input_variable_count, input_clause_count);
@@ -1039,12 +988,6 @@ int node_asize = 0;
 int node_count = 0;
 int node_deleted_count = 0;
 
-
-void crat_error(char *msg) {
-    fprintf(ERROUT, "ERROR: File %s, Line %d.  crat error in function %s\n", current_file, line_count+1, msg);
-    exit(1);
-}
-
 node_t *node_find(int id) {
     int idx = id - input_variable_count - 1;
     if (idx < 0 || idx >= node_asize)
@@ -1053,10 +996,8 @@ node_t *node_find(int id) {
 }
 
 node_t *node_new(node_type_t type, int id, int cid) {
-    if (id <= input_variable_count) {
+    if (id <= input_variable_count)
 	fprintf(stdout, "Invalid operation id %d\n", id);
-	crat_error("node_new");
-    }
     if (id-input_variable_count > node_asize) {
 	int nasize = id-input_variable_count;
 	if (nasize < MIN_SIZE)
@@ -1067,10 +1008,8 @@ node_t *node_new(node_type_t type, int id, int cid) {
 	    node_list = calloc(nasize, sizeof(node_t));
 	else
 	    node_list = realloc(node_list, nasize * sizeof(node_t));
-	if (node_list == NULL) {
-	    fprintf(ERROUT, "Couldn't allocate space for node list of size %d\n", nasize);
-	    crat_error("node_new");
-	}
+	if (node_list == NULL)
+	    err_printf((char *) __func__, "Couldn't allocate space for node list of size %d\n", nasize);
 	int idx;
 	for (idx = node_asize; idx < nasize; idx++) {
 	    int nid = idx + input_variable_count;
@@ -1088,10 +1027,8 @@ node_t *node_new(node_type_t type, int id, int cid) {
 	variable_limit = node_asize + input_variable_count;
     }
     node_t *node = node_find(id);
-    if (node->type != NODE_NONE) {
-	fprintf(ERROUT, "Cannot create new node with id %d.  Id already in use\n", id);
-	crat_error("node_new");
-    }
+    if (node->type != NODE_NONE)
+	err_printf((char *) __func__, "Cannot create new node with id %d.  Id already in use\n", id);
     node->type = type;
     node->cid = cid;
     node_count ++;
@@ -1130,10 +1067,8 @@ void crat_add_clause(int cid) {
     clause_new(cid);
     while (true) {
 	token_t token = token_next();
-	if (token != TOK_INT) {
-	    fprintf(ERROUT, "Unexpected token '%s'\n", token_last);
-	    crat_error("crat_add_clause");
-	}
+	if (token != TOK_INT)
+	    err_printf((char *) __func__, "Unexpected token '%s'\n", token_last);
 
 	int lit = token_value;
 	clause_add_literal(lit);
@@ -1163,19 +1098,15 @@ void crat_delete_clause() {
 	clause_show_all(stdout);
     }
     token_t token = token_next();
-    if (token != TOK_INT) {
-	fprintf(ERROUT, "Unexpected token '%s'\n", token_last);
-	crat_error("crat_delete_clause");
-    }
+    if (token != TOK_INT)
+	err_printf((char *) __func__, "Unexpected token '%s'\n", token_last);
     int cid = token_value;
     int *lits = clause_locate(cid);
     rup_setup(lits);
 
     bool deleted = clause_delete(cid);
-    if (!deleted) {
-	fprintf(ERROUT, "Could not delete clause %d.  Never defined or already deleted\n", cid);
-	crat_error("crat_delete_clause");
-    }
+    if (!deleted) 
+	err_printf((char *) __func__, "Could not delete clause %d.  Never defined or already deleted\n", cid);
 
     rup_run();
 
@@ -1191,10 +1122,9 @@ void crat_delete_clause() {
 
 void crat_add_product(int cid) {
     token_t token = token_next();
-    if (token != TOK_INT) {
-	fprintf(ERROUT, "Expected operation number.  Got %s ('%s') instead\n", token_name[token], token_last);
-	crat_error("crat_add_product");
-    } 
+    if (token != TOK_INT)
+	err_printf((char *) __func__, "Expected operation number.  Got %s ('%s') instead\n", token_name[token], token_last);
+
     int nid = token_value;
     node_t *node = node_new(NODE_PRODUCT, nid, cid);
     node->children = ilist_new(2);
@@ -1204,32 +1134,28 @@ void crat_add_product(int cid) {
     /* Get children */
     while (true) {
 	token = token_next();
-	if (token != TOK_INT) {
-	    fprintf(ERROUT, "Expected product operation argument.  Got %s ('%s') instead\n", token_name[token], token_last);
-	    crat_error("crat_add_product");
-	}
+	if (token != TOK_INT)
+	    err_printf((char *) __func__, "Expected product operation argument.  Got %s ('%s') instead\n", token_name[token], token_last);
+
 	if (token_value == 0)
 	    break;
 	int lit = token_value;
 	int var = IABS(lit);
 	node->children = ilist_push(node->children, lit);
 	if (var <= input_variable_count) {
-	    if (ilist_is_member(node->dependency_list, var) || ilist_is_member(local_dependency_list, var)) {
-		fprintf(ERROUT, "Can't add literal %d to node %d children.  Variable %d already in dependency set\n", lit, nid, var);
-		crat_error("add_product");
-	    }
+	    if (ilist_is_member(node->dependency_list, var) || ilist_is_member(local_dependency_list, var))
+		err_printf((char *) __func__, "Can't add literal %d to node %d children.  Variable %d already in dependency set\n", lit, nid, var);
+
 	    local_dependency_list = ilist_push(local_dependency_list, var);
 	} else {
 	    node_t *cnode = node_find(var);
-	    if (cnode == NULL || cnode->type == NODE_NONE) {
-		fprintf(ERROUT, "Can't add literal %d to node %d children.  Invalid node Id %d\n", lit, nid, var);
-		crat_error("add_product");
-	    }
+	    if (cnode == NULL || cnode->type == NODE_NONE) 
+		err_printf((char *) __func__, "Can't add literal %d to node %d children.  Invalid node Id %d\n", lit, nid, var);
+
 	    if (!ilist_is_disjoint(node->dependency_list, cnode->dependency_list) ||
-		!ilist_is_disjoint(local_dependency_list, cnode->dependency_list)) {
-		fprintf(ERROUT, "Can't add literal %d to node %d children.  Overlapping dependency sets\n", lit, nid);
-		crat_error("add_product");
-	    }
+		!ilist_is_disjoint(local_dependency_list, cnode->dependency_list)) 
+		err_printf((char *) __func__, "Can't add literal %d to node %d children.  Overlapping dependency sets\n", lit, nid);
+
 	    ilist save = node->dependency_list;
 	    node->dependency_list = ilist_union(node->dependency_list, cnode->dependency_list);
 	    ilist_free(save);
@@ -1242,17 +1168,13 @@ void crat_add_product(int cid) {
 	ilist_free(save);
     }
     ilist_free(local_dependency_list);
-    if (ilist_length(node->children) < 2) {
-	fprintf(ERROUT, "Sum node %d has %d childen.  Must have >= 2\n", nid, ilist_length(node->children));
-	crat_error("crat_add_conjunction");
-    }
+    if (ilist_length(node->children) < 2) 
+	err_printf((char *) __func__, "Sum node %d has %d childen.  Must have >= 2\n", nid, ilist_length(node->children));
 
     /* Done */
     token = token_next();
-    if (token != TOK_EOL) {
-	fprintf(ERROUT, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
-	crat_error("crat_add_product");
-    }
+    if (token != TOK_EOL) 
+	err_printf((char *) __func__, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
 
     /* Add clauses */
     clause_new(cid);
@@ -1279,10 +1201,9 @@ void crat_add_product(int cid) {
 
 void crat_add_sum(int cid) {
     token_t token = token_next();
-    if (token != TOK_INT) {
-	fprintf(ERROUT, "Expected operation number.  Got %s ('%s') instead\n", token_name[token], token_last);
-	crat_error("crat_add_sum");
-    } 
+    if (token != TOK_INT)
+	err_printf((char *) __func__, "Expected operation number.  Got %s ('%s') instead\n", token_name[token], token_last);
+
     int nid = token_value;
     node_t *node = node_new(NODE_SUM, nid, cid);
     node->children = ilist_new(2);
@@ -1292,10 +1213,9 @@ void crat_add_sum(int cid) {
     /* Get children */
     while (true) {
 	token = token_next();
-	if (token != TOK_INT) {
-	    fprintf(ERROUT, "Expected sum operation argument.  Got '%s' instead\n", token_last);
-	    crat_error("crat_add_sum");
-	}
+	if (token != TOK_INT) 
+	    err_printf((char *) __func__, "Expected sum operation argument.  Got '%s' instead\n", token_last);
+
 	int lit = token_value;
 	int var = IABS(lit);
 	node->children = ilist_push(node->children, lit);
@@ -1303,10 +1223,9 @@ void crat_add_sum(int cid) {
 	    local_dependency_list = ilist_push(local_dependency_list, var);
 	} else {
 	    node_t *cnode = node_find(var);
-	    if (cnode == NULL || cnode->type == NODE_NONE) {
-		fprintf(ERROUT, "Can't add literal %d to node %d children.  Invalid node Id %d\n", lit, nid, var);
-		crat_error("add_sum");
-	    }
+	    if (cnode == NULL || cnode->type == NODE_NONE)
+		err_printf((char *) __func__, "Can't add literal %d to node %d children.  Invalid node Id %d\n", lit, nid, var);
+
 	    ilist save = node->dependency_list;
 	    node->dependency_list = ilist_union(node->dependency_list, cnode->dependency_list);
 	    ilist_free(save);
@@ -1355,29 +1274,25 @@ void crat_add_sum(int cid) {
 
 void crat_delete_operation() {
     token_t token = token_next();
-    if (token != TOK_INT) {
-	fprintf(ERROUT, "Expecting integer operation ID.  Got %s ('%s') instead\n", token_name[token], token_last);
-	crat_error("crat_delete_operation");
-    }
+    if (token != TOK_INT)
+	err_printf((char *) __func__, "Expecting integer operation ID.  Got %s ('%s') instead\n", token_name[token], token_last);
+
     int id = token_value;
     node_t *node = node_find(id);
-    if (node == NULL || node->type == NODE_NONE) {
-	fprintf(ERROUT, "Cannot delete operation #%d.  Already deleted or never defined\n", id);
-	crat_error("crat_delete_operation");
-    }
+    if (node == NULL || node->type == NODE_NONE) 
+	err_printf((char *) __func__, "Cannot delete operation #%d.  Already deleted or never defined\n", id);
+
     int i;
     for (i = 0; i <= ilist_length(node->children); i++) {
 	int cid = node->cid + i;
-	if (!clause_delete(cid)) {
-	    fprintf(ERROUT, "Cannot delete operation #%d.  Defining clause #%d never defined or already deleted\n", id, cid);
-	    crat_error("crat_delete_operation");		
-	}
+	if (!clause_delete(cid)) 
+	    err_printf((char *) __func__, "Cannot delete operation #%d.  Defining clause #%d never defined or already deleted\n", id, cid);
+
     }
     int refs = clause_xvar_reference[id-input_variable_count-1];
-    if (refs != 0) {
-	fprintf(ERROUT, "Cannot delete operation #%d.  %d clauses still contain reference to it\n", id, refs);
-	crat_error("crat_delete_operation");		
-    }
+    if (refs != 0) 
+	err_printf((char *) __func__, "Cannot delete operation #%d.  %d clauses still contain reference to it\n", id, refs);
+
     node->type = NODE_NONE;
     node_count --;
     node_deleted_count ++;
@@ -1408,21 +1323,16 @@ int crat_final_root() {
 		if (clause_is_unit(lits)) {
 		    if (root == 0)
 			root = *lits;
-		    else {
-			fprintf(ERROUT, "Found at least two root literals: %d and %d\n", root, *lits);
-			crat_error("crat_final_root");
-		    }
-		} else {
-		    fprintf(ERROUT, "Found undeleted, non-unit clause %d\n", cid);
-		    crat_error("crat_final_root");
-		}
+		    else 
+			err_printf((char *) __func__, "Found at least two root literals: %d and %d\n", root, *lits);
+		} else 
+		    err_printf((char *) __func__, "Found undeleted, non-unit clause %d\n", cid);
 	    }
 	}
     }
-    if (root == 0) {
-	fprintf(ERROUT, "Didn't find root node\n");
-	crat_error("crat_final_root");
-    }
+    if (root == 0) 
+	err_printf((char *) __func__, "Didn't find root node\n");
+
     return root;
 }
 
@@ -1443,10 +1353,9 @@ void crat_read(char *fname) {
 	    cid = token_value;
 	    token = token_next();
 	} 
-	if (token != TOK_STRING) {
-	    fprintf(ERROUT, "Expecting CRAT command.  Got '%s' (%s) instead\n", token_last, token_name[token]);
-	    crat_error("crat_read");
-	} else if (strcmp(token_last, "a") == 0)
+	if (token != TOK_STRING) 
+	    err_printf((char *) __func__, "Expecting CRAT command.  Got '%s' (%s) instead\n", token_last, token_name[token]);
+	else if (strcmp(token_last, "a") == 0)
 	    crat_add_clause(cid);
 	else if (strcmp(token_last, "dc") == 0)
 	    crat_delete_clause();
@@ -1456,10 +1365,8 @@ void crat_read(char *fname) {
 	    crat_add_sum(cid);
 	else if (strcmp(token_last, "do") == 0)
 	    crat_delete_operation();
-	else {
-	    fprintf(ERROUT, "Invalid CRAT command '%s'\n", token_last);
-	    crat_error("crat_read");
-	}
+	else 
+	    err_printf((char *) __func__, "Invalid CRAT command '%s'\n", token_last);
     }
     token_finish();
     if (verb_level >= 1) {
