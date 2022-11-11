@@ -25,6 +25,7 @@
 import sys
 import getopt
 import datetime
+import traceback
 import readwrite
 import tdpog
 
@@ -113,8 +114,9 @@ import tdpog
 # true node of index 4 and the literals -2 and 3 are set to true.
 
 def usage(name):
-    print("Usage: %s [-h] [-d][-s SMODE] [-v VLEVEL] [-H hlevel] [-L lheight] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
+    print("Usage: %s [-h] [-D] [-d][-s SMODE] [-v VLEVEL] [-H hlevel] [-L lheight] [-i FILE.cnf] [-n FILE.nnf] [-p FILE.crat]")
     print(" -h           Print this message")
+    print(" -D           Debugging mode.  Print trace of exception at outer level")
     print(" -d           Use NNF format defined for D4 model counter")
     print(" -s SMODE     Set mode for splitting proof: 0=None, 1=all steps included 2=requires SAT solver.  1&2 require HLEVEL = 2 or 3")
     print(" -v VLEVEL    Set verbosity level (0-3)")
@@ -123,6 +125,9 @@ def usage(name):
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
     print(" -p FILE.crat Output CRAT")
+
+# Global variable
+debug = False
 
 class NnfException(Exception):
 
@@ -738,6 +743,7 @@ class D4Reader:
         
         
 def run(name, args):
+    global debug
     verbLevel = 1
     hintLevel = 2
     splitMode = 0 # No splitting
@@ -746,11 +752,13 @@ def run(name, args):
     cnfName = None
     nnfName = None
     cratName = None
-    optlist, args = getopt.getopt(args, 'hds:v:H:L:i:n:p:')
+    optlist, args = getopt.getopt(args, 'hdDs:v:H:L:i:n:p:')
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
             return
+        elif opt == '-D':
+            debug = True
         elif opt == '-s':
             splitMode = int(val)
         elif opt == '-v':
@@ -840,10 +848,11 @@ def run(name, args):
     print("GEN: Elapsed time for generation: %.2f seconds" % seconds)
 
 if __name__ == "__main__":
-#    run(sys.argv[0], sys.argv[1:])
     try:
         run(sys.argv[0], sys.argv[1:])
     except Exception as ex:
         print("ERROR: Progam %s raised exception %s" % (sys.argv[0], str(ex)))
+        if debug:
+            traceback.print_last()
         sys.exit(1)
     sys.exit(0)
