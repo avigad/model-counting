@@ -49,7 +49,7 @@ tautologyId = 1000 * 1000 * 1000
 def cleanClause(literalList):
     slist = sorted(literalList, key = lambda v: abs(v))
     if len(slist) == 0:
-        return slist
+        return tuple(slist)
     if slist[0] == tautologyId:
         return tautologyId
     if slist[0] == -tautologyId:
@@ -57,7 +57,7 @@ def cleanClause(literalList):
         if slist[0] == tautologyId:
             return tautologyId
     if len(slist) == 1:
-        return slist
+        return tuple(slist)
     nlist = [slist[0]]
     for i in range(1, len(slist)):
         if slist[i-1] == slist[i]:
