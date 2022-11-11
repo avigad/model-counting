@@ -62,6 +62,7 @@ def runProgram(prefix, root, commandList, logFile):
     seconds = delta.seconds + 1e-6 * delta.microseconds
     result += "%s LOG: Elapsed time = %.3f seconds\n" % (prefix, seconds)
     result += "%s OUTCOME: %s\n" % (prefix, outcome)
+    print("%s. %s: OUTCOME: %s" % (root, prefix, outcome))
     print("%s. %s: Elapsed time: %.3f seconds" % (root, prefix, seconds))
     logFile.write(cp.stdout)
     logFile.write(result)

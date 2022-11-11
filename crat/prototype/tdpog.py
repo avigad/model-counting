@@ -1081,7 +1081,7 @@ class Pog:
                 tclause = readwrite.invertClause(lits + context)
                 lcid = self.reasoner.findClauseId(tclause, maxCategorySetting)
                 if lcid <= 0:
-                    raise PogException("Couldn't find input clause represented by negated disjunction %s" % (str(root)))
+                    raise PogException("Couldn't find input clause %s represented by negated disjunction %s" % (str(readwrite.cleanClause(tclause)), str(root)))
             else:
                 # Nonterminal child must be negated
                 if ntchild.ntype == NodeType.negation:
