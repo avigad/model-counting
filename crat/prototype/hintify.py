@@ -25,13 +25,16 @@ import sys
 import os
 import getopt
 import subprocess
+import traceback
+
 import datetime
 import readwrite
 
 
 def usage(name):
-    print("Usage: %s [-h] [-d] [-k] [-s SMODE] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
+    print("Usage: %s [-h] [-D] [-d] [-k] [-s SMODE] [-v VLEVEL] -i FILE.cnf -p IFILE.crat -o OFILE.crat")
     print(" -h           Print this message")
+    print(" -D           Debugging mode.  Print trace of exception at outer level")
     print(" -k           Keep intermediate files")
     print(" -d           PySAT Mode: Don't use Cadical")
     print(" -s SMODE     Set mode for splitting proof: 1=all steps included (default) 2=requires SAT solver")
@@ -39,6 +42,9 @@ def usage(name):
     print(" -i FILE.cnf  Input CNF")
     print(" -p IFILE.crat Input CRAT")
     print(" -o OFILE.crat Output CRAT")
+
+# Global variable
+debug = False
 
 # Global file names
 acnfName = ""
@@ -605,6 +611,7 @@ def insertHintsMode2(icratName, hcratName, verbLevel):
 
 def run(name, args):
     global acnfName, dratName, xdratName, icnfName, rupName, lratName
+    global debug
     cnfName = None
     cratName = None
     hcratName = None
@@ -612,11 +619,13 @@ def run(name, args):
     splitMode = 1
     verbLevel = 1
     keepTemp = False
-    optList, args = getopt.getopt(args, "hdks:v:i:p:o:v:")
+    optList, args = getopt.getopt(args, "hDdks:v:i:p:o:v:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
+        elif opt == '-D':
+            debug = True
         elif opt == '-k':
             keepTemp = True
         elif opt == '-d':
@@ -682,10 +691,11 @@ def run(name, args):
                 continue
 
 if __name__ == "__main__":
-#    run(sys.argv[0], sys.argv[1:])
     try:
         run(sys.argv[0], sys.argv[1:])
     except Exception as ex:
         print("ERROR: Progam %s raised exception %s" % (sys.argv[0], str(ex)))
+        if debug:
+            traceback.print_last()
         sys.exit(1)
     sys.exit(0)
