@@ -452,9 +452,6 @@ class Lemma:
             # Find what literals get used
             if not isOriginal:
                 for icid in provenance:
-                    if icid < 0 or icid > len(pog.inputClauseList):
-                        print("Uh-Oh.  Trying to find input clause #%d.  Only %d exist" % (icid, len(pog.inputClauseList)))
-                        raise PogException("Bad input clause Id #%d" % icid)
                     iclause = pog.inputClauseList[icid-1]
                     for lit in iclause:
                         if lit in self.assignedLiteralSet:
@@ -500,9 +497,6 @@ class Lemma:
         idx = self.getIdx(clause)
         provenance,isOriginal,xclause = self.argList[idx]
         # Matching input clause need not be unique
-        if False and len(provenance) != 1:
-            raise PogException("Cannot finding input clause matching argument clause %s. Provenance is %s" %
-                               (str(clause), str(provenance)))
         icid = list(provenance)[0]
         return icid
     
