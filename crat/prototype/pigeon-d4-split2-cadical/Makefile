@@ -55,10 +55,10 @@ pigeon-sat-tseitin-$(N).cnf:
 	$(D4) $< -no-rnd-init -dDNNF -out=$@ | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s 2 | tee $*.crat_data
+	$(INTERP) $(DDNNF) -D -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s 2 | tee $*.crat_data
 
 .crat.hcrat:
-	$(INTERP) $(HINTIFY) $(KEEP) -s 2 -i $*.cnf -p $< -o $@ | tee $*.hint_data
+	$(INTERP) $(HINTIFY) $(KEEP) -D -s 2 -i $*.cnf -p $< -o $@ | tee $*.hint_data
 
 .hcrat.check_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< | tee $@
