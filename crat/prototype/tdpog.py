@@ -104,6 +104,18 @@ class Reasoner:
                 cid = max(cid, self.stepMax[icat])
         return cid
 
+    def findOriginClauseId(self, coreLiterals, optionLiterals, maxCategory):
+        tclause = readwrite.cleanClause(coreLiterals + optionLiterals)
+        maxCid = self.getMaxStep(maxCategory)
+        for (cat,cid,clause) in self.stepList:
+            if cid > maxCid:
+                break
+            if cat > maxCategory:
+                continue
+            if readwrite.testClauseSubset(coreLiterals, clause) and readwrite.testClauseSubset(clause, tclause):
+                return cid
+        return -1
+
     # Find clause that is subset of target
     def findClauseId(self, tclause, maxCategory, equal = False):
         if mapInputClauseSetting:
@@ -313,7 +325,7 @@ class Reasoner:
 # Used to generate and to apply lemma
 class Lemma:
     ### Tracking information generated while traversing graph
-    # Each entry is tuple (provenance,isOriginalclause)
+    # Each entry is tuple (provenance,isOriginalclause,clause)
     # Provenance is set indicate possible origin clause id's
     # isOriginal indicates whether clause still matches original input clause
     argList = []
@@ -377,6 +389,13 @@ class Lemma:
         nargList = []
         for provenance,isOriginal,clause in self.argList:
             if clause not in olemma.clauseMap:
+                print("Uh Oh.  Lemma clause failure")
+                print("Here are the clauses from one lemma:")
+                for mclause in self.clauseMap.keys():
+                    print("    %s" % str(mclause))
+                print("Here are the clauses from the other:")
+                for mclause in olemma.clauseMap.keys():
+                    print("    %s" % str(mclause))
                 raise PogException("Lemma merge failure.  Clause %s (Provenance = %s) in original lemma, not in other" %
                                    (str(clause), str(provenance)))
             oidx = olemma.clauseMap[clause]
@@ -1079,7 +1098,24 @@ class Pog:
         if self.hintLevel >= 2:
             if ntchild is None:
                 tclause = readwrite.invertClause(lits + context)
-                lcid = self.reasoner.findClauseId(tclause, maxCategorySetting)
+                lcid = -1
+                if root.lemma is not None:
+                    for provenance, isOriginal, tupclause in root.lemma.argList:
+                        for pcid in provenance:
+                            iclause = self.reasoner.getClause(pcid)
+                            if readwrite.testClauseSubset(iclause, tclause):
+                                if self.verbLevel >= 3:
+                                    print("Found clause %d matching negated conjunction %s from lemma arglist" % (pcid, str(root)))
+                                lcid = pcid
+                                break
+                    if lcid <= 0 and self.verbLevel >= 3:
+                        print("Failed to find input clause matching negated conjunction %s from lemma argliist" % (str(root)))
+                if lcid <= 0:
+#                    lcid = self.reasoner.findOriginClauseId(lits, context, maxCategorySetting)
+                    lcid = self.reasoner.findClauseId(tclause, maxCategorySetting)
+                    if lcid > 0 and self.verbLevel >= 3:
+                        print("Found input clause %d matching negated conjunction %s via search" % (lcid, str(root)))
+
                 if lcid <= 0:
                     raise PogException("Couldn't find input clause %s represented by negated disjunction %s" % (str(readwrite.cleanClause(tclause)), str(root)))
             else:
