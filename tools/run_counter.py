@@ -51,7 +51,6 @@ def runProgram(prefix, root, commandList, logFile):
         result += "%s LOG: Elapsed time = %.3f seconds\n" % (prefix, seconds)
         result += "%s OUTCOME: Timeout\n" % (prefix)
         logFile.write(result)
-        logFile.close()
         return False
     ok = True
     if cp.returncode != 0:
