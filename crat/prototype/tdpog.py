@@ -396,37 +396,16 @@ class Lemma:
                 print("Here are the clauses from the other:")
                 for mclause in olemma.clauseMap.keys():
                     print("    %s" % str(mclause))
-                raise PogException("Lemma merge failure.  Clause %s (Provenance = %s) in original lemma, not in other" %
-                                   (str(clause), str(provenance)))
+                return False
+#                raise PogException("Lemma merge failure.  Clause %s (Provenance = %s) in original lemma, not in other" %
+#                                   (str(clause), str(provenance)))
             oidx = olemma.clauseMap[clause]
             oprovenance,oisOriginal,oclause = olemma.argList[oidx]
             provenance |= oprovenance
             isOriginal = isOriginal and oisOriginal
             nargList.append((provenance,isOriginal,clause))
         self.argList = nargList
-        return
-        # Double check
-        sxo = []
-        oxs = []
-        for provenance,isOriginal,clause in self.argList:
-             if clause not in olemma.clauseMap:
-                 sxo.append(clause)
-        for provenance,isOriginal,clause in olemma.argList:
-             if clause not in self.clauseMap:
-                 oxs.append(clause)
-        if len(sxo) > 0 or len(oxs) > 0:
-            print("Lemma merge failure.  In own but not other:")
-            print("Own status:")
-            self.show()
-            print("Other status:")
-            olemma.show()
-            print("In own but not other:")
-            for clause in sxo:
-                print("  %s" % str(clause))
-            print("Lemma merge failure.  In other but not own:")
-            for clause in oxs:
-                print("  %s" % str(clause))
-            raise PogException("Lemma merge failure")
+        return True
 
     # Assign value to literal
     # Eliminate satisfied clauses
@@ -1526,9 +1505,9 @@ class Pog:
         for node in reversed(self.nodes):
             if node.ntype not in [NodeType.conjunction, NodeType.disjunction]:
                 continue
-            if node.wantLemma(self.lemmaHeight):
+            if node.wantLemma(self.lemmaHeight) and node.lemma is not None:
                 node.lemma.setupLemma(node, self)
-            elif not node.lemma:
+            else:
                 continue
             ntchildren = []
             nlemma = node.lemma.clone()
@@ -1561,13 +1540,10 @@ class Pog:
                 if child.lemma is None:
                     child.lemma = lemma
                 else:
-                    try:
-                        child.lemma.merge(lemma)
-                    except PogException as ex:
-                        self.showNode(node)
-                        print(str(ex))
-                        print("Failed when adding lemma from node %s to child %s" % (str(node), str(child)))
-                        sys.exit(1)
+                    if not child.lemma.merge(lemma):
+                        print("Lemma merge failed when adding child %s" % str(child))
+                    child.lemma = None
+
         self.addComment("Operations for representing formula")
 
     def showNode(self, node):
