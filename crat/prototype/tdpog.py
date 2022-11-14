@@ -104,20 +104,8 @@ class Reasoner:
                 cid = max(cid, self.stepMax[icat])
         return cid
 
-    def findOriginClauseId(self, coreLiterals, optionLiterals, maxCategory):
-        tclause = readwrite.cleanClause(coreLiterals + optionLiterals)
-        maxCid = self.getMaxStep(maxCategory)
-        for (cat,cid,clause) in self.stepList:
-            if cid > maxCid:
-                break
-            if cat > maxCategory:
-                continue
-            if readwrite.testClauseSubset(coreLiterals, clause) and readwrite.testClauseSubset(clause, tclause):
-                return cid
-        return -1
-
     # Find clause that is subset of target
-    def findClauseId(self, tclause, maxCategory, equal = False):
+    def findClauseId(self, tclause, maxCategory, minClause = None, equal = True):
         if mapInputClauseSetting:
             tclause = readwrite.cleanClause(tclause)
             if tclause in self.inputClauseMap:
@@ -129,6 +117,8 @@ class Reasoner:
             if cid > maxCid:
                 break
             if cat > maxCategory:
+                continue
+            if minClause is not None and not readwrite.testClauseSubset(minClause, clause):
                 continue
             if readwrite.testClauseSubset(clause, tclause):
                 return cid
@@ -325,7 +315,7 @@ class Reasoner:
 # Used to generate and to apply lemma
 class Lemma:
     ### Tracking information generated while traversing graph
-    # Each entry is tuple (provenance,isOriginalclause,clause)
+    # Each entry is tuple (provenance,isOriginalclause)
     # Provenance is set indicate possible origin clause id's
     # isOriginal indicates whether clause still matches original input clause
     argList = []
@@ -389,23 +379,37 @@ class Lemma:
         nargList = []
         for provenance,isOriginal,clause in self.argList:
             if clause not in olemma.clauseMap:
-                print("Uh Oh.  Lemma clause failure")
-                print("Here are the clauses from one lemma:")
-                for mclause in self.clauseMap.keys():
-                    print("    %s" % str(mclause))
-                print("Here are the clauses from the other:")
-                for mclause in olemma.clauseMap.keys():
-                    print("    %s" % str(mclause))
-                return False
-#                raise PogException("Lemma merge failure.  Clause %s (Provenance = %s) in original lemma, not in other" %
-#                                   (str(clause), str(provenance)))
+                raise PogException("Lemma merge failure.  Clause %s (Provenance = %s) in original lemma, not in other" %
+                                   (str(clause), str(provenance)))
             oidx = olemma.clauseMap[clause]
             oprovenance,oisOriginal,oclause = olemma.argList[oidx]
             provenance |= oprovenance
             isOriginal = isOriginal and oisOriginal
             nargList.append((provenance,isOriginal,clause))
         self.argList = nargList
-        return True
+        return
+        # Double check
+        sxo = []
+        oxs = []
+        for provenance,isOriginal,clause in self.argList:
+             if clause not in olemma.clauseMap:
+                 sxo.append(clause)
+        for provenance,isOriginal,clause in olemma.argList:
+             if clause not in self.clauseMap:
+                 oxs.append(clause)
+        if len(sxo) > 0 or len(oxs) > 0:
+            print("Lemma merge failure.  In own but not other:")
+            print("Own status:")
+            self.show()
+            print("Other status:")
+            olemma.show()
+            print("In own but not other:")
+            for clause in sxo:
+                print("  %s" % str(clause))
+            print("Lemma merge failure.  In other but not own:")
+            for clause in oxs:
+                print("  %s" % str(clause))
+            raise PogException("Lemma merge failure")
 
     # Assign value to literal
     # Eliminate satisfied clauses
@@ -1076,25 +1080,10 @@ class Pog:
         clause = [root.xlit] + readwrite.invertClause(context)
         if self.hintLevel >= 2:
             if ntchild is None:
-                tclause = readwrite.invertClause(lits + context)
-                lcid = -1
-                if root.lemma is not None:
-                    for provenance, isOriginal, tupclause in root.lemma.argList:
-                        for pcid in provenance:
-                            iclause = self.reasoner.getClause(pcid)
-                            if readwrite.testClauseSubset(iclause, tclause):
-                                if self.verbLevel >= 3:
-                                    print("Found clause %d matching negated conjunction %s from lemma arglist" % (pcid, str(root)))
-                                lcid = pcid
-                                break
-                    if lcid <= 0 and self.verbLevel >= 3:
-                        print("Failed to find input clause matching negated conjunction %s from lemma argliist" % (str(root)))
-                if lcid <= 0:
-#                    lcid = self.reasoner.findOriginClauseId(lits, context, maxCategorySetting)
-                    lcid = self.reasoner.findClauseId(tclause, maxCategorySetting)
-                    if lcid > 0 and self.verbLevel >= 3:
-                        print("Found input clause %d matching negated conjunction %s via search" % (lcid, str(root)))
-
+                nlits = readwrite.invertClause(lits)
+                ncontext = readwrite.invertClause(context)
+                tclause = nlits + ncontext
+                lcid = self.reasoner.findClauseId(tclause, maxCategorySetting, minClause = nlits, equal = False)
                 if lcid <= 0:
                     raise PogException("Couldn't find input clause %s represented by negated disjunction %s" % (str(readwrite.cleanClause(tclause)), str(root)))
             else:
@@ -1505,9 +1494,9 @@ class Pog:
         for node in reversed(self.nodes):
             if node.ntype not in [NodeType.conjunction, NodeType.disjunction]:
                 continue
-            if node.wantLemma(self.lemmaHeight) and node.lemma is not None:
+            if node.wantLemma(self.lemmaHeight):
                 node.lemma.setupLemma(node, self)
-            else:
+            elif not node.lemma:
                 continue
             ntchildren = []
             nlemma = node.lemma.clone()
@@ -1540,10 +1529,13 @@ class Pog:
                 if child.lemma is None:
                     child.lemma = lemma
                 else:
-                    if not child.lemma.merge(lemma):
-                        print("Lemma merge failed when adding child %s" % str(child))
-                    child.lemma = None
-
+                    try:
+                        child.lemma.merge(lemma)
+                    except PogException as ex:
+                        self.showNode(node)
+                        print(str(ex))
+                        print("Failed when adding lemma from node %s to child %s" % (str(node), str(child)))
+                        sys.exit(1)
         self.addComment("Operations for representing formula")
 
     def showNode(self, node):
