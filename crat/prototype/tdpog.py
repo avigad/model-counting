@@ -371,45 +371,31 @@ class Lemma:
             idx += 1
         return ncm
 
+    def incompatible(self, olemma, reason):
+        print("Failing lemma merge.  Lemma=")
+        self.show()
+        print("Other Lemma=")
+        olemma.show()
+        raise PogException("Lemma merge failure: %s" % reason)
+
     # Merge information from another lemma.  Assume have identical clauses (with different provenance)
     # Only accept assigned literals that are common to both
     def merge(self, olemma):
-        self.assignedLiteralSet &= olemma.assignedLiteralSet
+        if len(self.argList) != len(olemma.argList):
+            self.incompatible(olemma, "Lemma has %d entries in argList.  Other lemma has %d" % (len(self.argList), len(olemma.argList)))
         # Merge provenances:
         nargList = []
         for provenance,isOriginal,clause in self.argList:
             if clause not in olemma.clauseMap:
-                raise PogException("Lemma merge failure.  Clause %s (Provenance = %s) in original lemma, not in other" %
-                                   (str(clause), str(provenance)))
+                self.incompatible(olemma, "Clause %s in lemma not present in other lemma" % str(clause))
             oidx = olemma.clauseMap[clause]
             oprovenance,oisOriginal,oclause = olemma.argList[oidx]
-            provenance |= oprovenance
-            isOriginal = isOriginal and oisOriginal
-            nargList.append((provenance,isOriginal,clause))
+            nprovenance = provenance | oprovenance
+            nisOriginal = isOriginal and oisOriginal
+            nargList.append((nprovenance,nisOriginal,clause))
         self.argList = nargList
+        self.assignedLiteralSet &= olemma.assignedLiteralSet            
         return
-        # Double check
-        sxo = []
-        oxs = []
-        for provenance,isOriginal,clause in self.argList:
-             if clause not in olemma.clauseMap:
-                 sxo.append(clause)
-        for provenance,isOriginal,clause in olemma.argList:
-             if clause not in self.clauseMap:
-                 oxs.append(clause)
-        if len(sxo) > 0 or len(oxs) > 0:
-            print("Lemma merge failure.  In own but not other:")
-            print("Own status:")
-            self.show()
-            print("Other status:")
-            olemma.show()
-            print("In own but not other:")
-            for clause in sxo:
-                print("  %s" % str(clause))
-            print("Lemma merge failure.  In other but not own:")
-            for clause in oxs:
-                print("  %s" % str(clause))
-            raise PogException("Lemma merge failure")
 
     # Assign value to literal
     # Eliminate satisfied clauses
@@ -505,7 +491,7 @@ class Lemma:
     def show(self):
         print("Assigned literals: %s" % str(sorted(self.assignedLiteralSet)))
         for provenance,isOriginal,clause in self.argList:
-            print("Clause %s.  From input clause #%d.  Original? %s" % (str(clause), provenance, str(isOriginal)))
+            print("Clause %s.  From input clause(s) #%s.  Original? %s" % (str(clause), str(provenance), str(isOriginal)))
 
 
 class NodeType:
