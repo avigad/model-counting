@@ -482,7 +482,7 @@ class LratReader():
             self.lineNumber += 1
             line = trim(line)
             fields = line.split()
-            if len(fields) > 0 and fields[0] != 'c':
+            if len(fields) > 0 and fields[0] != 'c' and fields[0] != 's':
                 break
         if len(fields) == 0 or fields[0] == 'c':
             return (key, id, clause, hints)
