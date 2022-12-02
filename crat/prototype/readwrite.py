@@ -990,9 +990,11 @@ class CratWriter(SplitWriter):
         for lit in lits:
             self.usedVariableSet.add(abs(lit))
         self.clauseDict[step] = lits
+        print("Added clause #%d %s" % (step, lits))
 
     def deleteClause(self, step):
         del self.clauseDict[step]
+        print("Deleted clause #%d" % step)
 
     def doLine(self, items, splitLower = False):
         slist = [str(i) for i in items]
@@ -1016,7 +1018,7 @@ class CratWriter(SplitWriter):
             slist = [str(lit) for lit in cpos]
             self.doComment("%d a %s 0" % (step, " ".join(slist)))
         for idx in range(len(ilist)):
-            self.addClause(step+idx, [-xvar, ilist[idx]])
+            self.addClause(step+idx+1, [-xvar, ilist[idx]])
             if self.verbLevel >= 2:
                 self.doComment("%d a %d %d 0" % (step+1+idx, -xvar, ilist[idx]))
         self.incrStep(len(ilist))
@@ -1041,8 +1043,10 @@ class CratWriter(SplitWriter):
         return step
         
     def doClause(self, lits, hints = ['*'], splitLower = False):
+        if hints is None:
+            hints = ['*']
         s = self.incrStep(1, splitLower)
-        self.doLine([s, 'a'] + lits + [0] + hints + [0], splitLower)
+        self.doLine([s, 'a'] + list(lits) + [0] + hints + [0], splitLower)
         self.addClause(s, lits)
         shints = None if len(hints) == 1 and hints[0] == '*' else tuple(hints)
         if s >= upperStepStart:

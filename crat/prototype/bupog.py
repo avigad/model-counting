@@ -40,8 +40,6 @@ class ProtoNode:
         return self.isOne() or self.isZero()
 
 class Node(ProtoNode):
-    # For traversals
-    mark = False 
 
     xlit = None
     # Track original variable of ITE operation
@@ -58,7 +56,12 @@ class Node(ProtoNode):
         self.iteVar = None
         self.definingClauseId = None
         self.unitClauseId = None
-        self.mark = False
+
+    def name(self):
+        if self.xlit < 0:
+            return "-P" + str(-self.xlit)
+        else:
+            return "P" + str(self.xlit)
 
     def __hash__(self):
         return self.xlit
@@ -76,7 +79,6 @@ class Variable(Node):
 
     def __init__(self, id):
         Node.__init__(self, id, NodeType.variable, [])
-        self.dependencySet.add(id)
 
     def key(self):
         return (self.ntype, self.xlit)
@@ -149,7 +151,7 @@ class Pog:
     # Asserted unit clauses
     unitClauseCount = 0
 
-    def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel, lemmaHeight):
+    def __init__(self, variableCount, inputClauseList, fname, verbLevel):
         self.verbLevel = verbLevel
         self.uniqueTable = {}
         self.inputClauseList = readwrite.cleanClauses(inputClauseList)
@@ -185,6 +187,11 @@ class Pog:
         key = node.key()
         self.uniqueTable[key] = node
         self.nodeMap[node.xlit] = node
+
+    def remove(self, node):
+        key = node.key()
+        del self.uniqueTable[key]
+        del self.nodeMap[node.xlit]
 
     def addNegation(self, child):
         if child.ntype == NodeType.negation:
@@ -228,8 +235,8 @@ class Pog:
             if self.verbLevel >= 2:
                 slist = [str(child) for child in n.children]
                 self.addComment("Node %s = AND(%s)" % (str(n), ", ".join(slist)))
-            n.definingClauseId = self.cwriter.finalizeAnd(node.ilist, node.xlit)
-            self.definingClauseCounts += 1 + len(node.children)
+            ilist = [child.xlit for child in children]
+            n.definingClauseId = self.cwriter.finalizeAnd(ilist, xlit)
         return n
 
     def addDisjunction(self, child1, child2, hintPairs = None):
@@ -250,8 +257,8 @@ class Pog:
             hints = None
             if hintPairs is not None:
                 hints = [node.definingClauseId+offset for node,offset in hintPairs]
-            n.definingClauseId = self.cwriter.finalizeOr(node.ilist, node.xlit, hints)
-            self.definingClauseCounts += 1 + len(node.children)
+            ilist = [child.xlit for child in n.children]
+            n.definingClauseId = self.cwriter.finalizeOr(ilist, xlit, hints)
         return n
 
     # Find information to generate hint for mutual exclusion proof
@@ -280,7 +287,7 @@ class Pog:
         elif nthen.isOne():
             result = self.addNegation(self.addConjunction([self.addNegation(nif), self.addNegation(nelse)]))
         elif nthen.isZero():
-            result = self.addConjunction(self.addNegation(nif), nelse)
+            result = self.addConjunction([self.addNegation(nif), nelse])
         elif nelse.isOne():
             result = self.addNegation(self.addConjunction([nif, self.addNegation(nthen)]))
         elif nelse.isZero():
@@ -303,12 +310,6 @@ class Pog:
 
     def addComment(self, s, lowerSplit = False):
         self.cwriter.doComment(s, lowerSplit)
-
-    def deleteClause(self, id, hlist = None):
-        self.cwriter.doDeleteClause(id, hlist)
-
-    def deleteOperation(self, node):
-        self.cwriter.doDeleteOperation(node.xlit, node.definingClauseId, 1+len(node.children))
         
             
     def finish(self):
@@ -332,18 +333,6 @@ class Pog:
             print("c Asserted unit clauses: %d" % nuclause)
             print("Total clauses: %d input + %d defining + %d asserted + %d unit = %d" % (niclause, ndclause, naclause, nuclause, nclause))
 
-    def doMark(self, root):
-        if root.mark:
-            return
-        root.mark = True
-        for c in root.children:
-            self.doMark(c)
-        
-    # Perform mark & sweep to remove any nodes not reachable from root
-    # Generate node declarations
-    # Construct context sets
-    def finalize(self):
-        pass
 
     def showNode(self, node):
         outs = str(node)
