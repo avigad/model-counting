@@ -105,7 +105,7 @@ class Reasoner:
         return cid
 
     # Find clause that is subset of target
-    def findClauseId(self, tclause, maxCategory, minClause = None, equal = True):
+    def findClauseId(self, tclause, maxCategory, equal = True):
         if mapInputClauseSetting:
             tclause = readwrite.cleanClause(tclause)
             if tclause in self.inputClauseMap:
@@ -117,8 +117,6 @@ class Reasoner:
             if cid > maxCid:
                 break
             if cat > maxCategory:
-                continue
-            if minClause is not None and not readwrite.testClauseSubset(minClause, clause):
                 continue
             if readwrite.testClauseSubset(clause, tclause):
                 return cid
@@ -315,9 +313,10 @@ class Reasoner:
 # Used to generate and to apply lemma
 class Lemma:
     ### Tracking information generated while traversing graph
-    # Each entry is tuple (provenance,isOriginalclause)
+    # Each entry is tuple (provenance,isOriginal,clause)
     # Provenance is set indicate possible origin clause id's
     # isOriginal indicates whether clause still matches original input clause
+    # Clause is input clause that has been simplified by omitting falsified literals
     argList = []
     # Map from clause to position in list
     clauseMap = {}
@@ -369,6 +368,7 @@ class Lemma:
             ncm.argList.append((set(provenance), isOriginal, clause))
             ncm.clauseMap[clause] = idx
             idx += 1
+        ncm.assignedLiteralSet = set(self.assignedLiteralSet)
         return ncm
 
     def incompatible(self, olemma, reason):
@@ -415,6 +415,7 @@ class Lemma:
             idx += 1
         self.argList = nargList
 
+
     # Consider only clauses with variables in vset
     # Assume given clause either fully in or fully excluded from vset
     def restrictVariables(self, vset):
@@ -431,7 +432,7 @@ class Lemma:
 
     def setupLemma(self, root, pog):
         self.shadowLiterals = []
-        # Derive subset of the assigned literals that occur in at least one original input clause
+        # Derive subset of the assigned literals where negation occurs in at least one original input clause
         # These become part of context for lemma
         externalLiteralSet = set([])
         self.root = root
@@ -442,7 +443,7 @@ class Lemma:
                 for icid in provenance:
                     iclause = pog.inputClauseList[icid-1]
                     for lit in iclause:
-                        if lit in self.assignedLiteralSet:
+                        if -lit in self.assignedLiteralSet:
                             externalLiteralSet.add(lit)
             if isOriginal:
                 lit = 0
@@ -464,7 +465,7 @@ class Lemma:
                     shadowClause = readwrite.cleanClause(readwrite.invertClause(node.ilist) + [node.xlit])
                     pog.reasoner.addClause(cid, shadowClause)
                 lit = -node.xlit
-                pog.addComment("Lemma %s, argument #%d: shadow clause #%d" % (str(root), idx+1, node.definingClauseId))
+                pog.addComment("Lemma %s, argument #%d: shadow clause #%d, possible input clauses: %s" % (str(root), idx+1, node.definingClauseId, str(provenance)))
             self.shadowLiterals.append(lit)
         self.assignedLiteralSet = externalLiteralSet
 
@@ -729,6 +730,7 @@ class Pog:
             if key in self.uniqueArgTable:
                 return self.uniqueArgTable[key]
         else:
+            return None
             if key in self.uniqueTable:
                 return self.uniqueTable[key]
         return None
@@ -844,7 +846,7 @@ class Pog:
         elif nthen.isOne():
             result = self.addNegation(self.addConjunction([self.addNegation(nif), self.addNegation(nelse)]))
         elif nthen.isZero():
-            result = self.addConjunction(self.addNegation(nif), nelse)
+            result = self.addConjunction([self.addNegation(nif), nelse])
         elif nelse.isOne():
             result = self.addNegation(self.addConjunction([nif, self.addNegation(nthen)]))
         elif nelse.isZero():
@@ -1066,12 +1068,10 @@ class Pog:
         clause = [root.xlit] + readwrite.invertClause(context)
         if self.hintLevel >= 2:
             if ntchild is None:
-                nlits = readwrite.invertClause(lits)
-                ncontext = readwrite.invertClause(context)
-                tclause = nlits + ncontext
-                lcid = self.reasoner.findClauseId(tclause, maxCategorySetting, minClause = nlits, equal = False)
+                tclause = readwrite.invertClause(lits + context)
+                lcid = self.reasoner.findClauseId(tclause, maxCategorySetting, equal = False)
                 if lcid <= 0:
-                    raise PogException("Couldn't find input clause %s represented by negated disjunction %s" % (str(readwrite.cleanClause(tclause)), str(root)))
+                    raise PogException("Couldn't find input clause %s represented by negated conjunction %s" % (str(tclause), str(root)))
             else:
                 # Nonterminal child must be negated
                 if ntchild.ntype == NodeType.negation:
@@ -1121,22 +1121,23 @@ class Pog:
         self.addComment("Apply Lemma %s.  Context = %s" % (str(root), str(context)))
         # Show that each shadow literal activated
         idx = 0
-        lcontext = []
+        lcontext = context
         lhints = []
         for lit in root.lemma.assignedLiteralSet:
-            if lit not in context:
-                self.addComment("Lemma %s.  Justify assigned literal %d in context %s" % (str(root), lit, str(context)))
-                chints = self.validateUnit(lit, context)
+            if lit not in lcontext:
+                self.addComment("Lemma %s.  Justify assigned literal %d in context %s" % (str(root), lit, str(lcontext)))
+                chints = self.validateUnit(lit, lcontext)
                 lhints += chints
+                lcontext.append(lit)
         for provenance,isOriginal,clause in root.lemma.argList:
             idx += 1
             if isOriginal:
                 continue
             lit = root.lemma.findShadowLiteral(clause)
-            if lit in context:
+            if lit in lcontext:
                 self.addComment("Lemma argument #%d (clause %s) already activated by literal %d" % (idx, str(clause), lit))
                 continue
-            aclause = readwrite.invertClause(context) + [lit]
+            aclause = readwrite.invertClause(lcontext) + [lit]
             icid = callingLemma.findInputClause(clause)
             iclause = self.inputClauseList[icid-1]
             self.addComment("Lemma argument #%d (clause %s) from input clause #%d:%s" % (idx, str(clause), icid, str(iclause)))
@@ -1153,10 +1154,10 @@ class Pog:
                             alits.append(alit)
                         pos += 1
                 # See if there are other literals that must be justified
-                ncontext = context + alits
+                ncontext = lcontext + alits
                 conflict = False
                 for lit in iclause:
-                    if -lit not in context and lit not in clause and -lit not in alits and -lit not in root.lemma.assignedLiteralSet:
+                    if -lit not in ncontext and lit not in clause and -lit not in alits and -lit not in root.lemma.assignedLiteralSet:
                         self.addComment("Lemma %s.  Justify additional literal %d from input clause %d in context %s" % (str(root), -lit, icid, str(ncontext)))
                         chints = self.validateUnit(-lit, ncontext)
                         if len(chints) == 1 and chints[0] == ahints[-1]:
