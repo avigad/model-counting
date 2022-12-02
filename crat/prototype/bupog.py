@@ -58,10 +58,7 @@ class Node(ProtoNode):
         self.unitClauseId = None
 
     def name(self):
-        if self.xlit < 0:
-            return "-P" + str(-self.xlit)
-        else:
-            return "P" + str(self.xlit)
+        return str(self)
 
     def __hash__(self):
         return self.xlit
@@ -80,6 +77,9 @@ class Variable(Node):
     def __init__(self, id):
         Node.__init__(self, id, NodeType.variable, [])
 
+    def __str__(self):
+        return "X" + str(self.xlit)
+
     def key(self):
         return (self.ntype, self.xlit)
 
@@ -91,7 +91,7 @@ class One(Node):
         Node.__init__(self, readwrite.tautologyId, NodeType.tautology, [])
 
     def __str__(self):
-        return "TAUT"
+        return "T"
 
 class Negation(Node):
     
@@ -99,7 +99,7 @@ class Negation(Node):
         Node.__init__(self, -child.xlit, NodeType.negation, [child])
 
     def __str__(self):
-        return "-" + str(self.children[0])
+        return "!" + str(self.children[0])
 
     def getLit(self):
         clit = self.children[0].getLit()
@@ -206,10 +206,10 @@ class Pog:
     # For all nodes to be combined via conjunction
     # Returns leaf0 or list of arguments
     def mergeConjunction(self, root, sofar = []):
-        if type(sofar) == type(self.leaf0) and sofar == self.leaf0:
+        if len(sofar) >= 1 and sofar[0] == self.leaf0:
             return sofar
         if root.isZero():
-            return self.leaf0
+            return [root]
         elif root.isOne():
             return sofar
         elif root.ntype == NodeType.conjunction:
@@ -220,13 +220,32 @@ class Pog:
             sofar.append(root)
             return sofar
 
-    def addConjunction(self, children):
+    def simplifyConjunction(self, children):
         nchildren = []
         for child in children:
-            nchildren = self.mergeConjunction(child, nchildren)
-        if type(nchildren) == type(self.leaf0) and nchildren == self.leaf0:
-            return nchildren
-        children = nchildren
+            if child.isZero():
+                return [child]
+            if not child.isOne():
+                nchildren.append(child)
+        return nchildren
+
+
+    def addConjunction(self, children):
+        # Aggressive merging
+        if False:
+            nchildren = []
+            for child in children:
+                nchildren = self.mergeConjunction(child, nchildren)
+            if len(nchildren) >= 1 and nchildren[0] == self.leaf0:
+                return nchildren[0]
+            children = nchildren
+        # Less aggressive:
+        else: 
+            children = self.simplifyConjunction(children)
+        if len(children) == 0:
+            return self.leaf1
+        if len(children) == 1:
+            return children[0]
         n = self.lookup(NodeType.conjunction, children)
         if n is None:
             xlit = self.cwriter.newXvar()
@@ -284,14 +303,15 @@ class Pog:
             result = nif
         elif nthen.isZero() and nelse.isOne():
             result = self.addNegation(nif)
-        elif nthen.isOne():
-            result = self.addNegation(self.addConjunction([self.addNegation(nif), self.addNegation(nelse)]))
-        elif nthen.isZero():
-            result = self.addConjunction([self.addNegation(nif), nelse])
-        elif nelse.isOne():
-            result = self.addNegation(self.addConjunction([nif, self.addNegation(nthen)]))
-        elif nelse.isZero():
-            result = self.addConjunction([nif, nthen])
+# Can't handle these optimizations
+#        elif nthen.isOne():
+#            result = self.addNegation(self.addConjunction([self.addNegation(nif), self.addNegation(nelse)]))
+#        elif nthen.isZero():
+#            result = self.addConjunction([self.addNegation(nif), nelse])
+#        elif nelse.isOne():
+#            result = self.addNegation(self.addConjunction([nif, self.addNegation(nthen)]))
+#        elif nelse.isZero():
+#            result = self.addConjunction([nif, nthen])
         else:
             ntrue = self.addConjunction([nif, nthen])
             nfalse = self.addConjunction([self.addNegation(nif), nelse])

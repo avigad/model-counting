@@ -47,7 +47,7 @@ tautologyId = 1000 * 1000 * 1000
 # Sort in reverse order of variable number
 # Don't allow clause to have opposite literals (returns tautologyId)
 def cleanClause(literalList):
-    slist = sorted(literalList, key = lambda v: abs(v))
+    slist = sorted(literalList, key = lambda v: -abs(v))
     if len(slist) == 0:
         return tuple(slist)
     if slist[0] == tautologyId:

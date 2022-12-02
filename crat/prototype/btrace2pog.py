@@ -48,7 +48,7 @@ class BddNode:
     level = None
     high = None
     low = None
-    pnode = None # Pog Node
+    pnode = None # POG Node
 
     def __init__(self, id, level, high, low, pnode):
         self.id = id
@@ -103,7 +103,7 @@ class BddManager:
         root = self.getNode(rid)
         lits = [root.pnode.xlit]
         if self.pog.verbLevel >= 2:
-            self.pog.cwriter.doComment("Pog Node %s represents input clause #%d" % (root.pnode.name(), cid))
+            self.pog.cwriter.doComment("POG Node %s represents input clause #%d" % (root.pnode.name(), cid))
         self.makeClause(lits)
         self.pog.cwriter.doDeleteClause(cid, hints = None)
 
@@ -115,7 +115,7 @@ class BddManager:
         lits = readwrite.cleanClause([-arg1.pnode.xlit, -arg2.pnode.xlit, root.pnode.xlit])
         if lits != readwrite.tautologyId:
             if self.pog.verbLevel >= 2:
-                self.pog.cwriter.doComment("Justify %s & %s --> %s" % (arg1.pnode.name(), arg2.pnode.name(), root.pnode.name()))
+                self.pog.cwriter.doComment("Justify %s & %s --> %s" % (str(arg1.pnode), str(arg2.pnode), str(root.pnode)))
             level = min(arg1.level, arg2.level)
             if level < readwrite.tautologyId:
                 alits = readwrite.cleanClause([level, -arg1.pnode.xlit, -arg2.pnode.xlit, root.pnode.xlit])
@@ -130,7 +130,7 @@ class BddManager:
         arg2 = self.getNode(id2)
         lits = [root.pnode.xlit]
         if self.pog.verbLevel >= 2:
-            self.pog.cwriter.doComment("Justify %s = AND(%s, %s)" % (arg1.pnode.name(), arg2.pnode.name(), root.pnode.name()))
+            self.pog.cwriter.doComment("Justify %s = AND(%s, %s)" % (str(arg1.pnode), str(arg2.pnode), str(root.pnode)))
         self.makeClause(lits)
         
     def finish(self):
