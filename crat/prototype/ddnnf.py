@@ -120,7 +120,7 @@ def usage(name):
     print(" -d           Use NNF format defined for D4 model counter")
     print(" -s SMODE     Set mode for splitting proof: 0=None, 1=all steps included 2=requires SAT solver.  1&2 require HLEVEL = 2 or 3")
     print(" -v VLEVEL    Set verbosity level (0-3)")
-    print(" -H HLEVEL    Set what hints to generate: 1 = constant time, 2 = scan for input clause (default), 3 = Use RUP finder")
+    print(" -H HLEVEL    Set what hints to generate: 1 = constant time, 2 = scan for input clause (default), 3 = Use RUP finder, 4 = Fully hinted")
     print(" -L LHEIGHT   Set minimum height of shared graph for introducing lemma (X --> No lemmas)")
     print(" -i FILE.cnf  Input CNF")
     print(" -n FILE.nnf  Input NNF")
