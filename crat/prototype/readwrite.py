@@ -990,11 +990,9 @@ class CratWriter(SplitWriter):
         for lit in lits:
             self.usedVariableSet.add(abs(lit))
         self.clauseDict[step] = lits
-        print("Added clause #%d %s" % (step, lits))
 
     def deleteClause(self, step):
         del self.clauseDict[step]
-        print("Deleted clause #%d" % step)
 
     def doLine(self, items, splitLower = False):
         slist = [str(i) for i in items]
