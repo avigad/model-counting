@@ -432,7 +432,7 @@ class Lemma:
 
     def setupLemma(self, root, pog):
         self.shadowLiterals = []
-        # Derive subset of the assigned literals where negation occurs in at least one original input clause
+        # Derive subset of the assigned literals that occur in at least one original input clause
         # These become part of context for lemma
         externalLiteralSet = set([])
         self.root = root
@@ -443,7 +443,7 @@ class Lemma:
                 for icid in provenance:
                     iclause = pog.inputClauseList[icid-1]
                     for lit in iclause:
-                        if -lit in self.assignedLiteralSet:
+                        if lit in self.assignedLiteralSet:
                             externalLiteralSet.add(lit)
             if isOriginal:
                 lit = 0
