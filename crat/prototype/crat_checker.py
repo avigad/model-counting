@@ -157,12 +157,14 @@ class P52:
     def __str__(self):
         return "%d*2^(%d)5^(%d)" % (self.a, self.m2, self.m5)
 
+    def __eq__(self, other):
+        return self.a == other.a and self.m2 == other.m2 and self.m5 == other.m5
+
     def num(self):
         p2 = 2**self.m2
         p5 = 5**self.m5
         val = self.a * p2 * p5
         return val
-
 
     def neg(self):
         result = P52(-self.a, self.m2, self.m5)
@@ -270,6 +272,7 @@ class P52:
 # Save list of clauses, each is a list of literals (zero at end removed)
 class CnfReader():
     file = None
+    weights = None
     clauses = []
     # List of input variables.
     nvar = 0
@@ -279,6 +282,7 @@ class CnfReader():
     def __init__(self, fname):
         self.failed = False
         self.errorMessage = ""
+        self.weights = None
         try:
             self.file = open(fname, 'r')
         except Exception:
@@ -292,6 +296,31 @@ class CnfReader():
         self.failed = True
         self.errorMessage = msg
 
+    # See if there's anything interesting in the comment
+    def processComment(self, line):
+        if self.weights is None:
+            if self.nvar > 0:
+                # Already past point where weight header will show up
+                return
+            fields = line.split()
+            if len(fields) == 3 and fields[1] == 't' and fields[2] == 'wmc':
+                self.weights = {}
+        else:
+            fields = line.split()
+            if len(fields) == 6 and fields[1] == 'p' and fields[2] == 'weight':
+                lit = int(fields[3])
+                wt = P52().parse(fields[4])
+                if lit > 0:
+                    self.weights[lit] = wt
+                elif -lit in self.weights:
+                    pwt = self.weights[-lit]
+                    if wt.add(pwt) != P52(1):
+                        msg = "Noncomplementary weights: w(%d) = %s, w(%d) = %s" % (-lit, pwt.render(), lit, wt.render())
+                        self.fail(msg)
+                        return
+                
+
+
     def readCnf(self):
         self.nvar = 0
         lineNumber = 0
@@ -303,7 +332,7 @@ class CnfReader():
             if len(line) == 0:
                 continue
             elif line[0] == 'c':
-                pass
+                self.processComment(line)
             elif line[0] == 'p':
                 fields = line[1:].split()
                 if fields[0] != 'cnf':
@@ -1200,6 +1229,10 @@ def run(name, args):
         print("Error reading CNF file: %s" % creader.errorMessage)
         print("PROOF FAILED")
         return
+    if weights is None:
+        if creader.weights is not None:
+            print("Obtained weights from CNF file")
+            weights = creader.weights
     if weights is not None and len(weights) != creader.nvar:
         print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
         return
