@@ -20,12 +20,13 @@
   ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
   CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
-========================================================================*/
+  ========================================================================*/
 
 
 #pragma once
 
 #include <vector>
+#include <set>
 #include <unordered_set>
 #include <map>
 #include <stdio.h>
@@ -40,10 +41,10 @@
 //   clauses are maintained so that the first two positions are unsatisfiable, if possible
 
 class Clause {
- private:
+private:
     ilist contents;
     bool is_tautology;
- public:
+public:
 
     Clause();
 
@@ -81,27 +82,38 @@ class Clause {
 
 // CNF is a collection of clauses.  Can read from a DIMACS format CNF file
 class CNF {
- private:
+private:
     // Basic representation
     std::vector<Clause *> clauses;
     int maxVar;
     bool read_failed;
+
     // POG file
     FILE *pog_file;
     int *next_cidp;
+
     // Maintaining context 
     // Literals assigned during search
     std::vector<int> assigned_literals;
     // Literals derived by unit propagation
     std::vector<int> derived_literals;
-    // Starting position of derived literals resulting from BCP
-    std::vector<int> start_index;
-    // Maintain set representation of assigned and derived literals in current context
+    // Starting position of each layer of derived literals
+    std::vector<int> literal_start_index;
+    // Set representation of assigned and derived literals in current context
     std::unordered_set<int> unit_literals;
     // Mapping from unit literal to asserting clause Id 
     std::map<int, int> justifying_ids;
    
- public:
+    // Ordered sets of non-satisfied clauses in current context
+    // Must maintain two sets: current and active.  Swap these on each pass of BCP
+    std::set<int> *curr_active_clauses;
+    std::set<int> *next_active_clauses;
+    // Stack of satisfied clauses
+    std::vector<int> satisfied_ids;
+    // Starting position of each layer of satisfied clauses
+    std::vector<int> satisfied_start_index;
+
+public:
     CNF();
 
     // Read clauses DIMACS format CNF file
@@ -136,17 +148,16 @@ class CNF {
     // Search operation
     // Start new level of search by assigning literal and performing BCP
     // Return false if BCP finds conflict
-    bool new_context(int lit);
+    bool new_context(int lit, bool do_bcp = true);
     // Undo specified number of layers of search
     void pop_context(int levels);
-
-    // Private methods for search support
- private:
-    void found_conflict(int cid);
-    void new_unit(int lit, int cid);
+    // Perform Boolean constraint propagation as an isolated activity
     bool bcp();
 
-
+    // Private methods for search support
+private:
+    void found_conflict(int cid);
+    void new_unit(int lit, int cid);
 };
 
 

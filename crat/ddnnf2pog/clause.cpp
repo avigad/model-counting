@@ -361,14 +361,24 @@ void CNF::found_conflict(int cid) {
 
 // Enable POG generation
 bool CNF::enable_pog(FILE *fp, int *cidp) {
-    
-    // Find unit clauses in input file
+
+    // Set up active clauses
+    curr_active_clauses = new std::set<int>;
+    next_active_clauses = new std::set<int>;
+
+    // Scan all clauses.  Find unit clauses.  Register non-tautologies
     int cid = 0;
     for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
 	cid++;
 	Clause *cp = *clp;
-	if (cp->length() == 1)
+	if (cp->tautology())
+	    satisfied_ids.push_back(cid);
+	else if (cp->length() == 1) {
 	    new_unit((*cp)[0], cid);
+	    satisfied_ids.push_back(cid);
+	}
+	else
+	    curr_active_clauses->insert(cid);
     }
     pog_file = fp;
     next_cidp = cidp;
@@ -382,65 +392,111 @@ bool CNF::enable_pog(FILE *fp, int *cidp) {
 
 // Perform Boolean constraint propagation
 // Return False if formula falsified
+// Each pass uses clauses from current active clauses and adds to next active clauses
+// And then swaps the two sets
 bool CNF::bcp() {
     bool done = false;
+    bool conflict = false;
     while (!done) {
 	done = true;
-	int cid = 0;
-	for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
-	    cid++;
+	printf("BCP Pass.  Active clauses:");
+	for (int cid : *curr_active_clauses) {
+	    printf(" %d", cid);
+	}
+	printf("\n");
+	for (int cid : *curr_active_clauses) {
 	    int ulit = 0;
-	    bool conflict = true;
-	    Clause *cp  = *clp;
-	    // DEBUG
+	    bool multi_active = false;
+	    conflict = true;
+	    Clause *cp  = clauses[cid-1];
+	    printf("  Checking clause #%d: ", cid);
+	    cp->show(stdout);
+	    printf("  Unit literals:");
+	    for (int ulit : unit_literals) {
+		printf(" %d", ulit);
+	    }
+	    printf("\n");
 	    for (int idx = 0; idx < cp->length(); idx++) {
 		int clit = (*cp)[idx];
 		if (unit_literals.find(clit) != unit_literals.end()) {
+		    printf("    Clause satisfied by unit %d\n", clit);
 		    // Clause satisifed.
 		    ulit = 0;
 		    conflict = false;
+		    multi_active = false;
+		    satisfied_ids.push_back(cid);
 		    break;
 		} else if (unit_literals.find(-clit) != unit_literals.end()) {
+		    printf("    Literal %d falsified\n", clit);
 		    continue;
 		} else if (ulit == 0) {
+		    printf("    Potential unit %d\n", clit);
 		    // Potential unit
 		    ulit = clit;
 		    conflict = false;
 		} else {
+		    printf("    Additional unassigned literal %d\n", clit);
 		    // Multiple unassigned literals
 		    ulit = 0;
+		    multi_active = true;
 		    break;
 		}
 	    }
 	    if (conflict) {
+		printf("    Conflict\n");
 		found_conflict(cid);
-		return false;
+		done = true;
+		break;
 	    }
 	    if (ulit != 0) {
+		printf("    Unit %d\n", ulit);
 		new_unit(ulit, cid);
+		satisfied_ids.push_back(cid);
 		done = false;
+	    } 
+	    if (multi_active) {
+		printf("    Still active\n");
+		next_active_clauses->insert(cid);
 	    }
 	}
+	// Swap active clause sets
+	std::set<int> *tmp =  curr_active_clauses;
+	curr_active_clauses = next_active_clauses;
+	next_active_clauses = tmp;
+	next_active_clauses->clear();
     }
-    return true;
+    return !conflict;
 }
 
-bool CNF::new_context(int lit) {
+bool CNF::new_context(int lit, bool do_bcp) {
+    if (unit_literals.find(-lit) != unit_literals.end())
+	return false;
     assigned_literals.push_back(lit);
-    start_index.push_back(derived_literals.size());
+    literal_start_index.push_back(derived_literals.size());
     unit_literals.insert(lit);
-    return bcp();
+    satisfied_start_index.push_back(satisfied_ids.size());
+    if (do_bcp)
+	return bcp();
+    else
+	return true;
 }
 
 void CNF::pop_context(int levels) {
     for (int lcount = 0; lcount < levels; lcount++) {
 	int alit = assigned_literals.back(); assigned_literals.pop_back();
-	start_index.pop_back();
+	literal_start_index.pop_back();
 	unit_literals.erase(alit);
-	int spos = start_index.back(); start_index.pop_back();
-	for (int pos = spos; pos < derived_literals.size(); pos++) {
+
+	int spos = literal_start_index.back(); literal_start_index.pop_back();
+	for (int pos = spos; pos < derived_literals.size(); pos++)
 	    unit_literals.erase(derived_literals[pos]);
-	}
 	assigned_literals.resize(spos);
+
+	int tpos = satisfied_start_index.back(); satisfied_start_index.pop_back();
+	for (int pos = tpos; pos < satisfied_ids.size(); pos++) {
+	    int cid = satisfied_ids[pos];
+	    curr_active_clauses->insert(cid);
+	}
+	satisfied_ids.resize(tpos);
     }
 }
