@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "clause.h"
+#include "clause.hh"
 
 int main(int argc, const char *argv[]) {
     int cid = 0;

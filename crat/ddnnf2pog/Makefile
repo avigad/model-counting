@@ -8,7 +8,7 @@ CPPFLAGS=-g $(OPT) -Wno-nullability-completeness -std=c++11
 ilist.o: ilist.c ilist.h
 	$(CC) $(CFLAGS) -c ilist.c
 
-clause.o: ilist.h clause.h clause.cpp
+clause.o: ilist.h clause.hh clause.cpp
 	$(CXX) $(CPPFLAGS) -c clause.cpp
 
 brun: brun.cpp clause.o ilist.o

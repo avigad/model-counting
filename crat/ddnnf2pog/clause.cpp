@@ -25,7 +25,7 @@
 
 #include <iostream>
 #include <ctype.h>
-#include "clause.h"
+#include "clause.hh"
 #include <algorithm>
 #include <cstring>
 
@@ -99,14 +99,14 @@ bool Clause::tautology() {
 }
 
 int Clause::max_variable() {
-  int mvar = 0;
-  if (is_tautology)
-    return 0;
-  for (int i = 0; i < length(); i++) {
-    int var = abs(contents[i]);
-    mvar = std::max(var, mvar);
-  }
-  return mvar;
+    int mvar = 0;
+    if (is_tautology)
+	return 0;
+    for (int i = 0; i < length(); i++) {
+	int var = abs(contents[i]);
+	mvar = std::max(var, mvar);
+    }
+    return mvar;
 }
 
 int * Clause::data() {
