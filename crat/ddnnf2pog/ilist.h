@@ -1,8 +1,5 @@
 /*========================================================================
-  Copyright (c) 2022 Randal E. Bryant, Carnegie Mellon University
-  
-  This code was not included in the original BuDDy distribution and is
-  therefore not subject to any of its licensing terms.
+  Copyright (c) 2022, 2023 Randal E. Bryant, Carnegie Mellon University
 
   Permission is hereby granted, free of
   charge, to any person obtaining a copy of this software and
@@ -27,8 +24,7 @@
 ========================================================================*/
 
 
-#ifndef _ILIST_H
-#define _ILIST_H
+#pragma once
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -165,6 +161,5 @@ extern int ilist_format(ilist ils, char *out, const char *sep, int maxlen);
 #endif
 
 
-#endif /* _ILIST_H */
 /* EOF */
 
