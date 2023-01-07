@@ -25,9 +25,10 @@
 
 #include <iostream>
 #include <ctype.h>
-#include "clause.hh"
 #include <algorithm>
 #include <cstring>
+#include "clause.hh"
+#include "report.h"
 
 static int skip_line(FILE *infile) {
   int c;
@@ -177,15 +178,15 @@ void Clause::show(FILE *outfile) {
   fprintf(outfile, "0\n");
 }
 
-CNF::CNF() { read_failed = false; maxVar = 0; pog_file = NULL; next_cidp = NULL; }
+CNF::CNF() { read_failed = false; max_input_var = 0; max_extension_var = 0; pog_file = NULL; }
 
 CNF::CNF(FILE *infile) { 
   int expectedMax = 0;
   int expectedCount = 0;
   read_failed = false;
-  maxVar = 0;
+  max_input_var = 0;
+  max_extension_var = 0;
   pog_file = NULL;
-  next_cidp = NULL;
   int c;
   // Look for CNF header
   while ((c = getc(infile)) != EOF) {
@@ -230,10 +231,10 @@ CNF::CNF(FILE *infile) {
       break;
     add(clp);
     int mvar = clp->max_variable();
-    maxVar = std::max(maxVar, mvar);
+    max_input_var = std::max(max_input_var, mvar);
   }
-  if (maxVar > expectedMax) {
-    std::cerr << "Encountered variable " << maxVar << ".  Expected max = " << expectedMax << std::endl;
+  if (max_input_var > expectedMax) {
+    std::cerr << "Encountered variable " << max_input_var << ".  Expected max = " << expectedMax << std::endl;
     read_failed = true;
     return;
   }
@@ -242,6 +243,7 @@ CNF::CNF(FILE *infile) {
     read_failed = true;
     return;
   }
+  max_extension_var = max_input_var;
 }
 
 bool CNF::failed() {
@@ -252,27 +254,36 @@ void CNF::add(Clause *clp) {
   clauses.push_back(clp);
 }
 
-Clause * CNF::operator[](int i) {
-  return clauses[i];
+Clause * CNF::operator[](int cid) {
+    int input_count = clauses.size();
+    int proof_count = proof_clauses.size();
+    if (cid <= input_count)
+	return clauses[cid-1];
+    else if (cid <= input_count + proof_count)
+	return proof_clauses[cid - input_count - 1];
+    else {
+	err(true, "Fatal.  Trying to acess clause #%d.  Have %d input and %d proof clauses\n", cid, input_count, proof_count);
+	exit(1);
+    }
 }
 
 
 void CNF::show() {
-  std::cout << "p cnf " << maxVar << " " << clause_count() << std::endl;
+  std::cout << "p cnf " << max_input_var << " " << clause_count() << std::endl;
   for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
     (*clp)->show();
   }
 }
 
 void CNF::show(std::ofstream &outstream) {
-  outstream << "p cnf " << maxVar << " " << clause_count() << std::endl;
+  outstream << "p cnf " << max_input_var << " " << clause_count() << std::endl;
   for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
     (*clp)->show(outstream);
   }
 }
 
 void CNF::show(FILE *outfile) {
-  fprintf(outfile, "p cnf %d %d\n", maxVar, (int) clause_count());
+  fprintf(outfile, "p cnf %d %d\n", max_input_var, (int) clause_count());
   for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
     (*clp)->show(outfile);
   }
@@ -283,7 +294,7 @@ size_t CNF::clause_count() {
 }
 
 int CNF::max_variable() {
-  return maxVar;
+  return max_input_var;
 }
 
 int CNF::satisfied(char *assignment) {
@@ -295,31 +306,49 @@ int CNF::satisfied(char *assignment) {
     return 0;
 }
 
-// Suppporting search
+// Proof related
+int CNF::add_proof_clause(Clause *clp) {
+    proof_clauses.push_back(clp);
+    return clauses.size() + proof_clauses.size();
+}
 
-// Got a new unit literal
-void CNF::new_unit(int lit, int cid) {
-    int ncid = 0;
-    derived_literals.push_back(lit);
+// Got a new unit literal.
+int CNF::new_unit(int lit, int cid, bool input) {
     unit_literals.insert(lit);
-    if (next_cidp != NULL) {
-	ncid = (*next_cidp)++;
-	justifying_ids[lit] = ncid;
-    } else {
-	// Unit clause in input file
+    if (input) {
 	justifying_ids[lit] = cid;
+	report(3, "Unit literal %d justified by input clause #%d\n", lit, cid);
+	return cid;
     }
+    derived_literals.push_back(lit);
+    Clause *cp = (*this)[cid];
+    int clen = cp->length();
+    // Optimization: Don't generate new clause if unit implied by context literals
+    bool need_new = false;
+    for (int idx = 0; idx < clen; idx++) {
+	int clit = (*cp)[idx];
+	if (justifying_ids.find(-clit) != justifying_ids.end())
+	    need_new = true;
+    }
+    if (!need_new) {
+	justifying_ids[lit] = cid;
+	report(3, "Unit literal %d already justified by clause #%d\n", lit, cid);
+	return cid;
+    }
+    Clause *clp = new Clause();
+    int ncid = add_proof_clause(clp);
+    justifying_ids[lit] = ncid;
+    report(3, "Unit literal %d justified by proof clause #%d\n", lit, ncid);
     if (pog_file != NULL) {
 	// Generate assertion
 	fprintf(pog_file, "%d a %d", ncid, lit);
-	std::for_each(assigned_literals.begin(), assigned_literals.end(), [this](const int alit)
-	{
+	clp->add(lit);
+	for (int alit : assigned_literals) {
 	    fprintf(pog_file, " %d", -alit);
-	});
+	    clp->add(-alit);
+	}
 	fprintf(pog_file, " 0");
 	// Print hints
-	Clause *cp = clauses[cid-1];
-	int clen = cp->length();
 	for (int idx = 0; idx < clen; idx++) {
 	    int clit = (*cp)[idx];
 	    auto fid = justifying_ids.find(-clit);
@@ -330,22 +359,22 @@ void CNF::new_unit(int lit, int cid) {
 	}
 	fprintf(pog_file, " %d 0\n", cid);
     }
+    return ncid;
 }
 
-void CNF::found_conflict(int cid) {
-    int ncid = 0;
-    if (next_cidp != NULL)
-	ncid = (*next_cidp)++;
+int CNF::found_conflict(int cid) {
+    Clause *clp = new Clause();
+    int ncid = add_proof_clause(clp);;
     if (pog_file != NULL) {
 	// Generate assertion
 	fprintf(pog_file, "%d a", ncid);
-	std::for_each(assigned_literals.begin(), assigned_literals.end(), [this](const int alit)
-	{
+	for (int alit : assigned_literals) {
 	    fprintf(pog_file, " %d", -alit);
-	});
+	    clp->add(-alit);
+	}
 	fprintf(pog_file, " 0");
 	// Print hints
-	Clause *cp = clauses[cid-1];
+	Clause *cp = (*this)[cid];
 	int clen = cp->length();
 	for (int idx = 0; idx < clen; idx++) {
 	    int clit = (*cp)[idx];
@@ -357,7 +386,16 @@ void CNF::found_conflict(int cid) {
 	}
 	fprintf(pog_file, " %d 0\n", cid);
     }
+    if (clp->length() == 1) {
+	int lit = (*clp)[0];
+	unit_literals.insert(lit);
+	justifying_ids[lit] = ncid;
+	report(3, "Unit literal %d justified by conflict proof clause #%d\n", lit, ncid);
+    }
+    return ncid;
 }
+
+
 
 // Enable POG generation
 bool CNF::enable_pog(FILE *fp, int *cidp) {
@@ -374,15 +412,13 @@ bool CNF::enable_pog(FILE *fp, int *cidp) {
 	if (cp->tautology())
 	    satisfied_ids.push_back(cid);
 	else if (cp->length() == 1) {
-	    new_unit((*cp)[0], cid);
+	    new_unit((*cp)[0], cid, true);
 	    satisfied_ids.push_back(cid);
 	}
 	else
 	    curr_active_clauses->insert(cid);
     }
     pog_file = fp;
-    next_cidp = cidp;
-    *next_cidp = clause_count() + 1;
     if (!bcp()) {
 	fprintf(pog_file, "c Read failed.  Formula unsatisfiable\n");
 	return false;
@@ -399,27 +435,31 @@ bool CNF::bcp() {
     bool conflict = false;
     while (!done) {
 	done = true;
-	printf("BCP Pass.  Active clauses:");
-	for (int cid : *curr_active_clauses) {
-	    printf(" %d", cid);
+	if (verblevel >= 3) {
+	    report(3, "BCP Pass.  Active clauses:");
+	    for (int cid : *curr_active_clauses) {
+		report(3, " %d", cid);
+	    }
+	    report(3, "\n");
 	}
-	printf("\n");
 	for (int cid : *curr_active_clauses) {
 	    int ulit = 0;
 	    bool multi_active = false;
 	    conflict = true;
-	    Clause *cp  = clauses[cid-1];
-	    printf("  Checking clause #%d: ", cid);
-	    cp->show(stdout);
-	    printf("  Unit literals:");
-	    for (int ulit : unit_literals) {
-		printf(" %d", ulit);
+	    Clause *cp  = (*this)[cid];
+	    if (verblevel >= 3) {
+		report(3, "  Checking clause #%d: ", cid);
+		cp->show(stdout);
+		report(3, "  Unit literals:");
+		for (int ulit : unit_literals) {
+		    report(3, " %d", ulit);
+		}
+		report(3, "\n");
 	    }
-	    printf("\n");
 	    for (int idx = 0; idx < cp->length(); idx++) {
 		int clit = (*cp)[idx];
 		if (unit_literals.find(clit) != unit_literals.end()) {
-		    printf("    Clause satisfied by unit %d\n", clit);
+		    report(3, "    Clause satisfied by unit %d\n", clit);
 		    // Clause satisifed.
 		    ulit = 0;
 		    conflict = false;
@@ -427,15 +467,15 @@ bool CNF::bcp() {
 		    satisfied_ids.push_back(cid);
 		    break;
 		} else if (unit_literals.find(-clit) != unit_literals.end()) {
-		    printf("    Literal %d falsified\n", clit);
+		    report(3, "    Literal %d falsified\n", clit);
 		    continue;
 		} else if (ulit == 0) {
-		    printf("    Potential unit %d\n", clit);
+		    report(3, "    Potential unit %d\n", clit);
 		    // Potential unit
 		    ulit = clit;
 		    conflict = false;
 		} else {
-		    printf("    Additional unassigned literal %d\n", clit);
+		    report(3, "    Additional unassigned literal %d\n", clit);
 		    // Multiple unassigned literals
 		    ulit = 0;
 		    multi_active = true;
@@ -443,19 +483,22 @@ bool CNF::bcp() {
 		}
 	    }
 	    if (conflict) {
-		printf("    Conflict\n");
-		found_conflict(cid);
+		report(3, "    Conflict\n");
+		int ncid = found_conflict(cid);
+		satisfied_ids.push_back(cid);
+		next_active_clauses->insert(ncid);
 		done = true;
 		break;
 	    }
 	    if (ulit != 0) {
-		printf("    Unit %d\n", ulit);
-		new_unit(ulit, cid);
+		report(3, "    Unit %d\n", ulit);
+		int ncid = new_unit(ulit, cid, false);
+		next_active_clauses->insert(ncid);
 		satisfied_ids.push_back(cid);
 		done = false;
 	    } 
 	    if (multi_active) {
-		printf("    Still active\n");
+		report(3, "    Still active\n");
 		next_active_clauses->insert(cid);
 	    }
 	}
@@ -468,35 +511,35 @@ bool CNF::bcp() {
     return !conflict;
 }
 
-bool CNF::new_context(int lit, bool do_bcp) {
+bool CNF::new_context(int lit) {
     if (unit_literals.find(-lit) != unit_literals.end())
 	return false;
     assigned_literals.push_back(lit);
     literal_start_index.push_back(derived_literals.size());
     unit_literals.insert(lit);
     satisfied_start_index.push_back(satisfied_ids.size());
-    if (do_bcp)
-	return bcp();
-    else
-	return true;
+    return bcp();
 }
 
-void CNF::pop_context(int levels) {
+bool CNF::pop_context(int levels) {
     for (int lcount = 0; lcount < levels; lcount++) {
+	if (assigned_literals.size() == 0)
+	    err(true, "Attempt to pop below initial level\n");
 	int alit = assigned_literals.back(); assigned_literals.pop_back();
-	literal_start_index.pop_back();
 	unit_literals.erase(alit);
 
 	int spos = literal_start_index.back(); literal_start_index.pop_back();
 	for (int pos = spos; pos < derived_literals.size(); pos++)
 	    unit_literals.erase(derived_literals[pos]);
-	assigned_literals.resize(spos);
+	derived_literals.resize(spos);
 
 	int tpos = satisfied_start_index.back(); satisfied_start_index.pop_back();
 	for (int pos = tpos; pos < satisfied_ids.size(); pos++) {
 	    int cid = satisfied_ids[pos];
+	    report(3, "Restoring clause #%d to active status\n", cid);
 	    curr_active_clauses->insert(cid);
 	}
 	satisfied_ids.resize(tpos);
     }
+    return bcp();
 }

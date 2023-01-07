@@ -1,5 +1,5 @@
 /*========================================================================
-  Copyright (c) 2022 Randal E. Bryant, Carnegie Mellon University
+  Copyright (c) 2022, 2023 Randal E. Bryant, Carnegie Mellon University
   
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -85,12 +85,15 @@ class CNF {
 private:
     // Basic representation
     std::vector<Clause *> clauses;
-    int maxVar;
+    int max_input_var;
     bool read_failed;
+
+    // Augmentation for POG clauses
+    std::vector<Clause *> proof_clauses;
+    int max_extension_var;
 
     // POG file
     FILE *pog_file;
-    int *next_cidp;
 
     // Maintaining context 
     // Literals assigned during search
@@ -122,17 +125,14 @@ public:
     // Did last read fail?
     bool failed();
 
-    // Add a new clause
-    void add(Clause *clp);
-
     // Generate DIMACS CNF representation to stdout, outfile, or outstream
     void show();
     void show(FILE *outfile);
     void show(std::ofstream &outstream);
 
-    // Return number of clauses
+    // Return number of (input) clauses
     size_t clause_count();
-    // Return ID of maximum variable encountered
+    // Return ID of maximum (input) variable encountered
     int max_variable();
 
     // Given array mapping (decremented) variable to 0/1
@@ -140,7 +140,11 @@ public:
     // If not, return ID of first offending clause.  Otherwise return 0
     int satisfied(char *assignment);
 
+    // Access input or proof clause, with id 1 being first input clause
     Clause * operator[](int);    
+
+    // Proof related
+    int add_proof_clause(Clause *clp);
 
     // POG generation.  Returns false if BCP shows formula is UNSAT
     bool enable_pog(FILE *fp, int *cidp);
@@ -148,16 +152,22 @@ public:
     // Search operation
     // Start new level of search by assigning literal and performing BCP
     // Return false if BCP finds conflict
-    bool new_context(int lit, bool do_bcp = true);
-    // Undo specified number of layers of search
-    void pop_context(int levels);
-    // Perform Boolean constraint propagation as an isolated activity
-    bool bcp();
+    bool new_context(int lit);
+    // Undo specified number of layers of search.
+    // Perform BCP in event search detected conflict
+    bool pop_context(int levels);
+
+
+
+private:
+    // Private methods for general CNF
+    // Add a new clause
+    void add(Clause *clp);
 
     // Private methods for search support
-private:
-    void found_conflict(int cid);
-    void new_unit(int lit, int cid);
+    int found_conflict(int cid);
+    int new_unit(int lit, int cid, bool input);
+    bool bcp();
 };
 
 

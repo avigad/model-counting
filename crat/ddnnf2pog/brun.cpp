@@ -3,13 +3,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "clause.hh"
+#include "report.h"
 
 int main(int argc, const char *argv[]) {
     int cid = 0;
     FILE *cfile = NULL;
     FILE *pfile = stdout;
+    //    verblevel = 3;
     if (argc <= 1 || strcmp(argv[1], "-h") == 0) {
 	printf("Usage: %s CNF (lit|.)*\n", argv[0]);
 	exit(0);
@@ -31,7 +32,8 @@ int main(int argc, const char *argv[]) {
     for (int idx = 2; idx < argc; idx++) {
 	if (strcmp(argv[idx], ".") == 0) {
 	    printf("c Popping one level\n");
-	    cnf.pop_context(1);
+	    if (!cnf.pop_context(1))
+		printf("c Conflict found\n");
 	}
 	else {
 	    int lit = atoi(argv[idx]);
