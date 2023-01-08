@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <fstream>
 #include "ilist.h"
+#include "writer.hh"
 
 // Representations of clauses and sets of clauses
 
@@ -64,11 +65,15 @@ public:
 
     void canonize();
 
+    void show(char *fname);
+
     void show();
+
+    void show(std::ofstream &outstream);
 
     void show(FILE *outfile);
 
-    void show(std::ofstream &outstream);
+    void write(Writer *writer);
 
     int *data();
 
@@ -89,11 +94,8 @@ private:
     bool read_failed;
 
     // Augmentation for POG clauses
-    std::vector<Clause *> proof_clauses;
-    int max_extension_var;
-
-    // POG file
-    FILE *pog_file;
+    std::vector<Clause *>proof_clauses;
+    PogWriter *pwriter;
 
     // Maintaining context 
     // Literals assigned during search
@@ -129,6 +131,7 @@ public:
     void show();
     void show(FILE *outfile);
     void show(std::ofstream &outstream);
+    void show(CnfWriter *cwriter);
 
     // Return number of (input) clauses
     size_t clause_count();
@@ -144,10 +147,19 @@ public:
     Clause * operator[](int);    
 
     // Proof related
-    int add_proof_clause(Clause *clp);
+
 
     // POG generation.  Returns false if BCP shows formula is UNSAT
-    bool enable_pog(FILE *fp, int *cidp);
+    bool enable_pog(PogWriter *cw);
+
+    // Add clause as assertion.  Returns clause ID
+    int start_assertion(Clause *clp);
+    void add_hint(int hid);
+    void finish_assertion();
+
+    // Generate product operation
+    int start_and(int var, ilist args);
+    int start_or(int var, int arg1, int arg2);
 
     // Search operation
     // Start new level of search by assigning literal and performing BCP
@@ -157,13 +169,13 @@ public:
     // Perform BCP in event search detected conflict
     bool pop_context(int levels);
 
-
-
 private:
     // Private methods for general CNF
     // Add a new clause
     void add(Clause *clp);
 
+    // Private methods for proof generation
+    int add_proof_clause(Clause *clp);
     // Private methods for search support
     int found_conflict(int cid);
     int new_unit(int lit, int cid, bool input);

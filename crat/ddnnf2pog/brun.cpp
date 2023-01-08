@@ -5,12 +5,13 @@
 #include <string.h>
 #include "clause.hh"
 #include "report.h"
+#include "writer.hh"
 
 int main(int argc, const char *argv[]) {
     int cid = 0;
     FILE *cfile = NULL;
-    FILE *pfile = stdout;
-    //    verblevel = 3;
+    PogWriter pwriter;
+    verblevel = 1;
     if (argc <= 1 || strcmp(argv[1], "-h") == 0) {
 	printf("Usage: %s CNF (lit|.)*\n", argv[0]);
 	exit(0);
@@ -26,12 +27,12 @@ int main(int argc, const char *argv[]) {
 	fprintf(stderr, "Aborted\n");
 	exit(1);
     }
-    if (!cnf.enable_pog(pfile, &cid)) {
+    if (!cnf.enable_pog(&pwriter)) {
 	exit(1);
     }
     for (int idx = 2; idx < argc; idx++) {
 	if (strcmp(argv[idx], ".") == 0) {
-	    printf("c Popping one level\n");
+ 	    printf("c Popping one level\n");
 	    if (!cnf.pop_context(1))
 		printf("c Conflict found\n");
 	}

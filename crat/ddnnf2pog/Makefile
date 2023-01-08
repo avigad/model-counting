@@ -11,11 +11,14 @@ ilist.o: ilist.c ilist.h
 report.o: report.c report.h
 	$(CC) $(CFLAGS) -c report.c
 
-clause.o: ilist.h clause.hh clause.cpp
+clause.o: ilist.h clause.hh writer.hh clause.cpp
 	$(CXX) $(CPPFLAGS) -c clause.cpp
 
-brun: brun.cpp clause.o ilist.o report.o
-	$(CXX) $(CPPFLAGS) -o brun brun.cpp clause.o ilist.o report.o
+writer.o: ilist.h report.h writer.hh writer.cpp
+	$(CXX) $(CPPFLAGS) -c writer.cpp
+
+brun: brun.cpp clause.o ilist.o report.o writer.o
+	$(CXX) $(CPPFLAGS) -o brun brun.cpp clause.o ilist.o report.o writer.o
 
 
 .SUFFIXES: .c .cpp .o
