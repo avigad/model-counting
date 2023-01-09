@@ -51,7 +51,7 @@ public:
 
     Clause(int *array, size_t len);
 
-    Clause(FILE *infile);
+    Clause(FILE *infile, bool &eof);
 
     ~Clause();
 
@@ -152,7 +152,7 @@ public:
     // POG generation.  Returns false if BCP shows formula is UNSAT
     bool enable_pog(PogWriter *cw);
 
-    // Add clause as assertion.  Returns clause ID
+    // Add clause as assertion.  Returns clause ID.  If unit clause, then add to set of unit clauses
     int start_assertion(Clause *clp);
     void add_hint(int hid);
     void finish_assertion();
@@ -168,6 +168,10 @@ public:
     // Undo specified number of layers of search.
     // Perform BCP in event search detected conflict
     bool pop_context(int levels);
+
+    // Validate clause by RUP.  Add clause as assertion 
+    // Return false if fail
+    bool rup_validate(Clause *cltp);
 
 private:
     // Private methods for general CNF

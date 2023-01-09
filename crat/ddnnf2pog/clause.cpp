@@ -44,7 +44,6 @@ static bool abs_less(int x, int y) {
     return abs(x) > abs(y);
 }
 
-
 Clause::Clause() { contents = ilist_new(0); is_tautology = false; }
 
 Clause::~Clause() { ilist_free(contents); }
@@ -57,12 +56,13 @@ Clause::Clause(int *array, size_t len) {
     canonize();
 }
 
-Clause::Clause(FILE *infile) {
+Clause::Clause(FILE *infile, bool &eof) {
     int rval;
     int lit;
     int c;
     is_tautology = false;
     contents = ilist_new(4);
+    eof = true;
 
     // Skip blank lines and comments
     while ((c = getc(infile)) != EOF) {
@@ -77,6 +77,7 @@ Clause::Clause(FILE *infile) {
     }
 
     while ((rval = fscanf(infile, "%d", &lit)) == 1) {
+	eof = false;
 	if (lit == 0)
 	    break;
 	else
@@ -205,6 +206,7 @@ CNF::CNF(FILE *infile) {
     read_failed = false;
     max_input_var = 0;
     pwriter = NULL;
+    bool got_header = false;
     int c;
     // Look for CNF header
     while ((c = getc(infile)) != EOF) {
@@ -220,7 +222,7 @@ CNF::CNF(FILE *infile) {
 	if (c == 'p') {
 	    char field[20];
 	    if (fscanf(infile, "%s", field) != 1) {
-		std::cerr << "Not valid CNF FILE.  No header line found" << std::endl;
+		std::cerr << "Not valid CNF FILE.  Invalid header line" << std::endl;
 		read_failed = true;
 		return;
 	    }
@@ -235,6 +237,7 @@ CNF::CNF(FILE *infile) {
 		return;
 	    } 
 	    c = skip_line(infile);
+	    got_header = true;
 	    break;
 	}
 	if (c == EOF) {
@@ -243,9 +246,15 @@ CNF::CNF(FILE *infile) {
 	    return;
 	}
     }
+    if (!got_header) {
+	std::cerr << "Not valid CNF FILE.  No header line found" << std::endl;
+	read_failed = true;
+	return;
+    }
     while (1) {
-	Clause *clp = new Clause(infile);
-	if (clp->length() == 0)
+	bool eof = false;
+	Clause *clp = new Clause(infile, eof);
+	if (eof || read_failed)
 	    break;
 	add(clp);
 	int mvar = clp->max_variable();
@@ -325,8 +334,14 @@ int CNF::satisfied(char *assignment) {
 
 // Proof related
 int CNF::add_proof_clause(Clause *clp) {
+    int cid = clauses.size() + proof_clauses.size() + 1;
     proof_clauses.push_back(clp);
-    return clauses.size() + proof_clauses.size();
+    if (clp->length() == 1) {
+	int lit = (*clp)[0];
+	unit_literals.insert(lit);
+	justifying_ids[lit] = cid;
+    }
+    return cid;
 }
 
 int CNF::start_assertion(Clause *clp) {
@@ -406,7 +421,6 @@ int CNF::new_unit(int lit, int cid, bool input) {
 	clp->add(-alit);
     int ncid = start_assertion(clp);
     justifying_ids[lit] = ncid;
-    report(3, "Unit literal %d justified by proof clause #%d\n", lit, ncid);
     // Print hints
     for (int idx = 0; idx < clen; idx++) {
 	int clit = (*cp)[idx];
@@ -417,6 +431,7 @@ int CNF::new_unit(int lit, int cid, bool input) {
     }
     add_hint(cid);
     finish_assertion();
+    report(3, "Unit literal %d justified by proof clause #%d\n", lit, ncid);
     return ncid;
 }
 
@@ -437,12 +452,6 @@ int CNF::found_conflict(int cid) {
     }
     add_hint(cid);
     finish_assertion();
-    if (clp->length() == 1) {
-	int lit = (*clp)[0];
-	unit_literals.insert(lit);
-	justifying_ids[lit] = ncid;
-	report(3, "Unit literal %d justified by conflict proof clause #%d\n", lit, ncid);
-    }
     return ncid;
 }
 
@@ -476,14 +485,14 @@ bool CNF::enable_pog(PogWriter *pw) {
 }
 
 // Perform Boolean constraint propagation
-// Return False if formula falsified
+// Return false if formula falsified
 // Each pass uses clauses from current active clauses and adds to next active clauses
 // And then swaps the two sets
 bool CNF::bcp() {
-    bool done = false;
+    bool converged = false;
     bool conflict = false;
-    while (!done) {
-	done = true;
+    while (!converged && !conflict) {
+	converged = true;
 	if (verblevel >= 3) {
 	    report(3, "BCP Pass.  Active clauses:");
 	    for (int cid : *curr_active_clauses) {
@@ -492,6 +501,11 @@ bool CNF::bcp() {
 	    report(3, "\n");
 	}
 	for (int cid : *curr_active_clauses) {
+	    if (conflict) {
+		// Skip through clauses after conflict
+		next_active_clauses->insert(cid);
+		continue;
+	    }
 	    int ulit = 0;
 	    bool multi_active = false;
 	    conflict = true;
@@ -536,17 +550,13 @@ bool CNF::bcp() {
 		int ncid = found_conflict(cid);
 		satisfied_ids.push_back(cid);
 		next_active_clauses->insert(ncid);
-		done = true;
-		break;
-	    }
-	    if (ulit != 0) {
+	    } else if (ulit != 0) {
 		report(3, "    Unit %d\n", ulit);
 		int ncid = new_unit(ulit, cid, false);
 		next_active_clauses->insert(ncid);
 		satisfied_ids.push_back(cid);
-		done = false;
-	    } 
-	    if (multi_active) {
+		converged = false;
+	    } else if (multi_active) {
 		report(3, "    Still active\n");
 		next_active_clauses->insert(cid);
 	    }
@@ -559,6 +569,172 @@ bool CNF::bcp() {
     }
     return !conflict;
 }
+
+// Generate set of hints for clause based on RUP validation
+// Add clause as assertion
+// Return false if fail
+bool CNF::rup_validate(Clause *cltp) {
+    // List of clause Ids that have been used in unit propagation
+    std::vector<int> prop_clauses;
+    // Initialize with all known units:
+    for (int ulit : unit_literals) {
+	auto fid = justifying_ids.find(ulit);
+	if (fid != justifying_ids.end())
+	    prop_clauses.push_back(fid->second);
+    }
+    // Start new level of search.  Mark return points
+    int save_assigned_start_index = assigned_literals.size();
+    int save_derived_start_index = derived_literals.size();
+    int save_satisfied_start_index = satisfied_ids.size();
+    
+    if (verblevel >= 3) {
+	report(3, "\nStarting RUP deriviation of clause ");
+	cltp->show(stdout);
+    }
+    // Negate literals in target clause
+    for (int idx = 0; idx < cltp->length(); idx++) {
+	int tlit = (*cltp)[idx];
+	if (unit_literals.find(-tlit) == unit_literals.end()) {
+	    assigned_literals.push_back(-tlit);
+	    unit_literals.insert(-tlit);
+	} else {
+	    auto fid = justifying_ids.find(-tlit);
+	    if (fid != justifying_ids.end())
+		prop_clauses.push_back(fid->second);
+	}
+    }
+    // Unit propagation
+    bool converged = false;
+    bool conflict = false;
+    while (!converged && !conflict) {
+	converged = true;
+	if (verblevel >= 3) {
+	    report(3, "BCP Pass.  Active clauses:");
+	    for (int cid : *curr_active_clauses) {
+		report(3, " %d", cid);
+	    }
+	    report(3, "\n");
+	}
+	for (int cid : *curr_active_clauses) {
+	    if (conflict) {
+		// After encountering conflict, skip over remaining clauses
+		next_active_clauses->insert(cid);
+		continue;
+	    }
+	    int ulit = 0;
+	    bool multi_active = false;
+	    conflict = true;
+	    Clause *cp  = (*this)[cid];
+	    if (verblevel >= 3) {
+		report(3, "  Checking clause #%d: ", cid);
+		cp->show(stdout);
+		report(3, "  Unit literals:");
+		for (int ulit : unit_literals) {
+		    report(3, " %d", ulit);
+		}
+		report(3, "\n");
+	    }
+	    for (int idx = 0; idx < cp->length(); idx++) {
+		int clit = (*cp)[idx];
+		if (unit_literals.find(clit) != unit_literals.end()) {
+		    report(3, "    Clause satisfied by unit %d\n", clit);
+		    // Clause satisifed.
+		    ulit = 0;
+		    conflict = false;
+		    multi_active = false;
+		    satisfied_ids.push_back(cid);
+		    break;
+		} else if (unit_literals.find(-clit) != unit_literals.end()) {
+		    report(3, "    Literal %d falsified\n", clit);
+		    continue;
+		} else if (ulit == 0) {
+		    report(3, "    Potential unit %d\n", clit);
+		    // Potential unit
+		    ulit = clit;
+		    conflict = false;
+		} else {
+		    report(3, "    Additional unassigned literal %d\n", clit);
+		    // Multiple unassigned literals
+		    ulit = 0;
+		    multi_active = true;
+		    break;
+		}
+	    }
+	    if (conflict) {
+		report(3, "    Conflict\n");
+		prop_clauses.push_back(cid);
+		// Clause not really satisfied, but want to restore it for future use
+		satisfied_ids.push_back(cid);
+	    } else if (ulit != 0) {
+		report(3, "    Unit %d\n", ulit);
+		prop_clauses.push_back(cid);
+		satisfied_ids.push_back(cid);
+		unit_literals.insert(ulit);
+		justifying_ids[ulit] = cid;
+		derived_literals.push_back(ulit);
+		converged = false;
+	    } else if (multi_active) {
+		report(3, "    Still active\n");
+		next_active_clauses->insert(cid);
+	    }
+	}
+	// Swap active clause sets
+	std::set<int> *tmp =  curr_active_clauses;
+	curr_active_clauses = next_active_clauses;
+	next_active_clauses = tmp;
+	next_active_clauses->clear();
+    }
+    if (conflict) {
+	// Construct hints in reverse order
+	report(3, "Conflict found.  Constructing hints\n");
+	std::vector<int> hints;
+	std::unordered_set<int> used_set;
+	std::reverse(prop_clauses.begin(), prop_clauses.end());
+	used_set.insert(prop_clauses.front());
+	for (int hid : prop_clauses) {
+	    if (used_set.find(hid) != used_set.end()) {
+		hints.push_back(hid);
+		report(3, "  Clause #%d added to hints\n", hid);
+		Clause *clp = (*this)[hid];
+		for (int idx = 0; idx < clp->length(); idx++) {
+		    int lit = (*clp)[idx];
+		    auto fid = justifying_ids.find(-lit);
+		    if (fid != justifying_ids.end()) {
+			int jid = fid->second;
+			used_set.insert(jid);
+			report(3, "    Literal %d justified by clause #%d\n", -lit, jid);
+		    } else {
+			report(3, "    No justifying clause found for literal %d\n", -lit);
+		    }
+		}
+	    } else
+		report(3, "  Clause #%d not needed as hint\n", hid);
+	}
+	// Put hints in proper order
+	std::reverse(hints.begin(), hints.end());
+	int ncid = start_assertion(cltp);
+	for (int hid : hints)
+	    add_hint(hid);
+	finish_assertion();
+	curr_active_clauses->insert(ncid);
+    }
+    // Undo assignments
+    while (assigned_literals.size() > save_assigned_start_index) {
+	int lit = assigned_literals.back(); assigned_literals.pop_back();
+	unit_literals.erase(lit);
+    }
+    while (derived_literals.size() > save_derived_start_index) {
+	int lit = derived_literals.back(); derived_literals.pop_back();
+	unit_literals.erase(lit);
+	justifying_ids.erase(lit);
+    }
+    while (satisfied_ids.size() > save_satisfied_start_index) {
+	int cid = satisfied_ids.back(); satisfied_ids.pop_back();
+	curr_active_clauses->insert(cid);
+    }
+    return conflict;
+}
+
 
 bool CNF::new_context(int lit) {
     if (unit_literals.find(-lit) != unit_literals.end())
@@ -578,8 +754,11 @@ bool CNF::pop_context(int levels) {
 	unit_literals.erase(alit);
 
 	int spos = literal_start_index.back(); literal_start_index.pop_back();
-	for (int pos = spos; pos < derived_literals.size(); pos++)
-	    unit_literals.erase(derived_literals[pos]);
+	for (int pos = spos; pos < derived_literals.size(); pos++) {
+	    int lit = derived_literals[pos];
+	    unit_literals.erase(lit);
+	    justifying_ids.erase(lit);
+	}
 	derived_literals.resize(spos);
 
 	int tpos = satisfied_start_index.back(); satisfied_start_index.pop_back();

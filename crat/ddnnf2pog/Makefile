@@ -20,6 +20,10 @@ writer.o: ilist.h report.h writer.hh writer.cpp
 brun: brun.cpp clause.o ilist.o report.o writer.o
 	$(CXX) $(CPPFLAGS) -o brun brun.cpp clause.o ilist.o report.o writer.o
 
+rrun: rrun.cpp clause.o ilist.o report.o writer.o
+	$(CXX) $(CPPFLAGS) -o rrun rrun.cpp clause.o ilist.o report.o writer.o
+
+
 
 .SUFFIXES: .c .cpp .o
 
@@ -31,6 +35,6 @@ brun: brun.cpp clause.o ilist.o report.o writer.o
 
 clean:
 	rm -f *.o *~
-	rm -f brun
+	rm -f brun rrun
 
 
