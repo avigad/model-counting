@@ -17,6 +17,14 @@ clause.o: ilist.h clause.hh writer.hh clause.cpp
 writer.o: ilist.h report.h writer.hh writer.cpp
 	$(CXX) $(CPPFLAGS) -c writer.cpp
 
+compressor.o: compressor.hh compressor.cpp
+	$(CXX) $(CPPFLAGS) -c compressor.cpp
+
+pog.o: pog.hh clause.hh pog.cpp compressor.hh
+	$(CXX) $(CPPFLAGS) -c pog.cpp
+
+
+
 brun: brun.cpp clause.o ilist.o report.o writer.o
 	$(CXX) $(CPPFLAGS) -o brun brun.cpp clause.o ilist.o report.o writer.o
 

@@ -1,0 +1,141 @@
+/*========================================================================
+  Copyright (c) 2022, 2023 Randal E. Bryant, Carnegie Mellon University
+  
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+  
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+  
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+  ========================================================================*/
+
+
+#pragma once
+
+// Don't want any type to evaluate to 0
+typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_OR } pog_type_t;
+
+// Used to convert literal to variable
+#define IABS(x) ((x)<0?-(x):(x))
+
+// Used to convert variable to literal of specified phase
+#define MATCH_PHASE(v,p) ((p)<0?-(v):(v))
+
+#include <vector>
+#include <stdio.h>
+#include "clause.hh"
+#include "compressor.hh"
+
+
+// POG Nodes
+class Pog_node {
+private:
+    // Basic representation
+    pog_type_t type;
+    // Extension variable for node
+    int id;
+    // Identify children by their representation as literals
+    // Can be variable, other Pog node, or the negation of one of these
+    // Organize so that literals representing nodes come at end
+    // AND node can have any degree >= 2
+    // OR  node must have degree 2,
+    //  with first one having split_var positive and second one having it negative
+    int degree;
+    int *children;
+  
+    // For OR node: Id of decision variable
+    int split_var;
+
+    // Id of unit clause for node
+    int unit_id;
+
+public:
+    Pog_node();
+
+    // Extract node from its compressed representation
+    Pog_node(byte_vector_t &byte_rep);
+
+    // Use degree 0 if don't know ultimate degree
+    Pog_node(pog_type_t ntype, int degree);
+
+    ~Pog_node() { delete children; };
+
+    pog_type_t get_type();
+
+    void set_id(int id);
+    int get_id();
+    void set_split_var(int var);
+    int get_split_var();
+
+    void add_child(int index, int lit);
+    void add_children2(int lit1, int lit2);
+
+
+    void show(FILE *outfile);
+
+    // Access children
+    int get_degree();
+    int& operator[](int);
+
+    // Generate compressed representation
+    void compress(byte_vector_t &bytes);
+};
+
+// POG
+class Pog {
+private:
+    // Input CNF + proof generation
+    CNF *cnf;
+    int max_input_var;
+    std::vector<Pog_node *> nodes;
+    // Root literal can refer to either an input variable or the last node
+    bool root_literal;
+
+public:
+    Pog();
+
+    Pog(CNF *cset);
+
+    // Readers
+    bool read_pog(FILE *infile);
+    bool read_ddnnf(FILE *infile);
+    bool read_d4ddnnf(FILE *infile);
+
+    int add_node(Pog_node *np);
+
+    void set_root_literal(int rlit);
+    int get_root();
+
+    // Does literal refer to an input variable or a node
+    bool is_node(int lit);
+
+    // Index POG nodes by ID
+    Pog_node * operator[](int);
+
+    int node_count();
+
+    void show(FILE *outfile);
+
+    // Simplify POG by eliminating constants,
+    //  eliminating common subnodes, etc.
+    // Renumber Ids to be consecutive
+    // Return false if something wrong with original POG
+    bool optimize();
+
+private:
+    // Helper routines
+    void mark(int rlit, int *markers);
+};
