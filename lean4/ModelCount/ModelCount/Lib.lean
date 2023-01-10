@@ -1,34 +1,44 @@
-import Init
-import Lean.Elab.Tactic
+import Mathlib.Data.Nat.Basic
+import Mathlib.Set
+import Mathlib.Data.List.Card
 
-/- Facts about Nat -/
+namespace Classical
+
+theorem not_and {p q : Prop} : ¬ (p ∧ q) ↔ ¬ p ∨ ¬ q := by
+  cases (Decidable.em p) with
+  | inl h => simp [h]
+  | inr h => simp [h]
+
+theorem dne {p : Prop} : ¬ ¬ p ↔ p := by
+  cases (Decidable.em p) with
+  | inl h => simp [h]
+  | inr h => simp [h]
+
+end Classical
+
 
 namespace Nat
 
-theorem le_refl (a : Nat) : a ≤ a := sorry
-theorem le_trans {a b c : Nat} : a ≤ b → b ≤ c → a ≤ c := sorry
-theorem lt_trans {a b c : Nat} : a < b → b < c → a < c := sorry
-theorem le_of_lt {a b : Nat} : a < b → a ≤ b := sorry
-theorem not_le_of_lt {a b : Nat} : a < b → ¬ b ≤ a := sorry
-theorem le_of_not_le {a b : Nat} : ¬ a ≤ b → b ≤ a := sorry
-theorem lt_or_eq {a b : Nat} : a ≤ b → a < b ∨ a = b := sorry
-theorem lt_succ_of_lt {a b : Nat} : a < b → a < b + 1 := sorry
-theorem not_lt_zero (a : Nat) : ¬ a < 0 := sorry
-theorem lt_of_lt_of_le {a b c : Nat} : a < b → b ≤ c → a < c := sorry
-theorem lt_succ_iff_le {a b : Nat} : a < b + 1 ↔ a ≤ b:= sorry
-theorem lt_succ_self (a : Nat) : a < a + 1 := lt_succ_iff_le.mpr (le_refl a)
-theorem le_iff_lt_or_eq {a b : Nat} : a ≤ b ↔ a < b ∨ a = b := sorry
-theorem le_add_right (a b : Nat) : a ≤ a + b  := sorry 
+theorem lt_succ_iff_le {a b : Nat} : a < b + 1 ↔ a ≤ b :=
+  ⟨le_of_lt_succ, lt_succ_of_le⟩
+
+theorem le_iff_lt_or_eq {a b : Nat} : a ≤ b ↔ a < b ∨ a = b := by
+  split
+    intro h; rw [or_comm]; apply Nat.eq_or_lt_of_le h
+  intro h
+  cases h with
+  | inl h => exact Nat.le_of_lt h
+  | inr h => rw [h]; apply Nat.le_refl
 
 theorem CompleteInductionOn
     {motive : Nat → Prop}
     (x : Nat)
     (ind : ∀ x, (∀ y, y < x → motive y) → motive x) :
   motive x :=
-have ∀ z, ∀ y, y < z → motive y by
+have : ∀ z, ∀ y, y < z → motive y := by
   intro z
   induction z with
-  | zero      => 
+  | zero      =>
       intros _ h
       exact False.elim (Nat.not_lt_zero _ h)
   | succ x ih =>
@@ -39,121 +49,149 @@ have ∀ z, ∀ y, y < z → motive y by
                   exact ind _ ih
 this _ x (Nat.lt_succ_self _)
 
+theorem mul_two (x : Nat) : x * 2 = x + x := by
+  have : (1 : Nat) + 1 = 2 := rfl
+  rw [←this, Nat.mul_add, Nat.mul_one]
+
+theorem two_mul (x : Nat) : 2 * x = x + x := by rw [Nat.mul_comm, mul_two]
+
 end Nat
 
-/- Sets and finite sets -/
 
-def Set (α : Type) := α → Prop
+@[simp] theorem cond_true (t f : α) : cond true t f = t := rfl
 
-namespace Set
+@[simp] theorem cond_false (t f : α) : cond false t f = f := rfl
 
-def mem (a : α) (s : Set α) := s a
-def empty {α : Type} : Set α := fun a => False
-def singleton (a : α) := fun b => b = a
-def union (s t : Set α) := fun a => mem a s ∨ mem a t
-def sep (s : Set α) (P : α → Prop) := fun a => mem a s ∧ P a
-def univ {α : Type} : Set α := fun a => True
-def subset (s t : Set α) : Prop := ∀ {x}, mem x s → mem x t
+namespace Bool
 
-scoped infix:65 " ⊆ " => subset
+@[simp] theorem not_false : (!false) = true := rfl
 
-theorem ext {s t : Set α} (h : ∀ x, mem x s ↔ mem x t) : s = t := funext (fun x => propext (h x))
+@[simp] theorem not_true : (!true) = false := rfl
 
-theorem sep_subset (s : Set α) (P : α → Prop) : sep s P ⊆ s :=
-fun ⟨xs, Px⟩ => xs
+theorem eq_true_or_eq_false (b : Bool) : b = true ∨ b = false := by cases b <;> simp
 
-inductive finite : Set α → Prop where
-  | empty : finite empty
-  | singleton : finite (singleton a)
-  | union {s t : Set α} : finite s → finite t → finite (union s t)
-  | subset {s t : Set α} : finite t → subset s t → finite s
+end Bool
 
-theorem finite.sep {s : Set α} (finS : finite s) (P : α → Prop) : finite (sep s P) :=
-  finite.subset finS (sep_subset s P)
+namespace List
 
-end Set
+theorem subset_trans {as bs cs : List α} (h₁ : as ⊆ bs) (h₂ : bs ⊆ cs) : as ⊆ cs :=
+λ h => h₂ (h₁ h)
 
-namespace Subtype
+theorem subset_union_left [DecidableEq α] (as bs : List α) : as ⊆ as.union bs :=
+fun hx => mem_union_iff.mpr (Or.inl hx)
 
-theorem ext {P : α → Prop} : ∀ {a1 a2 : {x // P x}}, a1.val = a2.val → a1 = a2
-  | ⟨x1, h1⟩, ⟨x2, h2⟩, h => by cases h; rfl
+theorem subset_union_right [DecidableEq α] (as bs : List α) : bs ⊆ as.union bs :=
+fun hx => mem_union_iff.mpr (Or.inr hx)
 
-end Subtype
+theorem subset_insert [DecidableEq α] (a : α) (as : List α) : as ⊆ insert a as :=
+λ hx => mem_insert_iff.mpr (Or.inr hx)
 
-def Finset α := { s : Set α // Set.finite s }
+section
+variable (a : α) (as bs cs : List α)
 
-namespace Finset 
+theorem reverse_def : reverse as = reverseAux as [] := rfl
 
-def mem (a : α) (s : Finset α) := s.1 a
-def empty {α : Type} : Finset α := ⟨Set.empty, Set.finite.empty⟩
-def singleton (a : α) : Finset α := ⟨Set.singleton a, Set.finite.singleton⟩
-def union (s t : Finset α) : Finset α := ⟨Set.union s.1 t.1, Set.finite.union s.2 t.2⟩
-def sep (s : Finset α) (P : α → Prop) : Finset α := ⟨Set.sep s.1 P, Set.finite.sep s.2 _⟩
-def subset (s t : Finset α) : Prop := ∀ {x}, mem x s → mem x t
+theorem reverseAux_nil : reverseAux [] as = as := rfl
 
-scoped infix:50 " ∈ " => mem
+theorem reverseAux_cons : reverseAux (a :: as) bs = reverseAux as (a :: bs) := rfl
 
-scoped notation "∅" => empty
-scoped infixr:65 " ∪ " => union
-scoped infixl:50 " ⊆ " => subset
+theorem reverse_nil : reverse ([] : List α) = [] := rfl
+theorem reverseAux_append : reverseAux (as ++ bs) cs = reverseAux bs (reverseAux as cs) := by
+  induction as generalizing cs with
+  | nil => rw [nil_append, reverseAux_nil]
+  | cons a as ih => rw [cons_append, reverseAux_cons, reverseAux_cons, ih]
 
-syntax:50 term " ∉ " term:49 : term
-macro_rules | `($x ∉ $y) => `((¬ ($x ∈ $y)))
+theorem reverseAux_append' : reverseAux as (bs ++ cs) = reverseAux as bs ++ cs := by
+  induction as generalizing bs with
+  | nil => rw [reverseAux_nil, reverseAux_nil]
+  | cons a as ih => rw [reverseAux_cons, reverseAux_cons, ←cons_append, ih]
 
-scoped macro "{" x:ident " ∈ " s:term "|" p:term "}" : term => `(sep $s (fun $x => $p))
-scoped macro "{" x:ident " : " t:term " ∈ " s:term "|" p:term "}" : term => 
-  `(sep s (fun ($x : $t) => $p))
+theorem reverse_append : reverse (as ++ bs) = reverse bs ++ reverse as := by
+  rw [reverse_def, reverseAux_append, reverse_def, ←reverseAux_append', nil_append, reverse_def]
 
-def disjoint (s t : Finset α) := ∀ a, ¬ (a ∈ s ∧ a ∈ t)
+theorem cons_eq_append : a :: as = [a] ++ as := by rw [cons_append, nil_append]
 
-theorem ext {s t : Finset α} (h : ∀ x, x ∈ s ↔ x ∈ t) : s = t := Subtype.ext $ Set.ext h
+theorem reverse_cons : reverse (a :: as) = reverse as ++ [a] := by
+  rw [cons_eq_append, reverse_append]; rfl
 
---funext (fun x => propext (h x))
-@[simp] theorem mem_empty (a : α) : a ∈ ∅ ↔ False := Iff.refl _
-@[simp] theorem mem_singleton {a b : α} : a ∈ singleton b ↔ a = b := Iff.refl _
-@[simp] theorem mem_union {a : α} {s t : Finset α} : a ∈ union s t ↔ a ∈ s ∨ a ∈ t := Iff.refl _
+end
 
-@[simp] theorem sep_True (s : Finset α) : { x ∈ s | True } = s := 
-  ext $ fun x => ⟨fun h => h.1, fun h => ⟨h, True.intro⟩⟩ 
+def filter' (p : α → Bool) : List α → List α
+  | [] => []
+  | (a :: as) => cond (p a) (a :: filter' p as) (filter' p as)
 
-@[simp] theorem sep_False (s : Finset α) : { x ∈ s | False } = (∅ : Finset α) := 
-  ext $ fun x => ⟨fun h => h.2, fun h => ⟨False.elim h, h⟩⟩
+theorem filter'_eq_filter (p : α → Bool) (as : List α) : filter' p as = filter p as := by
+  simp [filter]; rw [aux]; rfl
+where
+  aux (p : α → Bool) (as bs : List α) : filterAux p as bs = reverse bs ++ filter' p as := by
+    induction as generalizing bs with
+      | nil => simp [filterAux, filter']
+      | cons a as ih =>
+        simp [filterAux, filter']
+        cases p a with
+          | true => simp [ih]; rw [reverse_cons, cons_eq_append a (filter' p as), append_assoc]
+          | false => simp [ih]
 
-theorem subset_def (s t : Finset α) : s ⊆ t ↔ (∀ x, x ∈ s → x ∈ t) := Iff.refl _
+@[simp] theorem filter_nil (p : α → Bool) : filter p [] = [] := rfl
 
-theorem subset_trans {s t u : Finset α} (h₀ : s ⊆ t) (h₁ : t ⊆ u) : s ⊆ u :=
-fun hx => h₁ (h₀ hx)
+theorem filter_cons (p : α → Bool) (a : α) (as : List α) :
+    filter p (a :: as) = cond (p a) (a :: filter p as) (filter p as) := by
+  rw [←filter'_eq_filter]; rw [←filter'_eq_filter]; rfl
 
-@[simp] theorem singleton_subset {a : α} {s : Finset α} : singleton a ⊆ s ↔ a ∈ s := by
-  simp [subset_def]
-  apply Iff.intro
-  { intro h; apply h; rfl }
-  { intros h x xeq; rw [xeq]; exact h }
+@[simp] theorem filter_true (as : List α) : as.filter (fun x => true) = as := by
+  induction as with
+  | nil => rw [filter_nil]
+  | cons a as ih => rw [filter_cons, cond_true, ih]
 
-theorem subset_union_left  (s t : Finset α) : s ⊆ s ∪ t := by { intros x hx; exact Or.inl hx }
-theorem subset_union_right (s t : Finset α) : t ⊆ s ∪ t := by { intros x hx; exact Or.inr hx }
- 
-/- axiomatize cardinality for now -/
-axiom card {α : Type} : Finset α → Nat
+@[simp] theorem filter_false (as : List α) : as.filter (fun x => false) = ∅ := by
+  induction as with
+  | nil => rw [filter_nil]; rfl
+  | cons a as ih => rw [filter_cons, cond_false, ih]
 
-@[simp] theorem card_empty {α : Type} : card (empty : Finset α) = 0 := sorry
-@[simp] theorem card_singleton {α : Type} (a : α) : card (singleton a) = 1 := sorry
-@[simp] theorem card_union {α : Type} {s t : Finset α} (h : disjoint s t) : 
-  card (s ∪ t) = card s + card t := sorry
+theorem not_mem_remove [DecidableEq α] (a : α) (as : List α) :
+  a ∉ remove a as := by simp [mem_remove_iff]
 
-end Finset
+theorem card_remove_of_mem' [DecidableEq α] {as : List α} (h : a ∈ as) :
+    card (remove a as) = card as - 1 := by rw [card_remove_of_mem h, Nat.add_sub_cancel]
+
+end List
+
 
 namespace Array
 
 @[simp] theorem size_empty : Array.size (#[] : Array α) = 0 := rfl
 
 theorem get_push_of_lt [Inhabited α] (A : Array α) (x : α) {i : Nat} (h : i < A.size) :
-  (A.push x)[i] = A[i] :=
-sorry
+  (A.push x)[i] = A[i] := by
+  have h' : i < A.data.length + 1 := Nat.lt_trans h (Nat.lt_succ_self _)
+  simp [getOp, get!, push, getD, h', h, get]
+  apply get_push_of_lt_aux
+where
+  get_push_of_lt_aux : ∀ (as : List α) (a : α) (i : Nat) (h : i < as.length)
+      (h' : i < (as.concat a).length),
+    List.get (as.concat a) i h' = List.get as i h
+  | [], a, i => (fun h h' => absurd h (Nat.not_lt_zero _))
+  | (b :: bs), a, 0 => by simp [List.get, List.concat, List.length_concat]
+  | (b :: bs), a, (Nat.succ i) => by
+    simp [List.get, List.concat, List.length_concat]
+    intro h h'
+    simp [List.get]
+    apply get_push_of_lt_aux
 
 @[simp] theorem get_push_size [Inhabited α] (A : Array α) (x : α) :
-  (A.push x)[A.size] = x :=
-sorry
+    (A.push x)[A.size] = x := by
+  have h : List.length A.data < List.length A.data + 1 := Nat.lt_succ_self _
+  simp [getOp, get!, push, getD, size, get, h, get_push_size_aux]
+where
+  get_push_size_aux : ∀ (as : List α) (a : α) (h : as.length < (as.concat a).length),
+    List.get (as.concat a) (as.length) h = a
+  | [], a => by intro h; simp [List.get]
+  | (b :: bs), a => by
+    simp [List.get, List.concat, List.length_concat]
+    rw [List.length_cons]
+    intro h
+    simp [List.get]
+    apply get_push_size_aux
 
 end Array
 
