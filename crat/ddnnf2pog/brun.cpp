@@ -45,13 +45,16 @@ int main(int argc, const char *argv[]) {
     while (argi < argc) {
 	if (strcmp(argv[argi], ".") == 0) {
  	    printf("c Popping one level\n");
-	    if (!cnf.pop_context(1))
+	    cnf.pop_context();
+	    if (!cnf.bcp())
 		printf("c Conflict found\n");
 	}
 	else {
 	    int lit = atoi(argv[argi]);
 	    printf("c Asserting %d\n", lit);
-	    if (!cnf.new_context(lit))
+	    cnf.new_context();
+	    cnf.push_assigned_literal(lit);
+	    if (!cnf.bcp())
 		printf("c Conflict found\n");
 	}
 	argi++;

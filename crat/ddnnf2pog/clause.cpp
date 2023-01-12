@@ -394,13 +394,12 @@ int CNF::start_or(int var, int arg1, int arg2) {
 
 // Got a new unit literal.
 int CNF::new_unit(int lit, int cid, bool input) {
-    unit_literals.insert(lit);
     if (input) {
+	unit_literals.insert(lit);
 	justifying_ids[lit] = cid;
 	report(3, "Unit literal %d justified by input clause #%d\n", lit, cid);
 	return cid;
     }
-    derived_literals.push_back(lit);
     Clause *cp = (*this)[cid];
     int clen = cp->length();
     // Optimization: Don't generate new clause if unit implied by context literals
@@ -411,7 +410,7 @@ int CNF::new_unit(int lit, int cid, bool input) {
 	    need_new = true;
     }
     if (!need_new) {
-	justifying_ids[lit] = cid;
+	push_derived_literal(lit, cid);
 	report(3, "Unit literal %d already justified by clause #%d\n", lit, cid);
 	return cid;
     }
@@ -420,7 +419,7 @@ int CNF::new_unit(int lit, int cid, bool input) {
     for (int alit : assigned_literals)
 	clp->add(-alit);
     int ncid = start_assertion(clp);
-    justifying_ids[lit] = ncid;
+    push_derived_literal(lit, ncid);
     // Print hints
     for (int idx = 0; idx < clen; idx++) {
 	int clit = (*cp)[idx];
@@ -458,7 +457,6 @@ int CNF::found_conflict(int cid) {
 // Enable POG generation
 bool CNF::enable_pog(PogWriter *pw) {
     pwriter = pw;
-
     // Set up active clauses
     curr_active_clauses = new std::set<int>;
     next_active_clauses = new std::set<int>;
@@ -469,10 +467,10 @@ bool CNF::enable_pog(PogWriter *pw) {
 	cid++;
 	Clause *cp = *clp;
 	if (cp->tautology())
-	    satisfied_ids.push_back(cid);
+	    continue;
 	else if (cp->length() == 1) {
 	    new_unit((*cp)[0], cid, true);
-	    satisfied_ids.push_back(cid);
+	    continue;
 	}
 	else
 	    curr_active_clauses->insert(cid);
@@ -527,7 +525,7 @@ bool CNF::bcp() {
 		    ulit = 0;
 		    conflict = false;
 		    multi_active = false;
-		    satisfied_ids.push_back(cid);
+		    push_clause(cid);
 		    break;
 		} else if (unit_literals.find(-clit) != unit_literals.end()) {
 		    report(3, "    Literal %d falsified\n", clit);
@@ -548,13 +546,12 @@ bool CNF::bcp() {
 	    if (conflict) {
 		report(3, "    Conflict\n");
 		int ncid = found_conflict(cid);
-		satisfied_ids.push_back(cid);
+		push_clause(cid);
 		next_active_clauses->insert(ncid);
 	    } else if (ulit != 0) {
 		report(3, "    Unit %d\n", ulit);
 		int ncid = new_unit(ulit, cid, false);
 		next_active_clauses->insert(ncid);
-		satisfied_ids.push_back(cid);
 		converged = false;
 	    } else if (multi_active) {
 		report(3, "    Still active\n");
@@ -582,25 +579,16 @@ bool CNF::rup_validate(Clause *cltp) {
 	if (fid != justifying_ids.end())
 	    prop_clauses.push_back(fid->second);
     }
-    // Start new level of search.  Mark return points
-    int save_assigned_start_index = assigned_literals.size();
-    int save_derived_start_index = derived_literals.size();
-    int save_satisfied_start_index = satisfied_ids.size();
-    
     if (verblevel >= 3) {
 	report(3, "\nStarting RUP deriviation of clause ");
 	cltp->show(stdout);
     }
+    new_context();
     // Negate literals in target clause
     for (int idx = 0; idx < cltp->length(); idx++) {
 	int tlit = (*cltp)[idx];
 	if (unit_literals.find(-tlit) == unit_literals.end()) {
-	    assigned_literals.push_back(-tlit);
-	    unit_literals.insert(-tlit);
-	} else {
-	    auto fid = justifying_ids.find(-tlit);
-	    if (fid != justifying_ids.end())
-		prop_clauses.push_back(fid->second);
+	    push_assigned_literal(-tlit);
 	}
     }
     // Unit propagation
@@ -642,7 +630,7 @@ bool CNF::rup_validate(Clause *cltp) {
 		    ulit = 0;
 		    conflict = false;
 		    multi_active = false;
-		    satisfied_ids.push_back(cid);
+		    push_clause(cid);
 		    break;
 		} else if (unit_literals.find(-clit) != unit_literals.end()) {
 		    report(3, "    Literal %d falsified\n", clit);
@@ -663,15 +651,12 @@ bool CNF::rup_validate(Clause *cltp) {
 	    if (conflict) {
 		report(3, "    Conflict\n");
 		prop_clauses.push_back(cid);
-		// Clause not really satisfied, but want to restore it for future use
-		satisfied_ids.push_back(cid);
+		push_clause(cid);
 	    } else if (ulit != 0) {
 		report(3, "    Unit %d\n", ulit);
 		prop_clauses.push_back(cid);
-		satisfied_ids.push_back(cid);
-		unit_literals.insert(ulit);
-		justifying_ids[ulit] = cid;
-		derived_literals.push_back(ulit);
+		push_derived_literal(ulit, cid);
+		push_clause(cid);
 		converged = false;
 	    } else if (multi_active) {
 		report(3, "    Still active\n");
@@ -719,55 +704,72 @@ bool CNF::rup_validate(Clause *cltp) {
 	curr_active_clauses->insert(ncid);
     }
     // Undo assignments
-    while (assigned_literals.size() > save_assigned_start_index) {
-	int lit = assigned_literals.back(); assigned_literals.pop_back();
-	unit_literals.erase(lit);
-    }
-    while (derived_literals.size() > save_derived_start_index) {
-	int lit = derived_literals.back(); derived_literals.pop_back();
-	unit_literals.erase(lit);
-	justifying_ids.erase(lit);
-    }
-    while (satisfied_ids.size() > save_satisfied_start_index) {
-	int cid = satisfied_ids.back(); satisfied_ids.pop_back();
-	curr_active_clauses->insert(cid);
-    }
+    pop_context();
     return conflict;
 }
 
 
-bool CNF::new_context(int lit) {
-    if (unit_literals.find(-lit) != unit_literals.end())
-	return false;
-    assigned_literals.push_back(lit);
-    literal_start_index.push_back(derived_literals.size());
-    unit_literals.insert(lit);
-    satisfied_start_index.push_back(satisfied_ids.size());
-    return bcp();
+void CNF::new_context() {
+    context_stack.push_back(CONTEXT_MARKER);
 }
 
-bool CNF::pop_context(int levels) {
-    for (int lcount = 0; lcount < levels; lcount++) {
-	if (assigned_literals.size() == 0)
-	    err(true, "Attempt to pop below initial level\n");
-	int alit = assigned_literals.back(); assigned_literals.pop_back();
-	unit_literals.erase(alit);
+void CNF::push_assigned_literal(int lit) {
+    if (unit_literals.find(-lit) != unit_literals.end())
+	err(false, "Attempt to assert literal %d.  But, already have -%d as unit\n", lit, lit);
+    unit_literals.insert(lit);
+    assigned_literals.push_back(lit);
+    context_stack.push_back(lit);
+    context_stack.push_back(CONTEXT_ASSIGNED);
+}
 
-	int spos = literal_start_index.back(); literal_start_index.pop_back();
-	for (int pos = spos; pos < derived_literals.size(); pos++) {
-	    int lit = derived_literals[pos];
+void CNF::push_derived_literal(int lit, int cid) {
+    if (unit_literals.find(-lit) != unit_literals.end())
+	err(false, "Attempt to assert literal %d.  But, already have derived -%d as unit\n", lit, lit);
+    if (unit_literals.find(lit) != unit_literals.end())
+	err(false, "Attempt to assert literal %d.  But, it is already unit\n", lit);
+    unit_literals.insert(lit);
+    justifying_ids[lit] = cid;
+    context_stack.push_back(lit);
+    context_stack.push_back(cid);
+    context_stack.push_back(CONTEXT_DERIVED);
+}
+
+void CNF::push_clause(int cid) {
+    context_stack.push_back(cid);
+    context_stack.push_back(CONTEXT_CLAUSE);
+}
+
+void CNF::pop_context() {
+    while (true) {
+	if (context_stack.size() == 0)
+	    err(true, "Tried to pop beyond base of context stack\n");
+	int lit, cid;
+	int marker = context_stack.back(); context_stack.pop_back();
+	switch (marker) {
+	case CONTEXT_MARKER:
+	    return;
+	case CONTEXT_ASSIGNED:
+	    lit = context_stack.back(); context_stack.pop_back();
+	    unit_literals.erase(lit);
+	    assigned_literals.pop_back();
+	    break;
+	case CONTEXT_DERIVED:
+	    cid = context_stack.back(); context_stack.pop_back();
+	    lit = context_stack.back(); context_stack.pop_back();
 	    unit_literals.erase(lit);
 	    justifying_ids.erase(lit);
-	}
-	derived_literals.resize(spos);
-
-	int tpos = satisfied_start_index.back(); satisfied_start_index.pop_back();
-	for (int pos = tpos; pos < satisfied_ids.size(); pos++) {
-	    int cid = satisfied_ids[pos];
-	    report(3, "Restoring clause #%d to active status\n", cid);
+	    break;
+	case CONTEXT_CLAUSE:
+	    cid = context_stack.back(); context_stack.pop_back();
 	    curr_active_clauses->insert(cid);
+	    break;
+	default:
+	    err(true, "Invalid context stack marker value %d\n", marker);
+	    break;
 	}
-	satisfied_ids.resize(tpos);
     }
-    return bcp();
+    return;
 }
+
+
+

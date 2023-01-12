@@ -28,7 +28,7 @@
 #include <vector>
 #include <set>
 #include <unordered_set>
-#include <map>
+#include <unordered_map>
 #include <stdio.h>
 #include <fstream>
 #include "ilist.h"
@@ -85,6 +85,13 @@ public:
 
 };
 
+// Used to label items stored as context
+// Want these to be int's
+#define CONTEXT_MARKER 1
+#define CONTEXT_ASSIGNED 2
+#define CONTEXT_DERIVED 3
+#define CONTEXT_CLAUSE 4
+
 // CNF is a collection of clauses.  Can read from a DIMACS format CNF file
 class CNF {
 private:
@@ -98,25 +105,18 @@ private:
     PogWriter *pwriter;
 
     // Maintaining context 
-    // Literals assigned during search
-    std::vector<int> assigned_literals;
-    // Literals derived by unit propagation
-    std::vector<int> derived_literals;
-    // Starting position of each layer of derived literals
-    std::vector<int> literal_start_index;
-    // Set representation of assigned and derived literals in current context
-    std::unordered_set<int> unit_literals;
+    std::vector<int> context_stack;
     // Mapping from unit literal to asserting clause Id 
-    std::map<int, int> justifying_ids;
+    std::unordered_map<int, int> justifying_ids;
+    // Unit literals
+    std::unordered_set<int> unit_literals;
+    // List of assigned literals
+    std::vector<int> assigned_literals;
    
     // Ordered sets of non-satisfied clauses in current context
     // Must maintain two sets: current and active.  Swap these on each pass of BCP
     std::set<int> *curr_active_clauses;
     std::set<int> *next_active_clauses;
-    // Stack of satisfied clauses
-    std::vector<int> satisfied_ids;
-    // Starting position of each layer of satisfied clauses
-    std::vector<int> satisfied_start_index;
 
 public:
     CNF();
@@ -161,13 +161,19 @@ public:
     int start_and(int var, ilist args);
     int start_or(int var, int arg1, int arg2);
 
-    // Search operation
-    // Start new level of search by assigning literal and performing BCP
-    // Return false if BCP finds conflict
-    bool new_context(int lit);
-    // Undo specified number of layers of search.
-    // Perform BCP in event search detected conflict
-    bool pop_context(int levels);
+
+
+    // Support for stack-based context saving
+    void new_context();
+    void pop_context();
+    // Different things to put on the context stack:
+    void push_assigned_literal(int lit);
+    void push_derived_literal(int lit, int cid);
+    void push_clause(int cid);
+
+    // Perform Boolean constraint propagation.  Return false if hit conflict
+    bool bcp();
+    
 
     // Validate clause by RUP.  Add clause as assertion 
     // Return false if fail
@@ -183,7 +189,7 @@ private:
     // Private methods for search support
     int found_conflict(int cid);
     int new_unit(int lit, int cid, bool input);
-    bool bcp();
+
 };
 
 
