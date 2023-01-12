@@ -23,15 +23,13 @@ compressor.o: compressor.hh compressor.cpp
 pog.o: pog.hh clause.hh pog.cpp compressor.hh
 	$(CXX) $(CPPFLAGS) -c pog.cpp
 
-
-
 brun: brun.cpp clause.o ilist.o report.o writer.o
 	$(CXX) $(CPPFLAGS) -o brun brun.cpp clause.o ilist.o report.o writer.o
 
 rrun: rrun.cpp clause.o ilist.o report.o writer.o
 	$(CXX) $(CPPFLAGS) -o rrun rrun.cpp clause.o ilist.o report.o writer.o
 
-
+d2p: d2p.cpp clause.o ilist.o report.o writer.o compressor.o pog.o
 
 .SUFFIXES: .c .cpp .o
 

@@ -52,7 +52,7 @@ private:
     // Organize so that literals representing nodes come at end
     // AND node can have any degree >= 2
     // OR  node must have degree 2,
-    //  with first one having split_var positive and second one having it negative
+    //  with first one having split_var negative and second one having it positive
     int degree;
     int *children;
   
@@ -65,13 +65,12 @@ private:
 public:
     Pog_node();
 
+    Pog_node(pog_type_t ntype);
+
     // Extract node from its compressed representation
     Pog_node(byte_vector_t &byte_rep);
 
-    // Use degree 0 if don't know ultimate degree
-    Pog_node(pog_type_t ntype, int degree);
-
-    ~Pog_node() { delete children; };
+    ~Pog_node() { if (degree > 0) delete children; };
 
     pog_type_t get_type();
 
@@ -80,9 +79,8 @@ public:
     void set_split_var(int var);
     int get_split_var();
 
-    void add_child(int index, int lit);
-    void add_children2(int lit1, int lit2);
-
+    // Set degree and import children
+    void add_children(std::vector<int> *cvec);
 
     void show(FILE *outfile);
 
@@ -102,7 +100,7 @@ private:
     int max_input_var;
     std::vector<Pog_node *> nodes;
     // Root literal can refer to either an input variable or the last node
-    bool root_literal;
+    int root_literal;
 
 public:
     Pog();
@@ -116,7 +114,7 @@ public:
 
     int add_node(Pog_node *np);
 
-    void set_root_literal(int rlit);
+    void set_root(int rlit);
     int get_root();
 
     // Does literal refer to an input variable or a node
@@ -137,5 +135,5 @@ public:
 
 private:
     // Helper routines
-    void mark(int rlit, int *markers);
+    void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
 };

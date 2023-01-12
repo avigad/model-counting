@@ -25,12 +25,18 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <map>
 #include <unordered_map>
+#include <ctype.h>
 #include "pog.hh"
 #include "report.h"
 
 // For use by the different routines
 static Compressor compressor;
+
+const char *pog_type_name[5] = { "NONE", "TRUE", "FALSE", "AND", "OR" };
+
+const char pog_type_char[5] = { '\0', 't', 'f', 'a', 'o' };
 
 Pog_node::Pog_node() {
     type = POG_FALSE;
@@ -40,11 +46,10 @@ Pog_node::Pog_node() {
     unit_id = 0;
 }
 
-Pog_node::Pog_node(pog_type_t ntype, int degree) {
+Pog_node::Pog_node(pog_type_t ntype) {
     type = ntype;
-    degree = degree;
-    children = new int[degree];
-    memset(children, 0, degree*sizeof(int));
+    degree = 0;
+    children = NULL;
     split_var = 0;
     unit_id = 0;
 }
@@ -85,13 +90,12 @@ int Pog_node::get_split_var() {
     return split_var;
 }
 
-void Pog_node::add_child(int index, int lit) {
-    children[index] = lit;
-}
-
-void Pog_node::add_children2(int lit1, int lit2) {
-    children[0] = lit1;
-    children[1] = lit2;
+void Pog_node::add_children(std::vector<int> *cvec) {
+    degree = cvec->size();
+    if (degree > 0) {
+	children = new int[degree];
+	memcpy(children, cvec->data(), degree * sizeof(int));
+    }
 }
 
 int Pog_node::get_degree() {
@@ -114,24 +118,17 @@ void Pog_node::compress(byte_vector_t &bytes) {
 }
 
 void Pog_node::show(FILE *outfile) {
-    char nc = type == POG_AND ? 'P' : 'S';
     bool first = true;
-    switch(type) {
-    case POG_TRUE:
-	fprintf(outfile, "TRUE");
-	break;
-    case POG_FALSE:
-	fprintf(outfile, "FALSE");
-	break;
-    default:
-	fprintf(outfile, "N%d_%c(", id, nc);
-	for (int i = 0; i < degree; i++) {
-	    fprintf(outfile, first ? "%d" : ",%d", children[i]);
-	}
-	fprintf(outfile, "\n");
+    fprintf(outfile, "N%d_%s", id, pog_type_name[type]);
+    if (type == POG_OR)
+	fprintf(outfile, "[%d]", split_var);
+    fprintf(outfile, "(");
+    for (int i = 0; i < degree; i++) {
+	fprintf(outfile, first ? "%d" : ",%d", children[i]);
+	first = false;
     }
+    fprintf(outfile, ")");
 }
-
 
 Pog::Pog() {
     cnf = NULL;
@@ -150,7 +147,7 @@ int Pog::add_node(Pog_node *np) {
     return pid;
 }
 
-void Pog::set_root_literal(int lit) {
+void Pog::set_root(int lit) {
     root_literal = lit;
 }
 
@@ -164,7 +161,7 @@ bool Pog::is_node(int lit) {
 }
 
 Pog_node * Pog::operator[](int id) {
-    return nodes[id-max_input_var];
+    return nodes[id-max_input_var-1];
 }
 
 int Pog::node_count() {
@@ -179,20 +176,26 @@ void Pog::show(FILE *outfile) {
     fprintf(outfile, "ROOT %d\n", root_literal);
 }
 
-void Pog::mark(int rlit, int *markers) {
+void Pog::topo_order(int rlit, std::vector<int> &rtopo, int *markers) {
     if (is_node(rlit)) {
 	int rid = IABS(rlit);
-	int idx = rid-max_input_var;
+	int idx = rid-max_input_var-1;
 	if (markers[idx])
 	    return;
 	markers[idx] = 1;
 	Pog_node *np = (*this)[rid];
 	for (int i = 0; i < np->get_degree(); i++)
-	    mark((*np)[i], markers);
+	    topo_order((*np)[i], rtopo, markers);
+	rtopo.push_back(rid);
     }
 }
 
 bool Pog::optimize() {
+    if (verblevel >= 5) {
+	printf("Before optimization:\n");
+	show(stdout);
+    }
+
     // If root represents input variable, then nothing need be done
     if (!is_node(root_literal)) {
 	for (Pog_node *np : nodes)
@@ -204,47 +207,67 @@ bool Pog::optimize() {
     int vtrue = nodes.size() + max_input_var + 1;
     int vfalse = vtrue + 1;
 
+    // ID of FALSE
+    int false_id = 0;
+    Pog_node *false_np = NULL;
+
     std::vector<Pog_node *> new_nodes;
     // Mapping from old id to new literal
     std::vector<int> remap;
     remap.resize(nodes.size());
     memset(remap.data(), 0, sizeof(int) * nodes.size());
+    // Order old nodes in reverse topological order
+    std::vector<int> rtopo;
 
-    // Mark nodes that are reachable from root
-    mark(root_literal, remap.data());
+    // Get topological ordering of nodes accessible from root
+    topo_order(root_literal, rtopo, remap.data());
 
+    report(2, "Compressing POG with %d nodes and root literal %d\n", nodes.size(), root_literal);
+    // Process nodes in reverse topological order
     // Skip inaccessible nodes and simplify operations
-    for (int oid = max_input_var; oid < max_input_var + nodes.size(); oid++) {
-	report(3, "Compressing POG with %d nodes and root literal %d\n", nodes.size(), root_literal);
-	if (!remap[oid-max_input_var])
+    for (int oid : rtopo) {
+	if (!remap[oid-max_input_var-1])
 	    // Not reachable from root
 	    continue;
 	Pog_node *np = (*this)[oid];
 	pog_type_t ntype = np->get_type();
 	if (ntype == POG_TRUE)
-	    remap[oid-max_input_var] = vtrue;
+	    remap[oid-max_input_var-1] = vtrue;
 	else if (ntype == POG_FALSE)
-	    remap[oid-max_input_var] = vfalse;
+	    remap[oid-max_input_var-1] = vfalse;
 	else {
 	    // AND or OR
+	    bool zeroed = false;
 	    std::vector<int> nchildren;
 	    for (int i = 0; i < np->get_degree(); i++) {
 		int clit = (*np)[i];
 		int cid = IABS(clit);
 		if (is_node(clit)) {
-		    int ncid = remap[cid];
+		    int ncid = remap[cid-max_input_var-1];
 		    if (ncid == vfalse || ncid == vtrue) {
 			// Constant child.  Regularize value
 			bool ctrue = clit < 0 ? ncid == vfalse : ncid == vtrue;
-			if (ntype  == POG_AND && ctrue || ntype == POG_OR && !ctrue)
+			if (ntype  == POG_AND && ctrue)
 			    // Skip argument
 			    continue;
-			else if (ntype  == POG_AND && !ctrue || ntype == POG_OR && ctrue) {
-			    const char *pname = ntype == POG_AND ? "AND" : "OR";
-			    const char *cname = ctrue ? "TRUE" : "FALSE";
-			    err(false, "Cannot handle Node #%d of type %s having child %d of type %s\n", 
-				np->get_id(), pname, i, cname);
-			    return false;
+			else if (ntype  == POG_AND && !ctrue) {
+			    // Replace node by ZERO node
+			    if (false_id == 0) {
+				false_np = new Pog_node(POG_FALSE);
+				false_np->set_id(oid);
+				new_nodes.push_back(false_np);
+				false_id = max_input_var + new_nodes.size();
+				false_np->set_id(false_id);
+			    }
+			    remap[oid-max_input_var-1] = false_id;
+			    if (verblevel >= 4) {
+				printf("  Converted node ");
+				np->show(stdout);
+				printf(" to ");
+				false_np->show(stdout);
+				printf("\n");
+			    }
+			    zeroed = true;
 			}
 		    } else
 			nchildren.push_back(MATCH_PHASE(ncid, clit));
@@ -252,20 +275,20 @@ bool Pog::optimize() {
 		    // Input literal
 		    nchildren.push_back(clit);
 	    }
-	    if (nchildren.size() == 0)
-		remap[oid-max_input_var] = ntype == POG_AND ? vtrue : vfalse;
+	    if (zeroed)
+		continue;
+	    else if (nchildren.size() == 0)
+		remap[oid-max_input_var-1] = ntype == POG_AND ? vtrue : vfalse;
 	    else if (nchildren.size() == 1)
-		remap[oid-max_input_var] = nchildren[0];
+		remap[oid-max_input_var-1] = nchildren[0];
 	    else {
-		int ndegree = nchildren.size();
-		Pog_node *nnp = new Pog_node(ntype, ndegree);
-		for (int i = 0; i < ndegree; i++)
-		    nnp->add_child(i, nchildren[i]);
+		Pog_node *nnp = new Pog_node(ntype);
+		nnp->add_children(&nchildren);
 		nnp->set_split_var(np->get_split_var());
 		new_nodes.push_back(nnp);
 		int nid = max_input_var + new_nodes.size();
 		nnp->set_id(nid);
-		remap[oid-max_input_var] = nid;
+		remap[oid-max_input_var-1] = nid;
 		if (verblevel >= 4) {
 		    printf("  Converted node ");
 		    np->show(stdout);
@@ -278,7 +301,7 @@ bool Pog::optimize() {
     }
     // Degenerate cases:
     int rvar = IABS(root_literal);
-    int nrvar = remap[rvar];
+    int nrvar = remap[rvar-max_input_var-1];
     // Clear out old nodes
     for (Pog_node *np : nodes)
 	delete np;
@@ -296,8 +319,179 @@ bool Pog::optimize() {
 	    add_node(np);
     }
     root_literal = MATCH_PHASE(nrvar, root_literal);
-    report(3, "Compressed POG has %d nodes and root literal %d\n", nodes.size(), root_literal);
+    report(2, "Compressed POG has %d nodes and root literal %d\n", nodes.size(), root_literal);
     return true;
 }
     
+// Try to read single alphabetic character from line
+// If not found, then push back unread character and return 0
+// If hit EOF, then return this
+static int get_token(FILE *infile) {
+    int c;
+    while (true) {
+	c = fgetc(infile);
+	if (isalpha(c) || c == EOF)
+	    return c;
+	else if (isspace(c))
+	    continue;
+	else {
+	    ungetc(c, infile);
+	    return 0;
+	}
+    }
+}
 
+// Read sequence of numbers from line of input
+// Consume end of line character
+// Return false if non-numeric value encountered
+static bool read_numbers(FILE *infile, std::vector<int> &vec, int *rc) {
+    vec.resize(0);
+    while (true) {
+	int c = fgetc(infile);
+	int val;
+	if (c == '\n' || c == EOF) {
+	    *rc = c;
+	    return true;
+	} else if (isspace(c))
+	    continue;
+	else {
+	    ungetc(c, infile);
+	    if (fscanf(infile, "%d", &val) == 1) {
+		vec.push_back(val);
+	    } else
+		return false;
+	}
+    }
+    // Won't hit this
+    return false;
+}
+
+
+bool Pog::read_d4ddnnf(FILE *infile) {
+    // Mapping for NNF ID to POG Node ID
+    std::map<int,int> nnf_idmap;
+    // Vector of arguments for each POG node
+    std::vector<std::vector<int> *> arguments;
+    // Capture arguments for each line
+    std::vector<int> largs;
+    int line_number = 0;
+    // Statistics
+    int nnf_node_count = 0;
+    int nnf_explicit_node_count = 0;
+    int nnf_edge_count = 0;
+    while (true) {
+	pog_type_t ntype = POG_NONE;
+	line_number++;
+	int c = get_token(infile);
+	int rc = 0;
+	if (c == EOF)
+	    break;
+	if (c != 0) {
+	    for (int t = POG_TRUE; t <= POG_OR; t++)
+		if (c == pog_type_char[t])
+		    ntype = (pog_type_t) t;
+	    if (ntype == POG_NONE)
+		err(true, "Line #%d.  Unknown D4 NNF command '%c'\n", line_number, c);
+	    nnf_node_count++;
+	    nnf_explicit_node_count++;
+	    Pog_node *np = new Pog_node(ntype);
+	    int pid = add_node(np);
+	    arguments.push_back(new std::vector<int>);
+	    bool ok = read_numbers(infile, largs, &rc);
+	    if (!ok)
+		err(true, "Line #%d.  Couldn't parse numbers\n", line_number);
+	    else if (largs.size() == 0 && rc == EOF)
+		break;
+	    else if (largs.size() != 2)
+		err(true, "Line #%d.  Expected 2 numbers.  Found %d\n", line_number, largs.size());
+	    else if (largs.back() != 0)
+		err(true, "Line #%d.  Line not zero-terminated\n", line_number);
+	    else
+		nnf_idmap[largs[0]] = pid;
+	    report(3, "Line #%d.  Created POG %s Node %d from NNF node %d\n",
+		   line_number, pog_type_name[ntype], pid, largs[0]); 
+	} else {
+	    nnf_edge_count++;
+	    bool ok = read_numbers(infile, largs, &rc);
+	    if (!ok)
+		err(true, "Line #%d.  Couldn't parse numbers\n", line_number);
+	    else if (largs.size() == 0 && rc == EOF)
+		break;
+	    else if (largs.size() < 3)
+		err(true, "Line #%d.  Expected at least 3 numbers.  Found %d\n", line_number, largs.size());
+	    else if (largs.back() != 0)
+		err(true, "Line #%d.  Line not zero-terminated\n", line_number);
+	    // Find parent
+	    auto fid = nnf_idmap.find(largs[0]);
+	    if (fid == nnf_idmap.end())
+		err(true, "Line #%d.  Invalid NNF node Id %d\n", line_number, largs[0]);
+	    int ppid = fid->second;
+	    // Find second node
+	    fid = nnf_idmap.find(largs[1]);
+	    if (fid == nnf_idmap.end())
+		err(true, "Line #%d.  Invalid NNF node Id %d\n", line_number, largs[1]);
+	    int spid = fid->second;
+	    int cpid = spid;
+	    if (largs.size() > 3) {
+		// Must construct AND node to hold literals
+		nnf_node_count++;
+		Pog_node *anp = new Pog_node(POG_AND);
+		cpid = add_node(anp);
+		std::vector<int> *aargs = new std::vector<int>;
+		arguments.push_back(aargs);
+		for (int i = 2; i < largs.size()-1; i++)
+		    aargs->push_back(largs[i]);
+		aargs->push_back(spid);
+		Pog_node *pnp = (*this)[ppid];
+		int old_split_lit = pnp->get_split_var();
+		int new_split_lit = largs[2];
+		if (old_split_lit == 0)
+		    pnp->set_split_var(new_split_lit);
+		else if (new_split_lit == -old_split_lit) {
+		    if (old_split_lit < 0)
+			pnp->set_split_var(new_split_lit);
+		    else {
+			// Arguments reversed from expected order
+			int tmp = (*aargs)[0]; (*aargs)[0] = (*aargs)[1]; (*aargs)[1] = tmp;
+		    }
+		} else
+		    err(true, "Line #%d.  Mismatched splitting literals for NNF node %d.  Got %d and %d\n",
+			line_number, largs[0], old_split_lit, new_split_lit);
+		report(3, "Line #%d. Created POG AND Node %d to hold literals between NNF nodes %d and %d\n",
+		       line_number, cpid, largs[0], largs[1]); 
+	    }
+	    std::vector<int> *pargs = arguments[ppid-max_input_var-1];
+	    pargs->push_back(cpid);
+	    report(4, "Line #%d.  Adding edge between POG nodes %d and %d\n", line_number, ppid, cpid);
+	}
+    }
+    // Add arguments
+    for (int pid = max_input_var + 1; pid <= max_input_var + nodes.size(); pid++) {
+	Pog_node *np = (*this)[pid];
+	std::vector<int> *args = arguments[pid-max_input_var-1];
+	np->add_children(args);
+	delete args;
+    }
+    for (auto kv : nnf_idmap) {
+	int nid = kv.first;
+	int pid = kv.second;
+	Pog_node *np = (*this)[pid];
+	// Check OR nodes
+	if (np->get_type() == POG_OR) {
+	    int degree = np->get_degree();
+	    if (degree == 0 || degree > 2) 
+		err(true, "NNF OR node %d.  Invalid degree %d\n", nid, degree);
+	    else if (degree == 1) {
+		root_literal = pid;
+		report(3, "Setting root literal to %d\n", root_literal);
+	    } else {
+		int split_var = np->get_split_var();
+		if (split_var <= 0)
+		    err(true, "NNF node %d.  Invalid splitting variable %d\n", split_var);
+	    }
+	}
+    }
+    report(1, "Read D4 NNF file with %d nodes (%d explicit) and %d edges\n",
+	   nnf_node_count, nnf_explicit_node_count, nnf_edge_count);
+    return optimize();
+}
