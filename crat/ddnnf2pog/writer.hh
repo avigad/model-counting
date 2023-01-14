@@ -52,6 +52,8 @@ public:
     void add_text(const char *txt);
     // Write list of literals with zero termination (but no EOL)
     void write_list(ilist vals);
+    // Write list of literals with zero termination and EOL as comment    
+    void comment_list(ilist vals);
     void finish_line(const char *txt);
     void finish_file();
 

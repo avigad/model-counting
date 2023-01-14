@@ -58,8 +58,10 @@ int main(int argc, const char *argv[]) {
 	argi++;
     } else
 	pwriter = new PogWriter();
+    if (verblevel >= 2)
+	pwriter->enable_comments();
+    pwriter->comment("Testing comment");
     cnf.enable_pog(pwriter);
-
     if (!pog.read_d4ddnnf(nfile)) {
 	fprintf(stderr, "Error reading D4 NNF file\n");
 	exit(1);

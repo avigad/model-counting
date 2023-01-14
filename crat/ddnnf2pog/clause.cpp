@@ -293,7 +293,6 @@ Clause * CNF::operator[](int cid) {
     }
 }
 
-
 void CNF::show() {
     std::cout << "p cnf " << max_input_var << " " << clause_count() << std::endl;
     for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
@@ -363,11 +362,11 @@ void CNF::finish_command(bool add_zero) {
 }
 
 int CNF::start_and(int var, ilist args) {
+    pwriter->comment("AND operation");
     Clause *clp = new Clause();
     clp->add(var);
-    for (int i = 0; i < ilist_length(args); i++) {
+    for (int i = 0; i < ilist_length(args); i++) 
 	clp->add(-args[i]);
-    }
     int cid = add_proof_clause(clp);
     for (int i = 0; i < ilist_length(args); i++) {
 	Clause *aclp = new Clause();
@@ -380,7 +379,31 @@ int CNF::start_and(int var, ilist args) {
     return cid;
 }
 
+void CNF::document_and(int cid, int var, ilist args) {
+    if (verblevel < 2) 
+	return;
+    pwriter->comment("Implicit declarations");
+    int len = ilist_length(args);
+    ilist show = ilist_new(len+2);
+    ilist_resize(show, len+2);
+    show[0] = cid;
+    show[1] = var;
+    for (int i = 0; i < len; i++)
+	show[i+2] = -args[i];
+    pwriter->comment_list(show);
+    show = ilist_resize(show, 3);
+    for (int i = 0; i < ilist_length(args); i++) {
+	show[0] = cid+i+1;
+	show[1] = -var;
+	show[2] = args[i];
+	pwriter->comment_list(show);
+    }
+    ilist_free(show);
+}
+
+
 int CNF::start_or(int var, ilist args) {
+    pwriter->comment("OR operation");
     int arg1 = args[0];
     int arg2 = args[1];
     Clause *clp = new Clause();
@@ -396,6 +419,29 @@ int CNF::start_or(int var, ilist args) {
     pwriter->add_int(arg1); pwriter->add_int(arg2);
     return cid;
 }
+
+void CNF::document_or(int cid, int var, ilist args) {
+    if (verblevel < 2)
+	return
+    pwriter->comment("Implicit declarations");
+    int len = ilist_length(args);
+    ilist show = ilist_new(len+2);
+    ilist_resize(show, len+2);
+    show[0] = cid;
+    show[1] = -var;
+    for (int i = 0; i < len; i++)
+	show[i+2] = args[i];
+    pwriter->comment_list(show);
+    show = ilist_resize(show, 3);
+    for (int i = 0; i < ilist_length(args); i++) {
+	show[0] = cid+i+1;
+	show[1] = var;
+	show[2] = -args[i];
+	pwriter->comment_list(show);
+    }
+    ilist_free(show);
+}
+
 
 // Got a new unit literal.
 void CNF::new_unit(int lit, int cid, bool input) {

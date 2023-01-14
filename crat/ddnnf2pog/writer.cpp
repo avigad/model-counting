@@ -67,7 +67,6 @@ void Writer::comment(const char *fmt, ...) {
     va_end(ap);
 }
 
-
 void Writer::write_text(const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -90,6 +89,16 @@ void Writer::write_list(ilist vals) {
     for (int i = 0; i < ilist_length(vals); i++)
 	add_int(vals[i]);
     add_int(0);
+}
+
+void Writer::comment_list(ilist vals) {
+    if (!do_comments)
+	return;
+    fprintf(outfile, "c ");
+    for (int i = 0; i < ilist_length(vals); i++)
+	add_int(vals[i]);
+    add_int(0);
+    fprintf(outfile, "\n");
 }
 
 void Writer::finish_line(const char *txt) {

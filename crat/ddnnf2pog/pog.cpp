@@ -387,21 +387,27 @@ bool Pog::concretize() {
 	case POG_OR:
 	    need_zero = true;
 	    defining_cid = cnf->start_or(xvar, args);
-#if 0
-	    for (int i = 0; i < np->get_degree(); np++) {
+	    for (int i = 0; i < np->get_degree(); i++) {
 		// Find mutual exclusions
 		int child_lit = (*np)[i];
-		
+		if (is_node(child_lit)) {
+		    Pog_node *cnp = (*this)[child_lit];
+		    int hid = cnp->get_defining_cid() + 1;
+		    cnf->add_hint(hid);
+		}
 	    }
-#endif
-	    cnf->add_hint(-17);
 	    break;
 	default:
 	    err(true, "POG Node #%d.  Can't handle node type with value %d\n", np->get_xvar(), (int) np->get_type());
 	}
 	cnf->finish_command(need_zero);
 	np->set_defining_cid(defining_cid);
+	if (np->get_type() == POG_OR)
+	    cnf->document_or(defining_cid, xvar, args);
+	else
+	    cnf->document_and(defining_cid, xvar, args);
 	ilist_free(args);
+	
     }
     return true;
 }

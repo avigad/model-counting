@@ -153,6 +153,9 @@ public:
     // Generate POG operation
     int start_and(int var, ilist args);
     int start_or(int var, ilist args);
+    // Document operations
+    void document_and(int cid, int var, ilist args);
+    void document_or(int cid, int var, ilist args);
 
     // Support for stack-based context saving
     void new_context();
