@@ -98,9 +98,10 @@ void Writer::finish_line(const char *txt) {
 }
 
 void Writer::finish_file() {
-    fclose(outfile);
+    if (outfile != stdout)
+	fclose(outfile);
     outfile = NULL;
-    if (file_name != NULL)
+    if (file_name == NULL)
 	report(1, "%d lines written\n", line_count);
     else
 	report(1, "File %s.  %d lines written\n", file_name, line_count);
@@ -140,5 +141,10 @@ void PogWriter::start_clause_deletion(int cid) {
 
 void PogWriter::operation_deletion(int var) {
     write_text("do %d", var);
+    finish_line("");
+}
+
+void PogWriter::constant(int cid, int val) {
+    write_text("%d k %d", cid, val);
     finish_line("");
 }

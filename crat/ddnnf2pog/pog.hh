@@ -26,7 +26,8 @@
 #pragma once
 
 // Don't want any type to evaluate to 0
-typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_OR } pog_type_t;
+// CAND is a special case of AND, arising from degenerate OR's where one argument is false
+typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_CAND, POG_OR } pog_type_t;
 
 // Used to convert literal to variable
 #define IABS(x) ((x)<0?-(x):(x))
@@ -38,6 +39,7 @@ typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_OR } pog_type_t;
 #include <stdio.h>
 #include "clause.hh"
 #include "compressor.hh"
+#include "writer.hh"
 
 
 // POG Nodes
@@ -46,21 +48,20 @@ private:
     // Basic representation
     pog_type_t type;
     // Extension variable for node
-    int id;
+    int xvar;
+
     // Identify children by their representation as literals
     // Can be variable, other Pog node, or the negation of one of these
     // Organize so that literals representing nodes come at end
     // AND node can have any degree >= 2
     // OR  node must have degree 2,
-    //  with first one having split_var negative and second one having it positive
     int degree;
     int *children;
-  
-    // For OR node: Id of decision variable
-    int split_var;
 
+    // Id of first clause in declaration
+    int defining_cid;
     // Id of unit clause for node
-    int unit_id;
+    int unit_cid;
 
 public:
     Pog_node();
@@ -72,12 +73,15 @@ public:
 
     ~Pog_node() { if (degree > 0) delete children; };
 
+    void set_type(pog_type_t t);
     pog_type_t get_type();
+    void set_xvar(int var);
+    int get_xvar();
+    void set_defining_cid(int cid);
+    int get_defining_cid();
+    void get_unit_cid(int cid);
+    int get_unit_cid();
 
-    void set_id(int id);
-    int get_id();
-    void set_split_var(int var);
-    int get_split_var();
 
     // Set degree and import children
     void add_children(std::vector<int> *cvec);
@@ -95,7 +99,7 @@ public:
 // POG
 class Pog {
 private:
-    // Input CNF + proof generation
+    // Input CNF + proof generation support
     CNF *cnf;
     int max_input_var;
     std::vector<Pog_node *> nodes;
@@ -120,20 +124,22 @@ public:
     // Does literal refer to an input variable or a node
     bool is_node(int lit);
 
-    // Index POG nodes by ID
+    // Index POG nodes by their extension variables
     Pog_node * operator[](int);
 
     int node_count();
 
     void show(FILE *outfile);
 
+private:
     // Simplify POG by eliminating constants,
     //  eliminating common subnodes, etc.
     // Renumber Ids to be consecutive
     // Return false if something wrong with original POG
     bool optimize();
+    // Add POG declarations to file
+    bool concretize();
 
-private:
     // Helper routines
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
 };

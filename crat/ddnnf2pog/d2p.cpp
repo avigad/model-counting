@@ -9,14 +9,16 @@
 #include "report.h"
 #include "clause.hh"
 #include "pog.hh"
+#include "writer.hh"
 
 int main(int argc, const char *argv[]) {
     int cid = 0;
     FILE *cfile = NULL;
     FILE *nfile = NULL;
+    PogWriter *pwriter = NULL;
     verblevel = 1;
     if (argc <= 1 || strcmp(argv[1], "-h") == 0) {
-	printf("Usage: %s [VLEVEL] CNF D4NNF\n", argv[0]);
+	printf("Usage: %s [VLEVEL] CNF D4NNF [POG]\n", argv[0]);
 	exit(0);
     }
     int argi = 1;
@@ -47,10 +49,21 @@ int main(int argc, const char *argv[]) {
 	exit(1);
     }
     argi++;
+    if (argi < argc) {
+	pwriter = new PogWriter(argv[argi]);
+	if (pwriter == NULL) {
+	    fprintf(stderr, "Can't open '%s'\n", argv[argi]);
+	    exit(1);
+	}
+	argi++;
+    } else
+	pwriter = new PogWriter();
+    cnf.enable_pog(pwriter);
+
     if (!pog.read_d4ddnnf(nfile)) {
 	fprintf(stderr, "Error reading D4 NNF file\n");
 	exit(1);
     }
-    pog.show(stdout);
+    pwriter->finish_file();
     return 0;
 }

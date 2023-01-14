@@ -77,6 +77,7 @@ public:
     void start_assertion(int cid);
     void start_and(int cid, int var);
     void start_or(int cid, int var);
+    void constant(int cid, int val);
 
     void start_clause_deletion(int cid);
     void operation_deletion(int var);

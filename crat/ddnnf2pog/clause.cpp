@@ -355,8 +355,11 @@ void CNF::add_hint(int hid) {
     pwriter->add_int(hid);
 }
 
-void CNF::finish_assertion() {
-    pwriter->finish_line("0");
+void CNF::finish_command(bool add_zero) {
+    if (add_zero)
+	pwriter->finish_line("0");
+    else
+	pwriter->finish_line("");
 }
 
 int CNF::start_and(int var, ilist args) {
@@ -377,7 +380,9 @@ int CNF::start_and(int var, ilist args) {
     return cid;
 }
 
-int CNF::start_or(int var, int arg1, int arg2) {
+int CNF::start_or(int var, ilist args) {
+    int arg1 = args[0];
+    int arg2 = args[1];
     Clause *clp = new Clause();
     clp->add(-var); clp->add(arg1); clp->add(arg2);
     int cid = add_proof_clause(clp);
@@ -393,12 +398,12 @@ int CNF::start_or(int var, int arg1, int arg2) {
 }
 
 // Got a new unit literal.
-int CNF::new_unit(int lit, int cid, bool input) {
+void CNF::new_unit(int lit, int cid, bool input) {
     if (input) {
 	unit_literals.insert(lit);
 	justifying_ids[lit] = cid;
 	report(3, "Unit literal %d justified by input clause #%d\n", lit, cid);
-	return cid;
+	return;
     }
     Clause *cp = (*this)[cid];
     int clen = cp->length();
@@ -412,14 +417,17 @@ int CNF::new_unit(int lit, int cid, bool input) {
     if (!need_new) {
 	push_derived_literal(lit, cid);
 	report(3, "Unit literal %d already justified by clause #%d\n", lit, cid);
-	return cid;
+	return;
     }
     Clause *clp = new Clause();
     clp->add(lit);
     for (int alit : assigned_literals)
 	clp->add(-alit);
     int ncid = start_assertion(clp);
-    push_derived_literal(lit, ncid);
+    if (clp->length() > 1) {
+	push_derived_literal(lit, ncid);
+	push_clause(ncid);
+    }
     // Print hints
     for (int idx = 0; idx < clen; idx++) {
 	int clit = (*cp)[idx];
@@ -429,12 +437,11 @@ int CNF::new_unit(int lit, int cid, bool input) {
 	}
     }
     add_hint(cid);
-    finish_assertion();
+    finish_command(true);
     report(3, "Unit literal %d justified by proof clause #%d\n", lit, ncid);
-    return ncid;
 }
 
-int CNF::found_conflict(int cid) {
+void CNF::found_conflict(int cid) {
     Clause *clp = new Clause();
     for (int alit : assigned_literals)
 	clp->add(-alit);
@@ -449,9 +456,10 @@ int CNF::found_conflict(int cid) {
 	    add_hint(fid->second);
 	}
     }
+    if (clp->length() > 1)
+	push_clause(ncid);
     add_hint(cid);
-    finish_assertion();
-    return ncid;
+    finish_command(true);
 }
 
 // Enable POG generation
@@ -545,14 +553,13 @@ bool CNF::bcp() {
 	    }
 	    if (conflict) {
 		report(3, "    Conflict\n");
-		int ncid = found_conflict(cid);
+		found_conflict(cid);
 		push_clause(cid);
-		next_active_clauses->insert(ncid);
 	    } else if (ulit != 0) {
 		report(3, "    Unit %d\n", ulit);
-		int ncid = new_unit(ulit, cid, false);
-		next_active_clauses->insert(ncid);
+		new_unit(ulit, cid, false);
 		converged = false;
+		push_clause(cid);
 	    } else if (multi_active) {
 		report(3, "    Still active\n");
 		next_active_clauses->insert(cid);
@@ -700,7 +707,7 @@ bool CNF::rup_validate(Clause *cltp) {
 	int ncid = start_assertion(cltp);
 	for (int hid : hints)
 	    add_hint(hid);
-	finish_assertion();
+	finish_command(true);
 	curr_active_clauses->insert(ncid);
     }
     // Undo assignments
@@ -709,17 +716,22 @@ bool CNF::rup_validate(Clause *cltp) {
 }
 
 
+// Used to mark new layer in context stacks
+#define CONTEXT_MARKER 0
+
 void CNF::new_context() {
-    context_stack.push_back(CONTEXT_MARKER);
+    context_literal_stack.push_back(CONTEXT_MARKER);
+    context_clause_stack.push_back(CONTEXT_MARKER);
 }
 
 void CNF::push_assigned_literal(int lit) {
     if (unit_literals.find(-lit) != unit_literals.end())
 	err(false, "Attempt to assert literal %d.  But, already have -%d as unit\n", lit, lit);
+    if (unit_literals.find(lit) != unit_literals.end())
+	err(false, "Attempt to assert literal %d.  But, it is already unit\n", lit);
     unit_literals.insert(lit);
     assigned_literals.push_back(lit);
-    context_stack.push_back(lit);
-    context_stack.push_back(CONTEXT_ASSIGNED);
+    context_literal_stack.push_back(lit);
 }
 
 void CNF::push_derived_literal(int lit, int cid) {
@@ -729,46 +741,38 @@ void CNF::push_derived_literal(int lit, int cid) {
 	err(false, "Attempt to assert literal %d.  But, it is already unit\n", lit);
     unit_literals.insert(lit);
     justifying_ids[lit] = cid;
-    context_stack.push_back(lit);
-    context_stack.push_back(cid);
-    context_stack.push_back(CONTEXT_DERIVED);
+    context_literal_stack.push_back(lit);
 }
 
 void CNF::push_clause(int cid) {
-    context_stack.push_back(cid);
-    context_stack.push_back(CONTEXT_CLAUSE);
+    context_clause_stack.push_back(cid);
 }
 
 void CNF::pop_context() {
     while (true) {
-	if (context_stack.size() == 0)
-	    err(true, "Tried to pop beyond base of context stack\n");
-	int lit, cid;
-	int marker = context_stack.back(); context_stack.pop_back();
-	switch (marker) {
-	case CONTEXT_MARKER:
-	    return;
-	case CONTEXT_ASSIGNED:
-	    lit = context_stack.back(); context_stack.pop_back();
-	    unit_literals.erase(lit);
+	if (context_literal_stack.size() == 0)
+	    err(true, "Tried to pop beyond base of context literal stack\n");
+	int lit = context_literal_stack.back(); context_literal_stack.pop_back();
+	if (lit == CONTEXT_MARKER)
+	    break;
+	unit_literals.erase(lit);
+	if (auto fid = justifying_ids.find(lit) == justifying_ids.end()) {
+	    report(4, "  Restoring asserted literal %d\n", lit);
 	    assigned_literals.pop_back();
-	    break;
-	case CONTEXT_DERIVED:
-	    cid = context_stack.back(); context_stack.pop_back();
-	    lit = context_stack.back(); context_stack.pop_back();
-	    unit_literals.erase(lit);
+	} else {
 	    justifying_ids.erase(lit);
-	    break;
-	case CONTEXT_CLAUSE:
-	    cid = context_stack.back(); context_stack.pop_back();
-	    curr_active_clauses->insert(cid);
-	    break;
-	default:
-	    err(true, "Invalid context stack marker value %d\n", marker);
-	    break;
+	    report(4, "  Restoring derived literal %d\n", lit);
 	}
     }
-    return;
+    while (true) {
+	if (context_clause_stack.size() == 0)
+	    err(true, "Tried to pop beyond base of context clause stack\n");
+	int cid = context_clause_stack.back(); context_clause_stack.pop_back();
+	if (cid == CONTEXT_MARKER)
+	    break;
+	curr_active_clauses->insert(cid);
+	report(4, "  Reactivating clause %d\n", cid);
+    }
 }
 
 

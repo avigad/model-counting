@@ -85,13 +85,6 @@ public:
 
 };
 
-// Used to label items stored as context
-// Want these to be int's
-#define CONTEXT_MARKER 1
-#define CONTEXT_ASSIGNED 2
-#define CONTEXT_DERIVED 3
-#define CONTEXT_CLAUSE 4
-
 // CNF is a collection of clauses.  Can read from a DIMACS format CNF file
 class CNF {
 private:
@@ -105,7 +98,8 @@ private:
     PogWriter *pwriter;
 
     // Maintaining context 
-    std::vector<int> context_stack;
+    std::vector<int> context_literal_stack;
+    std::vector<int> context_clause_stack;
     // Mapping from unit literal to asserting clause Id 
     std::unordered_map<int, int> justifying_ids;
     // Unit literals
@@ -148,20 +142,17 @@ public:
 
     // Proof related
 
-
     // POG generation.  Returns false if BCP shows formula is UNSAT
     bool enable_pog(PogWriter *cw);
 
     // Add clause as assertion.  Returns clause ID.  If unit clause, then add to set of unit clauses
     int start_assertion(Clause *clp);
     void add_hint(int hid);
-    void finish_assertion();
+    void finish_command(bool add_zero);
 
-    // Generate product operation
+    // Generate POG operation
     int start_and(int var, ilist args);
-    int start_or(int var, int arg1, int arg2);
-
-
+    int start_or(int var, ilist args);
 
     // Support for stack-based context saving
     void new_context();
@@ -187,9 +178,8 @@ private:
     // Private methods for proof generation
     int add_proof_clause(Clause *clp);
     // Private methods for search support
-    int found_conflict(int cid);
-    int new_unit(int lit, int cid, bool input);
-
+    void found_conflict(int cid);
+    void new_unit(int lit, int cid, bool input);
 };
 
 
