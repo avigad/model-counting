@@ -60,12 +60,16 @@ int main(int argc, const char *argv[]) {
 	pwriter = new PogWriter();
     if (verblevel >= 2)
 	pwriter->enable_comments();
-    pwriter->comment("Testing comment");
     cnf.enable_pog(pwriter);
     if (!pog.read_d4ddnnf(nfile)) {
 	fprintf(stderr, "Error reading D4 NNF file\n");
 	exit(1);
     }
+    int root_literal = pog.get_root();
+    pwriter->comment("Assert root literal");
+    Clause *ucp = new Clause(&root_literal, 1);
+    int rid = cnf.start_assertion(ucp);
+    cnf.finish_command(true);
     pwriter->finish_file();
     return 0;
 }

@@ -211,9 +211,10 @@ bool Pog::optimize() {
     // Mapping from old id to new literal
     // Possibly create node for Boolean true
     // Create placeholder value for its use
-    Pog_node *true_np = new Pog_node(POG_TRUE);
-    new_nodes.push_back(true_np);
-    int true_id = max_input_var + new_nodes.size();
+    //    Pog_node *true_np = new Pog_node(POG_TRUE);
+    //    new_nodes.push_back(true_np);
+    //    int true_id = max_input_var + new_nodes.size();
+    int true_id = max_input_var + nodes.size() + 1;
 
     std::vector<int> remap;
     remap.resize(nodes.size(), 0);
@@ -308,9 +309,7 @@ bool Pog::optimize() {
 			if (verblevel >= 4) {
 			    printf("  Converted node ");
 			    np->show(stdout);
-			    printf(" to -");
-			    true_np->show(stdout);
-			    printf("\n");
+			    printf(" to FALSE\n");
 			}
 			zeroed = true;
 			break;
@@ -322,9 +321,10 @@ bool Pog::optimize() {
 	    }
 	    if (zeroed)
 		continue;
-	    else if (nchildren.size() == 0)
-		remap[oid-max_input_var-1] = -true_id;
-	    else if (nchildren.size() == 1)
+	    else if (nchildren.size() == 0) {
+		err(true, "Translation of And node #%d has no children\n", oid);
+		//		remap[oid-max_input_var-1] = -true_id;
+	    } else if (nchildren.size() == 1)
 		remap[oid-max_input_var-1] = nchildren[0];
 	    else {
 		Pog_node *nnp = new Pog_node(POG_AND);
