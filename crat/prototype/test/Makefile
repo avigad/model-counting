@@ -11,11 +11,11 @@ DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 HINTIFY = ../hintify.py
 B2P = ../btrace2pog.py
+D2P = ../../ddnnf2pog/d2p
 
 .SUFFIXES: .cnf .nnf .crat .check_data .hinted_crat .hinted_check_data .scrat .hcrat .hcheck_data \
 	      .d4nnf .d4crat .d4check_data .d4hinted_crat .d4hinted_check_data \
-		.btrace .bcrat .bcheck_data
-
+		.btrace .bcrat .bcheck_data .pog .pog_count
 .cnf.nnf:
 	$(DSHARP) -Fnnf $@ $< | tee $*.nnf_data
 
@@ -57,3 +57,9 @@ B2P = ../btrace2pog.py
 
 .bcrat.bcheck_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< | tee $@
+
+.d4nnf.pog:
+	$(D2P) $(VLEVEL) $*.cnf $< $@
+
+.pog.pog_count:
+	$(INTERP) $(CHECK) -v $(VLEVEL) -C -i $*.cnf -p $< | tee $@
