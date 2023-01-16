@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wojciech Nawrocki
 -/
 
- @[simp] theorem Bool.bnot_eq_to_not_eq (a b : Bool) :
+@[simp] theorem Bool.bnot_eq_to_not_eq (a b : Bool) :
   ((!a) = b) = ¬(a = b) := by cases a <;> cases b <;> decide
 @[simp] theorem Bool.eq_bnot_to_not_eq (a b : Bool) :
   (a = (!b)) = ¬(a = b) := by cases a <;> cases b <;> decide
