@@ -89,13 +89,58 @@ public:
 
 };
 
-// CNF is a collection of clauses.  Can read from a DIMACS format CNF file
+// Base class Cnf is a collection of clauses.  Can read from a DIMACS format CNF file
 class Cnf {
+
 private:
-    // Basic representation
-    std::vector<Clause *> clauses;
+    
     int max_input_var;
     bool read_failed;
+
+public:
+    // Basic representation.
+    // Should only be accessed by a superclass, but C++ doesn't provide this level of control
+    std::vector<Clause *> clauses;
+
+    Cnf();
+
+    // Read clauses DIMACS format CNF file
+    Cnf(FILE *infile);
+
+    // Did last read fail?
+    bool failed();
+
+    // Generate DIMACS CNF representation to stdout, outfile, or outstream
+    void show();
+    void show(FILE *outfile);
+    void show(std::ofstream &outstream);
+    void show(Cnf_writer *cwriter);
+
+    // Return number of (input) clauses
+    size_t clause_count();
+    // Return ID of maximum (input) variable encountered
+    int max_variable();
+
+    // Given array mapping (decremented) variable to 0/1
+    // determine if every clause satisfied.
+    // If not, return ID of first offending clause.  Otherwise return 0
+    int satisfied(char *assignment);
+
+    Clause * get_input_clause(int cid);
+
+    // Access input clause, with id 1 being first input clause
+    Clause * operator[](int);    
+
+
+private:
+    // Private methods for general CNF
+    // Add a new clause
+    void add(Clause *clp);
+};
+
+// Augment clauses with reasoning and proof-generation capabilities 
+class Cnf_reasoner : public Cnf {
+private:
 
     // Augmentation for POG clauses
     std::vector<Clause *>proof_clauses;
@@ -122,34 +167,15 @@ private:
     std::vector<std::vector<int>*> deletion_stack;
 
 public:
-    Cnf();
+    Cnf_reasoner();
 
-    // Read clauses DIMACS format CNF file
-    Cnf(FILE *infile);
+    // Read input clauses DIMACS format CNF file
+    Cnf_reasoner(FILE *infile);
 
-    // Did last read fail?
-    bool failed();
-
-    // Generate DIMACS CNF representation to stdout, outfile, or outstream
-    void show();
-    void show(FILE *outfile);
-    void show(std::ofstream &outstream);
-    void show(Cnf_writer *cwriter);
-
-    // Return number of (input) clauses
-    size_t clause_count();
-    // Return ID of maximum (input) variable encountered
-    int max_variable();
-
-    // Given array mapping (decremented) variable to 0/1
-    // determine if every clause satisfied.
-    // If not, return ID of first offending clause.  Otherwise return 0
-    int satisfied(char *assignment);
+    Clause * get_clause(int cid);
 
     // Access input or proof clause, with id 1 being first input clause
-    Clause * operator[](int);    
-
-    // Proof related
+    Clause * operator[](int);
 
     // POG generation.  Returns false if BCP shows formula is UNSAT
     bool enable_pog(Pog_writer *cw);
@@ -183,9 +209,6 @@ public:
     bool rup_validate(Clause *cltp);
 
 private:
-    // Private methods for general CNF
-    // Add a new clause
-    void add(Clause *clp);
 
     // Private methods for proof generation
     int add_proof_clause(Clause *clp);

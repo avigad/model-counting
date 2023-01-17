@@ -91,7 +91,7 @@ public:
 class Pog {
 private:
     // Input CNF + proof generation support
-    Cnf *cnf;
+    Cnf_reasoner *cnf;
     int max_input_var;
     std::vector<Pog_node *> nodes;
     // Root literal can refer to either an input variable or the last node
@@ -100,7 +100,7 @@ private:
 public:
     Pog();
 
-    Pog(Cnf *cset);
+    Pog(Cnf_reasoner *cset);
 
     // Readers
     bool read_pog(FILE *infile);

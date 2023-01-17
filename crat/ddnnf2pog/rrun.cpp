@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
 	exit(1);
     }
     argi++;
-    Cnf cnf(cfile);
+    Cnf_reasoner cnf(cfile);
     fclose(cfile);
     if (cnf.failed()) {
 	fprintf(stderr, "Aborted\n");
