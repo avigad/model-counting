@@ -31,9 +31,6 @@
 #include "pog.hh"
 #include "report.h"
 
-// For use by the different routines
-static Compressor compressor;
-
 const char *pog_type_name[6] = { "NONE", "TRUE", "FALSE", "AND", "CAND", "OR" };
 
 const char pog_type_char[6] = { '\0', 't', 'f', 'a', '\0', 'o' };
@@ -52,23 +49,6 @@ Pog_node::Pog_node(pog_type_t ntype) {
     degree = 0;
     children = NULL;
     unit_cid = 0;
-}
-
-Pog_node::Pog_node(byte_vector_t &byte_rep) {
-    type = POG_NONE;
-    degree = 0;
-    xvar = 0;
-    children = NULL;
-    unit_cid = 0;
-    compressor.start_decompression(byte_rep.data());
-    compressor.extract((int *) &type);
-    if (type == POG_AND || type == POG_CAND || type == POG_OR) {
-	compressor.extract(&degree);
-	children = new int[degree];
-    }
-    for (int i = 0; i < degree; i++) {
-	compressor.extract(&children[i]);
-    }
 }
 
 void Pog_node::set_type(pog_type_t t) {
@@ -111,17 +91,6 @@ int Pog_node::get_degree() {
 
 int & Pog_node::operator[](int idx) {
     return children[idx];
-}
-
-void Pog_node::compress(byte_vector_t &bytes) {
-    compressor.start_compression();
-    compressor.add(type);
-    if (type == POG_AND || type==POG_CAND || type == POG_OR) {
-	compressor.add(degree);
-	for (int i = 0; i < degree; i++)
-	    compressor.add(children[i]);
-	compressor.emit(bytes);
-    }
 }
 
 void Pog_node::show(FILE *outfile) {
@@ -249,6 +218,8 @@ bool Pog::optimize() {
 		continue;
 	    }
 	    std::vector<int> nchildren;
+	    // In case have only one non-false child
+	    Pog_node *pcnp = NULL;
 	    for (int i = 0; i < np->get_degree(); i++) {
 		int child_lit = (*np)[i];
 		int nchild_lit = child_lit;
@@ -256,26 +227,26 @@ bool Pog::optimize() {
 		    int child_id = IABS(child_lit);
 		    nchild_lit = MATCH_PHASE(remap[child_id-max_input_var-1], child_lit);
 		}
-		nchildren.push_back(nchild_lit);
-	    }
-	    int i = 0;
-	    if (nchildren[i] == -true_id || nchildren[++i] == -true_id) {
-		int nchild_lit = nchildren[1-i];
 		if (is_node(nchild_lit) && nchild_lit > 0) {
+		    // Convert child AND to CAND
 		    Pog_node *cnp = new_nodes[nchild_lit-max_input_var-1];
 		    if (cnp->get_type() == POG_AND) {
 			cnp->set_type(POG_CAND);
-			remap[oid-max_input_var-1] = cnp->get_xvar();
-			if (verblevel >= 4) {
-			    printf("  Node ");
-			    np->show(stdout);
-			    printf("  maps to ");
-			    cnp->show(stdout);
-			    printf("\n");
-			}
-			continue;
+			pcnp = cnp;
 		    }
 		}
+		nchildren.push_back(nchild_lit);
+	    }
+	    if ((nchildren[0] == -true_id || nchildren[1] == -true_id) && pcnp != NULL) {
+		remap[oid-max_input_var-1] = pcnp->get_xvar();
+		if (verblevel >= 4) {
+		    printf("  Node ");
+		    np->show(stdout);
+		    printf("  maps to ");
+		    pcnp->show(stdout);
+		    printf("\n");
+		}
+		continue;
 	    } else {
 		Pog_node *nnp = new Pog_node(POG_OR);
 		nnp->add_children(&nchildren);
