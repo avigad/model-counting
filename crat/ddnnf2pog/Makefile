@@ -17,10 +17,7 @@ clause.o: ilist.h clause.hh writer.hh clause.cpp
 writer.o: ilist.h report.h writer.hh writer.cpp
 	$(CXX) $(CPPFLAGS) -c writer.cpp
 
-compressor.o: compressor.hh compressor.cpp
-	$(CXX) $(CPPFLAGS) -c compressor.cpp
-
-pog.o: pog.hh clause.hh pog.cpp compressor.hh
+pog.o: pog.hh clause.hh pog.cpp
 	$(CXX) $(CPPFLAGS) -c pog.cpp
 
 brun: brun.cpp clause.o ilist.o report.o writer.o
@@ -29,7 +26,7 @@ brun: brun.cpp clause.o ilist.o report.o writer.o
 rrun: rrun.cpp clause.o ilist.o report.o writer.o
 	$(CXX) $(CPPFLAGS) -o rrun rrun.cpp clause.o ilist.o report.o writer.o
 
-d2p: d2p.cpp clause.o ilist.o report.o writer.o compressor.o pog.o
+d2p: d2p.cpp clause.o ilist.o report.o writer.o pog.o
 
 .SUFFIXES: .c .cpp .o
 

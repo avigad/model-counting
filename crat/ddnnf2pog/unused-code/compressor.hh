@@ -25,6 +25,10 @@
 // Compress sequence of signed integers into a zero-terminated sequence of uint8's
 // Rule: Cannot have any zero's in the uncompressed data
 
+// The compressed data then looks like zero-terminated byte sequences,
+// and so can be operated on using standard string operations (strcpy,
+// strcmp, etc.).
+
 #pragma once
 
 #include <cstdint>
@@ -36,7 +40,10 @@ typedef std::vector<uint8_t> byte_vector_t;
 uint64_t hash_bytes(uint8_t *bytes);
 
 // Compare two zero-terminated byte sequences up to maximum length
-bool byte_match(uint8_t *bytes1, uint8_t *bytes2, size_t maxlen);
+bool byte_match(uint8_t *bytes1, uint8_t *bytes2);
+
+// Determine length of zero-terminated byte sequence (including terminating zero)
+size_t byte_length(uint8_t *bytes);
 
 class Compressor {
 private:
@@ -47,6 +54,7 @@ private:
 
 public:
     Compressor();
+    ~Compressor();
 
     // COMPRESSION
     void start_compression();
@@ -79,5 +87,33 @@ public:
     void extract(int *dest);
 
     void extract(std::vector<int> &dest);
+
+};
+
+// Maintain stack of zero-terminated bytes
+class Compressed_stack {
+private:
+    Compressor comp;
+    byte_vector_t contents;
+    std::vector<size_t> start_pos;
+    std::vector<size_t> lengths;
+
+public:
+    Compressed_stack();
+    ~Compressed_stack();
+
+    // Add data to form stack entry
+    // Once add value 0, no other values will be added
+    // It's best not to add 0 as regular data
+    void add(int val);
+    void add(int count, int *vals);
+    void add(std::vector<int> &vec);
+
+    // Add terminating zero and push onto stack
+    void push();
+
+
+    void pop(std::vector<int> &dest);
+
 
 };

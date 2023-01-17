@@ -29,16 +29,12 @@
 // CAND is a special case of AND, arising from degenerate OR's where one argument is false
 typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_CAND, POG_OR } pog_type_t;
 
-// Used to convert literal to variable
-#define IABS(x) ((x)<0?-(x):(x))
-
 // Used to convert variable to literal of specified phase
 #define MATCH_PHASE(v,p) ((p)<0?-(v):(v))
 
 #include <vector>
 #include <stdio.h>
 #include "clause.hh"
-#include "compressor.hh"
 #include "writer.hh"
 
 
@@ -68,9 +64,6 @@ public:
 
     Pog_node(pog_type_t ntype);
 
-    // Extract node from its compressed representation
-    Pog_node(byte_vector_t &byte_rep);
-
     ~Pog_node() { if (degree > 0) delete children; };
 
     void set_type(pog_type_t t);
@@ -92,8 +85,6 @@ public:
     int get_degree();
     int& operator[](int);
 
-    // Generate compressed representation
-    void compress(byte_vector_t &bytes);
 };
 
 // POG

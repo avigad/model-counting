@@ -39,9 +39,25 @@ uint64_t hash_bytes(uint8_t *bytes) {
     return val ^ (val << 37);
 }
 
+// Determine length of byte sequence, including terminating zero
+size_t byte_length(uint8_t *bytes) {
+    size_t len = 0;
+    uint8_t b = 0;
+    while ((b = *bytes++) != 0)
+	len++;
+    return len+1;
+}
+
 // Compare two zero-terminated byte sequences up to maximum length
 bool byte_match(uint8_t *bytes1, uint8_t *bytes2, size_t maxlen) {
-    return bcmp(bytes1, bytes2, maxlen);
+    uint8_t b1, b2;
+    do {
+	b1 = *bytes1++;
+	b2 = *bytes2++;
+	if (b1 != b2)
+	    return false;
+    } while (b1 != 0);
+    return true;
 }
 
 // Convert between signed and unsigned representations
@@ -78,10 +94,11 @@ static void int2bytes(byte_vector_t &dvec, int value) {
     dvec.push_back(nbyte);
 }
 
-Compressor::Compressor() { }
+Compressor::Compressor() { start_compression(); }
+Compressor::~Compressor() { start_compression(); }
 
 void Compressor::start_compression() {
-    compression_space.resize(0);
+    compression_space.clear();
     decompression_space = NULL;
     terminated = false;
 }
@@ -130,7 +147,7 @@ uint64_t Compressor::hash() {
 
 bool Compressor::matches(uint8_t *bytes) {
     terminate();
-    return byte_match(bytes, compression_space.data(), compression_space.size());
+    return byte_match(bytes, compression_space.data());
 }
 
 void Compressor::start_decompression(uint8_t *bytes) {
@@ -153,3 +170,46 @@ void Compressor::extract(std::vector<int> &dest) {
     }
     return;
 }
+
+Compressed_stack::Compressed_stack() {
+    contents.clear();
+    start_pos.clear();
+    start_pos.push_back(0);
+    lengths.clear();
+    lengths.push_back(0);
+}
+
+Compressed_stack::~Compressed_stack() {
+    contents.clear();
+}
+
+void Compressed_stack::add(int val) {
+    comp.add(val);
+    lengths[lengths.size()-1]++;
+}
+void Compressed_stack::add(int count, int *vals) {
+    comp.add(count, vals);
+    lengths[lengths.size()-1] += count;
+}
+void Compressed_stack::add(std::vector<int> &vec) {
+    comp.add(vec);
+}
+
+void Compressed_stack::push() {
+    size_t len = comp.compressed_size();
+    size_t osize = contents.size();
+    contents.resize(osize+len);
+    comp.emit(contents.data() + osize);
+    lengths.push_back(0);
+    start_pos.push_back(osize);
+}
+
+void Compressed_stack::pop(std::vector<int> &dest) {
+    size_t len = lengths.back(); lengths.pop_back();
+    size_t offset = start_pos.back(); start_pos.pop_back();
+    comp.start_decompression(contents.data() + offset);
+    dest.resize(len);
+    comp.extract(dest.data());
+    contents.resize(offset);
+}
+

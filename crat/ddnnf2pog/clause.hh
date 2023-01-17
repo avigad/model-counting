@@ -25,6 +25,10 @@
 
 #pragma once
 
+// Used to convert literal to variable
+#define IABS(x) ((x)<0?-(x):(x))
+
+
 #include <vector>
 #include <set>
 #include <unordered_set>
@@ -183,6 +187,7 @@ private:
     // Private methods for search support
     void found_conflict(int cid);
     void new_unit(int lit, int cid, bool input);
+    void partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::vector<int>*> &rvar2clist);
 };
 
 

@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <algorithm>
 #include <cstring>
+#include <map>
 #include "clause.hh"
 #include "report.h"
 
@@ -822,4 +823,100 @@ void CNF::pop_context() {
 }
 
 
-
+// Partition set of active clauses into subsets, each using distinct sets of variables
+// Each set denoted by reference variable
+// var2rvar provides a mapping from each variable to the containing set's reference variable
+// rvar2cset provides a mapping from the reference variable to the set of clauses
+void CNF::partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::vector<int>*> &rvar2clist) {
+    // First figure out a partitioning of the variables
+    // Map from variable to representative value in its partition
+    // Mapping from representative var to set of variables
+    var2rvar.clear();
+    std::map<int,std::unordered_set<int>*> rvar2vset;
+    for (int cid : *curr_active_clauses) {
+	Clause *cp = (*this)[cid];
+	if (cp->length() < 2)
+	    continue;
+	for (int i = 0; i < cp->length(); i++) {
+	    int lit = (*cp)[i];
+	    int var = IABS(lit);
+	    if (unit_literals.find(-lit) != unit_literals.end())  {
+		// Literal currently falsified
+		continue;
+	    }
+	    if (unit_literals.find(lit) != unit_literals.end())  {
+		// Clause satisfied.  This is not expected
+		err(true, "Satisfied clause #%d (unit literal %d) found during clause partitionning\n",
+		    cid, lit);
+		return;
+	    }
+	    if (var2rvar.find(var) == var2rvar.end()) {
+		var2rvar[var] = var;
+		std::unordered_set<int> *nset = new std::unordered_set<int>;
+		rvar2vset[var] = nset;
+		nset->insert(var);
+	    }
+	}
+    }
+    for (int cid : *curr_active_clauses) {
+	Clause *cp = (*this)[cid];
+	for (int i = 0; i < cp->length(); i++) {
+	    int lit1 = (*cp)[i];
+	    int var1 = IABS(lit1);
+	    auto fid1 = var2rvar.find(var1);
+	    if (fid1 == var2rvar.end())
+		continue;
+	    int rvar1 = fid1->second;
+	    std::unordered_set<int>*set1 = rvar2vset.find(rvar1)->second;
+	    for (int j = i+1; j < cp->length(); j++) {
+		int lit2 = (*cp)[j];
+		int var2 = IABS(lit2);
+		auto fid2 = var2rvar.find(var2);
+		if (fid2 == var2rvar.end())
+		    continue;
+		int rvar2 = fid2->second;
+		if (rvar1 != rvar2) {
+		    std::unordered_set<int>*set2 = rvar2vset.find(rvar2)->second;
+		    // Merge smaller into larger
+		    if (set1->size() < set2->size()) {
+			std::unordered_set<int>*tset = set1;
+			set1 = set2;
+			set2 = tset;
+			int trvar = rvar1;
+			rvar1 = rvar2;
+			rvar2 = trvar;
+		    }
+		    for (int mvar : *set2) {
+			set1->insert(mvar);
+			var2rvar[mvar] = rvar1;
+		    }
+		    rvar2vset.erase(rvar2);
+		    delete set2;
+		}
+	    }
+	}
+    }
+    report(3, "Identified %d partitions\n", rvar2vset.size());
+    rvar2clist.clear();
+    for (auto fid : rvar2vset) {
+	int rvar = fid.first;
+	// Don't need variable set anymore
+	delete fid.second;
+	std::vector<int> *clist = new std::vector<int>;
+	rvar2clist[rvar] = clist;
+    }
+    // Assign clauses to sets
+    for (int cid : *curr_active_clauses) {
+	Clause *cp = (*this)[cid];
+	for (int i = 0; i < cp->length(); i++) {
+	    int lit = (*cp)[i];
+	    int var = IABS(lit);
+	    auto fid = var2rvar.find(var);
+	    if (fid == var2rvar.end())
+		continue;
+	    int rvar = fid->second;
+	    std::vector<int> *clist = rvar2clist.find(rvar)->second;
+	    clist->push_back(cid);
+	}
+    }
+}
