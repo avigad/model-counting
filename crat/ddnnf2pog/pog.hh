@@ -34,7 +34,7 @@ typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_CAND, POG_OR } pog_ty
 
 #include <vector>
 #include <stdio.h>
-#include "clause.hh"
+#include "clausal.hh"
 #include "writer.hh"
 
 
@@ -130,6 +130,9 @@ private:
     bool optimize();
     // Add POG declarations to file
     bool concretize();
+    // At each node in POG, generate proof that its unit variable is implied by the input clauses
+    bool validate_node(Pog_node *rnp);
+
 
     // Helper routines
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);

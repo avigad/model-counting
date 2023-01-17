@@ -7,7 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "report.h"
-#include "clause.hh"
+#include "clausal.hh"
 #include "pog.hh"
 #include "writer.hh"
 

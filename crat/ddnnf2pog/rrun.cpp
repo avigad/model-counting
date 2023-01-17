@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "clause.hh"
+#include "clausal.hh"
 #include "report.h"
 #include "writer.hh"
 

@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <cstring>
 #include <map>
-#include "clause.hh"
+#include "clausal.hh"
 #include "report.h"
 
 static int skip_line(FILE *infile) {
@@ -349,10 +349,18 @@ int CNF::start_assertion(Clause *clp) {
     pwriter->start_assertion(cid);
     clp->write(pwriter);
     return cid;
+    std::vector<int> *dvp = new std::vector<int>();
+    dvp->push_back(cid);
+    asserting = true;   
+    deletion_stack.push_back(dvp);
 }
 
 void CNF::add_hint(int hid) {
     pwriter->add_int(hid);
+    if (asserting) {
+	std::vector<int> *dvp = deletion_stack.back();
+	dvp->push_back(hid);
+    }
 }
 
 void CNF::finish_command(bool add_zero) {
@@ -360,6 +368,7 @@ void CNF::finish_command(bool add_zero) {
 	pwriter->finish_line("0");
     else
 	pwriter->finish_line("");
+    asserting = false;
 }
 
 int CNF::start_and(int var, ilist args) {

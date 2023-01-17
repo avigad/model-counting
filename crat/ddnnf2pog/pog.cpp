@@ -539,3 +539,9 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 	return false;
     return (concretize());
 }
+
+// Validation
+// At each node in POG, generate proof that its unit variable is implied by the input clauses
+bool Pog::validate_node(Pog_node *rnp) {
+    return true;
+}

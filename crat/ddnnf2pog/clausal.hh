@@ -116,6 +116,11 @@ private:
     std::set<int> *curr_active_clauses;
     std::set<int> *next_active_clauses;
 
+    // Are hints being added to an assertion?
+    bool asserting;
+    // Stack of vectors containing deletion information
+    std::vector<std::vector<int>*> deletion_stack;
+
 public:
     CNF();
 

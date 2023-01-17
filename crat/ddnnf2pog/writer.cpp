@@ -85,9 +85,14 @@ void Writer::add_text(const char *txt) {
 }
 
 void Writer::write_list(ilist vals) {
-    start_line();
     for (int i = 0; i < ilist_length(vals); i++)
 	add_int(vals[i]);
+    add_int(0);
+}
+
+void Writer::write_vector(std::vector<int> &vec) {
+    for (int v : vec)
+	add_int(v);
     add_int(0);
 }
 
@@ -144,8 +149,10 @@ void PogWriter::start_or(int cid, int var) {
     write_text("%d s %d ", cid, var);
 }
 
-void PogWriter::start_clause_deletion(int cid) {
-    write_text("dc %d ", cid);
+void PogWriter::clause_deletion(std::vector<int> *dvp) {
+    write_text("dc ");
+    write_vector(*dvp);
+    finish_line("");
 }
 
 void PogWriter::operation_deletion(int var) {

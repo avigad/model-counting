@@ -50,8 +50,9 @@ public:
     void start_line();
     void add_int(int val);
     void add_text(const char *txt);
-    // Write list of literals with zero termination (but no EOL)
+    // Write list/vector of literals with zero termination (but no EOL)
     void write_list(ilist vals);
+    void write_vector(std::vector<int> &vec);
     // Write list of literals with zero termination and EOL as comment    
     void comment_list(ilist vals);
     void finish_line(const char *txt);
@@ -81,6 +82,7 @@ public:
     void start_or(int cid, int var);
     void constant(int cid, int val);
 
-    void start_clause_deletion(int cid);
+    // Clause deletion makes use of vector that includes clause id
+    void clause_deletion(std::vector<int> *dvp);
     void operation_deletion(int var);
 };
