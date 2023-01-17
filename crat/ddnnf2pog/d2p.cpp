@@ -15,7 +15,7 @@ int main(int argc, const char *argv[]) {
     int cid = 0;
     FILE *cfile = NULL;
     FILE *nfile = NULL;
-    PogWriter *pwriter = NULL;
+    Pog_writer *pwriter = NULL;
     verblevel = 1;
     if (argc <= 1 || strcmp(argv[1], "-h") == 0) {
 	printf("Usage: %s [VLEVEL] CNF D4NNF [POG]\n", argv[0]);
@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
 	exit(1);
     }
     argi++;
-    CNF cnf(cfile);
+    Cnf cnf(cfile);
     fclose(cfile);
     if (cnf.failed()) {
 	fprintf(stderr, "Aborted\n");
@@ -50,14 +50,14 @@ int main(int argc, const char *argv[]) {
     }
     argi++;
     if (argi < argc) {
-	pwriter = new PogWriter(argv[argi]);
+	pwriter = new Pog_writer(argv[argi]);
 	if (pwriter == NULL) {
 	    fprintf(stderr, "Can't open '%s'\n", argv[argi]);
 	    exit(1);
 	}
 	argi++;
     } else
-	pwriter = new PogWriter();
+	pwriter = new Pog_writer();
     if (verblevel >= 2)
 	pwriter->enable_comments();
     cnf.enable_pog(pwriter);

@@ -90,7 +90,7 @@ public:
 };
 
 // CNF is a collection of clauses.  Can read from a DIMACS format CNF file
-class CNF {
+class Cnf {
 private:
     // Basic representation
     std::vector<Clause *> clauses;
@@ -99,7 +99,7 @@ private:
 
     // Augmentation for POG clauses
     std::vector<Clause *>proof_clauses;
-    PogWriter *pwriter;
+    Pog_writer *pwriter;
 
     // Maintaining context 
     std::vector<int> context_literal_stack;
@@ -122,10 +122,10 @@ private:
     std::vector<std::vector<int>*> deletion_stack;
 
 public:
-    CNF();
+    Cnf();
 
     // Read clauses DIMACS format CNF file
-    CNF(FILE *infile);
+    Cnf(FILE *infile);
 
     // Did last read fail?
     bool failed();
@@ -134,7 +134,7 @@ public:
     void show();
     void show(FILE *outfile);
     void show(std::ofstream &outstream);
-    void show(CnfWriter *cwriter);
+    void show(Cnf_writer *cwriter);
 
     // Return number of (input) clauses
     size_t clause_count();
@@ -152,7 +152,7 @@ public:
     // Proof related
 
     // POG generation.  Returns false if BCP shows formula is UNSAT
-    bool enable_pog(PogWriter *cw);
+    bool enable_pog(Pog_writer *cw);
 
     // Add clause as assertion.  Returns clause ID.  If unit clause, then add to set of unit clauses
     int start_assertion(Clause *clp);

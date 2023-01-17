@@ -108,7 +108,7 @@ Pog::Pog() {
     max_input_var = 0;
 }
 
-Pog::Pog(CNF *cset) {
+Pog::Pog(Cnf *cset) {
     cnf = cset;
     max_input_var = cset->max_variable();
 }

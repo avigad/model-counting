@@ -199,9 +199,9 @@ void Clause::write(Writer *writer) {
     writer->write_list(contents);
 }
 
-CNF::CNF() { read_failed = false; max_input_var = 0; pwriter = NULL; }
+Cnf::Cnf() { read_failed = false; max_input_var = 0; pwriter = NULL; }
 
-CNF::CNF(FILE *infile) { 
+Cnf::Cnf(FILE *infile) { 
     int expectedMax = 0;
     int expectedCount = 0;
     read_failed = false;
@@ -273,15 +273,15 @@ CNF::CNF(FILE *infile) {
     }
 }
 
-bool CNF::failed() {
+bool Cnf::failed() {
     return read_failed;
 }
 
-void CNF::add(Clause *clp) {
+void Cnf::add(Clause *clp) {
     clauses.push_back(clp);
 }
 
-Clause * CNF::operator[](int cid) {
+Clause * Cnf::operator[](int cid) {
     int input_count = clauses.size();
     int proof_count = proof_clauses.size();
     if (cid <= input_count)
@@ -294,36 +294,36 @@ Clause * CNF::operator[](int cid) {
     }
 }
 
-void CNF::show() {
+void Cnf::show() {
     std::cout << "p cnf " << max_input_var << " " << clause_count() << std::endl;
     for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
 	(*clp)->show();
     }
 }
 
-void CNF::show(std::ofstream &outstream) {
+void Cnf::show(std::ofstream &outstream) {
     outstream << "p cnf " << max_input_var << " " << clause_count() << std::endl;
     for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
 	(*clp)->show(outstream);
     }
 }
 
-void CNF::show(FILE *outfile) {
+void Cnf::show(FILE *outfile) {
     fprintf(outfile, "p cnf %d %d\n", max_input_var, (int) clause_count());
     for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
 	(*clp)->show(outfile);
     }
 }
 
-size_t CNF::clause_count() {
+size_t Cnf::clause_count() {
     return clauses.size();
 }
 
-int CNF::max_variable() {
+int Cnf::max_variable() {
     return max_input_var;
 }
 
-int CNF::satisfied(char *assignment) {
+int Cnf::satisfied(char *assignment) {
     for (int cid = 1; cid <= clauses.size(); cid++) {
 	Clause *cp = clauses[cid-1];
 	if (!cp->satisfied(assignment))
@@ -333,7 +333,7 @@ int CNF::satisfied(char *assignment) {
 }
 
 // Proof related
-int CNF::add_proof_clause(Clause *clp) {
+int Cnf::add_proof_clause(Clause *clp) {
     int cid = clauses.size() + proof_clauses.size() + 1;
     proof_clauses.push_back(clp);
     if (clp->length() == 1) {
@@ -344,7 +344,7 @@ int CNF::add_proof_clause(Clause *clp) {
     return cid;
 }
 
-int CNF::start_assertion(Clause *clp) {
+int Cnf::start_assertion(Clause *clp) {
     int cid = add_proof_clause(clp);
     pwriter->start_assertion(cid);
     clp->write(pwriter);
@@ -355,7 +355,7 @@ int CNF::start_assertion(Clause *clp) {
     deletion_stack.push_back(dvp);
 }
 
-void CNF::add_hint(int hid) {
+void Cnf::add_hint(int hid) {
     pwriter->add_int(hid);
     if (asserting) {
 	std::vector<int> *dvp = deletion_stack.back();
@@ -363,7 +363,7 @@ void CNF::add_hint(int hid) {
     }
 }
 
-void CNF::finish_command(bool add_zero) {
+void Cnf::finish_command(bool add_zero) {
     if (add_zero)
 	pwriter->finish_line("0");
     else
@@ -371,7 +371,7 @@ void CNF::finish_command(bool add_zero) {
     asserting = false;
 }
 
-int CNF::start_and(int var, ilist args) {
+int Cnf::start_and(int var, ilist args) {
     pwriter->comment("AND operation");
     Clause *clp = new Clause();
     clp->add(var);
@@ -389,7 +389,7 @@ int CNF::start_and(int var, ilist args) {
     return cid;
 }
 
-void CNF::document_and(int cid, int var, ilist args) {
+void Cnf::document_and(int cid, int var, ilist args) {
     if (verblevel < 2) 
 	return;
     pwriter->comment("Implicit declarations");
@@ -412,7 +412,7 @@ void CNF::document_and(int cid, int var, ilist args) {
 }
 
 
-int CNF::start_or(int var, ilist args) {
+int Cnf::start_or(int var, ilist args) {
     pwriter->comment("OR operation");
     int arg1 = args[0];
     int arg2 = args[1];
@@ -430,7 +430,7 @@ int CNF::start_or(int var, ilist args) {
     return cid;
 }
 
-void CNF::document_or(int cid, int var, ilist args) {
+void Cnf::document_or(int cid, int var, ilist args) {
     if (verblevel < 2)
 	return
     pwriter->comment("Implicit declarations");
@@ -454,7 +454,7 @@ void CNF::document_or(int cid, int var, ilist args) {
 
 
 // Got a new unit literal.
-void CNF::new_unit(int lit, int cid, bool input) {
+void Cnf::new_unit(int lit, int cid, bool input) {
     if (input) {
 	unit_literals.insert(lit);
 	justifying_ids[lit] = cid;
@@ -497,7 +497,7 @@ void CNF::new_unit(int lit, int cid, bool input) {
     report(3, "Unit literal %d justified by proof clause #%d\n", lit, ncid);
 }
 
-void CNF::found_conflict(int cid) {
+void Cnf::found_conflict(int cid) {
     Clause *clp = new Clause();
     for (int alit : assigned_literals)
 	clp->add(-alit);
@@ -519,7 +519,7 @@ void CNF::found_conflict(int cid) {
 }
 
 // Enable POG generation
-bool CNF::enable_pog(PogWriter *pw) {
+bool Cnf::enable_pog(Pog_writer *pw) {
     pwriter = pw;
     // Set up active clauses
     curr_active_clauses = new std::set<int>;
@@ -550,7 +550,7 @@ bool CNF::enable_pog(PogWriter *pw) {
 // Return false if formula falsified
 // Each pass uses clauses from current active clauses and adds to next active clauses
 // And then swaps the two sets
-bool CNF::bcp() {
+bool Cnf::bcp() {
     bool converged = false;
     bool conflict = false;
     while (!converged && !conflict) {
@@ -633,7 +633,7 @@ bool CNF::bcp() {
 // Generate set of hints for clause based on RUP validation
 // Add clause as assertion
 // Return false if fail
-bool CNF::rup_validate(Clause *cltp) {
+bool Cnf::rup_validate(Clause *cltp) {
     // List of clause Ids that have been used in unit propagation
     std::vector<int> prop_clauses;
     // Initialize with all known units:
@@ -775,12 +775,12 @@ bool CNF::rup_validate(Clause *cltp) {
 // Used to mark new layer in context stacks
 #define CONTEXT_MARKER 0
 
-void CNF::new_context() {
+void Cnf::new_context() {
     context_literal_stack.push_back(CONTEXT_MARKER);
     context_clause_stack.push_back(CONTEXT_MARKER);
 }
 
-void CNF::push_assigned_literal(int lit) {
+void Cnf::push_assigned_literal(int lit) {
     if (unit_literals.find(-lit) != unit_literals.end())
 	err(false, "Attempt to assert literal %d.  But, already have -%d as unit\n", lit, lit);
     if (unit_literals.find(lit) != unit_literals.end())
@@ -790,7 +790,7 @@ void CNF::push_assigned_literal(int lit) {
     context_literal_stack.push_back(lit);
 }
 
-void CNF::push_derived_literal(int lit, int cid) {
+void Cnf::push_derived_literal(int lit, int cid) {
     if (unit_literals.find(-lit) != unit_literals.end())
 	err(false, "Attempt to assert literal %d.  But, already have derived -%d as unit\n", lit, lit);
     if (unit_literals.find(lit) != unit_literals.end())
@@ -800,11 +800,11 @@ void CNF::push_derived_literal(int lit, int cid) {
     context_literal_stack.push_back(lit);
 }
 
-void CNF::push_clause(int cid) {
+void Cnf::push_clause(int cid) {
     context_clause_stack.push_back(cid);
 }
 
-void CNF::pop_context() {
+void Cnf::pop_context() {
     while (true) {
 	if (context_literal_stack.size() == 0)
 	    err(true, "Tried to pop beyond base of context literal stack\n");
@@ -836,7 +836,7 @@ void CNF::pop_context() {
 // Each set denoted by reference variable
 // var2rvar provides a mapping from each variable to the containing set's reference variable
 // rvar2cset provides a mapping from the reference variable to the set of clauses
-void CNF::partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::vector<int>*> &rvar2clist) {
+void Cnf::partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::vector<int>*> &rvar2clist) {
     // First figure out a partitioning of the variables
     // Map from variable to representative value in its partition
     // Mapping from representative var to set of variables

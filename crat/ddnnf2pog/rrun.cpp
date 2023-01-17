@@ -15,7 +15,7 @@ int main(int argc, const char *argv[]) {
     int cid = 0;
     FILE *cfile = NULL;
     FILE *dfile = NULL;
-    PogWriter pwriter;
+    Pog_writer pwriter;
     verblevel = 1;
     if (argc <= 1 || strcmp(argv[1], "-h") == 0) {
 	printf("Usage: %s [VLEVEL] CNF DRAT\n", argv[0]);
@@ -36,7 +36,7 @@ int main(int argc, const char *argv[]) {
 	exit(1);
     }
     argi++;
-    CNF cnf(cfile);
+    Cnf cnf(cfile);
     fclose(cfile);
     if (cnf.failed()) {
 	fprintf(stderr, "Aborted\n");
@@ -51,7 +51,7 @@ int main(int argc, const char *argv[]) {
 	fprintf(stderr, "Can't open '%s'\n", argv[argi]);
 	exit(1);
     }
-    CNF proof(dfile);
+    Cnf proof(dfile);
     if (proof.failed()) {
 	fprintf(stderr, "Aborted\n");
 	exit(1);

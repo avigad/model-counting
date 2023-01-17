@@ -62,20 +62,20 @@ public:
     void write_text(const char *fmt, ...);
 };
 
-class CnfWriter : public Writer {
+class Cnf_writer : public Writer {
 
 public:
-    CnfWriter();
-    CnfWriter(const char *fname);
+    Cnf_writer();
+    Cnf_writer(const char *fname);
     void write_header(int nvar, int nclause);
 
 };
 
-class PogWriter : public Writer {
+class Pog_writer : public Writer {
 
 public:
-    PogWriter();
-    PogWriter(const char *fname);
+    Pog_writer();
+    Pog_writer(const char *fname);
 
     void start_assertion(int cid);
     void start_and(int cid, int var);

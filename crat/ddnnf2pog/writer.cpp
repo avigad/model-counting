@@ -122,18 +122,18 @@ void Writer::finish_file() {
 }
 
 /// Writing CNF files
-CnfWriter::CnfWriter() : Writer() {}
-CnfWriter::CnfWriter(const char *fname) : Writer(fname) {}
+Cnf_writer::Cnf_writer() : Writer() {}
+Cnf_writer::Cnf_writer(const char *fname) : Writer(fname) {}
 
-void CnfWriter::write_header(int nv, int nc) {
+void Cnf_writer::write_header(int nv, int nc) {
     write_text("p cnf %d %d", nv, nc);
     finish_line("");
 }
 
-PogWriter::PogWriter() : Writer() {}
-PogWriter::PogWriter(const char *fname) : Writer(fname) {}
+Pog_writer::Pog_writer() : Writer() {}
+Pog_writer::Pog_writer(const char *fname) : Writer(fname) {}
 
-void PogWriter::start_assertion(int cid) {
+void Pog_writer::start_assertion(int cid) {
 #ifdef LRAT
     write_text("%d ", cid);
 #else
@@ -141,26 +141,26 @@ void PogWriter::start_assertion(int cid) {
 #endif
 }
 
-void PogWriter::start_and(int cid, int var) {
+void Pog_writer::start_and(int cid, int var) {
     write_text("%d p %d ", cid, var);
 }
 
-void PogWriter::start_or(int cid, int var) {
+void Pog_writer::start_or(int cid, int var) {
     write_text("%d s %d ", cid, var);
 }
 
-void PogWriter::clause_deletion(std::vector<int> *dvp) {
+void Pog_writer::clause_deletion(std::vector<int> *dvp) {
     write_text("dc ");
     write_vector(*dvp);
     finish_line("");
 }
 
-void PogWriter::operation_deletion(int var) {
+void Pog_writer::operation_deletion(int var) {
     write_text("do %d", var);
     finish_line("");
 }
 
-void PogWriter::constant(int cid, int val) {
+void Pog_writer::constant(int cid, int val) {
     write_text("%d k %d", cid, val);
     finish_line("");
 }
