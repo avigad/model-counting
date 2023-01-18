@@ -212,9 +212,8 @@ public:
     // Read input clauses DIMACS format CNF file
     Cnf_reasoner(FILE *infile);
 
-    Clause * get_clause(int cid);
-
     // Access input or proof clause, with id 1 being first input clause
+    Clause * get_clause(int cid);
     Clause * operator[](int);
 
     // POG generation.  Returns false if BCP shows formula is UNSAT
@@ -239,6 +238,11 @@ public:
     void push_assigned_literal(int lit);
     void push_derived_literal(int lit, int cid);
     void push_clause(int cid);
+    // Partition set of active clauses into subsets having disjoint variables
+    void partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::vector<int>*> &rvar2clist);
+
+    // Extract a reduced representation of the currently active clauses
+    Cnf_reduced *extract_cnf();
 
     // Perform Boolean constraint propagation.  Return false if hit conflict
     bool bcp();
@@ -254,7 +258,6 @@ private:
     // Private methods for search support
     void found_conflict(int cid);
     void new_unit(int lit, int cid, bool input);
-    void partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::vector<int>*> &rvar2clist);
 };
 
 

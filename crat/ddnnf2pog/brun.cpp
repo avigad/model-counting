@@ -64,6 +64,10 @@ int main(int argc, const char *argv[]) {
 	}
 	argi++;
     }
+    // Extract reduced CNF representation
+    Cnf_reduced *rcp = cnf.extract_cnf();
+    rcp->run_solver();
+    delete rcp;
 
     return 0;
 }

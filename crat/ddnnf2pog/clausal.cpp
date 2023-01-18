@@ -1021,3 +1021,12 @@ void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
 	}
     }
 }
+
+Cnf_reduced *Cnf_reasoner::extract_cnf() {
+    Cnf_reduced *rcp = new Cnf_reduced();
+    for (int cid : *curr_active_clauses) {
+	Clause *np = get_clause(cid);	
+	rcp->add_clause(np, unit_literals);
+    }
+    return rcp;
+}
