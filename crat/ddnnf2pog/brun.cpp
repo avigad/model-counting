@@ -14,6 +14,7 @@ int main(int argc, const char *argv[]) {
     FILE *cfile = NULL;
     Pog_writer pwriter;
     verblevel = 1;
+    bool conflict_found = false;
     if (argc <= 1 || strcmp(argv[1], "-h") == 0) {
 	printf("Usage: %s [VLEVEL] CNF (lit|.)*\n", argv[0]);
 	exit(0);
@@ -46,16 +47,20 @@ int main(int argc, const char *argv[]) {
 	if (strcmp(argv[argi], ".") == 0) {
  	    printf("c Popping one level\n");
 	    cnf.pop_context();
-	    if (!cnf.bcp())
+	    if (!cnf.bcp()) {
+		conflict_found = true;
 		printf("c Conflict found\n");
+	    }
 	}
 	else {
 	    int lit = atoi(argv[argi]);
 	    printf("c Asserting %d\n", lit);
 	    cnf.new_context();
 	    cnf.push_assigned_literal(lit);
-	    if (!cnf.bcp())
+	    if (!cnf.bcp()) {
+		conflict_found = true;
 		printf("c Conflict found\n");
+	    }
 	}
 	argi++;
     }

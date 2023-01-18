@@ -28,6 +28,8 @@
 // Used to convert literal to variable
 #define IABS(x) ((x)<0?-(x):(x))
 
+// Used to convert variable to literal of specified phase
+#define MATCH_PHASE(v,p) ((p)<0?-(v):(v))
 
 #include <vector>
 #include <set>
@@ -107,6 +109,8 @@ public:
     // Read clauses DIMACS format CNF file
     Cnf(FILE *infile);
 
+    ~Cnf();
+
     // Did last read fail?
     bool failed();
 
@@ -132,10 +136,46 @@ public:
     Clause * operator[](int);    
 
 
-private:
-    // Private methods for general CNF
+    // Semi-private methods for general CNF
     // Add a new clause
     void add(Clause *clp);
+};
+
+// Special version of CNF that can store a reduced version of some larger CNF file
+// where a set of unit literals simplifies clauses.
+class Cnf_reduced : public Cnf {
+
+    // In some cases, will need to add new "nonstandard" variables that don't match 
+    // ones in original input formula.  Want to track these so that can
+    // map to and from variable numbers that get used by the SAT solver
+    std::unordered_map<int,int> forward_variable_map;
+    std::unordered_map<int,int> reverse_variable_map;
+
+    std::vector<Clause *> proof_clauses;
+    int max_regular_variable;
+    int max_nonstandard_variable;
+    int emitted_proof_clauses;
+
+public:
+    
+
+    Cnf_reduced();
+    
+    // Add nonstandard variable.  Should only do this after regular input clauses have been added
+    void add_variable(int v);
+
+    // Add clause.  It will be simplified according to the context
+    // and the variables will get renamed by the forward map
+    void add_clause(Clause *np, std::unordered_set<int> &unit_literals);
+    
+    // Run SAT solver.  Returns error code from solver
+    // That should be 20 for UNSAT formula
+    // Save away generated proof clauses
+    int run_solver();
+
+    // Retrieve next clause in proof.  Convert it to one usable by parent solver
+    Clause *get_proof_clause(std::vector<int> &prefix);
+
 };
 
 // Augment clauses with reasoning and proof-generation capabilities 
@@ -202,7 +242,6 @@ public:
 
     // Perform Boolean constraint propagation.  Return false if hit conflict
     bool bcp();
-    
 
     // Validate clause by RUP.  Add clause as assertion 
     // Return false if fail

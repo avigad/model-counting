@@ -274,6 +274,13 @@ Cnf::Cnf(FILE *infile) {
     }
 }
 
+// Delete the clauses
+Cnf::~Cnf() { 
+    for (Clause *np : clauses) {
+	delete np;
+    }
+}
+
 bool Cnf::failed() {
     return read_failed;
 }
@@ -333,6 +340,62 @@ int Cnf::satisfied(char *assignment) {
     }
     return 0;
 }
+
+// Support for generating reduced CNF, running through SAT solver, and mapping proof steps back to original
+Cnf_reduced::Cnf_reduced() : Cnf() {
+    max_regular_variable = 0;
+    emitted_proof_clauses = 0;
+}
+
+// Add nonstandard variable.  Do this only after adding all input clauses
+void Cnf_reduced::add_variable(int v) {
+    if (max_regular_variable == 0) {
+	max_regular_variable = max_variable();
+	max_nonstandard_variable = max_regular_variable;
+    }
+    int nvar = ++max_nonstandard_variable;
+    forward_variable_map[nvar] = v;
+    reverse_variable_map[v] = nvar;
+}
+
+void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals) {
+    std::vector<int> lits;
+    bool satisfied = false;
+    for (int i = 0; i < np->length(); i++) {
+	int lit = (*np)[i];
+	if (unit_literals.find(lit) != unit_literals.end()) {
+	    satisfied = true;
+	    break;
+	} else if (unit_literals.find(-lit) != unit_literals.end())
+	    continue;
+	else {
+	    int var = IABS(lit);
+	    auto fid = forward_variable_map.find(var);
+	    if (fid != forward_variable_map.end()) {
+		int nvar = fid->second;
+		lit = MATCH_PHASE(nvar, lit);
+	    }
+	    lits.push_back(lit);
+	}
+    }
+    add(new Clause(lits.data(), lits.size()));
+}
+
+int Cnf_reduced::run_solver() {
+    int vnum = random() % 1000000 + 1000000;
+    char fname[100];
+    
+    snprintf(fname, 100, "reduction%d.cnf", vnum);
+    FILE *cout = fopen(fname, "w");
+    if (cout == NULL) {
+	err(false, "Couldn't open temporary CNF file %s\n", fname);
+	return 1;
+    }
+    show(cout);
+    fclose(cout);
+    return 20;
+}
+
 
 // Proof related
 Cnf_reasoner::Cnf_reasoner() : Cnf() { 

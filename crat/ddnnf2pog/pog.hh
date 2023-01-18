@@ -29,9 +29,6 @@
 // CAND is a special case of AND, arising from degenerate OR's where one argument is false
 typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_CAND, POG_OR } pog_type_t;
 
-// Used to convert variable to literal of specified phase
-#define MATCH_PHASE(v,p) ((p)<0?-(v):(v))
-
 #include <vector>
 #include <stdio.h>
 #include "clausal.hh"
