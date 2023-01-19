@@ -40,7 +40,6 @@ Pog_node::Pog_node() {
     xvar = 0;
     degree = 0;
     children = NULL;
-    unit_cid = 0;
 }
 
 Pog_node::Pog_node(pog_type_t ntype) {
@@ -48,7 +47,6 @@ Pog_node::Pog_node(pog_type_t ntype) {
     xvar = 0;
     degree = 0;
     children = NULL;
-    unit_cid = 0;
 }
 
 void Pog_node::set_type(pog_type_t t) {
@@ -542,6 +540,7 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 
 // Validation
 // At each node in POG, generate proof that its unit variable is implied by the input clauses
-bool Pog::validate_node(Pog_node *rnp) {
+// Return ID of justifying clause
+int Pog::validate_node(Pog_node *rnp) {
     return true;
 }

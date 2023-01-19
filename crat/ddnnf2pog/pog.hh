@@ -53,8 +53,6 @@ private:
 
     // Id of first clause in declaration
     int defining_cid;
-    // Id of unit clause for node
-    int unit_cid;
 
 public:
     Pog_node();
@@ -69,9 +67,6 @@ public:
     int get_xvar();
     void set_defining_cid(int cid);
     int get_defining_cid();
-    void get_unit_cid(int cid);
-    int get_unit_cid();
-
 
     // Set degree and import children
     void add_children(std::vector<int> *cvec);
@@ -128,7 +123,8 @@ private:
     // Add POG declarations to file
     bool concretize();
     // At each node in POG, generate proof that its unit variable is implied by the input clauses
-    bool validate_node(Pog_node *rnp);
+    // Return ID of justifying clause
+    int validate_node(Pog_node *rnp);
 
 
     // Helper routines
