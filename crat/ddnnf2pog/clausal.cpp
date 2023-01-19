@@ -40,14 +40,16 @@ static int skip_line(FILE *infile) {
     return c;
 }
 
-// Put literals in descending order of the variables
+// Put literals in ascending order of the variables
 static bool abs_less(int x, int y) {
-    return abs(x) > abs(y);
+    return abs(x) < abs(y);
 }
 
 Clause::Clause() { contents = ilist_new(0); is_tautology = false; }
 
-Clause::~Clause() { ilist_free(contents); }
+Clause::~Clause() { 
+    ilist_free(contents);
+}
 
 Clause::Clause(int *array, size_t len) {
     is_tautology = false;
@@ -57,7 +59,15 @@ Clause::Clause(int *array, size_t len) {
     canonize();
 }
 
-Clause::Clause(FILE *infile, bool &eof) {
+Clause::Clause(Clause *np) {
+    is_tautology = false;
+    int len = np->length();
+    contents = ilist_new(len);
+    for (int i = 0; i < len; i++)
+	add((*np)[i]);
+}
+
+Clause::Clause(FILE *infile, bool delete_ok, bool &eof) {
     int rval;
     int lit;
     int c;
@@ -69,7 +79,9 @@ Clause::Clause(FILE *infile, bool &eof) {
     while ((c = getc(infile)) != EOF) {
 	if (c == 'c')
 	    c = skip_line(infile);
-	if (isspace(c))
+	else if (delete_ok && c == 'd')
+	    c = skip_line(infile);
+	else if (isspace(c))
 	    continue;
 	else {
 	    ungetc(c, infile);
@@ -209,32 +221,33 @@ Cnf::Cnf(FILE *infile) {
     read_failed = false;
     max_input_var = 0;
     bool got_header = false;
+    bool no_header = false;
     int c;
     // Look for CNF header
     while ((c = getc(infile)) != EOF) {
 	if (isspace(c)) 
 	    continue;
-	if (c == 'c')
+	if (c == 'c' || c == 'd' || c == 'v' || c == 's')
 	    c = skip_line(infile);
 	if (c == EOF) {
-	    std::cerr << "Not valid CNF File.  No header line found" << std::endl;
+	    err(false, "Not valid CNF file.  No header line found\n");
 	    read_failed = true;
 	    return;
 	}
 	if (c == 'p') {
 	    char field[20];
 	    if (fscanf(infile, "%s", field) != 1) {
-		std::cerr << "Not valid CNF FILE.  Invalid header line" << std::endl;
+		err(false, "Not valid CNF file.  Invalid header line\n");
 		read_failed = true;
 		return;
 	    }
 	    if (strcmp(field, "cnf") != 0) {
-		std::cerr << "Not valid CNF file.  Header shows type is '" << field << "'" << std::endl;
+		err(false, "Not valid CNF file.  Header line shows type is '%s'\n", field);
 		read_failed = true;
 		return;
 	    }
 	    if (fscanf(infile, "%d %d", &expectedMax, &expectedCount) != 2) {
-		std::cerr << "Invalid CNF header" << std::endl;
+		err(false, "Invalid CNF header\n");
 		read_failed = true;
 		return;
 	    } 
@@ -243,32 +256,37 @@ Cnf::Cnf(FILE *infile) {
 	    break;
 	}
 	if (c == EOF) {
+	    err(false, "Invalid CNF.  EOF encountered before reading any clauses\n");
 	    read_failed = true;
-	    std::cerr << "EOF encountered before reading any clauses" << std::endl;
 	    return;
 	}
+	if (isdigit(c)) {
+	    no_header = true;
+	    ungetc(c, infile);
+	    break;
+	}
     }
-    if (!got_header) {
-	std::cerr << "Not valid CNF FILE.  No header line found" << std::endl;
+    if (!got_header && !no_header) {
+	err(false, "Not valid CNF.  No header line found\n");
 	read_failed = true;
 	return;
     }
     while (1) {
 	bool eof = false;
-	Clause *clp = new Clause(infile, eof);
+	Clause *clp = new Clause(infile, !got_header, eof);
 	if (eof || read_failed)
 	    break;
 	add(clp);
 	int mvar = clp->max_variable();
 	max_input_var = std::max(max_input_var, mvar);
     }
-    if (max_input_var > expectedMax) {
-	std::cerr << "Encountered variable " << max_input_var << ".  Expected max = " << expectedMax << std::endl;
+    if (!no_header && max_input_var > expectedMax) {
+	err(false, "Invalid CNF.  Encountered variable %d. Expected max = %d\n",  max_input_var, expectedMax);
 	read_failed = true;
 	return;
     }
-    if (clause_count() != expectedCount) {
-	std::cerr << "Read " << clause_count() << " clauses.  Expected " << expectedCount << std::endl;
+    if (!no_header && clause_count() != expectedCount) {
+	err(false, "Read %d clauses.  Expected %d\n", clause_count(), expectedCount);
 	read_failed = true;
 	return;
     }
@@ -276,9 +294,11 @@ Cnf::Cnf(FILE *infile) {
 
 // Delete the clauses
 Cnf::~Cnf() { 
+#if 0
     for (Clause *np : clauses) {
 	delete np;
     }
+#endif
 }
 
 bool Cnf::failed() {
@@ -347,6 +367,14 @@ int Cnf::satisfied(char *assignment) {
 Cnf_reduced::Cnf_reduced() : Cnf() {
     max_regular_variable = 0;
     emitted_proof_clauses = 0;
+    fname = NULL;
+}
+
+Cnf_reduced::~Cnf_reduced() {
+    for (Clause *np : proof_clauses) {
+	delete np;
+    }
+    free((void *) fname);
 }
 
 // Add nonstandard variable.  Do this only after adding all input clauses
@@ -383,32 +411,83 @@ void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals)
     add(new Clause(lits.data(), lits.size()));
 }
 
-int Cnf_reduced::run_solver() {
-    int vnum = random() % 1000000 + 1000000;
+bool Cnf_reduced::run_solver() {
+    static int vnum = 1000000;
     char tname[100];
+    char cmd[150];
     
-    snprintf(tname, 100, "reduction%d.cnf", vnum);
-    fname = archive_string(tname);
+    snprintf(tname, 100, "reduction-%d.cnf", ++vnum);
     
     FILE *cout = fopen(tname, "w");
     if (cout == NULL) {
 	err(false, "Couldn't open temporary CNF file %s\n", fname);
-	return 1;
+	return false;
     }
+    fname = archive_string(tname);
     show(cout);
     fclose(cout);
     report(2, "Wrote file with %d clauses to %s\n", clause_count(), fname);
-    return 20;
+    
+    snprintf(cmd, 150, "cadical --unsat -q --no-binary %s -", fname);
+    FILE *sfile = popen(cmd, "r");
+    if (sfile == NULL) {
+	err(true, "Couldn't execute command '%s'\n", cmd);
+    }
+    Cnf pclauses(sfile);
+    pclose(sfile);
+
+    report(2, "Read %d proof clauses\n", pclauses.clause_count());
+    if (verblevel >= 5)
+	pclauses.show();
+
+    if (pclauses.clause_count() == 0) {
+	err(false, "Execution of command '%s' yielded no proof clauses\n", cmd);
+	return false;
+    }
+
+    Clause *lnp = pclauses[pclauses.clause_count()-1];
+    if (lnp == NULL) {
+	err(false, "Invalid final clause after executing command '%s'\n", cmd);
+	return false;
+    }
+    if (lnp->length() == 0) {
+	err(false, "Execution of command '%s' did not generate empty clause\n", cmd);	
+	return false;
+    }
+
+    for (int cid = 1; cid <= pclauses.clause_count(); cid++) {
+	Clause *pnp = pclauses[cid];
+	if (pnp->length() > 0) {
+	    proof_clauses.push_back(pnp);
+	}
+    }
+    report(2, "Reduced CNF yielded %d proof clauses\n", proof_clauses.size());
+
+    return true;
 }
+
+// Retrieve next clause in proof.  Convert it to one usable by parent solver
+Clause * Cnf_reduced::get_proof_clause(std::vector<int> *context) {
+    if (emitted_proof_clauses >= proof_clauses.size())
+	return NULL;
+    Clause *np = proof_clauses[emitted_proof_clauses++];
+    Clause *nnp = new Clause(np);
+    for (int lit : *context) 
+	nnp->add(-lit);
+    return nnp;
+}
+
 
 
 // Proof related
 Cnf_reasoner::Cnf_reasoner() : Cnf() { 
     pwriter = NULL;
+    asserting = false;
 }
 
 Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) { 
     pwriter = NULL;
+    asserting = false;
 }
 
 Clause * Cnf_reasoner::get_clause(int cid) {
@@ -444,11 +523,11 @@ int Cnf_reasoner::start_assertion(Clause *clp) {
     int cid = add_proof_clause(clp);
     pwriter->start_assertion(cid);
     clp->write(pwriter);
-    return cid;
     std::vector<int> *dvp = new std::vector<int>();
     dvp->push_back(cid);
     asserting = true;   
     deletion_stack.push_back(dvp);
+    return cid;
 }
 
 void Cnf_reasoner::add_hint(int hid) {
@@ -687,6 +766,8 @@ bool Cnf_reasoner::bcp() {
 		    multi_active = false;
 		    push_clause(cid);
 		    break;
+		} else if (multi_active) {
+		    continue;
 		} else if (unit_literals.find(-clit) != unit_literals.end()) {
 		    report(3, "    Literal %d falsified\n", clit);
 		    continue;
@@ -700,7 +781,6 @@ bool Cnf_reasoner::bcp() {
 		    // Multiple unassigned literals
 		    ulit = 0;
 		    multi_active = true;
-		    break;
 		}
 	    }
 	    if (conflict) {
@@ -791,6 +871,8 @@ bool Cnf_reasoner::rup_validate(Clause *cltp) {
 		    multi_active = false;
 		    push_clause(cid);
 		    break;
+		} else if (multi_active) {
+		    continue;
 		} else if (unit_literals.find(-clit) != unit_literals.end()) {
 		    report(3, "    Literal %d falsified\n", clit);
 		    continue;
@@ -804,7 +886,6 @@ bool Cnf_reasoner::rup_validate(Clause *cltp) {
 		    // Multiple unassigned literals
 		    ulit = 0;
 		    multi_active = true;
-		    break;
 		}
 	    }
 	    if (conflict) {
@@ -874,6 +955,10 @@ bool Cnf_reasoner::rup_validate(Clause *cltp) {
 void Cnf_reasoner::new_context() {
     context_literal_stack.push_back(CONTEXT_MARKER);
     context_clause_stack.push_back(CONTEXT_MARKER);
+}
+
+std::vector<int> *Cnf_reasoner::get_assigned_literals() {
+    return &assigned_literals;
 }
 
 void Cnf_reasoner::push_assigned_literal(int lit) {

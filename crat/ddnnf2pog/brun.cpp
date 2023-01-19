@@ -67,7 +67,26 @@ int main(int argc, const char *argv[]) {
     // Extract reduced CNF representation
     Cnf_reduced *rcp = cnf.extract_cnf();
     rcp->run_solver();
+    while (true) {
+	std::vector<int> *context = cnf.get_assigned_literals();
+	Clause *pnp = rcp->get_proof_clause(context);
+	if (pnp == NULL)
+	    break;
+	bool ok = cnf.rup_validate(pnp);
+	if (!ok) {
+	    err(false, "Failed to validate proof clause\n");
+	    pnp->show();
+	}
+    }
     delete rcp;
+
+    // Attempt final step in UNSAT proof
+    Clause *tcp = new Clause();
+    bool ok = cnf.rup_validate(tcp);
+    if (!ok) {
+	err(false, "Failed to finish UNSAT proof\n");
+    }
+    
 
     return 0;
 }

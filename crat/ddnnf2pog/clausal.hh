@@ -57,7 +57,9 @@ public:
 
     Clause(int *array, size_t len);
 
-    Clause(FILE *infile, bool &eof);
+    Clause(FILE *infile, bool delete_ok, bool &eof);
+
+    Clause (Clause *np);
 
     ~Clause();
 
@@ -106,7 +108,7 @@ public:
 
     Cnf();
 
-    // Read clauses DIMACS format CNF file
+    // Read clauses DIMACS format CNF file or DRAT file
     Cnf(FILE *infile);
 
     ~Cnf();
@@ -157,13 +159,14 @@ class Cnf_reduced : public Cnf {
     int max_regular_variable;
     int max_nonstandard_variable;
     int emitted_proof_clauses;
-    
 
 public:
     
 
     Cnf_reduced();
     
+    ~Cnf_reduced();
+
     // Add nonstandard variable.  Should only do this after regular input clauses have been added
     void add_variable(int v);
 
@@ -171,13 +174,13 @@ public:
     // and the variables will get renamed by the forward map
     void add_clause(Clause *np, std::unordered_set<int> &unit_literals);
     
-    // Run SAT solver.  Returns error code from solver
-    // That should be 20 for UNSAT formula
+    // Run SAT solver.
     // Save away generated proof clauses
-    int run_solver();
+    // Return true if successful
+    bool run_solver();
 
     // Retrieve next clause in proof.  Convert it to one usable by parent solver
-    Clause *get_proof_clause(std::vector<int> &prefix);
+    Clause *get_proof_clause(std::vector<int> *prefix);
 
 };
 
@@ -241,6 +244,8 @@ public:
     void push_assigned_literal(int lit);
     void push_derived_literal(int lit, int cid);
     void push_clause(int cid);
+    std::vector<int> *get_assigned_literals();
+
     // Partition set of active clauses into subsets having disjoint variables
     void partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::vector<int>*> &rvar2clist);
 
