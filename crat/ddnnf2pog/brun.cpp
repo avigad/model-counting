@@ -43,6 +43,21 @@ int main(int argc, const char *argv[]) {
     if (!cnf.enable_pog(&pwriter)) {
 	exit(1);
     }
+    std::unordered_map<int,int> var2rvar;
+    std::unordered_map<int,std::vector<int>*> rvar2clist;
+    cnf.partition_clauses(var2rvar, rvar2clist);
+    if (verblevel >= 2) {
+	printf("Partitioning into disjoint clauses\n");
+	for (auto fid : rvar2clist) {
+	    printf("Reference variable %d:", fid.first);
+	    std::vector<int> *cvec = fid.second;
+	    for (int cid : *cvec)
+		printf(" %d", cid);
+	    printf("\n");
+	}
+    }
+    
+
     while (argi < argc) {
 	if (strcmp(argv[argi], ".") == 0) {
  	    printf("c Popping one level\n");

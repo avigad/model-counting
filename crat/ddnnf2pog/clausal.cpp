@@ -1087,7 +1087,6 @@ void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
 	    }
 	}
     }
-    report(3, "Identified %d partitions\n", rvar2vset.size());
     rvar2clist.clear();
     for (auto fid : rvar2vset) {
 	int rvar = fid.first;
@@ -1108,6 +1107,7 @@ void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
 	    int rvar = fid->second;
 	    std::vector<int> *clist = rvar2clist.find(rvar)->second;
 	    clist->push_back(cid);
+	    break;
 	}
     }
 }
