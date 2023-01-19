@@ -62,7 +62,8 @@ int main(int argc, const char *argv[]) {
     bool conflict = false;
     for (int pid = 1; pid <= proof.clause_count(); pid++) {
 	Clause *clp = proof[pid]; 
-	if (!cnf.rup_validate(clp)) {
+	int ncid = cnf.rup_validate(clp);
+	if (ncid == 0) {
 	    fprintf(stderr, "Failed\n");
 	    exit(1);
 	}

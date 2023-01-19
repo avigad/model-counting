@@ -252,19 +252,24 @@ public:
     // Extract a reduced representation of the currently active clauses
     Cnf_reduced *extract_cnf();
 
-    // Perform Boolean constraint propagation.  Return false if hit conflict
-    bool bcp();
+    // Perform Boolean constraint propagation.
+    // Return ID of any generated conflict clause (or 0)
+    int bcp();
 
     // Validate clause by RUP.  Add clause as assertion 
-    // Return false if fail
-    bool rup_validate(Clause *cltp);
+    // Return ID of validating clause (or 0 if fail)
+    int rup_validate(Clause *cltp);
+
+    // Justify that literal holds
+    // Justify that literal holds.  Return ID of justifying clause
+    int validate_literal(int lit);
 
 private:
 
     // Private methods for proof generation
     int add_proof_clause(Clause *clp);
     // Private methods for search support
-    void found_conflict(int cid);
+    int found_conflict(int cid);
     void new_unit(int lit, int cid, bool input);
 };
 

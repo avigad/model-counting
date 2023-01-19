@@ -672,7 +672,7 @@ void Cnf_reasoner::new_unit(int lit, int cid, bool input) {
     report(3, "Unit literal %d justified by proof clause #%d\n", lit, ncid);
 }
 
-void Cnf_reasoner::found_conflict(int cid) {
+int Cnf_reasoner::found_conflict(int cid) {
     Clause *clp = new Clause();
     for (int alit : assigned_literals)
 	clp->add(-alit);
@@ -691,6 +691,7 @@ void Cnf_reasoner::found_conflict(int cid) {
 	push_clause(ncid);
     add_hint(cid);
     finish_command(true);
+    return ncid;
 }
 
 // Enable POG generation
@@ -714,20 +715,22 @@ bool Cnf_reasoner::enable_pog(Pog_writer *pw) {
 	else
 	    curr_active_clauses->insert(cid);
     }
-    if (!bcp()) {
-	pwriter->comment("Read failed.  Formula unsatisfiable");
+    int ncid = bcp();
+    if (ncid > 0) {
+	pwriter->comment("Read failed.  Formula unsatisfiable (justifying ID = %d)", ncid);
 	return false;
     };
     return true;
 }
 
 // Perform Boolean constraint propagation
-// Return false if formula falsified
+// Return ID of any generated conflict clause (or 0)
 // Each pass uses clauses from current active clauses and adds to next active clauses
 // And then swaps the two sets
-bool Cnf_reasoner::bcp() {
+int Cnf_reasoner::bcp() {
     bool converged = false;
     bool conflict = false;
+    int ncid = 0;
     while (!converged && !conflict) {
 	converged = true;
 	if (verblevel >= 3) {
@@ -785,7 +788,7 @@ bool Cnf_reasoner::bcp() {
 	    }
 	    if (conflict) {
 		report(3, "    Conflict\n");
-		found_conflict(cid);
+		ncid = found_conflict(cid);
 		push_clause(cid);
 	    } else if (ulit != 0) {
 		report(3, "    Unit %d\n", ulit);
@@ -803,13 +806,13 @@ bool Cnf_reasoner::bcp() {
 	next_active_clauses = tmp;
 	next_active_clauses->clear();
     }
-    return !conflict;
+    return ncid;
 }
 
 // Generate set of hints for clause based on RUP validation
 // Add clause as assertion
-// Return false if fail
-bool Cnf_reasoner::rup_validate(Clause *cltp) {
+// Return ID of proof clause (or 0)
+int Cnf_reasoner::rup_validate(Clause *cltp) {
     // List of clause Ids that have been used in unit propagation
     std::vector<int> prop_clauses;
     // Initialize with all known units:
@@ -909,6 +912,7 @@ bool Cnf_reasoner::rup_validate(Clause *cltp) {
 	next_active_clauses = tmp;
 	next_active_clauses->clear();
     }
+    int ncid = 0;
     if (conflict) {
 	// Construct hints in reverse order
 	report(3, "Conflict found.  Constructing hints\n");
@@ -937,7 +941,7 @@ bool Cnf_reasoner::rup_validate(Clause *cltp) {
 	}
 	// Put hints in proper order
 	std::reverse(hints.begin(), hints.end());
-	int ncid = start_assertion(cltp);
+	ncid = start_assertion(cltp);
 	for (int hid : hints)
 	    add_hint(hid);
 	finish_command(true);
@@ -945,7 +949,7 @@ bool Cnf_reasoner::rup_validate(Clause *cltp) {
     }
     // Undo assignments
     pop_context();
-    return conflict;
+    return ncid;
 }
 
 
@@ -1120,3 +1124,38 @@ Cnf_reduced *Cnf_reasoner::extract_cnf() {
     }
     return rcp;
 }
+
+// Justify that literal holds.  Return ID of justifying clause
+int Cnf_reasoner::validate_literal(int lit) {
+    auto fid = justifying_ids.find(lit);
+    if (fid != justifying_ids.end())
+	return fid->second;
+    if (unit_literals.find(-lit) != unit_literals.end())
+	return 0;
+    int ncid = 0;
+    new_context();
+    push_assigned_literal(lit);
+    ncid = bcp();
+    if (ncid > 0)
+	return ncid;
+    Cnf_reduced *rcp = extract_cnf();
+    if (rcp->run_solver()) {
+	while (true) {
+	    Clause *pnp = rcp->get_proof_clause(&assigned_literals);
+	    if (pnp == NULL)
+		break;
+	    ncid = rup_validate(pnp);
+	    if (ncid == 0) {
+		err(false, "Failed to validate proof clause\n");
+		if (verblevel >= 3)
+		    pnp->show();
+	    }
+	}
+    }
+    if (ncid == 0)
+	err(false, "Failed to validate proof clause\n");
+    delete rcp;
+    pop_context();
+    return ncid;
+}
+

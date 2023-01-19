@@ -62,9 +62,10 @@ int main(int argc, const char *argv[]) {
 	if (strcmp(argv[argi], ".") == 0) {
  	    printf("c Popping one level\n");
 	    cnf.pop_context();
-	    if (!cnf.bcp()) {
+	    int ncid = cnf.bcp();
+	    if (ncid > 0) {
 		conflict_found = true;
-		printf("c Conflict found\n");
+		printf("c Conflict found.  Clause %d\n", ncid);
 	    }
 	}
 	else {
@@ -72,9 +73,10 @@ int main(int argc, const char *argv[]) {
 	    printf("c Asserting %d\n", lit);
 	    cnf.new_context();
 	    cnf.push_assigned_literal(lit);
-	    if (!cnf.bcp()) {
+	    int ncid = cnf.bcp();
+	    if (ncid > 0) {
 		conflict_found = true;
-		printf("c Conflict found\n");
+		printf("c Conflict found.  Clause %d\n", ncid);
 	    }
 	}
 	argi++;
@@ -87,8 +89,8 @@ int main(int argc, const char *argv[]) {
 	Clause *pnp = rcp->get_proof_clause(context);
 	if (pnp == NULL)
 	    break;
-	bool ok = cnf.rup_validate(pnp);
-	if (!ok) {
+	int ncid = cnf.rup_validate(pnp);
+	if (ncid == 0) {
 	    err(false, "Failed to validate proof clause\n");
 	    pnp->show();
 	}
@@ -97,8 +99,8 @@ int main(int argc, const char *argv[]) {
 
     // Attempt final step in UNSAT proof
     Clause *tcp = new Clause();
-    bool ok = cnf.rup_validate(tcp);
-    if (!ok) {
+    int ncid = cnf.rup_validate(tcp);
+    if (ncid == 0) {
 	err(false, "Failed to finish UNSAT proof\n");
     }
     
