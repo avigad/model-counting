@@ -32,11 +32,16 @@
 #include "ilist.h"
 #include "writer.hh"
 
+const char *archive_string(const char *tstring) {
+    char *rstring = (char *) malloc(strlen(tstring)+1);
+    strcpy(rstring, tstring);
+    return (const char *) rstring;
+}
+
 /// Generic Writer
 
 Writer::Writer(const char *fname) {
-    file_name = (char *) malloc(strlen(fname)+1);
-    strcpy(file_name, fname);
+    const char *file_name = archive_string(fname);
     line_count = 0;
     outfile = fopen(file_name, "w");
     if (outfile == NULL) {

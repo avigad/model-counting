@@ -286,6 +286,8 @@ bool Cnf::failed() {
 }
 
 void Cnf::add(Clause *clp) {
+    int mvar = clp->max_variable();
+    max_input_var = std::max(max_input_var, mvar);
     clauses.push_back(clp);
 }
 
@@ -383,16 +385,19 @@ void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals)
 
 int Cnf_reduced::run_solver() {
     int vnum = random() % 1000000 + 1000000;
-    char fname[100];
+    char tname[100];
     
-    snprintf(fname, 100, "reduction%d.cnf", vnum);
-    FILE *cout = fopen(fname, "w");
+    snprintf(tname, 100, "reduction%d.cnf", vnum);
+    fname = archive_string(tname);
+    
+    FILE *cout = fopen(tname, "w");
     if (cout == NULL) {
 	err(false, "Couldn't open temporary CNF file %s\n", fname);
 	return 1;
     }
     show(cout);
     fclose(cout);
+    report(2, "Wrote file with %d clauses to %s\n", clause_count(), fname);
     return 20;
 }
 

@@ -145,6 +145,8 @@ public:
 // where a set of unit literals simplifies clauses.
 class Cnf_reduced : public Cnf {
 
+    // So that can delete it when done
+    const char *fname;
     // In some cases, will need to add new "nonstandard" variables that don't match 
     // ones in original input formula.  Want to track these so that can
     // map to and from variable numbers that get used by the SAT solver
@@ -155,6 +157,7 @@ class Cnf_reduced : public Cnf {
     int max_regular_variable;
     int max_nonstandard_variable;
     int emitted_proof_clauses;
+    
 
 public:
     
