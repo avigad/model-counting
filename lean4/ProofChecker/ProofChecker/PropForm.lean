@@ -9,6 +9,8 @@ import Mathlib.Order.BooleanAlgebra
 
 import ProofChecker.ToMathlib
 
+/-! Formulas of propositional logic. -/
+
 /-- A propositional formula over variables of type `ν`. -/
 inductive PropForm (ν : Type u)
   | var (x : ν)
@@ -40,34 +42,21 @@ protected def toString [ToString ν] : PropForm ν → String
 instance [ToString ν] : ToString (PropForm ν) :=
   ⟨PropForm.toString⟩
 
-set_option trace.simps.debug true in
-/-- Variables appearing in the formula. Sometimes called its "support set". -/
--- TODO: a finset or list variant may be useful; but ν can be a Fintype in which case Set ν works
-@[simp]
-def vars : PropForm ν → Set ν
-  | var y => {y}
-  | tr | fls => ∅
-  | neg φ => vars φ
-  | conj φ₁ φ₂ | disj φ₁ φ₂ | impl φ₁ φ₂ | biImpl φ₁ φ₂ => vars φ₁ ∪ vars φ₂
-
 end PropForm
 
-/-- An assignment to propositional variables valued in `α`. -/
-def PropAssignment (ν : Type u) (α : Type v) := ν → α
+/-- An assignment of truth values to propositional variables. -/
+def PropAssignment (ν : Type u) := ν → Bool
 
-def PropAssignment.set [DecidableEq ν] (τ : PropAssignment ν α) (x : ν) (v : α) :
-    PropAssignment ν α :=
+def PropAssignment.set [DecidableEq ν] (τ : PropAssignment ν) (x : ν) (v : Bool) :
+    PropAssignment ν :=
   fun y => if y = x then v else τ y
-
-/-! Any propositional assignment valued in a Boolean algebra extends uniquely to an evaluation
-function on formulas. -/
 
 namespace PropForm
 
-variable [BooleanAlgebra α]
-
+/-- The unique evaluation function on formulas which extends `τ`. -/
 @[simp]
-def eval (τ : PropAssignment ν α) : PropForm ν → α
+def eval (τ : PropAssignment ν) : PropForm ν → Bool
+  -- NOTE: the notation uses `[BooleanAlgebra Bool]` which conveniently provides all the laws.
   | var x => τ x
   | tr => ⊤
   | fls => ⊥
@@ -75,87 +64,138 @@ def eval (τ : PropAssignment ν α) : PropForm ν → α
   | conj φ₁ φ₂ => (eval τ φ₁) ⊓ (eval τ φ₂)
   | disj φ₁ φ₂ => (eval τ φ₁) ⊔ (eval τ φ₂)
   | impl φ₁ φ₂ => (eval τ φ₁) ⇨ (eval τ φ₂)
-  | biImpl φ₁ φ₂ => (eval τ φ₁ ⇨ eval τ φ₂) ⊓ (eval τ φ₂ ⇨ eval τ φ₁)
+  | biImpl φ₁ φ₂ => eval τ φ₁ = eval τ φ₂
 
-theorem eval_ext {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν α} : (∀ x ∈ φ.vars, σ₁ x = σ₂ x) →
-    φ.eval σ₁ = φ.eval σ₂ := by
-  intro h
-  induction φ with
-  | var y => apply h; simp 
-  | tr | fls => rfl
-  | neg _ ih => simp [ih h]
-  | _ _ _ ih₁ ih₂ =>
-    simp [ih₁ fun x hMem => (h x <| .inl hMem), ih₂ fun x hMem => (h x <| .inr hMem)]
+/-! Satisfying assignments -/
 
-theorem eval_set_of_not_mem_vars [DecidableEq ν] {x : ν} {φ : PropForm ν} {τ : PropAssignment ν α} : 
-    x ∉ φ.vars → φ.eval (τ.set x b) = φ.eval τ := by
-  intro hNMem
-  apply eval_ext
-  intro y hY
-  have : y ≠ x := fun h => hNMem (h ▸ hY)
-  simp [PropAssignment.set, this]
+/-- An assignment satisfies a formula `φ` when `φ` evaluates to `⊤` at that assignment. -/
+def satisfies (τ : PropAssignment ν) (φ : PropForm ν) : Prop :=
+  φ.eval τ = ⊤
 
-/-- We say a formula `φ₁` semantically entails `φ₂` when it does so in every Boolean-valued model.
+/-- This instance is scoped so that `τ ⊨ φ : Prop` implies `φ : PropForm _` via the `outParam` only
+when `PropForm` is open. -/
+scoped instance : SemanticEntails (PropAssignment ν) (PropForm ν) where
+  entails := PropForm.satisfies
 
-This basically postulates monotonicity of homs out of the term model `PropTerm` by fiat. We could
-do better by showing soundness and completness of some proof system or of two-valued models. See
-https://awodey.github.io/catlog/notes/catlog2.pdf . -/
+open SemanticEntails renaming entails → sEntails
+
+variable {τ : PropAssignment ν} {x : ν} {φ φ₁ φ₂ φ₃ : PropForm ν}
+
+@[simp]
+theorem satisfies_var : τ ⊨ var x ↔ τ x := by
+  simp [sEntails, satisfies]
+
+@[simp]
+theorem satisfies_tr : τ ⊨ tr := by
+  simp [sEntails, satisfies]
+
+@[simp]
+theorem not_satisfies_fls : τ ⊭ fls :=
+  fun h => nomatch h
+
+@[simp]
+theorem satisfies_neg : τ ⊨ neg φ ↔ τ ⊭ φ := by
+  simp [sEntails, satisfies]
+
+@[simp]
+theorem satisfies_conj : τ ⊨ conj φ₁ φ₂ ↔ τ ⊨ φ₁ ∧ τ ⊨ φ₂ := by
+  simp [sEntails, satisfies]
+
+@[simp]
+theorem satisfies_disj : τ ⊨ disj φ₁ φ₂ ↔ τ ⊨ φ₁ ∨ τ ⊨ φ₂ := by
+  simp [sEntails, satisfies]
+
+@[simp]
+theorem satisfies_impl : τ ⊨ impl φ₁ φ₂ ↔ τ ⊭ φ₁ ∨ τ ⊨ φ₂ := by
+  simp only [sEntails, satisfies, eval]
+  cases (eval τ φ₁) <;> simp [himp_eq]
+
+@[simp]
+theorem satisfies_impl' : τ ⊨ impl φ₁ φ₂ ↔ (τ ⊨ φ₁ → τ ⊨ φ₂) := by
+  simp only [sEntails, satisfies, eval]
+  cases (eval τ φ₁) <;> simp [himp_eq]
+
+@[simp]
+theorem satisfies_biImpl : τ ⊨ biImpl φ₁ φ₂ ↔ (τ ⊨ φ₁ ↔ τ ⊨ φ₂) := by
+  simp [sEntails, satisfies]
+
+/-! Semantic entailment and equivalence. -/
+
+/-- A formula `φ₁` semantically entails `φ₂` when `τ ⊨ φ₁` implies `τ ⊨ φ₂`.
+
+This is actually defined in terms of the Boolean lattice and the above statement is a theorem.
+Note that the two-valued Boolean model is universal, so this formulation of semantic entailment
+is equivalent to entailment in every Boolean algebra, and also (by completeness) to provability. -/
 def entails (φ₁ φ₂ : PropForm ν) : Prop :=
-  ∀ ⦃α : Type⦄ [BooleanAlgebra α] (τ : PropAssignment ν α), φ₁.eval τ ≤ φ₂.eval τ
+  ∀ (τ : PropAssignment ν), φ₁.eval τ ≤ φ₂.eval τ
 
-theorem entails_refl : entails φ φ :=
-  fun _ _ _ => le_rfl
-theorem entails.trans : entails φ ψ → entails ψ θ → entails φ θ :=
-  fun h₁ h₂ _ _ τ => le_trans (h₁ τ) (h₂ τ)
+/-- An equivalent formulation of semantic entailment in terms of satisfying assignments. -/
+theorem entails_ext : entails φ₁ φ₂ ↔ (∀ (τ : PropAssignment ν), τ ⊨ φ₁ → τ ⊨ φ₂) := by
+  have : ∀ τ, (φ₁.eval τ → φ₂.eval τ) ↔ φ₁.eval τ ≤ φ₂.eval τ := by
+    intro τ
+    cases (eval τ φ₁)
+    . simp
+    . simp only [true_implies]
+      exact ⟨fun h => h ▸ le_rfl, top_unique⟩
+  simp [sEntails, entails, satisfies, this]
+
+theorem entails_refl (φ : PropForm ν) : entails φ φ :=
+  fun _ =>  le_rfl
+theorem entails.trans : entails φ₁ φ₂ → entails φ₂ φ₃ → entails φ₁ φ₃ :=
+  fun h₁ h₂ τ => le_trans (h₁ τ) (h₂ τ)
 
 theorem entails_tr (φ : PropForm ν) : entails φ tr :=
-  fun _ _ _ => le_top
+  fun _ => le_top
 theorem fls_entails (φ : PropForm ν) : entails fls φ :=
-  fun _ _ _ => bot_le
+  fun _ => bot_le
 
-theorem entails_disj_left (φ ψ : PropForm ν) : entails φ (disj φ ψ) :=
-  fun _ _ _ => le_sup_left
-theorem entails_disj_right (φ ψ : PropForm ν) : entails ψ (disj φ ψ) :=
-  fun _ _ _ => le_sup_right
-theorem disj_entails : entails φ θ → entails ψ θ → entails (disj φ ψ) θ :=
-  fun h₁ h₂ _ _ τ => sup_le (h₁ τ) (h₂ τ)
+theorem entails_disj_left (φ₁ φ₂ : PropForm ν) : entails φ₁ (disj φ₁ φ₂) :=
+  fun _ => le_sup_left
+theorem entails_disj_right (φ₁ φ₂ : PropForm ν) : entails φ₂ (disj φ₁ φ₂) :=
+  fun _ => le_sup_right
+theorem disj_entails : entails φ₁ φ₃ → entails φ₂ φ₃ → entails (disj φ₁ φ₂) φ₃ :=
+  fun h₁ h₂ τ => sup_le (h₁ τ) (h₂ τ)
 
-theorem conj_entails_left (φ ψ : PropForm ν) : entails (conj φ ψ) φ :=
-  fun _ _ _ => inf_le_left
-theorem conj_entails_right (φ ψ : PropForm ν) : entails (conj φ ψ) ψ :=
-  fun _ _ _ => inf_le_right
-theorem entails_conj : entails φ ψ → entails φ θ → entails φ (conj ψ θ) :=
-  fun h₁ h₂ _ _ τ => le_inf (h₁ τ) (h₂ τ)
+theorem conj_entails_left (φ₁ φ₂ : PropForm ν) : entails (conj φ₁ φ₂) φ₁ :=
+  fun _ => inf_le_left
+theorem conj_entails_right (φ₁ φ₂ : PropForm ν) : entails (conj φ₁ φ₂) φ₂ :=
+  fun _ => inf_le_right
+theorem entails_conj : entails φ₁ φ₂ → entails φ₁ φ₃ → entails φ₁ (conj φ₂ φ₃) :=
+  fun h₁ h₂ τ => le_inf (h₁ τ) (h₂ τ)
 
-theorem entails_impl_iff (φ ψ θ : PropForm ν) : entails φ (impl ψ θ) ↔ entails (conj φ ψ) θ :=
-  ⟨fun h _ _ τ => le_himp_iff.mp (h τ), fun h _ _ τ => le_himp_iff.mpr (h τ)⟩
-
-theorem entails_disj_conj (φ ψ θ : PropForm ν) :
-    entails (conj (disj φ ψ) (disj φ θ)) (disj φ (conj ψ θ)) :=
-  fun _ _ _ => le_sup_inf
+theorem entails_disj_conj (φ₁ φ₂ φ₃ : PropForm ν) :
+    entails (conj (disj φ₁ φ₂) (disj φ₁ φ₃)) (disj φ₁ (conj φ₂ φ₃)) :=
+  fun _ => le_sup_inf
 
 theorem conj_neg_entails_fls (φ : PropForm ν) : entails (conj φ (neg φ)) fls :=
-  fun _ _ τ => BooleanAlgebra.inf_compl_le_bot (eval τ φ)
+  fun τ => BooleanAlgebra.inf_compl_le_bot (eval τ φ)
 
 theorem tr_entails_disj_neg (φ : PropForm ν) : entails tr (disj φ (neg φ)) :=
-  fun _ _ τ => BooleanAlgebra.top_le_sup_compl (eval τ φ)
+  fun τ => BooleanAlgebra.top_le_sup_compl (eval τ φ)
 
-/-- Two formulas are semantically equivalent when they evaluate to the same thing in every
-Boolean-valued model. -/
+/-- Two formulas are semantically equivalent when they always evaluate to the same thing. -/
 def equivalent (φ₁ φ₂ : PropForm ν) : Prop :=
-  ∀ ⦃α : Type⦄ [BooleanAlgebra α] (τ : PropAssignment ν α), φ₁.eval τ = φ₂.eval τ
+  ∀ (τ : PropAssignment ν), φ₁.eval τ = φ₂.eval τ
+
+theorem equivalent_iff_entails :
+    equivalent φ₁ φ₂ ↔ (entails φ₁ φ₂ ∧ entails φ₂ φ₁) := by
+  simp only [equivalent, entails]
+  aesop (add safe le_antisymm)
+
+theorem equivalent_ext :
+    equivalent φ₁ φ₂ ↔ (∀ (τ : PropAssignment ν), τ ⊨ φ₁ ↔ τ ⊨ φ₂) := by
+  simp only [equivalent_iff_entails, entails_ext]
+  aesop
 
 theorem equivalent_refl (φ : PropForm ν) : equivalent φ φ :=
-  fun _ _ _ => rfl
-theorem equivalent.symm : equivalent φ ψ → equivalent ψ φ :=
-  fun h _ _ τ => (h τ).symm
-theorem equivalent.trans : equivalent φ ψ → equivalent ψ θ → equivalent φ θ :=
-  fun h₁ h₂ _ _ τ => (h₁ τ).trans (h₂ τ) 
+  fun _ => rfl
+theorem equivalent.symm : equivalent φ₁ φ₂ → equivalent φ₂ φ₁ :=
+  fun h τ => (h τ).symm
+theorem equivalent.trans : equivalent φ₁ φ₂ → equivalent φ₂ φ₃ → equivalent φ₁ φ₃ :=
+  fun h₁ h₂ τ => (h₁ τ).trans (h₂ τ) 
+theorem entails.antisymm : entails φ₁ φ₂ → entails φ₂ φ₁ → equivalent φ₁ φ₂ :=
+  fun h₁ h₂ => equivalent_iff_entails.mpr ⟨h₁, h₂⟩
 
-theorem entails.antisymm : entails φ ψ → entails ψ φ → equivalent φ ψ :=
-  fun h₁ h₂ _ _ τ => le_antisymm (h₁ τ) (h₂ τ)
-
-theorem impl_fls (φ : PropForm ν) : equivalent (impl φ fls) (neg φ) :=
-  fun _ _ τ => himp_bot (eval τ φ)
+-- Equivalently, when `impl φ₁ φ₂` always evaluates to `⊤`.
 
 end PropForm
