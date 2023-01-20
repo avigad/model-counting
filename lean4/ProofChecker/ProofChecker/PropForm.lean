@@ -47,22 +47,35 @@ end PropForm
 /-- An assignment of truth values to propositional variables. -/
 def PropAssignment (ν : Type u) := ν → Bool
 
-def PropAssignment.set [DecidableEq ν] (τ : PropAssignment ν) (x : ν) (v : Bool) :
+namespace PropAssignment
+
+def set [DecidableEq ν] (τ : PropAssignment ν) (x : ν) (v : Bool) :
     PropAssignment ν :=
   fun y => if y = x then v else τ y
+
+@[simp]
+theorem set_get [DecidableEq ν] (τ : PropAssignment ν) (x : ν) (v : Bool) :
+    τ.set x v x = v := by
+  simp [set]
+
+theorem set_get_of_ne [DecidableEq ν] {x y : ν} (τ : PropAssignment ν) (v : Bool) :
+    x ≠ y → τ.set x v y = τ y := by
+  intro h
+  simp [set, h.symm]
+
+end PropAssignment
 
 namespace PropForm
 
 /-- The unique evaluation function on formulas which extends `τ`. -/
 @[simp]
 def eval (τ : PropAssignment ν) : PropForm ν → Bool
-  -- NOTE: the notation uses `[BooleanAlgebra Bool]` which conveniently provides all the laws.
   | var x => τ x
-  | tr => ⊤
-  | fls => ⊥
-  | neg φ => (eval τ φ)ᶜ
-  | conj φ₁ φ₂ => (eval τ φ₁) ⊓ (eval τ φ₂)
-  | disj φ₁ φ₂ => (eval τ φ₁) ⊔ (eval τ φ₂)
+  | tr => true
+  | fls => false
+  | neg φ => !(eval τ φ)
+  | conj φ₁ φ₂ => (eval τ φ₁) && (eval τ φ₂)
+  | disj φ₁ φ₂ => (eval τ φ₁) || (eval τ φ₂)
   | impl φ₁ φ₂ => (eval τ φ₁) ⇨ (eval τ φ₂)
   | biImpl φ₁ φ₂ => eval τ φ₁ = eval τ φ₂
 
@@ -70,7 +83,7 @@ def eval (τ : PropAssignment ν) : PropForm ν → Bool
 
 /-- An assignment satisfies a formula `φ` when `φ` evaluates to `⊤` at that assignment. -/
 def satisfies (τ : PropAssignment ν) (φ : PropForm ν) : Prop :=
-  φ.eval τ = ⊤
+  φ.eval τ = true
 
 /-- This instance is scoped so that `τ ⊨ φ : Prop` implies `φ : PropForm _` via the `outParam` only
 when `PropForm` is open. -/
@@ -106,12 +119,11 @@ theorem satisfies_disj : τ ⊨ disj φ₁ φ₂ ↔ τ ⊨ φ₁ ∨ τ ⊨ φ�
   simp [sEntails, satisfies]
 
 @[simp]
-theorem satisfies_impl : τ ⊨ impl φ₁ φ₂ ↔ τ ⊭ φ₁ ∨ τ ⊨ φ₂ := by
+theorem satisfies_impl : τ ⊨ impl φ₁ φ₂ ↔ (τ ⊨ φ₁ → τ ⊨ φ₂) := by
   simp only [sEntails, satisfies, eval]
   cases (eval τ φ₁) <;> simp [himp_eq]
 
-@[simp]
-theorem satisfies_impl' : τ ⊨ impl φ₁ φ₂ ↔ (τ ⊨ φ₁ → τ ⊨ φ₂) := by
+theorem satisfies_impl' : τ ⊨ impl φ₁ φ₂ ↔ τ ⊭ φ₁ ∨ τ ⊨ φ₂ := by
   simp only [sEntails, satisfies, eval]
   cases (eval τ φ₁) <;> simp [himp_eq]
 
@@ -140,7 +152,7 @@ theorem entails_ext : entails φ₁ φ₂ ↔ (∀ (τ : PropAssignment ν), τ 
   simp [sEntails, entails, satisfies, this]
 
 theorem entails_refl (φ : PropForm ν) : entails φ φ :=
-  fun _ =>  le_rfl
+  fun _ => le_rfl
 theorem entails.trans : entails φ₁ φ₂ → entails φ₂ φ₃ → entails φ₁ φ₃ :=
   fun h₁ h₂ τ => le_trans (h₁ τ) (h₂ τ)
 

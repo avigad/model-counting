@@ -1,9 +1,18 @@
-import ProofChecker.Data.List
-import ProofChecker.Data.Dimacs
+/-
+Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Wojciech Nawrocki
+-/
 
-def Except.ofOption (e : ε) : Option α → Except ε α
-  | none => .error e
-  | some x => .ok x
+import Std.Data.List.Basic
+import Std.Data.List.Lemmas
+import Mathlib.Data.List.Basic
+
+import ProofChecker.PropTerm
+import ProofChecker.PropVars
+
+/-! Propositional formulas in CNF form. This is only intended for mathematical modelling.
+For performant CNF see `ClauseDb`. -/
 
 inductive Lit (ν : Type)
   | pos (x : ν)
@@ -12,22 +21,16 @@ inductive Lit (ν : Type)
 
 namespace Lit
 
-instance [ToString ν] : ToString (Lit ν) :=
-  ⟨fun
-    | pos x => toString x
-    | neg x => "-" ++ toString x⟩
+def toPropForm : Lit ν → PropForm ν
+  | pos x => .var x
+  | neg x => .neg (.var x)
 
-instance [Hashable ν] : Hashable (Lit ν) where
-  hash := fun
-    | pos x => mixHash 0 (hash x)
-    | neg x => mixHash 1 (hash x)
+def toPropTerm : Lit ν → PropTerm ν
+  | pos x => .var x
+  | neg x => (.var x)ᶜ
 
-def negate : Lit ν → Lit ν
-  | pos x => neg x
-  | neg x => pos x
-
-instance : Neg (Lit ν) :=
-  ⟨negate⟩
+instance [ToString ν] : ToString (Lit ν) where
+  toString l := toString l.toPropForm
 
 def var : Lit ν → ν
   | pos x => x
@@ -37,185 +40,211 @@ def polarity : Lit ν → Bool
   | pos _ => true
   | neg _ => false
 
-def ofDimacs? (s : String) : Option (Lit String) :=
-  if s.isEmpty then none
-  else if s.get! 0 == '-' then neg (s.drop 1)
-  else pos s
+@[ext]
+theorem ext {l₁ l₂ : Lit ν} : l₁.var = l₂.var → l₁.polarity = l₂.polarity → l₁ = l₂ := by
+  cases l₁ <;> cases l₂ <;> simp [var, polarity]
 
-def ofInt (i : Int) : Lit Nat :=
-  if i < 0 then Lit.neg i.natAbs
-  else Lit.pos i.natAbs
+open PropTerm
+
+theorem satisfies_iff {τ : PropAssignment ν} {l : Lit ν} :
+    τ ⊨ l.toPropTerm ↔ τ l.var = l.polarity := by
+  cases l <;> simp [toPropTerm, var, polarity]
+
+theorem satisfies_set [DecidableEq ν] (τ : PropAssignment ν) (l : Lit ν) :
+    τ.set l.var l.polarity ⊨ l.toPropTerm := by
+  simp [satisfies_iff, τ.set_get]
+
+def negate : Lit ν → Lit ν
+  | pos x => neg x
+  | neg x => pos x
+
+instance : Neg (Lit ν) := ⟨negate⟩
+
+@[simp]
+theorem var_neg (l : Lit ν) : (-l).var = l.var := by
+  cases l <;> rfl
+
+@[simp]
+theorem polarity_neg (l : Lit ν) : (-l).polarity = !l.polarity := by
+  cases l <;> rfl
 
 end Lit
 
-def LitList ν := List (Lit ν)
-
-namespace LitList
-
-instance [Repr ν] : Repr (LitList ν) := inferInstanceAs (Repr (List _))
-instance [DecidableEq ν] : DecidableEq (LitList ν) := inferInstanceAs (DecidableEq (List _))
-instance [BEq ν] : BEq (LitList ν) := inferInstanceAs (BEq (List _))
-instance [Inhabited ν] : Inhabited (LitList ν) := inferInstanceAs (Inhabited (List _))
-
-instance [Hashable ν] : Hashable (LitList ν) where
-  hash C := C.map Hashable.hash |>.foldl mixHash 0
-
-instance : ForIn m (LitList ν) (Lit ν) :=
-  inferInstanceAs (ForIn m (List _) _)
-
-instance : Append (LitList ν) :=
-  inferInstanceAs (Append (List _))
-
--- TODO(WN): To optimize, write C impl with bitfields and SAT magic
-def mk (ls : List (Lit ν)) : LitList ν := ls
-
-end LitList
-
-/-- A partial assignment of truth values. -/
-def PropAssignment ν := LitList ν
-
-namespace PropAssignment 
-
-instance [Repr ν] : Repr (PropAssignment ν) := inferInstanceAs (Repr (LitList _))
-instance [DecidableEq ν] : DecidableEq (PropAssignment ν) := inferInstanceAs (DecidableEq (LitList _))
-instance [BEq ν] : BEq (PropAssignment ν) := inferInstanceAs (BEq (LitList _))
-instance [Inhabited ν] : Inhabited (PropAssignment ν) := inferInstanceAs (Inhabited (LitList _))
-instance [Hashable ν] : Hashable (PropAssignment ν) := inferInstanceAs (Hashable (LitList _))
-instance : ForIn m (PropAssignment ν) (Lit ν) := inferInstanceAs (ForIn m (LitList _) _)
-instance : Append (PropAssignment ν) := inferInstanceAs (Append (LitList _))
-
-instance [ToString ν] : ToString (PropAssignment ν) where
-  toString := fun
-    | [] => ""
-    | ls => ", ".intercalate <| ls.map ToString.toString
-
-def mk : List (Lit ν) → PropAssignment ν := LitList.mk
-
-def extend : Lit ν → PropAssignment ν → PropAssignment ν :=
-  List.cons
-
-/-- Return the truth value of `x` at `τ` if assigned, otherwise `none`. -/
-def evalVar? [BEq ν] (τ : PropAssignment ν) (x : ν) : Option Bool := Id.run do
-  for l in τ do
-    if l.var == x then return l.polarity
-  return none
-
-/-- Evaluate at `x` the total assignment extending `τ` with `⊥` for unassigned variables. -/
-def evalVar [BEq ν] (τ : PropAssignment ν) (x : ν) : Bool :=
-  τ.evalVar? x |>.getD false
-
-/-- See `evalVar?`. -/
-def evalLit? [BEq ν] (τ : PropAssignment ν) (l : Lit ν) : Option Bool :=
-  τ.evalVar? l.var |>.map (/- ⇒ -/ if · then l.polarity else ¬l.polarity)
-
-/-- See `evalLit?`. -/
-def evalLit [BEq ν] (τ : PropAssignment ν) (l : Lit ν) : Bool :=
-  /- ⇔ -/ if τ.evalVar l.var then l.polarity else ¬l.polarity
-
-end PropAssignment
-
-def Clause ν := LitList ν
+-- NOTE: Alternatively, could be Multiset or even Finset. Also, the `abbrev` is convenient but
+-- should become a `def` if it start causing trouble.
+abbrev Clause ν := List (Lit ν)
 
 namespace Clause
 
-instance [Repr ν] : Repr (Clause ν) := inferInstanceAs (Repr (LitList _))
-instance [DecidableEq ν] : DecidableEq (Clause ν) := inferInstanceAs (DecidableEq (LitList _))
-instance [BEq ν] : BEq (Clause ν) := inferInstanceAs (BEq (LitList _))
-instance [Inhabited ν] : Inhabited (Clause ν) := inferInstanceAs (Inhabited (LitList _))
-instance [Hashable ν] : Hashable (Clause ν) := inferInstanceAs (Hashable (LitList _))
-instance : ForIn m (Clause ν) (Lit ν) := inferInstanceAs (ForIn m (LitList _) _)
-instance : Append (Clause ν) := inferInstanceAs (Append (LitList _))
+def toPropForm : Clause ν → PropForm ν :=
+  List.foldr (init := .fls) (fun l φ => .disj l.toPropForm φ)
+
+def toPropTerm : Clause ν → PropTerm ν :=
+  List.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
 
 instance [ToString ν] : ToString (Clause ν) where
-  toString := fun
-    | [] => "⊥"
-    | ls => " ∨ ".intercalate <| ls.map ToString.toString
+  toString C := toString C.toPropForm 
 
-def mk : List (Lit ν) → Clause ν := LitList.mk
+@[simp]
+theorem toPropTerm_nil : toPropTerm ([] : Clause ν) = ⊥ := by
+  simp [toPropTerm]
 
-def firstLit? : Clause ν → Option (Lit ν) :=
-  List.head?
+@[simp]
+theorem toPropTerm_cons {C : Clause ν} : toPropTerm (l :: C) = l.toPropTerm ⊔ C.toPropTerm := by
+  simp [toPropTerm]
 
-def unit? : Clause ν → Option (Lit ν)
-  | [a] => some a
-  | _ => none
+@[simp]
+theorem toPropTerm_append (C₁ C₂ : Clause ν) :
+    toPropTerm (C₁ ++ C₂) = C₁.toPropTerm ⊔ C₂.toPropTerm := by
+  conv => lhs; unfold toPropTerm
+  rw [List.foldr_append, ← toPropTerm]
+  induction C₁ with
+  | nil => simp
+  | cons _ _ ih => simp [ih, sup_assoc]
 
-def isUnit (C : Clause ν) : Bool :=
-  C.unit?.isSome
+open PropTerm
 
-def isEmpty : Clause ν → Bool :=
-  List.isEmpty
+theorem satisfies_iff {τ : PropAssignment ν} {C : Clause ν} :
+    τ ⊨ C.toPropTerm ↔ ∃ l ∈ C, τ ⊨ l.toPropTerm := by
+  induction C with
+  | nil => simp [toPropTerm]
+  | cons _ _ ih => simp [ih]
 
-def ofDimacsLits (tks : List Dimacs.Token) : Except String (Clause Nat) := do
-  let lits ← tks.mapM (·.getInt? |> Except.ofOption "expected int" |>.map Lit.ofInt)
-  return Clause.mk lits
+theorem toPropTerm_monotone {C₁ C₂ : Clause ν} : C₁ ⊆ C₂ → C₁.toPropTerm ≤ C₂.toPropTerm := by
+  intro h
+  apply PropTerm.entails_ext.mpr
+  simp only [satisfies_iff]
+  intro τ ⟨l, h₁⟩
+  exact ⟨l, h h₁.left, h₁.right⟩
+
+theorem satisfies_set [DecidableEq ν] (τ : PropAssignment ν) (C : Clause ν) (l : Lit ν) :
+    l ∈ C → τ.set l.var l.polarity ⊨ C.toPropTerm :=
+  fun h => satisfies_iff.mpr ⟨l, h, l.satisfies_set τ⟩
+
+theorem satisfies_of_not_in [DecidableEq ν] (τ : PropAssignment ν) (C : Clause ν) (l : Lit ν) :
+    l ∉ C → τ ⊨ C.toPropTerm → τ.set l.var (!l.polarity) ⊨ C.toPropTerm := by
+  simp only [satisfies_iff]
+  intro h ⟨l₁, hL₁C, hL₁⟩
+  use l₁, hL₁C
+  rw [l₁.satisfies_iff] at hL₁
+  by_cases hVar : l.var = l₁.var
+  . rw [hVar]
+    have : l.polarity ≠ l₁.polarity := by
+      intro h
+      have : l = l₁ := Lit.ext hVar h
+      cases this
+      contradiction
+    rw [ne_eq] at this
+    simp [l₁.satisfies_iff, this]
+  . simp only [l₁.satisfies_iff, τ.set_get_of_ne _ hVar, hL₁]
+
+theorem satisfies_of_neg_not_in [DecidableEq ν] (τ : PropAssignment ν) (C : Clause ν) (l : Lit ν) :
+    -l ∉ C → τ ⊨ C.toPropTerm → τ.set l.var l.polarity ⊨ C.toPropTerm :=
+  fun h₁ h₂ => have := satisfies_of_not_in τ C (-l) h₁ h₂; by aesop
 
 end Clause
 
--- returns `none` when the clause reduced to `true`
-def PropAssignment.reduceClause [BEq ν] (τ : PropAssignment ν) (C : Clause ν) : Option (Clause ν) :=
-  go C
-where
-  go : Clause ν → Option (Clause ν)
-    | [] => some []
-    | l :: ls => match τ.evalLit? l with
-      | some true => none
-      | some false => go ls
-      | none => go ls |>.map (l :: ·)
-
-def CnfForm ν := List (Clause ν)
+-- Same representation considerations as on `Clause`.
+abbrev CnfForm ν := List (Clause ν)
 
 namespace CnfForm
 
-instance [Repr ν] : Repr (CnfForm ν) := inferInstanceAs (Repr (List _))
-instance [DecidableEq ν] : DecidableEq (CnfForm ν) := inferInstanceAs (DecidableEq (List _))
-instance [BEq ν] : BEq (CnfForm ν) := inferInstanceAs (BEq (List _))
-instance [Inhabited ν] : Inhabited (CnfForm ν) := inferInstanceAs (Inhabited (List _))
+def toPropForm : CnfForm ν → PropForm ν :=
+  List.foldr (init := .tr) (fun C φ => .conj C.toPropForm φ)
+
+def toPropTerm : CnfForm ν → PropTerm ν :=
+  List.foldr (init := ⊤) (fun C φ => C.toPropTerm ⊓ φ)
 
 instance [ToString ν] : ToString (CnfForm ν) where
-  toString := fun
-    | [] => "⊤"
-    | Cs => " ∧ ".intercalate <| Cs.map ("(" ++ ToString.toString · ++ ")")
+  toString Cs := toString Cs.toPropForm
 
-instance [Hashable ν] : Hashable (Clause ν) where
-  hash C := C.map Hashable.hash |>.foldl mixHash 0
+@[simp]
+theorem toPropTerm_nil : toPropTerm ([] : CnfForm ν) = ⊤ := by
+  simp [toPropTerm]
 
-instance : ForIn m (CnfForm ν) (Clause ν) :=
-  inferInstanceAs (ForIn m (List _) _)
+@[simp]
+theorem toPropForm_cons (C : Clause ν) (F : CnfForm ν) :
+    toPropTerm (C :: F) = C.toPropTerm ⊓ F.toPropTerm := by
+  simp [toPropTerm]
 
-instance : Append (CnfForm ν) :=
-  inferInstanceAs (Append (List _))
+@[simp]
+theorem toPropTerm_append (F₁ F₂ : CnfForm ν) :
+    toPropTerm (F₁ ++ F₂) = F₁.toPropTerm ⊓ F₂.toPropTerm := by
+  conv => lhs; unfold toPropTerm
+  rw [List.foldr_append, ← toPropTerm]
+  induction F₁ with
+  | nil => simp
+  | cons _ _ ih => simp [ih, inf_assoc]
 
--- TODO(WN): potential optimized impl
-def mk (Cs : List (Clause ν)) : CnfForm ν := Cs
-
--- def disj (φ₁ φ₂ : CnfForm ν) : CnfForm ν :=
---   sorry
-
-def conj [BEq ν] [Hashable ν] (φ₁ φ₂ : CnfForm ν) : CnfForm ν :=
-  CnfForm.mk <| List.union φ₁ φ₂
-
-def maxVar? [LT ν] [DecidableRel fun a b : ν => a < b] (cnf : CnfForm ν) : Option ν :=
-  cnf.filterMap (·.map (·.var) |>.maximum?) |>.maximum?
-
-def readDimacsFile (fname : String) : IO (CnfForm Nat) := do
-  let mut cnf := #[]
-  let _hdr :: lns ← Dimacs.tokenizeFile fname | throwThe IO.Error s!"missing CNF header"
-  for tks in lns do
-    let some (.int 0) := tks.getLast? | throwThe IO.Error s!"missing terminating 0"
-    let lits := tks.dropLast
-    match Clause.ofDimacsLits lits with
-    | .ok C => cnf := cnf.push C
-    | .error e => throw <| IO.userError e
-  return cnf.toList
+open PropTerm in
+theorem satisfies_iff {τ : PropAssignment ν} {F : CnfForm ν} :
+    τ ⊨ F.toPropTerm ↔ ∀ C ∈ F, τ ⊨ C.toPropTerm := by
+  induction F with
+  | nil => simp [toPropTerm, satisfies_tr]
+  | cons _ _ ih => simp [ih]
 
 end CnfForm
 
-def PropAssignment.reduceCnf [BEq ν] (τ : PropAssignment ν) (φ : CnfForm ν) : CnfForm ν :=
-  go φ
-where go : CnfForm ν → (CnfForm ν)
-  | [] => []
-  | C :: Cs => match τ.reduceClause C with
-    | some [] => [[]]
-    | some C' => C' :: go Cs
-    | none => go Cs
+/-! Resolution. -/
+
+variable [DecidableEq ν]
+
+/-- Given `C = C' ∨ l` and `D = D' ∨ -l`, return `C' ∨ D'` with properties as in
+`resolve_characterization`. -/
+def resolve (C D : Clause ν) (l : Lit ν) : Clause ν :=
+  (C.filter (· ≠ l) ++ D.filter (· ≠ -l))
+
+theorem resolve_characterization (C D : Clause ν) (l : Lit ν) :
+    ∃ (C' D' : Clause ν),
+    (resolve C D l).toPropTerm = C'.toPropTerm ⊔ D'.toPropTerm ∧ 
+    C' ⊆ C ∧ l ∉ C' ∧
+    D' ⊆ D ∧ -l ∉ D' := by
+  use C.filter (· ≠ l), D.filter (· ≠ -l)
+  refine ⟨?eq, ?subC, ?memC, ?subD, ?memD⟩ <;>
+    simp [resolve, Clause.toPropTerm_append, List.mem_filter]
+
+/-- The clause C is Resolution IMPlied on a literal l w.r.t. a formula F when for every D ∈ F
+containing -l, F implies the resolvent of C and D. Note that RAT implies RIMP by soundness of unit
+propagation/AT. -/
+-- TODO: there is potentially some subtlety here, in 'Inprocessing Rules' *each* resolvent of C with
+-- D has to be implied.
+def isRIMP (F : CnfForm ν) (C : Clause ν) (l : Lit ν) : Prop :=
+  ∀ D ∈ F, -l ∈ D → F.toPropTerm ≤ (resolve C D l).toPropTerm
+
+open PropTerm in
+/-- Adding a RIMP clause on `l` preserves equisatisfiability over any set not containing `l`. -/
+theorem equivalentOver_of_isRIMP [DecidableEq ν] {X : Set ν} (F : CnfForm ν) (C : Clause ν)
+    (l : Lit ν) : l ∈ C → l.var ∉ X → isRIMP F C l →
+    equivalentOver X F.toPropTerm (F.toPropTerm ⊓ C.toPropTerm) := by
+  intro hLC hLX hRIMP τ
+  refine ⟨fun ⟨σ, hσ, hF⟩ => ?ltr, by aesop⟩
+  by_cases hσC : σ ⊨ C.toPropTerm
+  . exact ⟨σ, hσ, by simp [hσC, hF]⟩
+  . use σ.set l.var l.polarity
+    constructor
+    . exact σ.agreeOn_set l.polarity hLX |>.trans hσ
+    . rw [satisfies_conj]
+      constructor
+      . rw [F.satisfies_iff]
+        intro D hDF
+        by_cases hLD : -l ∈ D
+        . have ⟨C', D', hCD, hC'C, _, hD'D, hLD'⟩ := resolve_characterization C D l
+          have hFCD := hCD ▸ hRIMP D hDF hLD
+          have : σ ⊨ C'.toPropTerm ⊔ D'.toPropTerm := entails_ext.mp hFCD _ hF
+          have : σ ⊭ C'.toPropTerm :=
+            fun h => hσC <| entails_ext.mp (Clause.toPropTerm_monotone hC'C) _ h
+          have : σ ⊨ D'.toPropTerm := by aesop
+          have : σ.set l.var l.polarity ⊨ D'.toPropTerm :=
+            D'.satisfies_of_neg_not_in σ l hLD' this
+          exact entails_ext.mp (Clause.toPropTerm_monotone hD'D) _ this
+        . exact D.satisfies_of_neg_not_in σ l hLD ((F.satisfies_iff).mp hF D hDF)
+      . exact C.satisfies_set σ l hLC
+
+-- PROBLEM: I think this is actually false. For example `x ∨ y` is RAT on `y` w.r.t `x` but `x`
+-- does not extend uniquely to `x ∧ (x ∨ y)`.
+open PropTerm in
+theorem hasUniqueExtension_of_isRIMP {X : Set ν} (F : CnfForm ν) (C : Clause ν) (l : Lit ν) :
+    l ∈ C → l.var ∉ X → isRIMP F C l →
+    hasUniqueExtension X (X.insert l.var) (F.toPropTerm ⊓ C.toPropTerm) := by
+  intro hC hX hRIMP σ₁ σ₂ h₁ h₂ hAgree
+  sorry

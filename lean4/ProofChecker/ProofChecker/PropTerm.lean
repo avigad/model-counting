@@ -6,7 +6,8 @@ Authors: Wojciech Nawrocki
 
 import ProofChecker.PropForm
 
-/-! The term model of propositional formulas. We show that it is a Heyting algebra. -/
+/-! The Lindenbaum-Tarski algebra on propositional logic. We show that it is a Boolean algebra with
+ordering given by semantic entailment. -/
 
 open PropForm in
 instance PropTerm.setoid (ν : Type) : Setoid (PropForm ν) where
@@ -17,7 +18,7 @@ instance PropTerm.setoid (ν : Type) : Setoid (PropForm ν) where
     trans := equivalent.trans
   }
 
-/-- A propositional term is a propositional formula up to semantic equivalence. -/
+/-- A propositional term in the algebra is a propositional formula up to semantic equivalence. -/
 def PropTerm ν := Quotient (PropTerm.setoid ν)
 
 namespace PropTerm
@@ -30,123 +31,180 @@ def fls : PropTerm ν := ⟦.fls⟧
 
 def neg : PropTerm ν → PropTerm ν :=
   Quotient.map (.neg ·) (by
-    intro _ _ h _ _ τ
+    intro _ _ h τ
     simp [h τ])
 
 def conj : PropTerm ν → PropTerm ν → PropTerm ν := 
   Quotient.map₂ (.conj · ·) (by
-    intro _ _ h₁ _ _ h₂ _ _ τ
+    intro _ _ h₁ _ _ h₂ τ
     simp [h₁ τ, h₂ τ])
 
 def disj : PropTerm ν → PropTerm ν → PropTerm ν :=
   Quotient.map₂ (.disj · ·) (by
-    intro _ _ h₁ _ _ h₂ _ _ τ
+    intro _ _ h₁ _ _ h₂ τ
     simp [h₁ τ, h₂ τ])
 
 def impl : PropTerm ν → PropTerm ν → PropTerm ν :=
   Quotient.map₂ (.impl · ·) (by
-    intro _ _ h₁ _ _ h₂ _ _ τ
+    intro _ _ h₁ _ _ h₂ τ
     simp [h₁ τ, h₂ τ])
 
 def biImpl : PropTerm ν → PropTerm ν → PropTerm ν :=
   Quotient.map₂ (.biImpl · ·) (by
-    intro _ _ h₁ _ _ h₂ _ _ τ
+    intro _ _ h₁ _ _ h₂ τ
     simp [h₁ τ, h₂ τ])
 
-def entails : PropTerm ν → PropTerm ν → Prop :=
-  Quotient.lift₂ (PropForm.entails · ·) (by
-    intro _ _ _ _ h₁ h₂
-    dsimp [HasEquiv.Equiv, Setoid.r, PropForm.equivalent] at h₁ h₂
-    simp [PropForm.entails, h₁, h₂])
+/-! Evaluation lifted to the lattice structure. -/
 
--- TODO: All of these just lift the corresponding lemmas from PropFrom, is there a quicker way?
+-- NOTE: It could be defined directly using surjectivity of ⟦-⟧ instead.
+def eval (τ : PropAssignment ν) : PropTerm ν → Bool :=
+  Quotient.lift (PropForm.eval τ) (fun _ _ h => h τ)
 
-theorem entails_refl (φ : PropTerm ν) : entails φ φ := by
+@[simp]
+theorem eval_mk (τ : PropAssignment ν) (φ : PropForm ν) :
+    eval τ ⟦φ⟧ = φ.eval τ :=
+  rfl
+
+@[simp]
+theorem eval_var (τ : PropAssignment ν) (x : ν) : eval τ (var x) = τ x := by
+  simp [eval, var]
+
+@[simp]
+theorem eval_tr (τ : PropAssignment ν) : eval τ tr = true := by
+  simp [eval, tr]
+
+@[simp]
+theorem eval_fls (τ : PropAssignment ν) : eval τ fls = false := by
+  simp [eval, fls]
+
+@[simp]
+theorem eval_neg (τ : PropAssignment ν) (φ : PropTerm ν) : eval τ (neg φ) = !(eval τ φ) := by
   have ⟨φ, h⟩ := Quotient.exists_rep φ
-  simp [← h, entails, PropForm.entails]
+  simp [← h, eval, neg]
 
-theorem entails.trans : entails φ ψ → entails ψ θ → entails φ θ := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  have ⟨θ, h₃⟩ := Quotient.exists_rep θ
-  simp only [← h₁, ← h₂, ← h₃]
-  exact PropForm.entails.trans
+@[simp]
+theorem eval_conj (τ : PropAssignment ν) (φ₁ φ₂ : PropTerm ν) :
+    eval τ (conj φ₁ φ₂) = (eval τ φ₁ && eval τ φ₂) := by
+  have ⟨φ₁, h₁⟩ := Quotient.exists_rep φ₁
+  have ⟨φ₂, h₂⟩ := Quotient.exists_rep φ₂
+  simp [← h₁, ← h₂, conj, eval]
+
+@[simp]
+theorem eval_disj (τ : PropAssignment ν) (φ₁ φ₂ : PropTerm ν) :
+    eval τ (disj φ₁ φ₂) = (eval τ φ₁ || eval τ φ₂) := by
+  have ⟨φ₁, h₁⟩ := Quotient.exists_rep φ₁
+  have ⟨φ₂, h₂⟩ := Quotient.exists_rep φ₂
+  simp [← h₁, ← h₂, eval, disj]
+
+@[simp]
+theorem eval_impl (τ : PropAssignment ν) (φ₁ φ₂ : PropTerm ν) :
+    eval τ (impl φ₁ φ₂) = (eval τ φ₁) ⇨ (eval τ φ₂) := by
+  have ⟨φ₁, h₁⟩ := Quotient.exists_rep φ₁
+  have ⟨φ₂, h₂⟩ := Quotient.exists_rep φ₂
+  simp [← h₁, ← h₂, eval, impl]
+
+@[simp]
+theorem eval_biImpl (τ : PropAssignment ν) (φ₁ φ₂ : PropTerm ν) :
+    eval τ (biImpl φ₁ φ₂) = (eval τ φ₁ = eval τ φ₂) := by
+  have ⟨φ₁, h₁⟩ := Quotient.exists_rep φ₁
+  have ⟨φ₂, h₂⟩ := Quotient.exists_rep φ₂
+  simp [← h₁, ← h₂, eval, biImpl]
+
+/-! Satisfying assignments -/
+
+def satisfies (τ : PropAssignment ν) (φ : PropTerm ν) : Prop :=
+  φ.eval τ = true
+
+/-- This instance is scoped so that when `PropTerm` is open, `τ ⊨ φ` implies `φ : PropTerm _`
+via the `outParam`. -/
+scoped instance : SemanticEntails (PropAssignment ν) (PropTerm ν) where
+  entails := PropTerm.satisfies
+
+@[simp]
+theorem satisfies_mk {τ : PropAssignment ν} {φ : PropForm ν} : τ ⊨ ⟦φ⟧ ↔ PropForm.satisfies τ φ :=
+  ⟨id, id⟩
+
+open SemanticEntails renaming entails → sEntails
+
+@[simp]
+theorem satisfies_var {τ : PropAssignment ν} {x : ν} : τ ⊨ var x ↔ τ x := by
+  simp [sEntails, satisfies]
+
+@[simp]
+theorem satisfies_set {τ : PropAssignment ν} [DecidableEq ν] : τ.set x ⊤ ⊨ var x := by
+  simp
+
+@[ext]
+theorem ext : (∀ (τ : PropAssignment ν), τ ⊨ φ₁ ↔ τ ⊨ φ₂) → φ₁ = φ₂ := by
+  have ⟨φ₁, h₁⟩ := Quotient.exists_rep φ₁
+  have ⟨φ₂, h₂⟩ := Quotient.exists_rep φ₂
+  simp only [← h₁, ← h₂]
+  intro h
+  apply Quotient.sound ∘ PropForm.equivalent_ext.mpr
+  apply h
+
+/-! Semantic entailment. -/
+
+def entails (φ₁ φ₂ : PropTerm ν) : Prop :=
+  ∀ (τ : PropAssignment ν), φ₁.eval τ ≤ φ₂.eval τ
+
+@[simp]
+theorem entails_mk {φ₁ φ₂ : PropForm ν} : entails ⟦φ₁⟧ ⟦φ₂⟧ ↔ PropForm.entails φ₁ φ₂ :=
+  ⟨id, id⟩
+
+theorem entails_ext {φ₁ φ₂ : PropTerm ν} :
+    entails φ₁ φ₂ ↔ (∀ (τ : PropAssignment ν), τ ⊨ φ₁ → τ ⊨ φ₂) := by
+  have ⟨φ₁, h₁⟩ := Quotient.exists_rep φ₁
+  have ⟨φ₂, h₂⟩ := Quotient.exists_rep φ₂
+  simp only [← h₁, ← h₂, entails_mk]
+  exact PropForm.entails_ext
+  
+theorem entails_refl (φ : PropTerm ν) : entails φ φ :=
+  fun _ => le_rfl
+theorem entails.trans : entails φ₁ φ₂ → entails φ₂ φ₃ → entails φ₁ φ₃ :=
+  fun h₁ h₂ τ => le_trans (h₁ τ) (h₂ τ)
+
+theorem entails_tr (φ : PropTerm ν) : entails φ tr :=
+  fun _ => le_top
+theorem fls_entails (φ : PropTerm ν) : entails fls φ :=
+  fun _ => bot_le
+
+theorem entails_disj_left (φ₁ φ₂ : PropTerm ν) : entails φ₁ (disj φ₁ φ₂) :=
+  fun _ => by simp only [eval_disj]; exact le_sup_left
+theorem entails_disj_right (φ₁ φ₂ : PropTerm ν) : entails φ₂ (disj φ₁ φ₂) :=
+  fun _ => by simp only [eval_disj]; exact le_sup_right
+theorem disj_entails : entails φ₁ φ₃ → entails φ₂ φ₃ → entails (disj φ₁ φ₂) φ₃ :=
+  fun h₁ h₂ τ => by simp only [eval_disj]; exact sup_le (h₁ τ) (h₂ τ)
+
+theorem conj_entails_left (φ₁ φ₂ : PropTerm ν) : entails (conj φ₁ φ₂) φ₁ :=
+  fun _ => by simp only [eval_conj]; exact inf_le_left
+theorem conj_entails_right (φ₁ φ₂ : PropTerm ν) : entails (conj φ₁ φ₂) φ₂ :=
+  fun _ => by simp only [eval_conj]; exact inf_le_right
+theorem entails_conj : entails φ₁ φ₂ → entails φ₁ φ₃ → entails φ₁ (conj φ₂ φ₃) :=
+  fun h₁ h₂ τ => by simp only [eval_conj]; exact le_inf (h₁ τ) (h₂ τ)
+
+theorem entails_disj_conj (φ₁ φ₂ φ₃ : PropTerm ν) :
+    entails (conj (disj φ₁ φ₂) (disj φ₁ φ₃)) (disj φ₁ (conj φ₂ φ₃)) :=
+  fun _ => by simp only [eval_conj, eval_disj]; exact le_sup_inf
+
+theorem conj_neg_entails_fls (φ : PropTerm ν) : entails (conj φ (neg φ)) fls :=
+  fun τ => by simp only [eval_conj, eval_neg]; exact BooleanAlgebra.inf_compl_le_bot (eval τ φ)
+
+theorem tr_entails_disj_neg (φ : PropTerm ν) : entails tr (disj φ (neg φ)) :=
+  fun τ => by simp only [eval_disj, eval_neg]; exact BooleanAlgebra.top_le_sup_compl (eval τ φ)
 
 theorem entails.antisymm : entails φ ψ → entails ψ φ → φ = ψ := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  simp only [← h₁, ← h₂, entails, Quotient.lift₂_mk]
-  rw [Quotient.eq]
-  exact PropForm.entails.antisymm
+  intro h₁ h₂
+  ext τ
+  exact ⟨entails_ext.mp h₁ τ, entails_ext.mp h₂ τ⟩
 
-theorem entails_tr (φ : PropTerm ν) : entails φ tr := by
-  have ⟨φ, h⟩ := Quotient.exists_rep φ
-  simp [← h, entails, tr, PropForm.entails_tr]
+theorem impl_eq (φ ψ : PropTerm ν) : impl φ ψ = disj ψ (neg φ) := by
+  ext τ
+  simp only [sEntails, satisfies, eval_impl, eval_disj, eval_neg]
+  rfl
 
-theorem fls_entails (φ : PropTerm ν) : entails fls φ := by
-  have ⟨φ, h⟩ := Quotient.exists_rep φ
-  simp [← h, entails, fls, PropForm.fls_entails]
-
-theorem entails_disj_left (φ ψ : PropTerm ν) : entails φ (disj φ ψ) := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  simp [← h₁, ← h₂, entails, disj, PropForm.entails_disj_left]
-
-theorem entails_disj_right (φ ψ : PropTerm ν) : entails ψ (disj φ ψ) := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  simp [← h₁, ← h₂, entails, disj, PropForm.entails_disj_right]
-
-theorem disj_entails : entails φ θ → entails ψ θ → entails (disj φ ψ) θ := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  have ⟨θ, h₃⟩ := Quotient.exists_rep θ
-  simp only [← h₁, ← h₂, ← h₃, entails, disj, Quotient.lift₂_mk, Quotient.map₂_mk]
-  exact PropForm.disj_entails
-
-theorem conj_entails_left (φ ψ : PropTerm ν) : entails (conj φ ψ) φ := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  simp [← h₁, ← h₂, entails, conj, PropForm.conj_entails_left]
-
-theorem conj_entails_right (φ ψ : PropTerm ν) : entails (conj φ ψ) ψ := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  simp [← h₁, ← h₂, entails, conj, PropForm.conj_entails_right]
-
-theorem entails_conj : entails φ ψ → entails φ θ → entails φ (conj ψ θ) := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  have ⟨θ, h₃⟩ := Quotient.exists_rep θ
-  simp only [← h₁, ← h₂, ← h₃, entails, conj, Quotient.lift₂_mk, Quotient.map₂_mk]
-  exact PropForm.entails_conj
-
-theorem entails_impl_iff (φ ψ θ : PropTerm ν) : entails φ (impl ψ θ) ↔ entails (conj φ ψ) θ := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  have ⟨θ, h₃⟩ := Quotient.exists_rep θ
-  simp [← h₁, ← h₂, ← h₃, entails, impl, conj, PropForm.entails_impl_iff]
-
-theorem impl_fls (φ : PropTerm ν) : impl φ fls = neg φ := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  simp only [← h₁, impl, fls, neg, Quotient.map_mk, Quotient.map₂_mk]
-  rw [Quotient.eq]
-  exact PropForm.impl_fls φ
-
-theorem conj_neg_entails_fls (φ : PropTerm ν) : entails (conj φ (neg φ)) fls := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  simp [← h₁, entails, conj, neg, fls, PropForm.conj_neg_entails_fls]
-
-theorem tr_entails_disj_neg (φ : PropTerm ν) : entails tr (disj φ (neg φ)) := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  simp [← h₁, entails, tr, disj, neg, PropForm.tr_entails_disj_neg]
-
-theorem entails_disj_conj (φ ψ θ : PropTerm ν) :
-    entails (conj (disj φ ψ) (disj φ θ)) (disj φ (conj ψ θ)) := by
-  have ⟨φ, h₁⟩ := Quotient.exists_rep φ
-  have ⟨ψ, h₂⟩ := Quotient.exists_rep ψ
-  have ⟨θ, h₃⟩ := Quotient.exists_rep θ
-  simp [← h₁, ← h₂, ← h₃, entails, conj, disj, PropForm.entails_disj_conj]
+/-! From this point onwards we use lattice notation for `PropTerm`s in order to get all the laws
+for free. -/
 
 instance : BooleanAlgebra (PropTerm ν) where
   le := entails
@@ -155,6 +213,7 @@ instance : BooleanAlgebra (PropTerm ν) where
   compl := neg
   sup := disj
   inf := conj
+  himp := impl
   le_refl := entails_refl
   le_trans := @entails.trans _
   le_antisymm := @entails.antisymm _
@@ -169,5 +228,39 @@ instance : BooleanAlgebra (PropTerm ν) where
   le_sup_inf := entails_disj_conj
   inf_compl_le_bot := conj_neg_entails_fls
   top_le_sup_compl := tr_entails_disj_neg
+  himp_eq := impl_eq
+
+@[simp]
+theorem satisfies_tr {τ : PropAssignment ν} : τ ⊨ ⊤ :=
+  by simp [sEntails, satisfies, Top.top]
+
+@[simp]
+theorem not_satisfies_fls {τ : PropAssignment ν} : τ ⊭ ⊥ :=
+  fun h => nomatch h
+
+@[simp]
+theorem satisfies_neg {τ : PropAssignment ν} : τ ⊨ (φᶜ) ↔ τ ⊭ φ := by
+  simp [sEntails, satisfies, HasCompl.compl]
+
+@[simp]
+theorem satisfies_conj {τ : PropAssignment ν} : τ ⊨ φ₁ ⊓ φ₂ ↔ τ ⊨ φ₁ ∧ τ ⊨ φ₂ := by
+  simp [sEntails, satisfies, HasInf.inf]
+
+@[simp]
+theorem satisfies_disj {τ : PropAssignment ν} : τ ⊨ φ₁ ⊔ φ₂ ↔ τ ⊨ φ₁ ∨ τ ⊨ φ₂ := by
+  simp [sEntails, satisfies, HasSup.sup]
+
+@[simp]
+theorem satisfies_impl {τ : PropAssignment ν} : τ ⊨ φ₁ ⇨ φ₂ ↔ (τ ⊨ φ₁ → τ ⊨ φ₂) := by
+  simp only [sEntails, satisfies, eval_impl, HImp.himp]
+  cases (eval τ φ₁) <;> simp [himp_eq]
+
+theorem satisfies_impl' {τ : PropAssignment ν} : τ ⊨ φ₁ ⇨ φ₂ ↔ τ ⊭ φ₁ ∨ τ ⊨ φ₂ := by
+  simp only [sEntails, satisfies, eval_impl, HImp.himp]
+  cases (eval τ φ₁) <;> simp [himp_eq]
+
+@[simp]
+theorem satisfies_biImpl {τ : PropAssignment ν} : τ ⊨ biImpl φ₁ φ₂ ↔ (τ ⊨ φ₁ ↔ τ ⊨ φ₂) := by
+  simp [sEntails, satisfies]
 
 end PropTerm
