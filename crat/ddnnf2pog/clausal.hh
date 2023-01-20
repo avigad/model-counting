@@ -190,7 +190,6 @@ private:
 
     // Augmentation for POG clauses
     std::vector<Clause *>proof_clauses;
-    Pog_writer *pwriter;
 
     // Maintaining context 
     std::vector<int> context_literal_stack;
@@ -213,6 +212,10 @@ private:
     std::vector<std::vector<int>*> deletion_stack;
 
 public:
+
+    // Direct access to writer (Use with caution)
+    Pog_writer *pwriter;
+
     Cnf_reasoner();
 
     // Read input clauses DIMACS format CNF file

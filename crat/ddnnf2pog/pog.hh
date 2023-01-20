@@ -124,9 +124,9 @@ private:
     bool optimize();
     // Add POG declarations to file
     bool concretize();
-    // At each node in POG, generate proof that its unit variable is implied by the input clauses
+    // At each position in POG, generate justification within context
     // Return ID of justifying clause
-    int validate_node(Pog_node *rnp);
+    int justify(int rlit);
     // Helper routines
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
     // Recursively descend Pog until find input literal

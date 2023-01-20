@@ -547,12 +547,6 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 
 
 
-// Validation
-// At each node in POG, generate proof that its unit variable is implied by the input clauses
-// Return ID of justifying clause
-int Pog::validate_node(Pog_node *rnp) {
-    return true;
-}
 
 // Recursively descend Pog until find input literal
 int Pog::first_literal(Pog_node *np) {
@@ -566,4 +560,74 @@ int Pog::first_literal(Pog_node *np) {
     }
     // Shouldn't reach this
     return 0;
+}
+
+// Justify each position in POG within current context
+// Return ID of justifying clause
+int Pog::justify(int rlit) {
+    int jcid = 0;
+    if (is_node(rlit)) {
+	int rvar = IABS(rlit);
+	Pog_node *rnp = get_node(rvar);
+	int xvar = rnp->get_xvar();
+	Clause *jclause = new Clause();
+	jclause->add(xvar);
+	for (int alit : *cnf->get_assigned_literals()) {
+	    jclause->add(-alit);
+	}
+	std::vector<int> hints;
+	cnf->new_context();
+	switch (rnp->get_type()) {
+	case POG_OR:
+	    {
+		int clit = (*rnp)[0];
+		int cvar = IABS(clit);
+		Pog_node *cnp = get_node(cvar);
+		int lit0 = first_literal(cnp);
+		int jid0 = justify(clit);
+		int jid1 = justify((*rnp)[1]);
+		// Must generate intermediate assertion
+		cnf->pwriter->comment("Clauses justifying OR node N%d with splitting variable %d", xvar, IABS(lit0));
+		Clause *jclause0 = new Clause();
+		jclause0->add(xvar);
+		jclause0->add(-lit0);
+		for (int alit : *cnf->get_assigned_literals()) {
+		    jclause0->add(-alit);
+		}
+		int cid0 = cnf->start_assertion(jclause0);
+		cnf->add_hint(rnp->get_defining_cid()+1);
+		cnf->add_hint(jid0);
+		cnf->finish_command(true);
+		hints.push_back(cid0);
+		hints.push_back(jid1);
+	    }
+	    hints.push_back(rnp->get_defining_cid()+2);
+	    break;
+	case POG_CAND:
+	    {
+		int clit0 = (*rnp)[0];
+		cnf->push_assigned_literal(clit0);
+		for (int i = 1; i < rnp->get_degree(); i++) {
+		    int clit = (*rnp)[i];
+		    int jid = justify(clit);
+		}
+	    }
+	    break;
+	case POG_AND:
+	    {
+	    }
+	    break;
+	default:
+	    err(true, "Unknown POG type %d\n", (int) rnp->get_type());
+	}
+	cnf->pop_context();
+	jcid = cnf->start_assertion(jclause);
+	for (int hint : hints)
+	    cnf->add_hint(hint);
+	cnf->finish_command(true);
+    } else
+	jcid = cnf->validate_literal(rlit);
+    report(4, "Literal %d in POG justified by clause %d\n", rlit, jcid);
+    return jcid;
+
 }
