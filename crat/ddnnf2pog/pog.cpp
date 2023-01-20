@@ -131,6 +131,10 @@ bool Pog::is_node(int lit) {
     return var > max_input_var && var <= max_input_var + nodes.size();
 }
 
+Pog_node * Pog::get_node(int id) {
+    return nodes[id-max_input_var-1];
+}
+
 Pog_node * Pog::operator[](int id) {
     return nodes[id-max_input_var-1];
 }
@@ -154,7 +158,7 @@ void Pog::topo_order(int rlit, std::vector<int> &rtopo, int *markers) {
 	if (markers[idx])
 	    return;
 	markers[idx] = 1;
-	Pog_node *np = (*this)[rid];
+	Pog_node *np = get_node(rid);
 	for (int i = 0; i < np->get_degree(); i++)
 	    topo_order((*np)[i], rtopo, markers);
 	rtopo.push_back(rid);
@@ -198,7 +202,7 @@ bool Pog::optimize() {
 	if (!remap[oid-max_input_var-1])
 	    // Not reachable from root
 	    continue;
-	Pog_node *np = (*this)[oid];
+	Pog_node *np = get_node(oid);
 	pog_type_t ntype = np->get_type();
 	if (ntype == POG_TRUE) 
 	    remap[oid-max_input_var-1] = true_id;
@@ -230,12 +234,15 @@ bool Pog::optimize() {
 		    Pog_node *cnp = new_nodes[nchild_lit-max_input_var-1];
 		    if (cnp->get_type() == POG_AND) {
 			cnp->set_type(POG_CAND);
+			report(4, "  Setting N%d type to CAND\n", cnp->get_xvar());
 			pcnp = cnp;
 		    }
 		}
 		nchildren.push_back(nchild_lit);
 	    }
 	    if ((nchildren[0] == -true_id || nchildren[1] == -true_id) && pcnp != NULL) {
+		// Convert child back to AND
+		pcnp->set_type(POG_AND);
 		remap[oid-max_input_var-1] = pcnp->get_xvar();
 		if (verblevel >= 4) {
 		    printf("  Node ");
@@ -360,7 +367,7 @@ bool Pog::concretize() {
 		// Find mutual exclusions
 		int child_lit = (*np)[i];
 		if (is_node(child_lit)) {
-		    Pog_node *cnp = (*this)[child_lit];
+		    Pog_node *cnp = get_node(child_lit);
 		    int hid = cnp->get_defining_cid() + 1;
 		    cnf->add_hint(hid);
 		}
@@ -511,7 +518,7 @@ bool Pog::read_d4ddnnf(FILE *infile) {
     }
     // Add arguments
     for (int pid = max_input_var + 1; pid <= max_input_var + nodes.size(); pid++) {
-	Pog_node *np = (*this)[pid];
+	Pog_node *np = get_node(pid);
 	std::vector<int> *args = arguments[pid-max_input_var-1];
 	np->add_children(args);
 	delete args;
@@ -519,7 +526,7 @@ bool Pog::read_d4ddnnf(FILE *infile) {
     for (auto kv : nnf_idmap) {
 	int nid = kv.first;
 	int pid = kv.second;
-	Pog_node *np = (*this)[pid];
+	Pog_node *np = get_node(pid);
 	// Check OR nodes
 	if (np->get_type() == POG_OR) {
 	    int degree = np->get_degree();
@@ -538,9 +545,25 @@ bool Pog::read_d4ddnnf(FILE *infile) {
     return (concretize());
 }
 
+
+
 // Validation
 // At each node in POG, generate proof that its unit variable is implied by the input clauses
 // Return ID of justifying clause
 int Pog::validate_node(Pog_node *rnp) {
     return true;
+}
+
+// Recursively descend Pog until find input literal
+int Pog::first_literal(Pog_node *np) {
+    for (int i = 0; i < np->get_degree(); i++) {
+	int clit = (*np)[i];
+	if (is_node(clit)) {
+	    Pog_node *cnp = get_node(IABS(clit));
+	    return first_literal(cnp);
+	} else
+	    return clit;
+    }
+    // Shouldn't reach this
+    return 0;
 }

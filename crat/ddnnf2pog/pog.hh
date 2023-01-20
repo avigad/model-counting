@@ -26,7 +26,8 @@
 #pragma once
 
 // Don't want any type to evaluate to 0
-// CAND is a special case of AND, arising from degenerate OR's where one argument is false
+// CAND is a special case of AND, indicating that first literal can be assumed to be 
+// true during proof generation.
 typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_CAND, POG_OR } pog_type_t;
 
 #include <vector>
@@ -108,6 +109,7 @@ public:
     bool is_node(int lit);
 
     // Index POG nodes by their extension variables
+    Pog_node * get_node(int var);
     Pog_node * operator[](int);
 
     int node_count();
@@ -125,8 +127,8 @@ private:
     // At each node in POG, generate proof that its unit variable is implied by the input clauses
     // Return ID of justifying clause
     int validate_node(Pog_node *rnp);
-
-
     // Helper routines
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
+    // Recursively descend Pog until find input literal
+    int first_literal(Pog_node *np);
 };
