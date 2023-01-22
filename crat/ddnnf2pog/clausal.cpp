@@ -1078,6 +1078,10 @@ void Cnf_reasoner::set_active_clauses(std::set<int> *new_set) {
 // rvar2cset provides a mapping from the reference variable to the set of clauses
 void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
 				     std::unordered_map<int,std::set<int>*> &rvar2cset) {
+    // Simplify clauses
+    int ccid = bcp();
+    if (ccid > 0)
+	err(true, "BCP generated conflict on clause %d prior to partitioning\n", ccid);
     // First figure out a partitioning of the variables
     // Map from variable to representative value in its partition
     // Mapping from representative var to set of variables
