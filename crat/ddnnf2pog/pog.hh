@@ -116,6 +116,11 @@ public:
 
     void show(FILE *outfile);
 
+    // At each position in POG, generate justification within context
+    // Return ID of justifying clause
+    int justify(int rlit, bool parent_or);
+
+
 private:
     // Simplify POG by eliminating constants,
     //  eliminating common subnodes, etc.
@@ -124,11 +129,8 @@ private:
     bool optimize();
     // Add POG declarations to file
     bool concretize();
-    // At each position in POG, generate justification within context
-    // Return ID of justifying clause
-    int justify(int rlit);
     // Helper routines
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
     // Recursively descend Pog until find input literal
-    int first_literal(Pog_node *np);
+    int first_literal(int rlit);
 };

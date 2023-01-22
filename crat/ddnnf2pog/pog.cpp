@@ -348,6 +348,13 @@ bool Pog::concretize() {
 	show(stdout);
     }
 
+    if (verblevel >= 2) {
+	// Document input clauses
+	cnf->pwriter->comment("Input clauses");
+	for (int cid = 1; cid <= cnf->clause_count(); cid++)
+	    cnf->document_input(cid);
+    }
+
     for (Pog_node *np : nodes) {
 	ilist args = ilist_copy_list(&(*np)[0], np->get_degree());
 	int xvar = np->get_xvar();
@@ -545,26 +552,19 @@ bool Pog::read_d4ddnnf(FILE *infile) {
     return (concretize());
 }
 
-
-
-
 // Recursively descend Pog until find input literal
-int Pog::first_literal(Pog_node *np) {
-    for (int i = 0; i < np->get_degree(); i++) {
-	int clit = (*np)[i];
-	if (is_node(clit)) {
-	    Pog_node *cnp = get_node(IABS(clit));
-	    return first_literal(cnp);
-	} else
-	    return clit;
+int Pog::first_literal(int rlit) {
+    if (is_node(rlit)) {
+	Pog_node *np = get_node(IABS(rlit));
+	int clit = (*np)[0];
+	return first_literal(clit);
     }
-    // Shouldn't reach this
-    return 0;
+    return rlit;
 }
 
 // Justify each position in POG within current context
 // Return ID of justifying clause
-int Pog::justify(int rlit) {
+int Pog::justify(int rlit, bool parent_or) {
     int jcid = 0;
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
@@ -572,62 +572,109 @@ int Pog::justify(int rlit) {
 	int xvar = rnp->get_xvar();
 	Clause *jclause = new Clause();
 	jclause->add(xvar);
-	for (int alit : *cnf->get_assigned_literals()) {
+	for (int alit : *cnf->get_assigned_literals())
 	    jclause->add(-alit);
-	}
 	std::vector<int> hints;
 	cnf->new_context();
+	bool documented = false;
 	switch (rnp->get_type()) {
 	case POG_OR:
 	    {
-		int clit = (*rnp)[0];
-		int cvar = IABS(clit);
-		Pog_node *cnp = get_node(cvar);
-		int lit0 = first_literal(cnp);
-		int jid0 = justify(clit);
-		int jid1 = justify((*rnp)[1]);
-		// Must generate intermediate assertion
-		cnf->pwriter->comment("Clauses justifying OR node N%d with splitting variable %d", xvar, IABS(lit0));
-		Clause *jclause0 = new Clause();
-		jclause0->add(xvar);
-		jclause0->add(-lit0);
-		for (int alit : *cnf->get_assigned_literals()) {
-		    jclause0->add(-alit);
+		int clit[2];
+		int jid;
+		int lhints[2][2];
+		int hcount[2] = {0,0};
+		int jcount = 0;
+		for (int i = 0; i < 2; i++) {
+		    clit[i] = (*rnp)[i];
+		    lhints[i][hcount[i]++] = rnp->get_defining_cid()+i+1;
+		    jid = justify(clit[i], true);
+		    if (jid > 0) {
+			jcount++;
+			lhints[i][hcount[i]++] = jid;
+		    }
 		}
-		int cid0 = cnf->start_assertion(jclause0);
-		cnf->add_hint(rnp->get_defining_cid()+1);
-		cnf->add_hint(jid0);
-		cnf->finish_command(true);
-		hints.push_back(cid0);
-		hints.push_back(jid1);
+		if (jcount > 1) {
+		    // Must prove in two steps
+		    int slit = first_literal(clit[0]);
+		    Clause *jclause0 = new Clause();
+		    jclause0->add(-slit);
+		    jclause0->add(xvar);
+		    for (int alit : *cnf->get_assigned_literals())
+			jclause0->add(-alit);
+		    cnf->pwriter->comment("Justify node N%d_%s", xvar, pog_type_name[rnp->get_type()]);
+		    documented = true;
+		    int cid0 = cnf->start_assertion(jclause0);
+		    for (int h = 0; h < hcount[0]; h++)
+			cnf->add_hint(lhints[0][h]);
+		    cnf->finish_command(true);
+		    hints.push_back(cid0);
+		    for (int h = 0; h < hcount[1]; h++)
+			hints.push_back(lhints[1][h]);
+		} else {
+		    // Can do with single proof step
+		    for (int i = 0; i < 2; i++)
+			for (int h = 0; h < hcount[i]; h++)
+			    hints.push_back(lhints[i][h]);
+		}
 	    }
-	    hints.push_back(rnp->get_defining_cid()+2);
 	    break;
 	case POG_CAND:
-	    {
-		int clit0 = (*rnp)[0];
-		cnf->push_assigned_literal(clit0);
-		for (int i = 1; i < rnp->get_degree(); i++) {
-		    int clit = (*rnp)[i];
-		    int jid = justify(clit);
-		}
-	    }
-	    break;
 	case POG_AND:
 	    {
+		int cstart = 0;
+		if (parent_or) {
+		    int clit0 = (*rnp)[cstart++];
+		    cnf->push_assigned_literal(clit0);
+		    jclause->add(-clit0);
+		}
+		bool partition = false;
+		std::unordered_map<int,int> var2rvar;
+		std::unordered_map<int,std::set<int>*> rvar2cset;
+		std::set<int> *save_clauses = NULL;
+		std::set<int> *pset = NULL;
+		for (int i = cstart; i < rnp->get_degree(); i++) {
+		    int clit = (*rnp)[i];
+		    if (!partition && i < rnp->get_degree()-1 && is_node(clit)) {
+			// Must partition clauses
+			cnf->partition_clauses(var2rvar, rvar2cset);
+			partition = true;
+			save_clauses = new std::set<int>;
+			cnf->extract_active_clauses(save_clauses);
+			report(4, "Justifying node N%d.  Partitioned clauses into %d sets\n", xvar, rvar2cset.size());
+		    }
+		    if (partition) {
+			int llit = first_literal(clit);
+			int rvar = var2rvar.find(IABS(llit))->second;
+			report(5, "Justifying node N%d.  Use clause subset linked to variable %d\n", xvar, rvar);
+			pset = rvar2cset.find(rvar)->second;
+			// Restrict clauses to those relevant to this partition
+			cnf->set_active_clauses(pset);
+		    } 
+		    int jid = justify(clit, false);
+		    hints.push_back(jid);
+		    if (pset != NULL)
+			delete pset;
+		}
+		hints.push_back(rnp->get_defining_cid());
+		if (save_clauses != NULL)
+		    cnf->set_active_clauses(save_clauses);
 	    }
 	    break;
 	default:
 	    err(true, "Unknown POG type %d\n", (int) rnp->get_type());
 	}
-	cnf->pop_context();
+	if (!documented)
+	    cnf->pwriter->comment("Justify node N%d_%s", xvar, pog_type_name[rnp->get_type()]);
 	jcid = cnf->start_assertion(jclause);
 	for (int hint : hints)
 	    cnf->add_hint(hint);
 	cnf->finish_command(true);
-    } else
+	cnf->pop_context();
+    } else if (!parent_or)
 	jcid = cnf->validate_literal(rlit);
-    report(4, "Literal %d in POG justified by clause %d\n", rlit, jcid);
+    if (jcid > 0)
+	report(4, "Literal %d in POG justified by clause %d\n", rlit, jcid);
     return jcid;
-
 }
+

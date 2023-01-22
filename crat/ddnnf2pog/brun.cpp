@@ -44,23 +44,29 @@ int main(int argc, const char *argv[]) {
 	exit(1);
     }
     std::unordered_map<int,int> var2rvar;
-    std::unordered_map<int,std::vector<int>*> rvar2clist;
-    cnf.partition_clauses(var2rvar, rvar2clist);
+    std::unordered_map<int,std::set<int>*> rvar2cset;
+    cnf.partition_clauses(var2rvar, rvar2cset);
     if (verblevel >= 2) {
 	printf("Partitioning into disjoint clauses\n");
-	for (auto fid : rvar2clist) {
+	for (auto fid : rvar2cset) {
 	    printf("Reference variable %d:", fid.first);
-	    std::vector<int> *cvec = fid.second;
-	    for (int cid : *cvec)
+	    std::set<int> *cset = fid.second;
+	    for (int cid : *cset)
 		printf(" %d", cid);
 	    printf("\n");
 	}
     }
     
 
+    int depth = 0;
     while (argi < argc) {
 	if (strcmp(argv[argi], ".") == 0) {
  	    printf("c Popping one level\n");
+	    depth--;
+	    if (depth < 0) {
+		printf("Attempt to pop below depth 0\n");
+		return 1;
+	    }
 	    cnf.pop_context();
 	    int ncid = cnf.bcp();
 	    if (ncid > 0) {
@@ -70,8 +76,9 @@ int main(int argc, const char *argv[]) {
 	}
 	else {
 	    int lit = atoi(argv[argi]);
-	    printf("c Asserting %d\n", lit);
+	    printf("c Pushing level and asserting %d\n", lit);
 	    cnf.new_context();
+	    depth++;
 	    cnf.push_assigned_literal(lit);
 	    int ncid = cnf.bcp();
 	    if (ncid > 0) {
@@ -81,6 +88,12 @@ int main(int argc, const char *argv[]) {
 	}
 	argi++;
     }
+
+    if (depth > 0) {
+	printf("c Stopped at depth %d\n", depth);
+	return 0;
+    }
+
     // Extract reduced CNF representation
     Cnf_reduced *rcp = cnf.extract_cnf();
     rcp->run_solver();
@@ -97,11 +110,13 @@ int main(int argc, const char *argv[]) {
     }
     delete rcp;
 
-    // Attempt final step in UNSAT proof
-    Clause *tcp = new Clause();
-    int ncid = cnf.rup_validate(tcp);
-    if (ncid == 0) {
-	err(false, "Failed to finish UNSAT proof\n");
+    if (!cnf.is_unsatisfiable()) {
+	// Attempt final step in UNSAT proof
+	Clause *tcp = new Clause();
+	int ncid = cnf.rup_validate(tcp);
+	if (ncid == 0) {
+	    err(false, "Failed to finish UNSAT proof\n");
+	}
     }
     
 

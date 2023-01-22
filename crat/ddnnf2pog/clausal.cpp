@@ -368,6 +368,7 @@ Cnf_reduced::Cnf_reduced() : Cnf() {
     max_regular_variable = 0;
     emitted_proof_clauses = 0;
     fname = NULL;
+    unsatisfiable = false;
 }
 
 Cnf_reduced::~Cnf_reduced() {
@@ -408,6 +409,8 @@ void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals)
 	    lits.push_back(lit);
 	}
     }
+    if (lits.size() == 0)
+	unsatisfiable = true;
     add(new Clause(lits.data(), lits.size()));
 }
 
@@ -416,6 +419,11 @@ bool Cnf_reduced::run_solver() {
     char tname[100];
     char cmd[150];
     
+    if (unsatisfiable) {
+	report(2, "Reduced CNF contains empty clause\n");
+	return true;
+    }
+
     snprintf(tname, 100, "reduction-%d.cnf", ++vnum);
     
     FILE *cout = fopen(tname, "w");
@@ -483,11 +491,13 @@ Clause * Cnf_reduced::get_proof_clause(std::vector<int> *context) {
 Cnf_reasoner::Cnf_reasoner() : Cnf() { 
     pwriter = NULL;
     asserting = false;
+    unsatisfiable = false;
 }
 
 Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) { 
     pwriter = NULL;
     asserting = false;
+    unsatisfiable = false;
 }
 
 Clause * Cnf_reasoner::get_clause(int cid) {
@@ -508,10 +518,16 @@ Clause * Cnf_reasoner::operator[](int cid) {
     return get_clause(cid);
 }
 
+bool Cnf_reasoner::is_unsatisfiable() {
+    return unsatisfiable;
+}
+
 int Cnf_reasoner::add_proof_clause(Clause *clp) {
     int cid = clause_count() + proof_clauses.size() + 1;
     proof_clauses.push_back(clp);
-    if (clp->length() == 1) {
+    if (clp->length() == 0)
+	unsatisfiable = true;
+    else if (clp->length() == 1) {
 	int lit = (*clp)[0];
 	unit_literals.insert(lit);
 	justifying_ids[lit] = cid;
@@ -544,6 +560,17 @@ void Cnf_reasoner::finish_command(bool add_zero) {
     else
 	pwriter->finish_line("");
     asserting = false;
+}
+
+void Cnf_reasoner::document_input(int cid) {
+    ilist show = ilist_new(0);
+    Clause *cp = get_clause(cid);
+    show = ilist_push(show, cid);
+    for (int i = 0; i < cp->length(); i++)
+	show = ilist_push(show, (*cp)[i]);
+    show = ilist_push(show, 0);
+    pwriter->comment_list(show);
+    ilist_free(show);
 }
 
 int Cnf_reasoner::start_and(int var, ilist args) {
@@ -607,7 +634,7 @@ int Cnf_reasoner::start_or(int var, ilist args) {
 
 void Cnf_reasoner::document_or(int cid, int var, ilist args) {
     if (verblevel < 2)
-	return
+	return;
     pwriter->comment("Implicit declarations");
     int len = ilist_length(args);
     ilist show = ilist_new(len+2);
@@ -673,20 +700,29 @@ void Cnf_reasoner::new_unit(int lit, int cid, bool input) {
 }
 
 int Cnf_reasoner::found_conflict(int cid) {
-    Clause *clp = new Clause();
-    for (int alit : assigned_literals)
-	clp->add(-alit);
-    int ncid = start_assertion(clp);
+    Clause *clp = NULL;
+    int ncid = 0;
     // Print hints
     Clause *cp = get_clause(cid);
     int clen = cp->length();
+    bool found_hint = false;
     for (int idx = 0; idx < clen; idx++) {
 	int clit = (*cp)[idx];
 	auto fid = justifying_ids.find(-clit);
 	if (fid != justifying_ids.end()) {
+	    if (!found_hint) {
+		found_hint = true;
+		clp = new Clause();
+		for (int alit : assigned_literals)
+		    clp->add(-alit);
+		ncid = start_assertion(clp);
+
+	    }
 	    add_hint(fid->second);
 	}
     }
+    if (!found_hint)
+	return cid;
     if (clp->length() > 1)
 	push_clause(ncid);
     add_hint(cid);
@@ -959,6 +995,7 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 void Cnf_reasoner::new_context() {
     context_literal_stack.push_back(CONTEXT_MARKER);
     context_clause_stack.push_back(CONTEXT_MARKER);
+    report(4, "New context\n");
 }
 
 std::vector<int> *Cnf_reasoner::get_assigned_literals() {
@@ -967,9 +1004,10 @@ std::vector<int> *Cnf_reasoner::get_assigned_literals() {
 
 void Cnf_reasoner::push_assigned_literal(int lit) {
     if (unit_literals.find(-lit) != unit_literals.end())
-	err(false, "Attempt to assert literal %d.  But, already have -%d as unit\n", lit, lit);
+	err(false, "Attempt to assert literal %d.  But, already have %d as unit\n", lit, -lit);
     if (unit_literals.find(lit) != unit_literals.end())
 	err(false, "Attempt to assert literal %d.  But, it is already unit\n", lit);
+    report(4, "Asserting literal %d\n", lit);
     unit_literals.insert(lit);
     assigned_literals.push_back(lit);
     context_literal_stack.push_back(lit);
@@ -986,10 +1024,12 @@ void Cnf_reasoner::push_derived_literal(int lit, int cid) {
 }
 
 void Cnf_reasoner::push_clause(int cid) {
+    //    report(4, "Deactivating clause %d\n", cid);
     context_clause_stack.push_back(cid);
 }
 
 void Cnf_reasoner::pop_context() {
+    report(4, "Popping context\n");
     while (true) {
 	if (context_literal_stack.size() == 0)
 	    err(true, "Tried to pop beyond base of context literal stack\n");
@@ -998,11 +1038,11 @@ void Cnf_reasoner::pop_context() {
 	    break;
 	unit_literals.erase(lit);
 	if (auto fid = justifying_ids.find(lit) == justifying_ids.end()) {
-	    report(4, "  Restoring asserted literal %d\n", lit);
+	    report(4, "  Removing assertion of literal %d\n", lit);
 	    assigned_literals.pop_back();
 	} else {
 	    justifying_ids.erase(lit);
-	    report(4, "  Restoring derived literal %d\n", lit);
+	    report(4, "  Removing derivation of literal %d\n", lit);
 	}
     }
     while (true) {
@@ -1017,12 +1057,27 @@ void Cnf_reasoner::pop_context() {
 }
 
 
+static void copy_set(std::set<int> *dest, std::set<int> *src) {
+    dest->clear();
+    for (int v : *src)
+	dest->insert(v);
+}
+
+void Cnf_reasoner::extract_active_clauses(std::set<int> *save_set) {
+    copy_set(save_set, curr_active_clauses);
+}
+
+void Cnf_reasoner::set_active_clauses(std::set<int> *new_set) {
+    copy_set(curr_active_clauses, new_set);
+}
+
+
 // Partition set of active clauses into subsets, each using distinct sets of variables
 // Each set denoted by reference variable
 // var2rvar provides a mapping from each variable to the containing set's reference variable
 // rvar2cset provides a mapping from the reference variable to the set of clauses
 void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
-				     std::unordered_map<int,std::vector<int>*> &rvar2clist) {
+				     std::unordered_map<int,std::set<int>*> &rvar2cset) {
     // First figure out a partitioning of the variables
     // Map from variable to representative value in its partition
     // Mapping from representative var to set of variables
@@ -1091,13 +1146,13 @@ void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
 	    }
 	}
     }
-    rvar2clist.clear();
+    rvar2cset.clear();
     for (auto fid : rvar2vset) {
 	int rvar = fid.first;
 	// Don't need variable set anymore
 	delete fid.second;
-	std::vector<int> *clist = new std::vector<int>;
-	rvar2clist[rvar] = clist;
+	std::set<int> *cset = new std::set<int>;
+	rvar2cset[rvar] = cset;
     }
     // Assign clauses to sets
     for (int cid : *curr_active_clauses) {
@@ -1109,8 +1164,8 @@ void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
 	    if (fid == var2rvar.end())
 		continue;
 	    int rvar = fid->second;
-	    std::vector<int> *clist = rvar2clist.find(rvar)->second;
-	    clist->push_back(cid);
+	    std::set<int> *cset = rvar2cset.find(rvar)->second;
+	    cset->insert(cid);
 	    break;
 	}
     }
@@ -1127,35 +1182,58 @@ Cnf_reduced *Cnf_reasoner::extract_cnf() {
 
 // Justify that literal holds.  Return ID of justifying clause
 int Cnf_reasoner::validate_literal(int lit) {
+    report(5, "Attempting to Validate literal %d\n", lit);
     auto fid = justifying_ids.find(lit);
-    if (fid != justifying_ids.end())
+    if (fid != justifying_ids.end()) {
+	report(5, "Validating literal %d.  Already unit\n", lit);
 	return fid->second;
-    if (unit_literals.find(-lit) != unit_literals.end())
+    }
+    if (unit_literals.find(-lit) != unit_literals.end()) {
+	report(5, "Validating literal %d.  BUT %d is unit\n", lit, -lit);
 	return 0;
+    }
     int ncid = 0;
     new_context();
-    push_assigned_literal(lit);
+    push_assigned_literal(-lit);
     ncid = bcp();
-    if (ncid > 0)
-	return ncid;
-    Cnf_reduced *rcp = extract_cnf();
-    if (rcp->run_solver()) {
-	while (true) {
-	    Clause *pnp = rcp->get_proof_clause(&assigned_literals);
-	    if (pnp == NULL)
-		break;
-	    ncid = rup_validate(pnp);
-	    if (ncid == 0) {
-		err(false, "Failed to validate proof clause\n");
-		if (verblevel >= 3)
-		    pnp->show();
+    if (ncid > 0) {
+	report(5, "Validating literal %d.  Justified by BCP\n", lit);
+    } else {
+	Cnf_reduced *rcp = extract_cnf();
+	if (rcp->run_solver()) {
+	    while (true) {
+		Clause *pnp = rcp->get_proof_clause(&assigned_literals);
+		if (pnp == NULL)
+		    break;
+		ncid = rup_validate(pnp);
+		if (ncid == 0) {
+		    err(false, "Failed to validate proof clause while validating literal %d\n", lit);
+		    if (verblevel >= 3)
+			pnp->show();
+		}
 	    }
 	}
+	if (ncid == 0) {
+	    err(false, "Failed to validate proof clause while validating literal %d\n", lit);
+	} else {
+	    report(5, "Validating literal %d.  Used SAT solver\n", lit);
+	}
+	delete rcp;
     }
-    if (ncid == 0)
-	err(false, "Failed to validate proof clause\n");
-    delete rcp;
     pop_context();
     return ncid;
 }
 
+void Cnf_reasoner::delete_assertions() {
+    // Don't want last one
+    pwriter->comment("Delete all but final asserted clause");
+    bool remove = false;
+    while (deletion_stack.size() > 0) {
+	std::vector<int> *dvp = deletion_stack.back();
+	if (remove)
+	    pwriter->clause_deletion(dvp);
+	remove = true;
+	delete dvp;
+	deletion_stack.pop_back();
+    }
+}

@@ -102,10 +102,10 @@ void Writer::write_vector(std::vector<int> &vec) {
 }
 
 void Writer::comment_list(ilist vals) {
-    if (!do_comments)
+    if (!do_comments || ilist_length(vals) == 0)
 	return;
-    fprintf(outfile, "c ");
-    for (int i = 0; i < ilist_length(vals); i++)
+    fprintf(outfile, "c %d: ", vals[0]);
+    for (int i = 1; i < ilist_length(vals); i++)
 	add_int(vals[i]);
     add_int(0);
     fprintf(outfile, "\n");

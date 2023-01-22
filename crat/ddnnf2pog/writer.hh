@@ -84,7 +84,6 @@ public:
     void start_and(int cid, int var);
     void start_or(int cid, int var);
     void constant(int cid, int val);
-
     // Clause deletion makes use of vector that includes clause id
     void clause_deletion(std::vector<int> *dvp);
     void operation_deletion(int var);

@@ -65,11 +65,12 @@ int main(int argc, const char *argv[]) {
 	fprintf(stderr, "Error reading D4 NNF file\n");
 	exit(1);
     }
+    
+
     int root_literal = pog.get_root();
-    pwriter->comment("Assert root literal");
-    Clause *ucp = new Clause(&root_literal, 1);
-    int rid = cnf.start_assertion(ucp);
-    cnf.finish_command(true);
+    report(3, "Justifying root literal %d\n", root_literal);
+    int rcid = pog.justify(root_literal, false);
+    cnf.delete_assertions();
     pwriter->finish_file();
     return 0;
 }

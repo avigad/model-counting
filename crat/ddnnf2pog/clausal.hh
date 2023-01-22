@@ -155,6 +155,9 @@ class Cnf_reduced : public Cnf {
     std::unordered_map<int,int> forward_variable_map;
     std::unordered_map<int,int> reverse_variable_map;
 
+    // When empty clause gets added to CNF
+    bool unsatisfiable;
+
     std::vector<Clause *> proof_clauses;
     int max_regular_variable;
     int max_nonstandard_variable;
@@ -191,6 +194,8 @@ private:
     // Augmentation for POG clauses
     std::vector<Clause *>proof_clauses;
 
+    bool unsatisfiable;
+
     // Maintaining context 
     std::vector<int> context_literal_stack;
     std::vector<int> context_clause_stack;
@@ -209,6 +214,7 @@ private:
     // Are hints being added to an assertion?
     bool asserting;
     // Stack of vectors containing deletion information
+    // Each entry contains clause ID + hints
     std::vector<std::vector<int>*> deletion_stack;
 
 public:
@@ -220,6 +226,9 @@ public:
 
     // Read input clauses DIMACS format CNF file
     Cnf_reasoner(FILE *infile);
+
+    // Has empty clause been added to proof?
+    bool is_unsatisfiable();
 
     // Access input or proof clause, with id 1 being first input clause
     Clause * get_clause(int cid);
@@ -237,6 +246,7 @@ public:
     int start_and(int var, ilist args);
     int start_or(int var, ilist args);
     // Document operations
+    void document_input(int cid);
     void document_and(int cid, int var, ilist args);
     void document_or(int cid, int var, ilist args);
 
@@ -249,8 +259,13 @@ public:
     void push_clause(int cid);
     std::vector<int> *get_assigned_literals();
 
+
+    // set/get active clauses
+    void extract_active_clauses(std::set<int> *save_set);
+    void set_active_clauses(std::set<int> *new_set);
+
     // Partition set of active clauses into subsets having disjoint variables
-    void partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::vector<int>*> &rvar2clist);
+    void partition_clauses(std::unordered_map<int,int> &var2rvar, std::unordered_map<int,std::set<int>*> &rvar2cset);
 
     // Extract a reduced representation of the currently active clauses
     Cnf_reduced *extract_cnf();
@@ -266,6 +281,9 @@ public:
     // Justify that literal holds
     // Justify that literal holds.  Return ID of justifying clause
     int validate_literal(int lit);
+
+    // Delete all but final asserted clause
+    void delete_assertions();
 
 private:
 
