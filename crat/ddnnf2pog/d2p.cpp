@@ -69,8 +69,11 @@ int main(int argc, const char *argv[]) {
 
     int root_literal = pog.get_root();
     report(3, "Justifying root literal %d\n", root_literal);
-    int rcid = pog.justify(root_literal, false);
+    int unit_cid = pog.justify(root_literal, false);
     cnf.delete_assertions();
+    pwriter->comment("Delete input clauses");
+    for (int cid = 1; cid <= cnf.clause_count(); cid++)
+	pog.delete_input_clause(cid, unit_cid);
     pwriter->finish_file();
     return 0;
 }

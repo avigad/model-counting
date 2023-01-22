@@ -143,6 +143,14 @@ bool Clause::satisfied(char *assignment) {
     return found;
 }
 
+bool Clause::contains(int lit) {
+    for (int i = 0; i < ilist_length(contents); i++)
+	if (contents[i] == lit)
+	    return true;
+    return false;
+}
+
+
 void Clause::canonize() {
     std::sort(contents, contents + length(), abs_less);
     int last_lit = 0;
@@ -1241,3 +1249,4 @@ void Cnf_reasoner::delete_assertions() {
 	deletion_stack.pop_back();
     }
 }
+

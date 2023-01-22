@@ -77,7 +77,6 @@ public:
     // Access children
     int get_degree();
     int& operator[](int);
-
 };
 
 // POG
@@ -89,6 +88,8 @@ private:
     std::vector<Pog_node *> nodes;
     // Root literal can refer to either an input variable or the last node
     int root_literal;
+    // Mapping for each node to the set of variables on which it depends
+    std::unordered_set<int>** dependency_sets;
 
 public:
     Pog();
@@ -120,6 +121,7 @@ public:
     // Return ID of justifying clause
     int justify(int rlit, bool parent_or);
 
+    void delete_input_clause(int cid, int unit_cid);
 
 private:
     // Simplify POG by eliminating constants,

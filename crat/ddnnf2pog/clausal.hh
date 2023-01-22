@@ -91,6 +91,9 @@ public:
     // determine if clause satisfied
     bool satisfied(char *assignment);
 
+    // Properties
+    bool contains(int lit);
+
 };
 
 // Base class Cnf is a collection of clauses.  Can read from a DIMACS format CNF file

@@ -104,11 +104,13 @@ void Pog_node::show(FILE *outfile) {
 Pog::Pog() {
     cnf = NULL;
     max_input_var = 0;
+    dependency_sets = NULL;
 }
 
 Pog::Pog(Cnf_reasoner *cset) {
     cnf = cset;
     max_input_var = cset->max_variable();
+    dependency_sets = NULL;
 }
 
 int Pog::add_node(Pog_node *np) {
@@ -678,3 +680,68 @@ int Pog::justify(int rlit, bool parent_or) {
     return jcid;
 }
 
+// Objective: Prove that Pog cannot evalute to true for any input that doesn't satisfy the clause
+// I.e., that pog node logically implies clause
+void Pog::delete_input_clause(int cid, int unit_cid) {
+    Clause *cp = cnf->get_input_clause(cid);
+
+    // Label each node by whether or not it is guaranteed to imply the clause
+    bool *implies_clause = new bool[nodes.size()];
+
+    std::vector<int> *dvp = new std::vector<int>;
+    dvp->push_back(cid);
+    dvp->push_back(unit_cid);
+
+    for (int nidx = 0; nidx < nodes.size(); nidx++) {
+	Pog_node *np = nodes[nidx];
+	bool implies = false;
+	switch (np->get_type()) {
+	case POG_AND:
+	case POG_CAND:
+	    implies = false;
+	    // Must have at least one child implying the clause
+	    for (int i = 0; i < np->get_degree(); i++) {
+		int clit = (*np)[i];
+		if (is_node(clit)) {
+		    if (clit <= 0)
+			err(true, "Encountered invalid Pog identifier %d while deleting clause %d\n", clit, cid);
+		    implies = implies_clause[clit-max_input_var-1];
+		    if (implies) {
+			dvp->push_back(np->get_defining_cid()+i+1);
+			break;
+		    }
+		} else {
+		    implies = cp->contains(clit);
+		    if (implies) {
+			dvp->push_back(np->get_defining_cid()+i+1);
+			break;
+		    }
+		}
+	    }
+	    break;
+	case POG_OR:
+	    // Must have all children implying the clause
+	    implies = true;
+	    for (int i = 0; i < np->get_degree(); i++) {
+		int clit = (*np)[i];
+		if (is_node(clit)) {
+		    if (clit <= 0)
+			err(true, "Encountered invalid Pog identifier %d while deleting clause %d\n", clit, cid);
+		    implies &= implies_clause[clit-max_input_var-1];
+		} else
+		    implies &= cp->contains(clit);
+	    }
+	    if (implies)
+		dvp->push_back(np->get_defining_cid());
+	    break;
+	default:
+	    err(true, "Uknown POG type %d for node N%d\n", (int) np->get_type(), np->get_xvar());
+	}
+	implies_clause[nidx] = implies;	    
+    }
+    if (!implies_clause[nodes.size()-1])
+	err(true, "Failed to generate deletion proof of clause %d for root node\n", cid);
+    cnf->pwriter->clause_deletion(dvp);
+    delete dvp;
+    delete[] implies_clause;
+}
