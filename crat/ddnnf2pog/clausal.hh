@@ -152,18 +152,11 @@ class Cnf_reduced : public Cnf {
 
     // So that can delete it when done
     const char *fname;
-    // In some cases, will need to add new "nonstandard" variables that don't match 
-    // ones in original input formula.  Want to track these so that can
-    // map to and from variable numbers that get used by the SAT solver
-    std::unordered_map<int,int> forward_variable_map;
-    std::unordered_map<int,int> reverse_variable_map;
 
     // When empty clause gets added to CNF
     bool unsatisfiable;
 
     std::vector<Clause *> proof_clauses;
-    int max_regular_variable;
-    int max_nonstandard_variable;
     int emitted_proof_clauses;
 
 public:
@@ -174,9 +167,6 @@ public:
     ~Cnf_reduced();
 
     const char* get_file_name();
-
-    // Add nonstandard variable.  Should only do this after regular input clauses have been added
-    void add_variable(int v);
 
     // Add clause.  It will be simplified according to the context
     // and the variables will get renamed by the forward map

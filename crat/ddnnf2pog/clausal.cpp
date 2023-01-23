@@ -373,7 +373,6 @@ int Cnf::satisfied(char *assignment) {
 
 // Support for generating reduced CNF, running through SAT solver, and mapping proof steps back to original
 Cnf_reduced::Cnf_reduced() : Cnf() {
-    max_regular_variable = 0;
     emitted_proof_clauses = 0;
     fname = NULL;
     unsatisfiable = false;
@@ -381,24 +380,14 @@ Cnf_reduced::Cnf_reduced() : Cnf() {
 
 Cnf_reduced::~Cnf_reduced() {
     for (Clause *np : proof_clauses) {
-	delete np;
+	if (np)
+	    delete np;
     }
     free((void *) fname);
 }
 
 const char *Cnf_reduced::get_file_name() {
     return fname;
-}
-
-// Add nonstandard variable.  Do this only after adding all input clauses
-void Cnf_reduced::add_variable(int v) {
-    if (max_regular_variable == 0) {
-	max_regular_variable = max_variable();
-	max_nonstandard_variable = max_regular_variable;
-    }
-    int nvar = ++max_nonstandard_variable;
-    forward_variable_map[nvar] = v;
-    reverse_variable_map[v] = nvar;
 }
 
 void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals) {
@@ -409,21 +398,14 @@ void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals)
 	if (unit_literals.find(lit) != unit_literals.end()) {
 	    satisfied = true;
 	    break;
-	} else if (unit_literals.find(-lit) != unit_literals.end())
-	    continue;
-	else {
-	    int var = IABS(lit);
-	    auto fid = forward_variable_map.find(var);
-	    if (fid != forward_variable_map.end()) {
-		int nvar = fid->second;
-		lit = MATCH_PHASE(nvar, lit);
-	    }
+	} else if (unit_literals.find(-lit) == unit_literals.end())
 	    lits.push_back(lit);
-	}
     }
-    if (lits.size() == 0)
-	unsatisfiable = true;
-    add(new Clause(lits.data(), lits.size()));
+    if (!satisfied) {
+	add(new Clause(lits.data(), lits.size()));
+	if (lits.size() == 0)
+	    unsatisfiable = true;
+    }
 }
 
 bool Cnf_reduced::run_solver() {
@@ -446,7 +428,7 @@ bool Cnf_reduced::run_solver() {
     fname = archive_string(tname);
     show(cout);
     fclose(cout);
-    report(2, "Wrote file with %d clauses to %s\n", clause_count(), fname);
+    report(3, "Wrote file with %d clauses to %s\n", clause_count(), fname);
     
     snprintf(cmd, 150, "cadical --unsat -q --no-binary %s -", fname);
     FILE *sfile = popen(cmd, "r");
@@ -456,7 +438,7 @@ bool Cnf_reduced::run_solver() {
     Cnf pclauses(sfile);
     pclose(sfile);
 
-    report(2, "Read %d proof clauses\n", pclauses.clause_count());
+    report(3, "Read %d proof clauses\n", pclauses.clause_count());
     if (verblevel >= 5)
 	pclauses.show();
 
@@ -481,7 +463,7 @@ bool Cnf_reduced::run_solver() {
 	if (pnp->length() == 0)
 	    break;
     }
-    report(3, "Reduced CNF yielded %d proof clauses\n", proof_clauses.size());
+    report(2, "File %s.  %d input clauses --> %d proof clauses\n", fname, clause_count(), proof_clauses.size());
 
     return true;
 }
@@ -490,14 +472,14 @@ bool Cnf_reduced::run_solver() {
 Clause * Cnf_reduced::get_proof_clause(std::vector<int> *context) {
     if (emitted_proof_clauses >= proof_clauses.size())
 	return NULL;
-    Clause *np = proof_clauses[emitted_proof_clauses++];
+    Clause *np = proof_clauses[emitted_proof_clauses];
     Clause *nnp = new Clause(np);
     for (int lit : *context) 
 	nnp->add(-lit);
+    delete np;
+    proof_clauses[emitted_proof_clauses++] = NULL;
     return nnp;
 }
-
-
 
 // Proof related
 Cnf_reasoner::Cnf_reasoner() : Cnf() { 
