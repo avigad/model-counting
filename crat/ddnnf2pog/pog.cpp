@@ -618,26 +618,48 @@ int Pog::justify(int rlit, bool parent_or) {
 	    break;
 	case POG_AND:
 	    {
-		int cstart = 0;
+		int cnext = 0;
+		// If parent is OR, first argument is splitting literal
 		if (parent_or) {
-		    int clit0 = (*rnp)[cstart++];
+		    int clit0 = (*rnp)[cnext++];
 		    cnf->push_assigned_literal(clit0);
 		    jclause->add(-clit0);
 		}
+
+		// Bundle up the literals and justify them with single call
+		std::vector<int> lits;
+		std::vector<int> jids;
+		for (; cnext < rnp->get_degree(); cnext++) {
+		    int clit = (*rnp)[cnext];
+		    if (is_node(clit))
+			break;
+		    lits.push_back(clit);
+		}
+		if (lits.size() > 0) {
+		    cnf->pwriter->comment("Justify node N%d_%s, starting with %d literals", xvar, pog_type_name[rnp->get_type()], lits.size());
+		    documented = true;
+		    cnf->validate_literals(lits, jids);
+		    for (int jid : jids)
+			hints.push_back(jid);
+		}
+
+		// Now deal with the node arguments
 		bool partition = false;
 		std::unordered_map<int,int> var2rvar;
 		std::unordered_map<int,std::set<int>*> rvar2cset;
 		std::set<int> *save_clauses = NULL;
 		std::set<int> *pset = NULL;
-		for (int i = cstart; i < rnp->get_degree(); i++) {
-		    int clit = (*rnp)[i];
-		    if (!partition && i < rnp->get_degree()-1 && is_node(clit)) {
+		for (; cnext < rnp->get_degree(); cnext++) {
+		    int clit = (*rnp)[cnext];
+		    if (!partition && cnext < rnp->get_degree()-1 && is_node(clit)) {
 			// Must partition clauses
 			cnf->partition_clauses(var2rvar, rvar2cset);
 			partition = true;
 			save_clauses = new std::set<int>;
 			cnf->extract_active_clauses(save_clauses);
-			report(4, "Justifying node N%d.  Partitioned clauses into %d sets\n", xvar, rvar2cset.size());
+			if (!documented) 
+			    report(4, "Justifying node N%d.  Partitioned clauses into %d sets\n", xvar, rvar2cset.size());
+			documented = true;
 		    }
 		    if (partition) {
 			int llit = first_literal(clit);

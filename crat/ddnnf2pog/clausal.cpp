@@ -1226,6 +1226,17 @@ int Cnf_reasoner::validate_literal(int lit) {
     return ncid;
 }
 
+// Justify that set of literals hold.
+// Justifying clauses IDs are then loaded into jids vector
+void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
+    jids.clear();
+    for (int lit : lits) {
+	int jid = validate_literal(lit);
+	jids.push_back(jid);
+    }
+}
+
+
 void Cnf_reasoner::delete_assertions() {
     // Don't want last one
     pwriter->comment("Delete all but final asserted clause");

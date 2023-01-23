@@ -273,9 +273,12 @@ public:
     // Return ID of validating clause (or 0 if fail)
     int rup_validate(Clause *cltp);
 
-    // Justify that literal holds
     // Justify that literal holds.  Return ID of justifying clause
     int validate_literal(int lit);
+
+    // Justify that set of literals hold.
+    // Justifying clauses IDs are then loaded into jids vector
+    void validate_literals(std::vector<int> &lits, std::vector<int> &jids);
 
     // Delete all but final asserted clause
     void delete_assertions();
