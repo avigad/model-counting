@@ -268,7 +268,7 @@ Cnf::Cnf(FILE *infile) {
 	    read_failed = true;
 	    return;
 	}
-	if (isdigit(c)) {
+	if (isdigit(c) || c == '-') {
 	    no_header = true;
 	    ungetc(c, infile);
 	    break;
@@ -386,6 +386,10 @@ Cnf_reduced::~Cnf_reduced() {
     free((void *) fname);
 }
 
+const char *Cnf_reduced::get_file_name() {
+    return fname;
+}
+
 // Add nonstandard variable.  Do this only after adding all input clauses
 void Cnf_reduced::add_variable(int v) {
     if (max_regular_variable == 0) {
@@ -461,23 +465,23 @@ bool Cnf_reduced::run_solver() {
 	return false;
     }
 
-    Clause *lnp = pclauses[pclauses.clause_count()-1];
+    Clause *lnp = pclauses[pclauses.clause_count()];
     if (lnp == NULL) {
 	err(false, "Invalid final clause after executing command '%s'\n", cmd);
 	return false;
     }
-    if (lnp->length() == 0) {
+    if (lnp->length() != 0) {
 	err(false, "Execution of command '%s' did not generate empty clause\n", cmd);	
 	return false;
     }
 
     for (int cid = 1; cid <= pclauses.clause_count(); cid++) {
 	Clause *pnp = pclauses[cid];
-	if (pnp->length() > 0) {
-	    proof_clauses.push_back(pnp);
-	}
+	proof_clauses.push_back(pnp);
+	if (pnp->length() == 0)
+	    break;
     }
-    report(2, "Reduced CNF yielded %d proof clauses\n", proof_clauses.size());
+    report(3, "Reduced CNF yielded %d proof clauses\n", proof_clauses.size());
 
     return true;
 }
@@ -582,7 +586,7 @@ void Cnf_reasoner::document_input(int cid) {
 }
 
 int Cnf_reasoner::start_and(int var, ilist args) {
-    pwriter->comment("AND operation");
+    pwriter->comment("Operation N%d_AND", var);
     Clause *clp = new Clause();
     clp->add(var);
     for (int i = 0; i < ilist_length(args); i++) 
@@ -623,7 +627,7 @@ void Cnf_reasoner::document_and(int cid, int var, ilist args) {
 
 
 int Cnf_reasoner::start_or(int var, ilist args) {
-    pwriter->comment("OR operation");
+    pwriter->comment("Operation N%d_OR", var);
     int arg1 = args[0];
     int arg2 = args[1];
     Clause *clp = new Clause();
@@ -1213,26 +1217,30 @@ int Cnf_reasoner::validate_literal(int lit) {
     } else {
 	Cnf_reduced *rcp = extract_cnf();
 	if (rcp->run_solver()) {
+	    const char *fname = rcp->get_file_name();
+	    pwriter->comment("Adding proof clauses from SAT solver running on file %s to validate literal %d", fname, lit);
+	    int pcount = 0;
 	    while (true) {
 		Clause *pnp = rcp->get_proof_clause(&assigned_literals);
+		pcount++;
 		if (pnp == NULL)
 		    break;
 		ncid = rup_validate(pnp);
 		if (ncid == 0) {
-		    err(false, "Failed to validate proof clause while validating literal %d\n", lit);
+		    err(false, "SAT solver running on file %s failed to validate proof clause #%d while validating literal %d\n", fname, pcount, lit);
 		    if (verblevel >= 3)
 			pnp->show();
 		}
 	    }
+	    pwriter->comment("End of proof clauses from SAT solver");
 	}
-	if (ncid == 0) {
-	    err(false, "Failed to validate proof clause while validating literal %d\n", lit);
-	} else {
+	if (ncid > 0) {
 	    report(5, "Validating literal %d.  Used SAT solver\n", lit);
 	}
 	delete rcp;
     }
     pop_context();
+    push_assigned_literal(lit);
     return ncid;
 }
 

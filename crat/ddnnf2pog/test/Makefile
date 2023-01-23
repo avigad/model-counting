@@ -31,4 +31,7 @@ B2P = ../../prototype/btrace2pog.py
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< | tee $@
 
 clean:
-	rm -f *~ *.d4crat *.d4crat_data *.d4nnf_data *.d4check_data *.btrace *.bcrat *.bcheck_data reduction-*.cnf
+	rm -f *~ reduction-1*.cnf
+
+superclean: clean
+	rm -f *.d4crat *.d4crat_data *.d4nnf_data *.d4check_data *.btrace *.bcrat *.bcheck_data reduction-*.cnf

@@ -173,6 +173,8 @@ public:
     
     ~Cnf_reduced();
 
+    const char* get_file_name();
+
     // Add nonstandard variable.  Should only do this after regular input clauses have been added
     void add_variable(int v);
 
