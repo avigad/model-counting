@@ -26,9 +26,7 @@
 #pragma once
 
 // Don't want any type to evaluate to 0
-// CAND is a special case of AND, indicating that first literal can be assumed to be 
-// true during proof generation.
-typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_CAND, POG_OR } pog_type_t;
+typedef enum { POG_NONE, POG_TRUE, POG_FALSE, POG_AND, POG_OR } pog_type_t;
 
 #include <vector>
 #include <stdio.h>

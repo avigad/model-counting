@@ -31,9 +31,9 @@
 #include "pog.hh"
 #include "report.h"
 
-const char *pog_type_name[6] = { "NONE", "TRUE", "FALSE", "AND", "CAND", "OR" };
+const char *pog_type_name[5] = { "NONE", "TRUE", "FALSE", "AND", "OR" };
 
-const char pog_type_char[6] = { '\0', 't', 'f', 'a', '\0', 'o' };
+const char pog_type_char[5] = { '\0', 't', 'f', 'a', 'o' };
 
 Pog_node::Pog_node() {
     type = POG_TRUE;
@@ -232,19 +232,15 @@ bool Pog::optimize() {
 		    nchild_lit = MATCH_PHASE(remap[child_id-max_input_var-1], child_lit);
 		}
 		if (is_node(nchild_lit) && nchild_lit > 0) {
-		    // Convert child AND to CAND
 		    Pog_node *cnp = new_nodes[nchild_lit-max_input_var-1];
 		    if (cnp->get_type() == POG_AND) {
-			cnp->set_type(POG_CAND);
-			report(4, "  Setting N%d type to CAND\n", cnp->get_xvar());
 			pcnp = cnp;
 		    }
 		}
 		nchildren.push_back(nchild_lit);
 	    }
+	    // If one of the children is true, then replace this node with other child
 	    if ((nchildren[0] == -true_id || nchildren[1] == -true_id) && pcnp != NULL) {
-		// Convert child back to AND
-		pcnp->set_type(POG_AND);
 		remap[oid-max_input_var-1] = pcnp->get_xvar();
 		if (verblevel >= 4) {
 		    printf("  Node ");
@@ -365,7 +361,6 @@ bool Pog::concretize() {
 	switch (np->get_type()) {
 	case POG_TRUE:
 	case POG_AND:
-	case POG_CAND:
 	    defining_cid = cnf->start_and(xvar, args);
 	    need_zero = false;
 	    break;
@@ -621,7 +616,6 @@ int Pog::justify(int rlit, bool parent_or) {
 		}
 	    }
 	    break;
-	case POG_CAND:
 	case POG_AND:
 	    {
 		int cstart = 0;
@@ -697,7 +691,6 @@ void Pog::delete_input_clause(int cid, int unit_cid) {
 	bool implies = false;
 	switch (np->get_type()) {
 	case POG_AND:
-	case POG_CAND:
 	    implies = false;
 	    // Must have at least one child implying the clause
 	    for (int i = 0; i < np->get_degree(); i++) {
