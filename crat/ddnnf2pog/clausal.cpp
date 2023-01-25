@@ -31,6 +31,10 @@
 #include "clausal.hh"
 #include "report.h"
 
+// Version selection
+// Combine proof of conjunction of literals into single call to SAT solver?
+#define MULTI_LITERAL 1
+
 static int skip_line(FILE *infile) {
     int c;
     while ((c = getc(infile)) != EOF) {
@@ -1179,24 +1183,28 @@ Cnf_reduced *Cnf_reasoner::extract_cnf() {
 }
 
 // Justify that literal holds.  Return ID of justifying clause
-int Cnf_reasoner::validate_literal(int lit) {
+// Mode specifies different levels of effort
+int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
     report(5, "Attempting to Validate literal %d\n", lit);
     auto fid = justifying_ids.find(lit);
     if (fid != justifying_ids.end()) {
-	report(5, "Validating literal %d.  Already unit\n", lit);
+	report(5, "Validated literal %d.  Already unit\n", lit);
 	return fid->second;
     }
     if (unit_literals.find(-lit) != unit_literals.end()) {
 	report(5, "Validating literal %d.  BUT %d is unit\n", lit, -lit);
 	return 0;
     }
+
     int ncid = 0;
     new_context();
     push_assigned_literal(-lit);
-    ncid = bcp();
-    if (ncid > 0) {
-	report(5, "Validating literal %d.  Justified by BCP\n", lit);
-    } else {
+    if (mode != MODE_SAT) {
+	ncid = bcp();
+	if (ncid > 0)
+	    report(5, "Validated literal %d.  Justified by BCP\n", lit);
+    }
+    if (ncid == 0 && mode != MODE_BCP) {
 	Cnf_reduced *rcp = extract_cnf();
 	if (rcp->run_solver()) {
 	    const char *fname = rcp->get_file_name();
@@ -1204,9 +1212,9 @@ int Cnf_reasoner::validate_literal(int lit) {
 	    int pcount = 0;
 	    while (true) {
 		Clause *pnp = rcp->get_proof_clause(&assigned_literals);
-		pcount++;
 		if (pnp == NULL)
 		    break;
+		pcount++;
 		ncid = rup_validate(pnp);
 		if (ncid == 0) {
 		    err(false, "SAT solver running on file %s failed to validate proof clause #%d while validating literal %d\n", fname, pcount, lit);
@@ -1217,25 +1225,65 @@ int Cnf_reasoner::validate_literal(int lit) {
 	    pwriter->comment("End of proof clauses from SAT solver");
 	}
 	if (ncid > 0) {
-	    report(5, "Validating literal %d.  Used SAT solver\n", lit);
+	    report(5, "Validated literal %d.  Used SAT solver\n", lit);
 	}
 	delete rcp;
     }
     pop_context();
-    push_assigned_literal(lit);
+    if (ncid == 0) 
+	report(5, "Couldn't validate literal %d without use of SAT solver\n", lit);
+    else
+	push_derived_literal(lit, ncid);
     return ncid;
 }
 
+#if !MULTI_LITERAL
 // Justify that set of literals hold.
 // Justifying clauses IDs are then loaded into jids vector
 void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
     jids.clear();
     for (int lit : lits) {
-	int jid = validate_literal(lit);
+	int jid = validate_literal(lit, MODE_FULL);
 	jids.push_back(jid);
     }
 }
+#endif // !MULTI_LITERAL
 
+#if MULTI_LITERAL
+void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
+    jids.resize(lits.size());
+    std::vector<int> deferred_pos;
+    // First pass: Look for easy cases.  Defer the rest
+    for (int i = 0; i < lits.size(); i++) {
+	int lit = lits[i];
+	int jid = validate_literal(lit, MODE_BCP);
+	jids[i] = jid;
+	if (jid == 0) {
+	    deferred_pos.push_back(i);
+	}
+    }
+
+    if (deferred_pos.size() <= 1) {
+	// Standard cases
+	if (deferred_pos.size() == 1) {
+	    // Handle as single variable
+	    int  i = deferred_pos[0];
+	    jids[i] = validate_literal(lits[i], MODE_FULL);
+	} else {
+	    pwriter->comment("All literals unit", lits[0]);
+	}
+	return;
+    }
+
+    // Final pass: Target units should be unit or provable with BCP
+    // but allow full mode just in case
+    for (int i : deferred_pos) {
+	int lit = lits[i];
+	int jid = validate_literal(lit, MODE_FULL);
+	jids[i] = jid;
+    }
+}
+#endif // MULTI_LITERAL
 
 void Cnf_reasoner::delete_assertions() {
     // Don't want last one

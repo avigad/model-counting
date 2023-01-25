@@ -169,7 +169,6 @@ public:
     const char* get_file_name();
 
     // Add clause.  It will be simplified according to the context
-    // and the variables will get renamed by the forward map
     void add_clause(Clause *np, std::unordered_set<int> &unit_literals);
     
     // Run SAT solver.
@@ -273,8 +272,17 @@ public:
     // Return ID of validating clause (or 0 if fail)
     int rup_validate(Clause *cltp);
 
+    // Possible modes for attempting literal validation
+    typedef enum { 
+	MODE_FULL, // Do everything
+	MODE_BCP,  // Use BCP and then stop
+	MODE_SAT   // Skip BCP and use SAT solver
+    } validation_mode_t;
+
+
     // Justify that literal holds.  Return ID of justifying clause
-    int validate_literal(int lit);
+    // If full, call SAT solver if necessary
+    int validate_literal(int lit, validation_mode_t mode);
 
     // Justify that set of literals hold.
     // Justifying clauses IDs are then loaded into jids vector

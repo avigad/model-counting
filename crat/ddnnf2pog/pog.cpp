@@ -690,7 +690,7 @@ int Pog::justify(int rlit, bool parent_or) {
 	cnf->finish_command(true);
 	cnf->pop_context();
     } else if (!parent_or)
-	jcid = cnf->validate_literal(rlit);
+	jcid = cnf->validate_literal(rlit, Cnf_reasoner::MODE_FULL);
     if (jcid > 0)
 	report(4, "Literal %d in POG justified by clause %d\n", rlit, jcid);
     return jcid;
