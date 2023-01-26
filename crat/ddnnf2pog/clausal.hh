@@ -172,6 +172,9 @@ public:
 
     const char* get_file_name();
 
+    // Delete intermediate files
+    bool delete_files;
+
     // Add clause.  It will be simplified according to the context
     void add_clause(Clause *np, std::unordered_set<int> &unit_literals, int cid);
     
@@ -240,8 +243,6 @@ public:
     // Direct access to writer (Use with caution)
     Pog_writer *pwriter;
 
-    Cnf_reasoner();
-
     // Read input clauses DIMACS format CNF file
     Cnf_reasoner(FILE *infile);
 
@@ -256,7 +257,8 @@ public:
     bool multi_literal;
     // Use lemmas to represent shared nodes
     bool use_lemmas;
-
+    // Delete intermediate files
+    bool delete_files;
 
     // Access input or proof clause, with id 1 being first input clause
     Clause * get_clause(int cid);
@@ -321,7 +323,7 @@ public:
 
     // Justify that set of literals hold.
     // Justifying clauses IDs are then loaded into jids vector
-    void validate_literals(std::vector<int> &lits, std::vector<int> &jids);
+    void validate_literals(std::vector<int> &lits, std::vector<int> &jids, int *xvar_counter);
 
     // Delete all but final asserted clause
     void delete_assertions();
@@ -332,12 +334,17 @@ private:
 
     // Run SAT solver on reduced set of clauses as part of effort to validate literal lit.
     // Incorporate generated conflict proof into larger proof
+    // Identify literals that will become unit and their justifying IDs
     int reduce_run(int lit);
 
     int add_proof_clause(Clause *clp);
     // Private methods for search support
     int found_conflict(int cid);
     void new_unit(int lit, int cid, bool input);
+
+    // Validate unit when it can be done with just two hints
+    int quick_validate_literal(int lit, int cid1, int cid2);
+
 };
 
 

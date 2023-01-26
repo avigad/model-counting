@@ -89,6 +89,7 @@ private:
     // Mapping for each node to the set of variables on which it depends
     std::unordered_set<int>** dependency_sets;
 
+
 public:
     Pog();
 
@@ -100,6 +101,8 @@ public:
     bool read_d4ddnnf(FILE *infile);
 
     int add_node(Pog_node *np);
+    // Can start adding proof nodes after all POG nodes defined.  Use counter to track what should be the next extension variable
+    int xvar_counter;
 
     void set_root(int rlit);
     int get_root();

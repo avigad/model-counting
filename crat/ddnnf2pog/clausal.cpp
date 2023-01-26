@@ -393,6 +393,7 @@ int Cnf::satisfied(char *assignment) {
 Cnf_reduced::Cnf_reduced() : Cnf() {
     emitted_proof_clauses = 0;
     unsatisfiable = false;
+    delete_files = true;
 }
 
 Cnf_reduced::~Cnf_reduced() {
@@ -401,8 +402,11 @@ Cnf_reduced::~Cnf_reduced() {
 	    delete np;
     }
     // Could delete the temporary files here.
-    for (const char *fname : file_names)
+    for (const char *fname : file_names) {
+	if (delete_files)
+	    remove(fname);
 	free((void *) fname);
+    }
 }
 
 const char *Cnf_reduced::get_file_name() {
@@ -487,7 +491,7 @@ bool Cnf_reduced::run_solver() {
 	if (pnp->length() == 0)
 	    break;
     }
-    report(2, "File %s.  %d input clauses --> %d proof clauses\n", fname, clause_count(), proof_clauses.size());
+    report(3, "File %s.  %d input clauses --> %d proof clauses\n", fname, clause_count(), proof_clauses.size());
 
     return true;
 }
@@ -542,7 +546,7 @@ bool Cnf_reduced::run_hinting_solver() {
 	err(false, "Execution of command '%s' did not generate empty clause\n", cmd);	
 	return false;
     }
-    report(2, "File %s.  %d input clauses --> %d proof clauses\n", cnfname, clause_count(), proof_clauses.size());
+    report(3, "File %s.  %d input clauses --> %d proof clauses\n", cnfname, clause_count(), proof_clauses.size());
     return true;
 }
 
@@ -636,15 +640,6 @@ Clause * Cnf_reduced::get_proof_clause(std::vector<int> *context) {
 }
 
 // Proof related
-Cnf_reasoner::Cnf_reasoner() : Cnf() { 
-    pwriter = NULL;
-    asserting = false;
-    unsatisfiable = false;
-    use_drat = true;
-    multi_literal = true;
-    use_lemmas = true;
-}
-
 Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) { 
     pwriter = NULL;
     asserting = false;
@@ -652,6 +647,7 @@ Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) {
     use_drat = true;
     multi_literal = true;
     use_lemmas = true;
+    delete_files = true;
 }
 
 Clause * Cnf_reasoner::get_clause(int cid) {
@@ -857,6 +853,22 @@ void Cnf_reasoner::new_unit(int lit, int cid, bool input) {
     add_hint(cid);
     finish_command(true);
     report(3, "Unit literal %d justified by proof clause #%d\n", lit, ncid);
+}
+
+int Cnf_reasoner::quick_validate_literal(int lit, int cid1, int cid2) {
+    Clause *clp = new Clause();
+    clp->add(lit);
+    for (int alit : assigned_literals)
+	clp->add(-alit);
+    int ncid = start_assertion(clp);
+    if (clp->length() > 1) {
+	push_derived_literal(lit, ncid);
+	push_clause(ncid);
+    }
+    add_hint(cid1);
+    add_hint(cid2);
+    finish_command(true);
+    return ncid;
 }
 
 int Cnf_reasoner::found_conflict(int cid) {
@@ -1337,6 +1349,7 @@ void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
 
 Cnf_reduced *Cnf_reasoner::extract_cnf() {
     Cnf_reduced *rcp = new Cnf_reduced();
+    rcp->delete_files = delete_files;
     for (int cid : *curr_active_clauses) {
 	Clause *np = get_clause(cid);	
 	rcp->add_clause(np, unit_literals, cid);
@@ -1376,6 +1389,8 @@ int Cnf_reasoner::reduce_run(int lit) {
 	    pwriter->comment("End of proof clauses from SAT solver");
 	}
     } else {
+	// Want to keep track of range of clauses
+	int first_ncid = 0;
 	if (rcp->run_solver()) {
 	    const char *fname = rcp->get_file_name();
 	    pwriter->comment("Adding proof clauses from SAT solver running on file %s to validate literal %d", fname, lit);
@@ -1386,6 +1401,8 @@ int Cnf_reasoner::reduce_run(int lit) {
 		    break;
 		pcount++;
 		ncid = rup_validate(pnp);
+		if (first_ncid == 0)
+		    first_ncid = ncid;
 		if (ncid == 0) {
 		    err(false, "SAT solver running on file %s failed to validate proof clause #%d while validating literal %d\n",
 			fname, pcount, lit);
@@ -1395,6 +1412,9 @@ int Cnf_reasoner::reduce_run(int lit) {
 	    }
 	    pwriter->comment("End of proof clauses from SAT solver");
 	}
+	// The clauses used in generating this proof are no longer needed
+	for (int cid = first_ncid; cid <= ncid; cid++)
+	    curr_active_clauses->erase(cid);
     }
     if (ncid > 0) {
 	report(5, "Validated literal %d.  Used SAT solver\n", lit);
@@ -1429,16 +1449,18 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
 	ncid = reduce_run(lit);
     }
     pop_context();
+
     if (ncid == 0) 
 	report(5, "Couldn't validate literal %d %s SAT solver\n", lit, mode == MODE_BCP ? "without" : "with");
     else
 	push_derived_literal(lit, ncid);
+
     return ncid;
 }
 
 // Justify that set of literals hold.
 // Justifying clauses IDs are then loaded into jids vector
-void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
+void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids, int *xvar_counter) {
     jids.resize(lits.size());
     validation_mode_t mode = multi_literal ? MODE_BCP : MODE_FULL;
     std::vector<int> deferred_pos;
@@ -1455,8 +1477,6 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
     }
 
     if (deferred_pos.size() == 0) {
-	if (multi_literal)
-	    pwriter->comment("All literals unit");
 	return;
     }
 
@@ -1466,15 +1486,31 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	jids[i] = validate_literal(lits[i], MODE_FULL);
 	return;
     }
-
+    int xvar = ++*xvar_counter;
+    int nleft = deferred_pos.size();
+    ilist args = ilist_new(nleft);
+    for (int i : deferred_pos)
+	args = ilist_push(args, lits[i]);
+    int defining_cid = start_and(xvar, args);
+    finish_command(false);
+    document_and(defining_cid, xvar, args);
+    // Activate conjunction definition
+    curr_active_clauses->insert(defining_cid);
+    pwriter->comment("Handle %d/%d literals with SAT solver to validate extension variable %d", nleft, lits.size(), xvar);
+    report(3, "Handle %d/%d literals with SAT solver to validate extension variable %d\n", nleft, lits.size(), xvar);
+    int ncid = validate_literal(xvar, MODE_FULL);
+    if (ncid == 0) {
+	err(false, "Couldn't validate literal %d representing conjunction of %d literals\n", xvar, nleft);
+    }
     // Final pass: Target units should be unit or provable with BCP
-    // but allow full mode just in case
-    pwriter->comment("Must handle %d/%d literals with SAT solver\n", deferred_pos.size(), lits.size());
-    for (int i : deferred_pos) {
+    for (int offset = 0; offset < nleft; offset++) {
+	int i = deferred_pos[offset];
 	int lit = lits[i];
-	int jid = validate_literal(lit, MODE_FULL);
+	int jid = quick_validate_literal(lit, ncid, defining_cid+offset+1);
 	jids[i] = jid;
     }
+    pwriter->comment("Justifications of %d literals completed", nleft);
+    curr_active_clauses->erase(defining_cid);
 }
 
 
