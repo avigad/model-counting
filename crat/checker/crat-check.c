@@ -1128,7 +1128,7 @@ void crat_add_product(int cid) {
 	clause_add_literal(0);
     }
     crat_operation_count ++;
-    crat_operation_clause_count += n;
+    crat_operation_clause_count += (n+1);
     info_printf(3, "Processed product %d addition\n", nid);
 }
 
@@ -1192,7 +1192,7 @@ void crat_add_sum(int cid) {
 	clause_add_literal(0);
     }
     crat_operation_count ++;
-    crat_operation_clause_count += n;
+    crat_operation_clause_count += (n+1);
     info_printf(3, "Processed sum %d addition\n", nid);
 }
 
