@@ -57,7 +57,7 @@ public:
 
     Clause(int *array, size_t len);
 
-    Clause(FILE *infile, bool delete_ok, bool &eof);
+    Clause(FILE *infile, bool from_proof, bool *eof);
 
     Clause (Clause *np);
 
@@ -150,8 +150,11 @@ public:
 // where a set of unit literals simplifies clauses.
 class Cnf_reduced : public Cnf {
 
-    // So that can delete it when done
-    const char *fname;
+    // Temporary files that have been created during proof generation
+    std::vector<const char *> file_names;
+    
+    // Map from local clause Id back to originating clause Id
+    std::unordered_map<int,int> inverse_cid;
 
     // When empty clause gets added to CNF
     bool unsatisfiable;
@@ -159,8 +162,9 @@ class Cnf_reduced : public Cnf {
     std::vector<Clause *> proof_clauses;
     int emitted_proof_clauses;
 
+    std::vector<Clause *> proof_hints;
+
 public:
-    
 
     Cnf_reduced();
     
@@ -169,15 +173,35 @@ public:
     const char* get_file_name();
 
     // Add clause.  It will be simplified according to the context
-    void add_clause(Clause *np, std::unordered_set<int> &unit_literals);
+    void add_clause(Clause *np, std::unordered_set<int> &unit_literals, int cid);
     
     // Run SAT solver.
     // Save away generated proof clauses
     // Return true if successful
     bool run_solver();
 
+    // Helper functions
+
+    // Read proof clauses + hints in LRAT format.
+    // Ignore deletions
+    // Return true if successful
+    bool load_hinted_proof(FILE *infile);
+
+    // Run SAT solver + checker
+    // Save away generated proof clauses + hints
+    // Return true if successful
+    bool run_hinting_solver();
+
+    // Retrieve next clause in proof.
+    // Remap hint clause Ids to ones that match those in the larger proof
+    // 
+    // Be sure to retrieve the hint before the proof clause
+    // start_id should be Id for first clause in proof sequence
+    Clause *get_proof_hint(int start_id);
+
     // Retrieve next clause in proof.  Convert it to one usable by parent solver
     Clause *get_proof_clause(std::vector<int> *prefix);
+
 
 };
 
@@ -234,6 +258,7 @@ public:
     // Add clause as assertion.  Returns clause ID.  If unit clause, then add to set of unit clauses
     int start_assertion(Clause *clp);
     void add_hint(int hid);
+    void add_hints(Clause *hp);
     void finish_command(bool add_zero);
 
     // Generate POG operation
@@ -294,6 +319,11 @@ public:
 private:
 
     // Private methods for proof generation
+
+    // Run SAT solver on reduced set of clauses as part of effort to validate literal lit.
+    // Incorporate generated conflict proof into larger proof
+    int reduce_run(int lit);
+
     int add_proof_clause(Clause *clp);
     // Private methods for search support
     int found_conflict(int cid);
