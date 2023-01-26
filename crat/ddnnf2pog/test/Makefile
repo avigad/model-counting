@@ -6,6 +6,7 @@ D2P = ../d2p
 VLEVEL = 2
 CHECK = ../../checker/crat-check
 B2P = ../../prototype/btrace2pog.py
+D2P_OPTIONS=
 
 
 .SUFFIXES: .cnf \
@@ -16,7 +17,7 @@ B2P = ../../prototype/btrace2pog.py
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
 
 .d4nnf.d4crat:
-	$(D2P) $(VLEVEL) $*.cnf $< $@ | tee $*.d4crat_data
+	$(D2P) -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4crat_data
 
 .d4crat.d4check_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
