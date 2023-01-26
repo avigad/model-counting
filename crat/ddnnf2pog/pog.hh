@@ -58,7 +58,7 @@ public:
 
     Pog_node(pog_type_t ntype);
 
-    ~Pog_node() { if (degree > 0) delete children; };
+    ~Pog_node();
 
     void set_type(pog_type_t t);
     pog_type_t get_type();
@@ -88,7 +88,6 @@ private:
     int root_literal;
     // Mapping for each node to the set of variables on which it depends
     std::unordered_set<int>** dependency_sets;
-
 
 public:
     Pog();

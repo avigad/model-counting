@@ -337,6 +337,10 @@ private:
     // Identify literals that will become unit and their justifying IDs
     int reduce_run(int lit);
 
+    // Include/Exclude clause in BCP
+    void activate_clause(int clit);
+    void deactivate_clause(int clit);
+
     int add_proof_clause(Clause *clp);
     // Private methods for search support
     int found_conflict(int cid);

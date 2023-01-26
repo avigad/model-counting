@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <sys/time.h>
 
 /* Default reporting level.  Must recompile when change */
 #ifndef RPT
@@ -48,6 +49,9 @@
 #ifdef CPLUSPLUS
 extern "C" {
 #endif
+
+// Time of day for wall clock timing
+extern double tod();
 
 extern int verblevel;
 void set_verblevel(int level);

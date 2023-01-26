@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include "pog.hh"
 #include "report.h"
+#include "counters.h"
 
 const char *pog_type_name[5] = { "NONE", "TRUE", "FALSE", "AND", "OR" };
 
@@ -47,6 +48,18 @@ Pog_node::Pog_node(pog_type_t ntype) {
     xvar = 0;
     degree = 0;
     children = NULL;
+    if (type == POG_AND || type == POG_AND)
+	incr_count(COUNT_POG_AND);
+    if (type == POG_OR)
+	incr_count(COUNT_POG_OR);
+}
+
+Pog_node::~Pog_node() {
+    if (degree > 0) delete children;
+    if (type == POG_AND || type == POG_TRUE)
+	incr_count_by(COUNT_POG_AND, -1);
+    if (type == POG_OR)
+	incr_count_by(COUNT_POG_OR, -1);
 }
 
 void Pog_node::set_type(pog_type_t t) {
@@ -580,6 +593,7 @@ int Pog::justify(int rlit, bool parent_or) {
 	switch (rnp->get_type()) {
 	case POG_OR:
 	    {
+		incr_count(COUNT_VISIT_OR);
 		int clit[2];
 		int jid;
 		int lhints[2][2];
@@ -608,11 +622,13 @@ int Pog::justify(int rlit, bool parent_or) {
 		    for (int h = 0; h < hcount[0]; h++)
 			cnf->add_hint(lhints[0][h]);
 		    cnf->finish_command(true);
+		    incr_count(COUNT_OR_JUSTIFICATION_CLAUSE);
 		    hints.push_back(cid0);
 		    for (int h = 0; h < hcount[1]; h++)
 			hints.push_back(lhints[1][h]);
 		} else {
 		    // Can do with single proof step
+		    incr_count(COUNT_OR_JUSTIFICATION_CLAUSE);
 		    for (int i = 0; i < 2; i++)
 			for (int h = 0; h < hcount[i]; h++)
 			    hints.push_back(lhints[i][h]);
@@ -621,6 +637,7 @@ int Pog::justify(int rlit, bool parent_or) {
 	    break;
 	case POG_AND:
 	    {
+		incr_count(COUNT_VISIT_AND);
 		int cnext = 0;
 		// If parent is OR, first argument is splitting literal
 		if (parent_or) {
@@ -680,6 +697,7 @@ int Pog::justify(int rlit, bool parent_or) {
 		hints.push_back(rnp->get_defining_cid());
 		if (save_clauses != NULL)
 		    cnf->set_active_clauses(save_clauses);
+		incr_count(COUNT_AND_JUSTIFICATION_CLAUSE);
 	    }
 	    break;
 	default:

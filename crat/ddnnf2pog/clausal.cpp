@@ -30,6 +30,7 @@
 #include <map>
 #include "clausal.hh"
 #include "report.h"
+#include "counters.h"
 
 static int skip_line(FILE *infile) {
     int c;
@@ -316,6 +317,10 @@ Cnf::Cnf(FILE *infile) {
 	read_failed = true;
 	return;
     }
+    if (!no_header) {
+	incr_count_by(COUNT_CLAUSE, clause_count());
+	incr_count_by(COUNT_VAR, max_input_var);
+    }
 }
 
 // Delete the clauses
@@ -436,6 +441,7 @@ void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals,
 }
 
 bool Cnf_reduced::run_solver() {
+    incr_count(COUNT_SAT_CALL);
     static int vnum = 1000000;
     char tname[100];
     char cmd[150];
@@ -459,12 +465,14 @@ bool Cnf_reduced::run_solver() {
     report(3, "Wrote file with %d clauses to %s\n", clause_count(), fname);
     
     snprintf(cmd, 150, "cadical --unsat -q --no-binary %s -", fname);
+    double start = tod();
     FILE *sfile = popen(cmd, "r");
     if (sfile == NULL) {
 	err(true, "Couldn't execute command '%s'\n", cmd);
     }
     Cnf pclauses(sfile);
     pclose(sfile);
+    incr_timer(TIME_SAT, tod()-start);
 
     report(3, "Read %d proof clauses\n", pclauses.clause_count());
     if (verblevel >= 5)
@@ -497,6 +505,7 @@ bool Cnf_reduced::run_solver() {
 }
 
 bool Cnf_reduced::run_hinting_solver() {
+    incr_count(COUNT_SAT_CALL);
     static int vnum = 1000000;
     char tcnfname[100];
     char tlratname[100];
@@ -524,7 +533,9 @@ bool Cnf_reduced::run_hinting_solver() {
     file_names.push_back(lratname);
 
     snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
+    double start = tod();
     int rc = system(cmd);
+    incr_timer(TIME_SAT, tod()-start);
     if (rc != 0)
 	err(false, "Executing command '%s' yielded return code %d\n", cmd, rc);
     FILE *lfile = fopen(lratname, "r");
@@ -536,6 +547,7 @@ bool Cnf_reduced::run_hinting_solver() {
 	err(false, "Failed to read generated LRAT file\n", lratname);
 	return false;
     }
+    fclose(lfile);
     if (proof_clauses.size() == 0) {
 	err(false, "Execution of command '%s' yielded no proof clauses\n", cmd);
 	return false;
@@ -672,6 +684,14 @@ bool Cnf_reasoner::is_unsatisfiable() {
     return unsatisfiable;
 }
 
+void Cnf_reasoner::activate_clause(int cid) {
+    curr_active_clauses->insert(cid);
+}
+
+void Cnf_reasoner::deactivate_clause(int cid) {
+    curr_active_clauses->erase(cid);
+}
+
 int Cnf_reasoner::add_proof_clause(Clause *clp) {
     int cid = clause_count() + proof_clauses.size() + 1;
     proof_clauses.push_back(clp);
@@ -744,6 +764,7 @@ int Cnf_reasoner::start_and(int var, ilist args) {
     }
     pwriter->start_and(cid, var);
     pwriter->write_list(args);
+    incr_count_by(COUNT_DEFINING_CLAUSE, ilist_length(args)+1);
     return cid;
 }
 
@@ -785,6 +806,7 @@ int Cnf_reasoner::start_or(int var, ilist args) {
     add_proof_clause(aclp2);
     pwriter->start_or(cid, var);
     pwriter->add_int(arg1); pwriter->add_int(arg2);
+    incr_count_by(COUNT_DEFINING_CLAUSE, ilist_length(args)+1);
     return cid;
 }
 
@@ -837,6 +859,7 @@ void Cnf_reasoner::new_unit(int lit, int cid, bool input) {
     clp->add(lit);
     for (int alit : assigned_literals)
 	clp->add(-alit);
+    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     int ncid = start_assertion(clp);
     if (clp->length() > 1) {
 	push_derived_literal(lit, ncid);
@@ -861,6 +884,7 @@ int Cnf_reasoner::quick_validate_literal(int lit, int cid1, int cid2) {
     for (int alit : assigned_literals)
 	clp->add(-alit);
     int ncid = start_assertion(clp);
+    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     if (clp->length() > 1) {
 	push_derived_literal(lit, ncid);
 	push_clause(ncid);
@@ -888,7 +912,7 @@ int Cnf_reasoner::found_conflict(int cid) {
 		for (int alit : assigned_literals)
 		    clp->add(-alit);
 		ncid = start_assertion(clp);
-
+		incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 	    }
 	    add_hint(fid->second);
 	}
@@ -921,7 +945,7 @@ bool Cnf_reasoner::enable_pog(Pog_writer *pw) {
 	    continue;
 	}
 	else
-	    curr_active_clauses->insert(cid);
+	    activate_clause(cid);
     }
     int ncid = bcp();
     if (ncid > 0) {
@@ -1149,11 +1173,12 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 	}
 	// Put hints in proper order
 	std::reverse(hints.begin(), hints.end());
+	incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 	ncid = start_assertion(cltp);
 	for (int hid : hints)
 	    add_hint(hid);
 	finish_command(true);
-	curr_active_clauses->insert(ncid);
+	activate_clause(ncid);
     }
     // Undo assignments
     pop_context();
@@ -1223,7 +1248,7 @@ void Cnf_reasoner::pop_context() {
 	int cid = context_clause_stack.back(); context_clause_stack.pop_back();
 	if (cid == CONTEXT_MARKER)
 	    break;
-	curr_active_clauses->insert(cid);
+	activate_clause(cid);
 	report(4, "  Reactivating clause %d\n", cid);
     }
 }
@@ -1375,6 +1400,7 @@ int Cnf_reasoner::reduce_run(int lit) {
 		if (pnp == NULL)
 		    break;
 		pcount++;
+		incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 		ncid = start_assertion(pnp);
 		// Add extra information about unit literals
 		for (int ulit : unit_literals) {
@@ -1414,7 +1440,7 @@ int Cnf_reasoner::reduce_run(int lit) {
 	}
 	// The clauses used in generating this proof are no longer needed
 	for (int cid = first_ncid; cid <= ncid; cid++)
-	    curr_active_clauses->erase(cid);
+	    deactivate_clause(cid);
     }
     if (ncid > 0) {
 	report(5, "Validated literal %d.  Used SAT solver\n", lit);
@@ -1491,11 +1517,13 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
     ilist args = ilist_new(nleft);
     for (int i : deferred_pos)
 	args = ilist_push(args, lits[i]);
+    incr_count(COUNT_AUX_AND);
+    incr_count_by(COUNT_DEFINING_AUX_CLAUSE, nleft+1);
     int defining_cid = start_and(xvar, args);
     finish_command(false);
     document_and(defining_cid, xvar, args);
     // Activate conjunction definition
-    curr_active_clauses->insert(defining_cid);
+    activate_clause(defining_cid);
     pwriter->comment("Handle %d/%d literals with SAT solver to validate extension variable %d", nleft, lits.size(), xvar);
     report(3, "Handle %d/%d literals with SAT solver to validate extension variable %d\n", nleft, lits.size(), xvar);
     int ncid = validate_literal(xvar, MODE_FULL);
@@ -1510,7 +1538,7 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	jids[i] = jid;
     }
     pwriter->comment("Justifications of %d literals completed", nleft);
-    curr_active_clauses->erase(defining_cid);
+    deactivate_clause(defining_cid);
 }
 
 

@@ -10,6 +10,7 @@
 #include "clausal.hh"
 #include "pog.hh"
 #include "writer.hh"
+#include "counters.h"
 
 void usage(const char *name) {
     printf("Usage: %s [-h] [-v VLEVEL] [-r] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
@@ -30,6 +31,51 @@ bool multi_literal = true;
 bool use_lemmas = true;
 bool delete_files  =  true;
 
+const char *prefix = "GEN";
+static void report(double start) {
+    double elapsed = tod()-start;
+    printf("%s Formula\n", prefix);
+    printf("%s    input variables: %d\n", prefix, get_count(COUNT_VAR));
+    printf("%s    input clauses  : %d\n", prefix, get_count(COUNT_CLAUSE));
+    int nprod = get_count(COUNT_POG_AND);
+    int nsum = get_count(COUNT_POG_OR);
+    printf("%s POG nodes\n", prefix);    
+    printf("%s    product   : %d\n", prefix, nprod);
+    printf("%s    sum       : %d\n", prefix, nsum);
+    printf("%s    node TOTAL: %d\n", prefix, nsum+nprod);
+    printf("%s Other nodes\n", prefix);    
+    printf("%s    aux product: %d\n", prefix, get_count(COUNT_AUX_AND));
+    printf("%s Node visits\n", prefix);
+    int vprod = get_count(COUNT_VISIT_AND);
+    int vps = get_count(COUNT_SAT_CALL);
+    int vpb = vprod-vps;
+    int vsum = get_count(COUNT_VISIT_OR);
+    printf("%s    product/BCP: %d\n", prefix, vpb);
+    printf("%s    product/SAT: %d\n", prefix, vps);
+    printf("%s    sum        : %d\n", prefix, vsum);
+    printf("%s    visit TOTAL: %d\n", prefix, vsum+vprod);
+    printf("%s Lemmas\n", prefix);
+    printf("%s    definitions : %d\n", prefix, get_count(COUNT_LEMMA_DEFINITION));
+    printf("%s    applications: %d\n", prefix, get_count(COUNT_LEMMA_APPLICATION));
+    int cd  = get_count(COUNT_DEFINING_CLAUSE);
+    int cda = get_count(COUNT_DEFINING_AUX_CLAUSE);
+    int cdp = cd-cda;
+    int caj = get_count(COUNT_AND_JUSTIFICATION_CLAUSE);
+    int coj = get_count(COUNT_OR_JUSTIFICATION_CLAUSE);
+    int clj = get_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
+    printf("%s Clauses\n", prefix);    
+    printf("%s    POG definition       : %d\n", prefix, cdp);
+    printf("%s    AUX definition       : %d\n", prefix, cda);
+    printf("%s    product justification: %d\n", prefix, caj);
+    printf("%s    sum justification    : %d\n", prefix, coj);
+    printf("%s    literal justification: %d\n", prefix, clj);
+    printf("%s    clause TOTAL         : %d\n", prefix, cdp+cda+coj+caj+clj);
+    double sat_time = get_timer(TIME_SAT);
+    printf("%s Time\n", prefix);
+    printf("%s   SAT execution  : %.2f\n", prefix, sat_time);
+    printf("%s   other execution: %.2f\n", prefix, elapsed-sat_time);
+    printf("%s   time TOTAL     : %.2f\n", prefix, elapsed);
+}
 
 static bool run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     Cnf_reasoner cnf(cnf_file);
@@ -68,7 +114,7 @@ int main(int argc, char *const argv[]) {
     FILE *nnf_file = NULL;
     Pog_writer *pwriter = NULL;
     verblevel = 1;
-
+    double start = tod();
     int c;
     while ((c = getopt(argc, argv, "hv:rsek")) != -1) {
 	switch (c) {
@@ -128,6 +174,7 @@ int main(int argc, char *const argv[]) {
 	pwriter = new Pog_writer();
 
     bool success = run(cnf_file, nnf_file, pwriter);
+    report(start);
     
     return success ? 0 : 1;
 }

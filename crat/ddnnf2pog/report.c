@@ -37,3 +37,10 @@ void report(int level, const char *fmt, ...) {
     }
 }
 
+double tod() {
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL) == 0)
+	return (double) tv.tv_sec + 1e-6 * tv.tv_usec;
+    else
+	return 0.0;
+}
