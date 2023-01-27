@@ -287,7 +287,7 @@ public:
     // Different things to put on the context stack:
     void push_assigned_literal(int lit);
     void push_derived_literal(int lit, int cid);
-    void push_clause(int cid);
+    void push_clause(int cid, bool force);
     std::vector<int> *get_assigned_literals();
 
 

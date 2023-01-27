@@ -861,9 +861,10 @@ void Cnf_reasoner::new_unit(int lit, int cid, bool input) {
 	clp->add(-alit);
     incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     int ncid = start_assertion(clp);
-    if (clp->length() > 1) {
+    if (clp->length() == 1) {
+	unit_literals.insert(lit);
+    } else {
 	push_derived_literal(lit, ncid);
-	push_clause(ncid);
     }
     // Print hints
     for (int idx = 0; idx < clen; idx++) {
@@ -885,9 +886,10 @@ int Cnf_reasoner::quick_validate_literal(int lit, int cid1, int cid2) {
 	clp->add(-alit);
     int ncid = start_assertion(clp);
     incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
-    if (clp->length() > 1) {
+    if (clp->length() == 1) {
+	unit_literals.insert(lit);
+    } else {
 	push_derived_literal(lit, ncid);
-	push_clause(ncid);
     }
     add_hint(cid1);
     add_hint(cid2);
@@ -919,8 +921,9 @@ int Cnf_reasoner::found_conflict(int cid) {
     }
     if (!found_hint)
 	return cid;
-    if (clp->length() > 1)
-	push_clause(ncid);
+    if (clp->length() == 1) {
+	unit_literals.insert((*clp)[0]);
+    }
     add_hint(cid);
     finish_command(true);
     return ncid;
@@ -995,11 +998,11 @@ int Cnf_reasoner::bcp() {
 		int clit = (*cp)[idx];
 		if (unit_literals.find(clit) != unit_literals.end()) {
 		    report(3, "    Clause satisfied by unit %d\n", clit);
-		    // Clause satisifed.
+		    // Clause satisfied.
 		    ulit = 0;
 		    conflict = false;
 		    multi_active = false;
-		    push_clause(cid);
+		    push_clause(cid, false);
 		    break;
 		} else if (multi_active) {
 		    continue;
@@ -1021,12 +1024,12 @@ int Cnf_reasoner::bcp() {
 	    if (conflict) {
 		report(3, "    Conflict\n");
 		ncid = found_conflict(cid);
-		push_clause(cid);
+		push_clause(cid, false);
 	    } else if (ulit != 0) {
 		report(3, "    Unit %d\n", ulit);
 		new_unit(ulit, cid, false);
 		converged = false;
-		push_clause(cid);
+		push_clause(cid, false);
 	    } else if (multi_active) {
 		report(3, "    Still active\n");
 		next_active_clauses->insert(cid);
@@ -1100,11 +1103,11 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 		int clit = (*cp)[idx];
 		if (unit_literals.find(clit) != unit_literals.end()) {
 		    report(3, "    Clause satisfied by unit %d\n", clit);
-		    // Clause satisifed.
+		    // Clause satisfied.
 		    ulit = 0;
 		    conflict = false;
 		    multi_active = false;
-		    push_clause(cid);
+		    push_clause(cid, true);
 		    break;
 		} else if (multi_active) {
 		    continue;
@@ -1126,12 +1129,12 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 	    if (conflict) {
 		report(3, "    Conflict\n");
 		prop_clauses.push_back(cid);
-		push_clause(cid);
+		push_clause(cid, true);
 	    } else if (ulit != 0) {
 		report(3, "    Unit %d\n", ulit);
 		prop_clauses.push_back(cid);
 		push_derived_literal(ulit, cid);
-		push_clause(cid);
+		push_clause(cid, true);
 		converged = false;
 	    } else if (multi_active) {
 		report(3, "    Still active\n");
@@ -1220,9 +1223,9 @@ void Cnf_reasoner::push_derived_literal(int lit, int cid) {
     context_literal_stack.push_back(lit);
 }
 
-void Cnf_reasoner::push_clause(int cid) {
-    //    report(4, "Deactivating clause %d\n", cid);
-    context_clause_stack.push_back(cid);
+void Cnf_reasoner::push_clause(int cid, bool force) {
+    if (force || cid <= clause_count())
+	context_clause_stack.push_back(cid);
 }
 
 void Cnf_reasoner::pop_context() {
