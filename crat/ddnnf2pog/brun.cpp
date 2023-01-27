@@ -43,6 +43,7 @@ int main(int argc, const char *argv[]) {
     if (!cnf.enable_pog(&pwriter)) {
 	exit(1);
     }
+    cnf.delete_files = false;
     std::unordered_map<int,int> var2rvar;
     std::unordered_map<int,std::set<int>*> rvar2cset;
     cnf.partition_clauses(var2rvar, rvar2cset);
@@ -94,31 +95,23 @@ int main(int argc, const char *argv[]) {
 	return 0;
     }
 
-    // Extract reduced CNF representation
-    Cnf_reduced *rcp = cnf.extract_cnf();
-    rcp->run_solver();
-    while (true) {
-	std::vector<int> *context = cnf.get_assigned_literals();
-	Clause *pnp = rcp->get_proof_clause(context);
-	if (pnp == NULL)
-	    break;
-	int ncid = cnf.rup_validate(pnp);
-	if (ncid == 0) {
-	    err(false, "Failed to validate proof clause\n");
-	    pnp->show();
-	}
-    }
-    delete rcp;
-
     if (!cnf.is_unsatisfiable()) {
-	// Attempt final step in UNSAT proof
-	Clause *tcp = new Clause();
-	int ncid = cnf.rup_validate(tcp);
-	if (ncid == 0) {
-	    err(false, "Failed to finish UNSAT proof\n");
+	// Extract reduced CNF representation
+	Cnf_reduced *rcp = cnf.extract_cnf();
+	rcp->run_solver();
+	while (true) {
+	    std::vector<int> *context = cnf.get_assigned_literals();
+	    Clause *pnp = rcp->get_proof_clause(context);
+	    if (pnp == NULL)
+		break;
+	    int ncid = cnf.rup_validate(pnp);
+	    if (ncid == 0) {
+		err(false, "Failed to validate proof clause\n");
+		pnp->show();
+	    }
 	}
+	delete rcp;
     }
-    
 
     return 0;
 }
