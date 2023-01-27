@@ -5,8 +5,7 @@ OPT=-O2
 CFLAGS=-g $(OPT) -Wno-nullability-completeness
 CPPFLAGS=-g $(OPT) -Wno-nullability-completeness -std=c++11
 
-d2p: d2p.cpp clausal.o ilist.o report.o counters.o writer.o pog.o
-	$(CXX) $(CPPFLAGS) -o d2p d2p.cpp clausal.o ilist.o report.o counters.o writer.o pog.o
+all: brun rrun d2p
 
 ilist.o: ilist.c ilist.h
 	$(CC) $(CFLAGS) -c ilist.c
@@ -26,11 +25,15 @@ writer.o: ilist.h report.h writer.hh writer.cpp
 pog.o: pog.hh clausal.hh counters.h pog.cpp
 	$(CXX) $(CPPFLAGS) -c pog.cpp
 
-brun: brun.cpp clausal.o ilist.o report.o writer.o
-	$(CXX) $(CPPFLAGS) -o brun brun.cpp clausal.o ilist.o report.o writer.o
+d2p: d2p.cpp clausal.o ilist.o report.o counters.o writer.o pog.o
+	$(CXX) $(CPPFLAGS) -o d2p d2p.cpp clausal.o ilist.o report.o counters.o writer.o pog.o
 
-rrun: rrun.cpp clausal.o ilist.o report.o writer.o
-	$(CXX) $(CPPFLAGS) -o rrun rrun.cpp clausal.o ilist.o report.o writer.o
+
+brun: brun.cpp clausal.o ilist.o report.o writer.o counters.o
+	$(CXX) $(CPPFLAGS) -o brun brun.cpp clausal.o ilist.o report.o writer.o counters.o
+
+rrun: rrun.cpp clausal.o ilist.o report.o writer.o  counters.o
+	$(CXX) $(CPPFLAGS) -o rrun rrun.cpp clausal.o ilist.o report.o writer.o  counters.o
 
 
 
@@ -44,6 +47,6 @@ rrun: rrun.cpp clausal.o ilist.o report.o writer.o
 
 clean:
 	rm -f *.o *~
-	rm -f brun rrun
+	rm -f brun rrun d2p
 
 
