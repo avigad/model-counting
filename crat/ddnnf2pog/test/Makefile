@@ -10,17 +10,25 @@ D2P_OPTIONS=
 
 
 .SUFFIXES: .cnf \
-	.d4nnf .d4crat .d4check_data \
+	.d4nnf .d4_dt_crat .d4_dt_check_data \
+	.d4_rup_crat .d4_rup_check_data \
 	.btrace .bcrat .bcheck_data
 
 .cnf.d4nnf:
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
 
-.d4nnf.d4crat:
-	$(D2P) -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4crat_data
+.d4nnf.d4_rup_crat:
+	$(D2P) -r -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_rup_crat_data
 
-.d4crat.d4check_data:
+.d4_rup_crat.d4_rup_check_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
+
+.d4nnf.d4_dt_crat:
+	$(D2P) -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_dt_crat_data
+
+.d4_dt_crat.d4_dt_check_data:
+	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
+
 
 .cnf.btrace:
 	$(TBSAT) -v $(VLEVEL) -m 0 -i $< -o $*.lrat -T $@

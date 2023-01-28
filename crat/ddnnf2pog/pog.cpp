@@ -684,7 +684,6 @@ int Pog::justify(int rlit, bool parent_or) {
 		    if (partition) {
 			int llit = first_literal(clit);
 			int rvar = var2rvar.find(IABS(llit))->second;
-			report(5, "Justifying node N%d.  Use clause subset linked to variable %d\n", xvar, rvar);
 			pset = rvar2cset.find(rvar)->second;
 			// Restrict clauses to those relevant to this partition
 			cnf->set_active_clauses(pset);

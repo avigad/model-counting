@@ -1445,9 +1445,6 @@ int Cnf_reasoner::reduce_run(int lit) {
 	for (int cid = first_ncid; cid <= ncid; cid++)
 	    deactivate_clause(cid);
     }
-    if (ncid > 0) {
-	report(5, "Validated literal %d.  Used SAT solver\n", lit);
-    }
     delete rcp;
     return ncid;
 }
@@ -1455,14 +1452,11 @@ int Cnf_reasoner::reduce_run(int lit) {
 // Justify that literal holds.  Return ID of justifying clause
 // Mode specifies different levels of effort
 int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
-    report(5, "Attempting to Validate literal %d\n", lit);
     auto fid = justifying_ids.find(lit);
     if (fid != justifying_ids.end()) {
-	report(5, "Validated literal %d.  Already unit\n", lit);
 	return fid->second;
     }
     if (unit_literals.find(-lit) != unit_literals.end()) {
-	report(5, "Validating literal %d.  BUT %d is unit\n", lit, -lit);
 	return 0;
     }
 
@@ -1471,17 +1465,13 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
     push_assigned_literal(-lit);
     if (mode != MODE_SAT) {
 	ncid = bcp();
-	if (ncid > 0)
-	    report(5, "Validated literal %d.  Justified by BCP\n", lit);
     }
     if (ncid == 0 && mode != MODE_BCP) {
 	ncid = reduce_run(lit);
     }
     pop_context();
 
-    if (ncid == 0) 
-	report(5, "Couldn't validate literal %d %s SAT solver\n", lit, mode == MODE_BCP ? "without" : "with");
-    else
+    if (ncid != 0) 
 	push_derived_literal(lit, ncid);
 
     return ncid;
