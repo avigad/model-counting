@@ -500,6 +500,8 @@ bool Cnf_reduced::run_solver() {
 	    break;
     }
     report(3, "File %s.  %d input clauses --> %d proof clauses\n", fname, clause_count(), proof_clauses.size());
+    incr_histo(HISTO_PROBLEM, clause_count());
+    incr_histo(HISTO_PROOF, proof_clauses.size());
 
     return true;
 }
@@ -559,6 +561,8 @@ bool Cnf_reduced::run_hinting_solver() {
 	return false;
     }
     report(3, "File %s.  %d input clauses --> %d proof clauses\n", cnfname, clause_count(), proof_clauses.size());
+    incr_histo(HISTO_PROBLEM, clause_count());
+    incr_histo(HISTO_PROOF, proof_clauses.size());
     return true;
 }
 

@@ -31,8 +31,10 @@ bool multi_literal = true;
 bool use_lemmas = true;
 bool delete_files  =  true;
 
-const char *prefix = "GEN";
-static void report(double start) {
+const char *prefix = "GEN:";
+static void stat_report(double start) {
+    if (verblevel < 1)
+	return;
     double elapsed = tod()-start;
     printf("%s Formula\n", prefix);
     printf("%s    input variables: %d\n", prefix, get_count(COUNT_VAR));
@@ -57,6 +59,62 @@ static void report(double start) {
     printf("%s Lemmas\n", prefix);
     printf("%s    definitions : %d\n", prefix, get_count(COUNT_LEMMA_DEFINITION));
     printf("%s    applications: %d\n", prefix, get_count(COUNT_LEMMA_APPLICATION));
+    ilist problem_histo = get_histo(HISTO_PROBLEM);
+    int problem_count = 0;
+    int problem_clauses = 0;
+    int problem_min = 0;
+    int problem_max = 0;
+    for (int len = 0; len < ilist_length(problem_histo); len++) {
+	if (problem_histo[len] > 0) {
+	    if (problem_min == 0)
+		problem_min = len;
+	    problem_max = len;
+	    problem_count += problem_histo[len];
+	    problem_clauses += len * problem_histo[len];
+	}
+    }
+    printf("%s SAT Problem Clause Counts (%d instances)\n", prefix, problem_count);
+    if (verblevel >= 2) {
+	for (int len = 0; len < ilist_length(problem_histo); len++) {
+	    if (problem_histo[len] > 0) {
+		printf("%s    %d : %d\n", prefix, len, problem_histo[len]);
+	    }
+	}
+    }
+    if (problem_count > 0) {
+	printf("%s    PROBLEM TOTAL : %d\n", prefix, problem_clauses);
+	printf("%s    PROBLEM MIN   : %d\n", prefix, problem_min);
+	printf("%s    PROBLEM AVG   : %.2f\n", prefix, (double) problem_clauses/problem_count);
+	printf("%s    PROBLEM MAX   : %d\n", prefix, problem_max);
+    }
+
+    if (problem_count > 0) {
+	ilist proof_histo = get_histo(HISTO_PROOF);
+	int proof_count = 0;
+	int proof_clauses = 0;
+	int proof_min = 0;
+	int proof_max = 0;
+
+	printf("%s SAT Proof Clause Counts\n", prefix);
+	for (int len = 0; len < ilist_length(proof_histo); len++) {
+	    if (proof_histo[len] > 0) {
+		if (proof_min == 0)
+		    proof_min = len;
+		proof_max = len;
+		proof_count += proof_histo[len];
+		proof_clauses += len * proof_histo[len];
+		if (verblevel >= 2)
+		    printf("%s    %d : %d\n", prefix, len, proof_histo[len]);
+	    }
+	}
+	if (proof_count > 0) {
+	    printf("%s    PROOF TOTAL : %d\n", prefix, proof_clauses);
+	    printf("%s    PROOF MIN   : %d\n", prefix, proof_min);
+	    printf("%s    PROOF AVG   : %.2f\n", prefix, (double) proof_clauses/proof_count);
+	    printf("%s    PROOF MAX   : %d\n", prefix, proof_max);
+	}
+    }
+
     int cd  = get_count(COUNT_DEFINING_CLAUSE);
     int cda = get_count(COUNT_DEFINING_AUX_CLAUSE);
     int cdp = cd-cda;
@@ -174,7 +232,7 @@ int main(int argc, char *const argv[]) {
 	pwriter = new Pog_writer();
 
     bool success = run(cnf_file, nnf_file, pwriter);
-    report(start);
+    stat_report(start);
     
     return success ? 0 : 1;
 }
