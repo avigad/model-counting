@@ -10,9 +10,9 @@ import subprocess
 import datetime
 
 def usage(name):
-    print("Usage: %s [-h] [-s n|g] [-H HPATH] FILE.cnf ..." % name)
+    print("Usage: %s [-h] [-s n|g|c] [-H HPATH] FILE.cnf ..." % name)
     print("  -h       Print this message")
-    print("  -s n|c   Stop after NNF generation (n) or after CRAT generation (c)")
+    print("  -s n|g|c   Stop after NNF generation, CRAT generation (g) or proof check (c)")
     print("  -H HPATH Specify pathname for directory")
 
 # Defaults
@@ -29,10 +29,11 @@ genProgram = genHome + "/d2p"
 checkHome = homePath + "/model-counting/crat/checker"
 checkProgram = checkHome + "/crat-check"
 
+interpreter = "python3"
 countHome = homePath + "/model-counting/crat/prototype"
 countProgram = countHome + "/crat_counter.py"
 
-timeLimits = { "D4" : 300, "GEN" : 600, "FCHECK" : 200 }
+timeLimits = { "D4" : 300, "GEN" : 600, "FCHECK" : 200, "COUNT" : 300 }
 
 def runProgram(prefix, root, commandList, logFile):
     if prefix in timeLimits:
@@ -102,7 +103,14 @@ def runCheck(root, home, logFile):
     ok =  runProgram("FCHECK", root, cmd, logFile)
     return ok
 
-def runSequence(root, home, stopD4, stopGen):
+def runCount(root, home, logFile):
+    cnfName = home + "/" + root + ".cnf"
+    cratName = home + "/" + root + ".crat"
+    cmd = [interpreter, countProgram, "-i", cnfName, "-p", cratName]
+    ok = runProgram("COUNT", root, cmd, logFile)
+    return ok
+
+def runSequence(root, home, stopD4, stopGen, stopCheck):
     result = ""
     prefix = "OVERALL"
     start = datetime.datetime.now()
@@ -126,6 +134,9 @@ def runSequence(root, home, stopD4, stopGen):
     done = done or stopGen
     if not done:
         ok = ok and runCheck(root, home, logFile)
+    done = done or stopCheck
+    if not done:
+        ok = ok and runCount(root, home, logFile)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     result += "%s LOG: Elapsed time = %.3f seconds\n" % (prefix, seconds)
@@ -143,17 +154,18 @@ def stripSuffix(fname, expected):
         return ".".join(fields)
     return None
 
-def runBatch(home, cnfList, stopD4, stopGen):
+def runBatch(home, cnfList, stopD4, stopGen, stopCheck):
     roots = [stripSuffix(f, "cnf") for f in cnfList]
     roots = [r for r in roots if r is not None]
     print("Running on roots %s" % roots)
     for r in roots:
-        runSequence(r, home, stopD4, stopGen)
+        runSequence(r, home, stopD4, stopGen, stopCheck)
 
 def run(name, args):
     home = "."
     stopD4 = False
     stopGen = False
+    stopCheck = False
     optList, args = getopt.getopt(args, "hH:s:")
     for (opt, val) in optList:
         if opt == '-h':
@@ -164,8 +176,10 @@ def run(name, args):
         elif opt == '-s':
             if val == 'n':
                 stopD4 = True
-            elif val == 'c':
+            elif val == 'g':
                 stopGen = True
+            elif val == 'c':
+                stopCheck = True
             else:
                 print("Unknown stopping condition '%s'" % val)
                 usage(name)
@@ -174,8 +188,9 @@ def run(name, args):
             print("Unknown option '%s'" % opt)
             usage(name)
             return
-    runBatch(home, args, stopD4, stopGen)
+    runBatch(home, args, stopD4, stopGen, stopCheck)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
+    sys.exit(0)
 
