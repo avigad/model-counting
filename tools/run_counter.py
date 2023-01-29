@@ -12,7 +12,7 @@ import datetime
 def usage(name):
     print("Usage: %s [-h] [-f] [-s n|g|c] [-H HPATH] FILE.cnf ..." % name)
     print("  -h       Print this message")
-    printf(" -f       Force regeneration of all files")
+    print("  -f       Force regeneration of all files")
     print("  -s n|g|c Stop after NNF generation, CRAT generation (g) or proof check (c)")
     print("  -H HPATH Specify pathname for directory")
 
