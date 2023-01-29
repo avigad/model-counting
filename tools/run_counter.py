@@ -1,15 +1,18 @@
 #!/usr/bin/python3
 
 # Run model counting program on benchmark file
+# Use newer versions of programs
 
 import getopt
 import sys
+import os.path
 import subprocess
 import datetime
 
 def usage(name):
-    print("Usage: %s [-h] [-H HPATH] FILE.cnf ..." % name)
+    print("Usage: %s [-h] [-s n|g] [-H HPATH] FILE.cnf ..." % name)
     print("  -h       Print this message")
+    print("  -s n|c   Stop after NNF generation (n) or after CRAT generation (c)")
     print("  -H HPATH Specify pathname for directory")
 
 # Defaults
@@ -20,15 +23,16 @@ homePath = "/Users/bryant/repos"
 d4Path = homePath + "/d4"
 d4Program = d4Path + "/d4"
 
-interp = "/usr/local/bin/python3"
-genHome = homePath + "/model-counting/crat/prototype"
-genProgram = genHome + "/ddnnf.py"
-hintProgram = genHome + "/hintify.py"
+genHome = homePath + "/model-counting/crat/ddnnf2pog"
+genProgram = genHome + "/d2p"
 
 checkHome = homePath + "/model-counting/crat/checker"
 checkProgram = checkHome + "/crat-check"
 
-timeLimits = { "D4" : 60, "GEN" : 300, "HINT" : 300, "FCHECK" : 60 }
+countHome = homePath + "/model-counting/crat/prototype"
+countProgram = countHome + "/crat_counter.py"
+
+timeLimits = { "D4" : 300, "GEN" : 600, "FCHECK" : 200 }
 
 def runProgram(prefix, root, commandList, logFile):
     if prefix in timeLimits:
@@ -67,48 +71,61 @@ def runProgram(prefix, root, commandList, logFile):
     logFile.write(result)
     return ok
 
+# Only run D4 if don't yet have .nnf file
 def runD4(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
     nnfName = home + "/" + root + ".nnf"
+    if os.path.exists(nnfName):
+        return True
     cmd = [d4Program, cnfName, "-dDNNF", "-out=" + nnfName]
-    return runProgram("D4", root, cmd, logFile)
+    ok = runProgram("D4", root, cmd, logFile)
+    if not ok and os.path.exists(nnfName):
+        os.remove(nnfName)
+    return ok
 
 def runGen(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
     nnfName = home + "/" + root + ".nnf"
     cratName = home + "/" + root + ".crat"
-    cmd = [interp, genProgram, "-d", "-i", cnfName, "-n", nnfName, "-p", cratName, "-H", "2", "-L", "2", "-s", "2"]
-    return runProgram("GEN", root, cmd, logFile)
-
-def runHint(root, home, logFile):
-    cnfName = home + "/" + root + ".cnf"
-    cratName = home + "/" + root + ".crat"
-    hcratName = home + "/" + root + ".hcrat"
-    cmd = [interp, hintProgram, "-i", cnfName, "-p", cratName, "-o", hcratName, "-s", "2"]
-    return runProgram("HINT", root, cmd, logFile)
+    if os.path.exists(cratName):
+        return True
+    cmd = [genProgram, "-r", cnfName, nnfName, cratName]
+    ok = runProgram("GEN", root, cmd, logFile)
+    if not ok and os.path.exists(cratName):
+        os.remove(cratName)
+    return ok
 
 def runCheck(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
-    hcratName = home + "/" + root + ".hcrat"
-    cmd = [checkProgram, cnfName, hcratName]
-    return runProgram("FCHECK", root, cmd, logFile)
+    cratName = home + "/" + root + ".crat"
+    cmd = [checkProgram, cnfName, cratName]
+    ok =  runProgram("FCHECK", root, cmd, logFile)
+    return ok
 
-def runSequence(root, home):
+def runSequence(root, home, stopD4, stopGen):
     result = ""
     prefix = "OVERALL"
     start = datetime.datetime.now()
-    logName = root + ".log"
+    if stopD4:
+        logName = root + ".D4_log"
+    elif stopGen:
+        logName = root + ".d2p_log"
+    else:
+        logName = root + ".log"
     try:
         logFile = open(logName, 'w')
     except:
         print("%s. %s ERROR:Couldn't open file '%s'" % (root, prefix, logName))
         return
     ok = False
-    if runD4(root, home, logFile):
-        if runGen(root, home, logFile):
-            if runHint(root, home, logFile):
-                if runCheck(root, home, logFile):
-                    ok = True
+    done = False
+    ok = runD4(root, home, logFile)
+    done = stopD4
+    if not done:
+        ok = ok and runGen(root, home, logFile)
+    done = done or stopGen
+    if not done:
+        ok = ok and runCheck(root, home, logFile)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     result += "%s LOG: Elapsed time = %.3f seconds\n" % (prefix, seconds)
@@ -126,26 +143,38 @@ def stripSuffix(fname, expected):
         return ".".join(fields)
     return None
 
-def runBatch(home, cnfList):
+def runBatch(home, cnfList, stopD4, stopGen):
     roots = [stripSuffix(f, "cnf") for f in cnfList]
     roots = [r for r in roots if r is not None]
     print("Running on roots %s" % roots)
     for r in roots:
-        runSequence(r, home)
+        runSequence(r, home, stopD4, stopGen)
 
 def run(name, args):
     home = "."
-    optList, args = getopt.getopt(args, "hH:")
+    stopD4 = False
+    stopGen = False
+    optList, args = getopt.getopt(args, "hH:s:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
         elif opt == '-H':
             home = val
+        elif opt == '-s':
+            if val == 'n':
+                stopD4 = True
+            elif val == 'c':
+                stopGen = True
+            else:
+                print("Unknown stopping condition '%s'" % val)
+                usage(name)
+                return
         else:
             print("Unknown option '%s'" % opt)
+            usage(name)
             return
-    runBatch(home, args)
+    runBatch(home, args, stopD4, stopGen)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
