@@ -10,9 +10,10 @@ import subprocess
 import datetime
 
 def usage(name):
-    print("Usage: %s [-h] [-s n|g|c] [-H HPATH] FILE.cnf ..." % name)
+    print("Usage: %s [-h] [-f] [-s n|g|c] [-H HPATH] FILE.cnf ..." % name)
     print("  -h       Print this message")
-    print("  -s n|g|c   Stop after NNF generation, CRAT generation (g) or proof check (c)")
+    printf(" -f       Force regeneration of all files")
+    print("  -s n|g|c Stop after NNF generation, CRAT generation (g) or proof check (c)")
     print("  -H HPATH Specify pathname for directory")
 
 # Defaults
@@ -73,10 +74,10 @@ def runProgram(prefix, root, commandList, logFile):
     return ok
 
 # Only run D4 if don't yet have .nnf file
-def runD4(root, home, logFile):
+def runD4(root, home, logFile, force):
     cnfName = home + "/" + root + ".cnf"
     nnfName = home + "/" + root + ".nnf"
-    if os.path.exists(nnfName):
+    if not force and os.path.exists(nnfName):
         return True
     cmd = [d4Program, cnfName, "-dDNNF", "-out=" + nnfName]
     ok = runProgram("D4", root, cmd, logFile)
@@ -84,11 +85,11 @@ def runD4(root, home, logFile):
         os.remove(nnfName)
     return ok
 
-def runGen(root, home, logFile):
+def runGen(root, home, logFile, force):
     cnfName = home + "/" + root + ".cnf"
     nnfName = home + "/" + root + ".nnf"
     cratName = home + "/" + root + ".crat"
-    if os.path.exists(cratName):
+    if not force and os.path.exists(cratName):
         return True
     cmd = [genProgram, "-r", cnfName, nnfName, cratName]
     ok = runProgram("GEN", root, cmd, logFile)
@@ -110,7 +111,7 @@ def runCount(root, home, logFile):
     ok = runProgram("COUNT", root, cmd, logFile)
     return ok
 
-def runSequence(root, home, stopD4, stopGen, stopCheck):
+def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     result = ""
     prefix = "OVERALL"
     start = datetime.datetime.now()
@@ -127,10 +128,10 @@ def runSequence(root, home, stopD4, stopGen, stopCheck):
         return
     ok = False
     done = False
-    ok = runD4(root, home, logFile)
+    ok = runD4(root, home, logFile, force)
     done = stopD4
     if not done:
-        ok = ok and runGen(root, home, logFile)
+        ok = ok and runGen(root, home, logFile, force)
     done = done or stopGen
     if not done:
         ok = ok and runCheck(root, home, logFile)
@@ -154,25 +155,26 @@ def stripSuffix(fname, expected):
         return ".".join(fields)
     return None
 
-def runBatch(home, cnfList, stopD4, stopGen, stopCheck):
+def runBatch(home, cnfList, stopD4, stopGen, stopCheck, force):
     roots = [stripSuffix(f, "cnf") for f in cnfList]
     roots = [r for r in roots if r is not None]
     print("Running on roots %s" % roots)
     for r in roots:
-        runSequence(r, home, stopD4, stopGen, stopCheck)
+        runSequence(r, home, stopD4, stopGen, stopCheck, force)
 
 def run(name, args):
     home = "."
     stopD4 = False
     stopGen = False
     stopCheck = False
-    optList, args = getopt.getopt(args, "hH:s:")
+    force = False
+    optList, args = getopt.getopt(args, "hfH:s:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
-        elif opt == '-H':
-            home = val
+        elif opt == '-f':
+            force = True
         elif opt == '-s':
             if val == 'n':
                 stopD4 = True
@@ -188,7 +190,7 @@ def run(name, args):
             print("Unknown option '%s'" % opt)
             usage(name)
             return
-    runBatch(home, args, stopD4, stopGen, stopCheck)
+    runBatch(home, args, stopD4, stopGen, stopCheck, force)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
