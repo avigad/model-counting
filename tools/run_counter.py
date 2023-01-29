@@ -10,11 +10,12 @@ import subprocess
 import datetime
 
 def usage(name):
-    print("Usage: %s [-h] [-f] [-s n|g|c] [-H HPATH] FILE.cnf ..." % name)
+    print("Usage: %s [-h] [-f] [-s n|g|c] [-H HPATH] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -s n|g|c Stop after NNF generation, CRAT generation (g) or proof check (c)")
     print("  -H HPATH Specify pathname for directory")
+    print("  EXT      Can be any extension for wild-card matching (e.g., cnf, nnf)")
 
 # Defaults
 standardTimeLimit = 60
@@ -148,15 +149,15 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     logFile.write(result)
     logFile.close()
 
-def stripSuffix(fname, expected):
+def stripSuffix(fname):
     fields = fname.split(".")
-    if fields[-1] == expected:
+    if len(fields) > 1:
         fields = fields[:-1]
-        return ".".join(fields)
-    return None
+    return ".".join(fields)
 
-def runBatch(home, cnfList, stopD4, stopGen, stopCheck, force):
-    roots = [stripSuffix(f, "cnf") for f in cnfList]
+
+def runBatch(home, fileList, stopD4, stopGen, stopCheck, force):
+    roots = [stripSuffix(f) for f in fileList]
     roots = [r for r in roots if r is not None]
     print("Running on roots %s" % roots)
     for r in roots:
