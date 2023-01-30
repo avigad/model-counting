@@ -178,6 +178,14 @@ class P52:
         negative = s[0] == '-'
         if negative:
             s = s[1:]
+        fields = s.split('e')
+        p10 = 0
+        if len(fields) == 2:
+            try:
+                p10 = int(fields[1])
+                s = fields[0]
+            except:
+                raise PNumException("Invalid number '%s'" % s)
         fields = s.split('.')
         if len(fields) == 1:
             try:
@@ -197,7 +205,10 @@ class P52:
             except:
                 raise PNumException("Invalid number '%s'" % s)
             wt = len(fields[1])
-            return P52(h).add(P52(l,-wt,-wt))
+            val = P52(h).add(P52(l,-wt,-wt))
+            if p10 != 0:
+                val = val.scale10(p10)
+            return val
         else:
             raise PNumException("Invalid number '%s'" % s)
 
@@ -297,7 +308,7 @@ class CnfReader():
                     self.fail("Line %d.  Bad header line '%s'.  Invalid number of variables or clauses" % (lineNumber, line))
                     return
             else:
-                return
+                continue
 
 
 class OperationManager:
