@@ -88,16 +88,32 @@ def nthNumber(fields, n = 1):
                     continue
     return -1
 
+def getRoot(path):
+    pieces = path.split("/")
+    fname = pieces[-1]
+    fields = fname.split(".")
+    if len(fields) > 1:
+        fields = fields[:-1]
+    return ".".join(fields)
+
+# Get tag from file name
+def getTag(fname, num = False):
+    if num:
+        # Try to find size from file name:
+        try:
+            m = re.search(inumber, fname)
+            n = int(m.group(0))
+            return str(n)
+        except:
+            print("Couldn't extract problem size from file name '%s'" % fname)
+            return None
+    else:
+        return getRoot(fname)
+
 
 # Extract clause data from log.  Turn into something useable for other tools
 def extract(fname):
-    # Try to find size from file name:
-    try:
-        m = re.search(inumber, fname)
-        n = int(m.group(0))
-    except:
-        print("Couldn't extract problem size from file name '%s'" % fname)
-        return None
+    tag = getTag(fname)
     try:
         f = open(fname, 'r')
     except:
@@ -112,7 +128,7 @@ def extract(fname):
     f.close()
     if val is None:
         return None
-    return (n, val)
+    return (tag, val)
 
 def usage(name):
     print("Usage: %s tphrase file1 file2 ..." % name)
