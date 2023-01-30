@@ -118,14 +118,12 @@ Pog::Pog() {
     cnf = NULL;
     max_input_var = 0;
     xvar_counter = max_input_var;
-    dependency_sets = NULL;
 }
 
 Pog::Pog(Cnf_reasoner *cset) {
     cnf = cset;
     max_input_var = cset->max_variable();
     xvar_counter = max_input_var;
-    dependency_sets = NULL;
 }
 
 int Pog::add_node(Pog_node *np) {

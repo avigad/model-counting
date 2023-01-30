@@ -53,6 +53,9 @@ private:
     // Id of first clause in declaration
     int defining_cid;
 
+    // Lemma support
+    //    int indegree;
+
 public:
     Pog_node();
 
@@ -86,8 +89,6 @@ private:
     std::vector<Pog_node *> nodes;
     // Root literal can refer to either an input variable or the last node
     int root_literal;
-    // Mapping for each node to the set of variables on which it depends
-    std::unordered_set<int>** dependency_sets;
 
 public:
     Pog();
