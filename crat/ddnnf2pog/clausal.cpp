@@ -148,7 +148,6 @@ int * Clause::data() {
 }
 
 
-
 int& Clause::operator[](int i) {
     return contents[i];
 }
@@ -239,6 +238,44 @@ void Clause::write(Writer *writer) {
     }
     writer->write_list(contents);
 }
+
+// Support for computing hash function over clause
+// Represent by signature over modular field
+static const unsigned hash_modulus = 2147483647U;
+static char hash_state[256];
+
+static std::vector<unsigned> var_hash;
+
+#define CHUNK_SIZE 1024
+
+static unsigned next_hash_literal(unsigned sofar, int lit) {
+    if (var_hash.size() == 0) {
+	// Initialization
+	initstate(1, hash_state, 256);
+    }
+    unsigned var = IABS(lit);
+    if (var >= var_hash.size()) {
+	// Add more random values
+	size_t osize = var_hash.size();
+	size_t nsize = osize + (1 + (var - osize)/CHUNK_SIZE) * CHUNK_SIZE;
+	var_hash.resize(nsize);
+	const char *ostate = setstate(hash_state);
+	for (unsigned i = osize; i < nsize; i++)
+	    var_hash[i] = random() % hash_modulus;
+	setstate(ostate);
+    }
+    unsigned vval = var_hash[var];
+    unsigned long  lval = lit < 0 ? 1 + hash_modulus - vval : vval;
+    return (lval * sofar) % hash_modulus;
+}
+    
+unsigned Clause::hash() {
+    unsigned val = 1;
+    for (int i = 0; i < length(); i++)
+	val = next_hash_literal(val, contents[i]);
+    return val;
+}
+
 
 Cnf::Cnf() { read_failed = false; max_input_var = 0; }
 

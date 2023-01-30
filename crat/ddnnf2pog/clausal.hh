@@ -87,6 +87,8 @@ public:
 
     int& operator[](int);
 
+    unsigned hash();
+
     // Given array mapping (decremented) variable to 0/1
     // determine if clause satisfied
     bool satisfied(char *assignment);

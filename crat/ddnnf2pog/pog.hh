@@ -54,7 +54,7 @@ private:
     int defining_cid;
 
     // Lemma support
-    //    int indegree;
+    int indegree;
 
 public:
     Pog_node();
@@ -83,8 +83,12 @@ public:
 // POG
 class Pog {
 private:
-    // Input CNF + proof generation support
+    // Current CNF + proof generation support
     Cnf_reasoner *cnf;
+    // Stack to save higher level clausal representation 
+    std::vector<Cnf_reasoner *> reasoner_stack;
+
+
     int max_input_var;
     std::vector<Pog_node *> nodes;
     // Root literal can refer to either an input variable or the last node
@@ -136,4 +140,8 @@ private:
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
     // Recursively descend Pog until find input literal
     int first_literal(int rlit);
+    // Create lemma for node
+    void lemma_setup(Pog_node *root);
+    // Apply lemma at node
+    void lemma_application(Pog_node *root);
 };
