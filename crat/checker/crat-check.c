@@ -565,8 +565,8 @@ void token_find_eol() {
 
 /* Maintain set of all clauses as single array.  Each entry zero-terminated */
 int *clause_list = NULL;
-int clause_next_pos = 0;
-int clause_asize = 0;
+long int clause_next_pos = 0;
+long int clause_asize = 0;
 int clause_count = 0;
 int clause_last_id = 0;
 
@@ -709,7 +709,7 @@ void clause_new(int cid) {
 	    clause_blocks[clause_block_count-1].length ++;
 	}
     }
-    clause_blocks[clause_block_count-1].offset = ilist_push(clause_blocks[clause_block_count-1].offset, clause_next_pos);
+    clause_blocks[clause_block_count-1].offset = ilist_push(clause_blocks[clause_block_count-1].offset, (int) clause_next_pos);
     clause_blocks[clause_block_count-1].length ++;
     clause_last_id = cid;
     clause_count ++;
@@ -718,10 +718,16 @@ void clause_new(int cid) {
 /* Add either literal or terminating 0 to current clause */
 void clause_add_literal(int lit) { 
     if (clause_next_pos >= clause_asize) {
-	int oasize = clause_asize;
-	clause_asize = (int) (GROW_RATIO * clause_asize);
+	long int oasize = clause_asize;
+	clause_asize = (long int) (GROW_RATIO * clause_asize);
+	if (clause_asize > INT_MAX) {
+	    if (oasize < INT_MAX)
+		clause_asize = INT_MAX;
+	    else
+		err_printf(__cfunc__, "Couldn't allocate space for clauses.  Exceeding INT_MAX positions\n");
+	}
 	clause_list = realloc(clause_list, clause_asize * sizeof(int));
-	info_printf(3, "Resizing clause list %d --> %d\n", oasize, clause_asize);
+	info_printf(3, "Resizing clause list %ld --> %ld\n", oasize, clause_asize);
 	if (clause_list == NULL)
 	    err_printf(__cfunc__, "Couldn't allocate space for clauses\n");
     }
