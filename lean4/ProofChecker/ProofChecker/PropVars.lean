@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wojciech Nawrocki
 -/
 
+import Mathlib.Data.Finset.Basic
 import ProofChecker.PropTerm
 
 /-! Assignments to and equivalence over subsets of variables. This usefully does respect semantic
@@ -70,10 +71,12 @@ end PropTerm
 
 namespace PropForm
 
+variable [DecidableEq ν]
+
 /-- Variables appearing in the formula. Sometimes called its "support set". -/
 -- TODO: a finset or list variant may be useful; but ν can be a Fintype in which case Set ν works
 @[simp]
-def vars : PropForm ν → Set ν
+def vars : PropForm ν → Finset ν
   | var y => {y}
   | tr | fls => ∅
   | neg φ => vars φ
@@ -87,6 +90,7 @@ theorem eval_ext {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν} : (∀ x �
   | tr | fls => rfl
   | neg _ ih => simp [ih h]
   | _ _ _ ih₁ ih₂ =>
+    simp only [vars, Finset.mem_union] at h
     simp [ih₁ fun x hMem => (h x <| .inl hMem), ih₂ fun x hMem => (h x <| .inr hMem)]
 
 theorem eval_set_of_not_mem_vars [DecidableEq ν] {x : ν} {φ : PropForm ν} {τ : PropAssignment ν} : 
