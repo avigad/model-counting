@@ -101,8 +101,8 @@ public:
     // Simplify a clause according to a set of assigned literals
     // Return NULL if clause becomes satisfied
     // Return original if clause unchanged
-    // Otherwise, return new clause
-    Clause * simplify(std::unordered_set<int> &unit_literals);    
+    // Otherwise, return remaining active literals
+    ilist simplify(std::unordered_set<int> &unit_literals);    
 
     // Compute a hash signature for the clause
     unsigned hash();
@@ -232,12 +232,22 @@ public:
 };
  
 // Information required to generate and apply lemmas
-struct Lemma_instance {
+class Lemma_instance {
+
+public:
     // Mapping from Ids of synthetic clauses serving as arguments
     // to the clause (input or synthetic) from which the synthetic clause arises
-    std::map<int,int> inverse_map;
-    // List of the activating literals for the argument clauses
-    std::vector<int> activating_literals;
+    std::map<int,int> inverse_cid;
+    // Clause ID for lemma proof
+    int jid;
+    // What is the extension variable for the associated root node
+    int xvar;
+    // Collect the set of clauses used to generate lemma proof
+    std::set<int> *get_lemma_clauses();
+
+    // Get the set of literals that will serve as the context for the lemma proof
+
+
 };
 
 // Augment clauses with reasoning and proof-generation capabilities 
@@ -265,7 +275,10 @@ private:
     bool unsatisfiable;
 
     // Maintaining context 
+    // Literals that have been set during context and should be cleared
     std::vector<int> context_literal_stack;
+    // Literals that have been cleared during the context and should be restored
+    std::vector<int> context_cleared_literal_stack;
     std::vector<int> context_clause_stack;
     // Mapping from unit literal to asserting clause Id 
     std::unordered_map<int, int> justifying_ids;
@@ -339,6 +352,7 @@ public:
     void push_assigned_literal(int lit);
     void push_derived_literal(int lit, int cid);
     void push_clause(int cid, bool force);
+    void clear_assigned_literals();
     std::vector<int> *get_assigned_literals();
 
 
@@ -351,9 +365,6 @@ public:
 
     // Extract a reduced representation of the currently active clauses
     Cnf_reduced *extract_cnf();
-
-    // Extract information required to define, prove, or apply a lemma
-    Lemma_instance *extract_lemma();
 
     // Perform Boolean constraint propagation.
     // Return ID of any generated conflict clause (or 0)
@@ -381,6 +392,19 @@ public:
 
     // Delete all but final asserted clause
     void delete_assertions();
+
+    //// Lemma Support
+
+    // Extract information required to define, prove, or apply a lemma
+    Lemma_instance *extract_lemma(int xvar);
+
+    // Set up context for lemma proof
+    void setup_proof(Lemma_instance *lemma);
+
+    // Restore context from lemma proof
+    void restore_from_proof(Lemma_instance *lemma);
+
+    int apply_lemma(Lemma_instance *lemma, Lemma_instance *instance);
 
 private:
 
@@ -412,6 +436,11 @@ private:
     // Find existing auxilliary clause or create new one with these literals.
     // Return clause ID
     int find_or_make_aux_clause(ilist lits);
+
+    // Add active clause to lemma.  It will simplify the clause
+    // and, if changed, will find/create a synthetic clause to serve as the argument
+    void add_lemma_argument(Lemma_instance *lemma, int cid);
+
 };
 
 

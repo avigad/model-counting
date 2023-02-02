@@ -55,6 +55,7 @@ private:
 
     // Lemma support
     int indegree;
+    Lemma_instance *lemma;
 
 public:
     Pog_node();
@@ -78,6 +79,13 @@ public:
     // Access children
     int get_degree();
     int& operator[](int);
+
+    // Lemma support
+    void increment_indegree();
+    // Does this node meet criteria for having a lemma?
+    bool want_lemma();
+    void add_lemma(Lemma_instance *lemma);
+    Lemma_instance *get_lemma();
 };
 
 // POG
@@ -138,8 +146,8 @@ private:
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
     // Recursively descend Pog until find input literal
     int first_literal(int rlit);
-    // Create lemma for node
-    void lemma_setup(Pog_node *root);
-    // Apply lemma at node
-    void lemma_application(Pog_node *root);
+    // Create lemma for node.  Store justifying ID internally (0 if failed)
+    void prove_lemma(Pog_node *rp);
+    // Apply lemma at node.  Return ID of justifying clause (0 if failed)
+    int apply_lemma(Pog_node *rp);
 };

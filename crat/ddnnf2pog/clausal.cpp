@@ -262,8 +262,8 @@ void Clause::write(Writer *writer) {
     writer->write_list(contents);
 }
 
-Clause * Clause::simplify(std::unordered_set<int> &unit_literals) {
-    std::vector<int> lits;
+ilist Clause::simplify(std::unordered_set<int> &unit_literals) {
+    ilist lits = ilist_new(0);
     bool satisfied = false;
     for (int i = 0; i < length(); i++) {
 	int lit = contents[i];
@@ -271,13 +271,11 @@ Clause * Clause::simplify(std::unordered_set<int> &unit_literals) {
 	    satisfied = true;
 	    break;
 	} else if (unit_literals.find(-lit) == unit_literals.end())
-	    lits.push_back(lit);
+	    lits = ilist_push(lits, lit);
     }
     if (satisfied)
 	return NULL;
-    if (lits.size() == length())
-	return this;
-    return new Clause(lits.data(), lits.size());
+    return lits;
 }
 
 
@@ -513,8 +511,9 @@ const char *Cnf_reduced::get_file_name() {
 }
 
 void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals, int cid) {
-    Clause *snp = np->simplify(unit_literals);
-    if (snp != NULL) {
+    ilist slits = np->simplify(unit_literals);
+    if (slits != NULL) {
+	Clause *snp = new Clause(slits, ilist_length(slits));
 	add(snp);
 	inverse_cid[clause_count()] = cid;
 	if (snp->length() == 0)
@@ -1297,6 +1296,7 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 
 void Cnf_reasoner::new_context() {
     context_literal_stack.push_back(CONTEXT_MARKER);
+    context_cleared_literal_stack.push_back(CONTEXT_MARKER);
     context_clause_stack.push_back(CONTEXT_MARKER);
     report(4, "New context\n");
 }
@@ -1349,6 +1349,16 @@ void Cnf_reasoner::pop_context() {
 	}
     }
     while (true) {
+	if (context_cleared_literal_stack.size() == 0)
+	    err(true, "Tried to pop beyond base of context cleared literal stack\n");
+	int lit = context_cleared_literal_stack.back(); context_cleared_literal_stack.pop_back();
+	if (lit == CONTEXT_MARKER)
+	    break;
+	report(4, "Reasserting literal %d\n", lit);
+	unit_literals.insert(lit);
+	assigned_literals.push_back(lit);
+    }
+    while (true) {
 	if (context_clause_stack.size() == 0)
 	    err(true, "Tried to pop beyond base of context clause stack\n");
 	int cid = context_clause_stack.back(); context_clause_stack.pop_back();
@@ -1356,6 +1366,14 @@ void Cnf_reasoner::pop_context() {
 	    break;
 	activate_clause(cid);
 	report(4, "  Reactivating clause %d\n", cid);
+    }
+}
+
+void Cnf_reasoner::clear_assigned_literals() {
+    while (assigned_literals.size() > 0) {
+	int alit = assigned_literals.back(); assigned_literals.pop_back();
+	unit_literals.erase(alit);
+	context_cleared_literal_stack.push_back(alit);
     }
 }
 
@@ -1713,4 +1731,118 @@ int Cnf_reasoner::find_or_make_aux_clause(ilist lits) {
 	nnp->show();
     }
     return defining_cid;
+}
+
+// Lemma support
+// Add active clause to lemma.  It will simplify the clause
+// and find/create a synthetic clause to serve as the argument
+void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
+    Clause *np = get_clause(cid);
+    ilist slits = np->simplify(unit_literals);
+    if (slits == NULL) 
+	// Tautology 
+	return;
+    int ncid = ilist_length(slits) == np->length() ? cid : find_or_make_aux_clause(slits);
+    auto fid = lemma->inverse_cid.find(ncid);
+    if (fid == lemma->inverse_cid.end() || fid->second > cid)
+	// If multiple clauses map to single argument, then choose one with smallest clause ID
+	lemma->inverse_cid[ncid] = cid;
+    ilist_free(slits);
+}
+
+Lemma_instance *Cnf_reasoner::extract_lemma(int xvar) {
+    Lemma_instance *lemma = new Lemma_instance;
+    lemma->xvar = xvar;
+    lemma->jid = 0;
+    for (int cid : *curr_active_clauses) {
+	add_lemma_argument(lemma, cid);
+    }
+    return lemma;
+}
+
+// Set up context for lemma proof
+void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
+    new_context();
+    clear_assigned_literals();
+    for (auto fid : lemma->inverse_cid) {
+	int ncid = fid.second;
+	int ocid = fid.first;
+	if (ncid != ocid) {
+	    deactivate_clause(ocid);
+	    activate_clause(ncid);
+	} 
+	Clause *nnp = get_clause(ncid);
+	int alit = nnp->get_activating_literal();
+	if (alit > 0)
+	    push_assigned_literal(alit);
+    }
+}
+
+    // Restore context from lemma proof
+void Cnf_reasoner::restore_from_proof(Lemma_instance *lemma) {
+    for (auto fid : lemma->inverse_cid) {
+	int ncid = fid.second;
+	int ocid = fid.first;
+	if (ncid != ocid) {
+	    deactivate_clause(ncid);
+	    activate_clause(ocid);
+	} 
+    }
+    pop_context();
+}
+
+int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
+    // Make sure they're compatible
+    // Should have identical sets of new clause IDs
+    bool ok = true;
+    for (auto lfid : lemma->inverse_cid) {
+	int ncid = lfid.second;
+	if (instance->inverse_cid.find(ncid) == instance->inverse_cid.end()) {
+	    err(false, "Attempting to apply lemma for node N%d.  Lemma argument clause #%d not found in instance\n", lemma->xvar, ncid);
+	    ok = false;
+	}
+    }
+    for (auto ifid : instance->inverse_cid) {
+	int ncid = ifid.second;
+	if (lemma->inverse_cid.find(ncid) == lemma->inverse_cid.end()) {
+	    err(false, "Attempting to apply lemma for node N%d.  Instance argument clause #%d not found in lemma\n", lemma->xvar, ncid);
+	    ok = false;
+	}
+    }
+    if (!ok)
+	return 0;
+    // Now justify each lemma argument
+    std::vector<int> arg_jids;
+    for (auto ifid : instance->inverse_cid) {
+	int ocid = ifid.first;
+	int ncid = ifid.second;
+	Clause *anp = get_clause(ncid);
+	int alit = anp->get_activating_literal();
+	if (alit == 0)
+	    // Unmodified input clause
+	    continue;
+	Clause *nnp = new Clause();
+	for (int lit : assigned_literals)
+	    nnp->add(-lit);
+	nnp->add(alit);
+	int ccid = start_assertion(nnp);
+	arg_jids.push_back(ccid);
+	for (int offset = 1; offset <= anp->length(); offset++)
+	    add_hint(ncid+offset);
+	add_hint(ocid);
+	finish_command(true);
+	delete nnp;
+    }
+    // Finally, assert the root
+    Clause *lnp = new Clause();
+    for (int lit : assigned_literals)
+	lnp->add(-lit);
+    lnp->add(lemma->xvar);
+    int jid = start_assertion(lnp);
+    for (int ajid : arg_jids)
+	add_hint(ajid);
+    add_hint(lemma->jid);
+    finish_command(true);
+    delete lnp;
+    return jid;
 }

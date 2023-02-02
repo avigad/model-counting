@@ -41,6 +41,8 @@ Pog_node::Pog_node() {
     xvar = 0;
     degree = 0;
     children = NULL;
+    indegree = 0;
+    lemma = NULL;
 }
 
 Pog_node::Pog_node(pog_type_t ntype) {
@@ -48,6 +50,8 @@ Pog_node::Pog_node(pog_type_t ntype) {
     xvar = 0;
     degree = 0;
     children = NULL;
+    indegree = 0;
+    lemma = NULL;
     if (type == POG_AND || type == POG_AND)
 	incr_count(COUNT_POG_AND);
     if (type == POG_OR)
@@ -60,6 +64,7 @@ Pog_node::~Pog_node() {
 	incr_count_by(COUNT_POG_AND, -1);
     if (type == POG_OR)
 	incr_count_by(COUNT_POG_OR, -1);
+    if (lemma) delete lemma;
 }
 
 void Pog_node::set_type(pog_type_t t) {
@@ -113,6 +118,23 @@ void Pog_node::show(FILE *outfile) {
     }
     fprintf(outfile, ")");
 }
+
+void Pog_node::increment_indegree() {
+    indegree++;
+}
+
+bool Pog_node::want_lemma() {
+    return indegree > 1 and type == POG_OR;
+}
+
+void Pog_node::add_lemma(Lemma_instance *lem) {
+    lemma = lem;
+}
+
+Lemma_instance *Pog_node::get_lemma() {
+    return lemma;
+}
+
 
 Pog::Pog() {
     cnf = NULL;
@@ -343,9 +365,17 @@ bool Pog::optimize() {
 	add_node(nnp);
 	root_literal = MATCH_PHASE(1, root_literal);
     } else if (IABS(nrvar) > max_input_var) {
-	// Normal case.  Copy new nodes
-	for (Pog_node *np : new_nodes)
+	// Normal case.  Copy new nodes.  Set their indegrees
+	for (Pog_node *np : new_nodes) {
 	    add_node(np);
+	    for (int i = 0; i < np->get_degree(); i++) {
+		int clit = (*np)[i];
+		if (is_node(clit)) {
+		    Pog_node *cnp = get_node(IABS(clit));
+		    cnp->increment_indegree();
+		}
+	    }
+	}
     }
     report(2, "Compressed POG has %d nodes and root literal %d\n", nodes.size(), root_literal);
     return true;
@@ -571,6 +601,35 @@ int Pog::first_literal(int rlit) {
     return rlit;
 }
 
+void Pog::prove_lemma(Pog_node *rp) {
+    // Setup lemma
+    Lemma_instance *lemma = cnf->extract_lemma(rp->get_xvar());
+    rp->add_lemma(lemma);
+    lemma->jid = 0;
+    // Now must generate proof
+    cnf->setup_proof(lemma);
+    int jid = justify(rp->get_xvar(), false);
+    if (jid == 0) {
+	// Record failure
+	lemma->jid = -1;
+    } else
+	lemma->jid = jid;
+    report(1, "Created lemma for node N%d.  Justifying clause = %d\n", rp->get_xvar(), jid);
+    cnf->restore_from_proof(lemma);
+}
+
+int Pog::apply_lemma(Pog_node *rp) {
+    report(1, "Attempting to apply lemma for node N%d.\n", rp->get_xvar());
+    Lemma_instance *lemma = rp->get_lemma();
+    if (lemma == NULL)
+	return 0;
+    if (lemma->jid < 0)
+	return 0;
+    Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar());
+    return cnf->apply_lemma(lemma, instance);
+}
+
+
 // Justify each position in POG within current context
 // Return ID of justifying clause
 int Pog::justify(int rlit, bool parent_or) {
@@ -578,6 +637,17 @@ int Pog::justify(int rlit, bool parent_or) {
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
+	if (cnf->use_lemmas && rnp->want_lemma()) {
+	    Lemma_instance *lemma = rnp->get_lemma();
+	    if (lemma == NULL) 
+		prove_lemma(rnp);
+	    if (lemma->jid != 0) {
+		// Lemma jid == 0 indicates that this call being used to prove the lemma
+		int jid = apply_lemma(rnp);
+		if (jid > 0)
+		    return jid;
+	    }
+	}
 	int xvar = rnp->get_xvar();
 	Clause *jclause = new Clause();
 	jclause->add(xvar);
