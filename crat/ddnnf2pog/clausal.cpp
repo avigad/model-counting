@@ -1585,7 +1585,10 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
 void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
     jids.resize(lits.size());
     validation_mode_t mode = multi_literal ? MODE_BCP : MODE_FULL;
-    std::vector<int> deferred_pos;
+    // Which literals can't be handled directly.  Put their negations on list
+    ilist args = ilist_new(0);
+    // Map them back to positions in lits & jids
+    std::unordered_map<int,int> lit2idx;
     // First pass: 
     // In standard mode, validate each literal separately
     // In multi_literal mode, look for easy cases.  Defer the rest
@@ -1594,30 +1597,32 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	int jid = validate_literal(lit, mode);
 	jids[i] = jid;
 	if (jid == 0) {
-	    deferred_pos.push_back(i);
+	    args = ilist_push(args, -lit);
+	    lit2idx[-lit] = i;
 	}
     }
 
-    if (deferred_pos.size() == 0) {
+    int nleft = ilist_length(args);
+
+    if (nleft == 0) {
+	ilist_free(args);
 	return;
     }
 
-    if (deferred_pos.size() == 1) {
+    if (nleft == 1) {
 	// Handle as single literal
-	int  i = deferred_pos[0];
-	jids[i] = validate_literal(lits[i], MODE_FULL);
+	int nlit = args[0];
+	int  i = lit2idx.find(nlit)->second;
+	jids[i] = validate_literal(-nlit, MODE_FULL);
+	ilist_free(args);
 	return;
     }
-    int xvar = new_xvar();
-    int nleft = deferred_pos.size();
-    ilist args = ilist_new(nleft);
-    for (int i : deferred_pos)
-	args = ilist_push(args, lits[i]);
-    incr_count(COUNT_AUX_AND);
-    incr_count_by(COUNT_DEFINING_AUX_CLAUSE, nleft+1);
-    int defining_cid = start_and(xvar, args);
-    finish_command(false);
-    document_and(defining_cid, xvar, args);
+
+    int defining_cid = find_or_make_aux_clause(args);
+    ilist_free(args);
+    Clause *anp = get_aux_clause(defining_cid);
+    int xvar = -anp->get_activating_literal();
+
     // Activate conjunction definition
     activate_clause(defining_cid);
     pwriter->comment("Handle %d/%d literals with SAT solver to validate extension variable %d", nleft, lits.size(), xvar);
@@ -1626,17 +1631,18 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
     if (ncid == 0) {
 	err(false, "Couldn't validate literal %d representing conjunction of %d literals\n", xvar, nleft);
     }
+
     // Final pass: Target units should be unit or provable with BCP
-    for (int offset = 0; offset < nleft; offset++) {
-	int i = deferred_pos[offset];
-	int lit = lits[i];
-	int jid = quick_validate_literal(lit, ncid, defining_cid+offset+1);
-	jids[i] = jid;
+    for (int i = 0; i < nleft; i++) {
+	int nlit = (*anp)[i];
+	int idx = lit2idx.find(nlit)->second;
+	int jid = quick_validate_literal(-nlit, ncid, defining_cid+i+1);
+	jids[idx] = jid;
     }
+
     pwriter->comment("Justifications of %d literals completed", nleft);
     deactivate_clause(defining_cid);
 }
-
 
 void Cnf_reasoner::delete_assertions() {
     // Don't want last one
@@ -1659,7 +1665,11 @@ Clause *Cnf_reasoner::get_aux_clause(int cid) {
     return fid == aux_clauses.end() ? NULL : fid->second;
 }
 
-int Cnf_reasoner::find_or_make_aux_clause(Clause *np) {
+// Either find an existing auxilliary clause
+// or generate one.
+// Leaves argument clause untouched.
+int Cnf_reasoner::find_or_make_aux_clause(ilist lits) {
+    Clause *np = new Clause(lits, ilist_length(lits));
     unsigned h = np->hash();
     auto fid = aux_clause_lookup.find(h);
     std::vector<int> *bucket = NULL;
@@ -1669,8 +1679,14 @@ int Cnf_reasoner::find_or_make_aux_clause(Clause *np) {
 	    Clause *xcp = get_aux_clause(xcid);
 	    if (xcp == NULL)
 		err(false, "Oops.  Lookup table has clause #%d under hash %u, but no such clause exists\n", xcid, h);
-	    else if (np->is_equal(xcp))
+	    else if (np->is_equal(xcp)) {
+		if (verblevel >= 3) {
+		    report(3, "Retrieved existing aux clause %d.  Hash = %u. ", xcid, h);
+		    xcp->show();
+		}
+		delete np;
 		return xcid;
+	    }
 	}
     }
     // Must create new synthetic clause
@@ -1684,11 +1700,17 @@ int Cnf_reasoner::find_or_make_aux_clause(Clause *np) {
     int defining_cid = start_and(xvar, args);
     finish_command(false);
     document_and(defining_cid, xvar, args);
-    np->set_activating_literal(-xvar);
+    Clause *nnp = new Clause(np);
+    nnp->set_activating_literal(-xvar);
     if (!bucket) {
 	bucket = new std::vector<int>;
 	aux_clause_lookup[h] = bucket;
     }
+    aux_clauses[defining_cid] = nnp;
     bucket->push_back(defining_cid);
+    if (verblevel >= 1) {
+	report(1, "Generated new aux clause %d.  Hash = %u. ", defining_cid, h);
+	nnp->show();
+    }
     return defining_cid;
 }

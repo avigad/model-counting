@@ -1297,7 +1297,7 @@ void crat_read(char *fname) {
     data_printf(1, "Read CRAT file with %d operations,  %d asserted + %d defining = %d clauses\n",
 		crat_operation_count, crat_assertion_count,
 		crat_operation_clause_count, all_clause_count);
-    data_printf(2, "Clauses divided into %d blocks\n", clause_block_count);
+    data_printf(3, "Clauses divided into %d blocks\n", clause_block_count);
     data_printf(1, "Deleted %d input and asserted clauses\n", crat_assertion_deletion_count);
 }
 

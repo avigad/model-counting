@@ -654,6 +654,7 @@ int Pog::justify(int rlit, bool parent_or) {
 		if (lits.size() > 0) {
 		    cnf->pwriter->comment("Justify node N%d_%s, starting with %d literals", xvar, pog_type_name[rnp->get_type()], lits.size());
 		    documented = true;
+		    report(4, "Justify node N%d_%s, starting with %d literals\n", xvar, pog_type_name[rnp->get_type()], lits.size());
 		    cnf->validate_literals(lits, jids);
 		    for (int jid : jids)
 			hints.push_back(jid);

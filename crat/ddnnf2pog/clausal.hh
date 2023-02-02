@@ -35,6 +35,7 @@
 #include <set>
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <stdio.h>
 #include <fstream>
 #include "ilist.h"
@@ -230,6 +231,15 @@ public:
 
 };
  
+// Information required to generate and apply lemmas
+struct Lemma_instance {
+    // Mapping from Ids of synthetic clauses serving as arguments
+    // to the clause (input or synthetic) from which the synthetic clause arises
+    std::map<int,int> inverse_map;
+    // List of the activating literals for the argument clauses
+    std::vector<int> activating_literals;
+};
+
 // Augment clauses with reasoning and proof-generation capabilities 
 class Cnf_reasoner : public Cnf {
 private:
@@ -342,6 +352,9 @@ public:
     // Extract a reduced representation of the currently active clauses
     Cnf_reduced *extract_cnf();
 
+    // Extract information required to define, prove, or apply a lemma
+    Lemma_instance *extract_lemma();
+
     // Perform Boolean constraint propagation.
     // Return ID of any generated conflict clause (or 0)
     int bcp();
@@ -396,9 +409,9 @@ private:
     // Return NULL if not found
     Clause *get_aux_clause(int cid);
 
-    // Find existing clause or create new one.  Return clause ID
-    int find_or_make_aux_clause(Clause *np);
-
+    // Find existing auxilliary clause or create new one with these literals.
+    // Return clause ID
+    int find_or_make_aux_clause(ilist lits);
 };
 
 
