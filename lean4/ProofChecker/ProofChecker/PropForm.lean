@@ -49,6 +49,8 @@ def PropAssignment (ν : Type u) := ν → Bool
 
 namespace PropAssignment
 
+@[ext] theorem ext (v1 v2 : PropAssignment ν) (h : ∀ x, v1 x = v2 x) : v1 = v2 := funext h
+
 def set [DecidableEq ν] (τ : PropAssignment ν) (x : ν) (v : Bool) :
     PropAssignment ν :=
   fun y => if y = x then v else τ y
@@ -204,7 +206,7 @@ theorem equivalent_refl (φ : PropForm ν) : equivalent φ φ :=
 theorem equivalent.symm : equivalent φ₁ φ₂ → equivalent φ₂ φ₁ :=
   fun h τ => (h τ).symm
 theorem equivalent.trans : equivalent φ₁ φ₂ → equivalent φ₂ φ₃ → equivalent φ₁ φ₃ :=
-  fun h₁ h₂ τ => (h₁ τ).trans (h₂ τ) 
+  fun h₁ h₂ τ => (h₁ τ).trans (h₂ τ)
 theorem entails.antisymm : entails φ₁ φ₂ → entails φ₂ φ₁ → equivalent φ₁ φ₂ :=
   fun h₁ h₂ => equivalent_iff_entails.mpr ⟨h₁, h₂⟩
 
