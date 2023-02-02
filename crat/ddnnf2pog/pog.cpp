@@ -117,20 +117,17 @@ void Pog_node::show(FILE *outfile) {
 Pog::Pog() {
     cnf = NULL;
     max_input_var = 0;
-    xvar_counter = max_input_var;
 }
 
 Pog::Pog(Cnf_reasoner *cset) {
     cnf = cset;
     max_input_var = cset->max_variable();
-    xvar_counter = max_input_var;
 }
 
 int Pog::add_node(Pog_node *np) {
     nodes.push_back(np);
-    int xvar = max_input_var + nodes.size();
+    int xvar = cnf->new_xvar();
     np->set_xvar(xvar);
-    xvar_counter = xvar;
     return xvar;
 }
 
@@ -202,6 +199,7 @@ bool Pog::optimize() {
     //    new_nodes.push_back(true_np);
     //    int true_id = max_input_var + new_nodes.size();
     int true_id = max_input_var + nodes.size() + 1;
+    cnf->reset_xvar();
 
     std::vector<int> remap;
     remap.resize(nodes.size(), 0);
@@ -656,7 +654,7 @@ int Pog::justify(int rlit, bool parent_or) {
 		if (lits.size() > 0) {
 		    cnf->pwriter->comment("Justify node N%d_%s, starting with %d literals", xvar, pog_type_name[rnp->get_type()], lits.size());
 		    documented = true;
-		    cnf->validate_literals(lits, jids, &xvar_counter);
+		    cnf->validate_literals(lits, jids);
 		    for (int jid : jids)
 			hints.push_back(jid);
 		}

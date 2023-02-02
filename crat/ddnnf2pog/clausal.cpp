@@ -63,7 +63,12 @@ static bool abs_less(int x, int y) {
     return abs(x) < abs(y);
 }
 
-Clause::Clause() { contents = ilist_new(0); is_tautology = false; }
+Clause::Clause() { 
+    contents = ilist_new(0);
+    is_tautology = false;
+    canonized = true;
+    activating_literal = 0;
+}
 
 Clause::~Clause() { 
     ilist_free(contents);
@@ -71,18 +76,24 @@ Clause::~Clause() {
 
 Clause::Clause(int *array, size_t len) {
     is_tautology = false;
+    canonized = false;
     contents = ilist_new(len);
     for (int i = 0; i < len; i++)
 	add(array[i]);
     canonize();
+    activating_literal = 0;
 }
 
 Clause::Clause(Clause *np) {
     is_tautology = false;
-    int len = np->length();
-    contents = ilist_new(len);
-    for (int i = 0; i < len; i++)
-	add((*np)[i]);
+    canonized = np->canonized;
+    contents = ilist_copy(np->contents);
+    //    int len = np->length();
+    //    contents = ilist_new(len);
+    //    for (int i = 0; i < len; i++)
+    //	add((*np)[i]);
+    canonize();
+    activating_literal = np->get_activating_literal();
 }
 
 Clause::Clause(FILE *infile, bool from_proof, bool *eof) {
@@ -114,12 +125,13 @@ Clause::Clause(FILE *infile, bool from_proof, bool *eof) {
 	else
 	    add(lit);
     }
-    if (!from_proof)
-	canonize();
+    canonize();
+    activating_literal = 0;
 }
 
 void Clause::add(int val) {
     contents = ilist_push(contents, val);
+    canonized = false;
 }
 
 size_t Clause::length() {
@@ -152,6 +164,14 @@ int& Clause::operator[](int i) {
     return contents[i];
 }
 
+int Clause::get_activating_literal() {
+    return activating_literal;
+}
+
+void Clause::set_activating_literal(int alit) {
+    activating_literal = alit;
+}
+
 bool Clause::satisfied(char *assignment) {
     bool found = is_tautology;
     for (int i = 0; !found && i < ilist_length(contents); i++) {
@@ -170,6 +190,8 @@ bool Clause::contains(int lit) {
 
 
 void Clause::canonize() {
+    if (canonized)
+	return;
     std::sort(contents, contents + length(), abs_less);
     int last_lit = 0;
     size_t read_pos = 0;
@@ -193,6 +215,7 @@ void Clause::canonize() {
 	contents[1] = -abs(last_lit);
     } else
 	contents = ilist_resize(contents, write_pos);
+    canonized = true;
 }
 
 void Clause::show() {
@@ -239,6 +262,26 @@ void Clause::write(Writer *writer) {
     writer->write_list(contents);
 }
 
+Clause * Clause::simplify(std::unordered_set<int> &unit_literals) {
+    std::vector<int> lits;
+    bool satisfied = false;
+    for (int i = 0; i < length(); i++) {
+	int lit = contents[i];
+	if (unit_literals.find(lit) != unit_literals.end()) {
+	    satisfied = true;
+	    break;
+	} else if (unit_literals.find(-lit) == unit_literals.end())
+	    lits.push_back(lit);
+    }
+    if (satisfied)
+	return NULL;
+    if (lits.size() == length())
+	return this;
+    return new Clause(lits.data(), lits.size());
+}
+
+
+
 // Support for computing hash function over clause
 // Represent by signature over modular field
 static const unsigned hash_modulus = 2147483647U;
@@ -270,12 +313,25 @@ static unsigned next_hash_literal(unsigned sofar, int lit) {
 }
     
 unsigned Clause::hash() {
+    canonize();
     unsigned val = 1;
     for (int i = 0; i < length(); i++)
 	val = next_hash_literal(val, contents[i]);
     return val;
 }
 
+bool Clause::is_equal(Clause *op) {
+    canonize();
+    op->canonize();
+    if (length() != op->length())
+	return false;
+    if (tautology() != op->tautology())
+	return false;
+    for (int i = 0; i < length(); i++)
+	if (contents[i] != (*op)[i])
+	    return false;
+    return true;
+}
 
 Cnf::Cnf() { read_failed = false; max_input_var = 0; }
 
@@ -341,8 +397,6 @@ Cnf::Cnf(FILE *infile) {
 	if (eof || read_failed)
 	    break;
 	add(clp);
-	int mvar = clp->max_variable();
-	max_input_var = std::max(max_input_var, mvar);
     }
     if (!no_header && max_input_var > expectedMax) {
 	err(false, "Invalid CNF.  Encountered variable %d. Expected max = %d\n",  max_input_var, expectedMax);
@@ -374,9 +428,9 @@ bool Cnf::failed() {
 }
 
 void Cnf::add(Clause *clp) {
+    clauses.push_back(clp);
     int mvar = clp->max_variable();
     max_input_var = std::max(max_input_var, mvar);
-    clauses.push_back(clp);
 }
 
 Clause * Cnf::get_input_clause(int cid) {
@@ -459,20 +513,11 @@ const char *Cnf_reduced::get_file_name() {
 }
 
 void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals, int cid) {
-    std::vector<int> lits;
-    bool satisfied = false;
-    for (int i = 0; i < np->length(); i++) {
-	int lit = (*np)[i];
-	if (unit_literals.find(lit) != unit_literals.end()) {
-	    satisfied = true;
-	    break;
-	} else if (unit_literals.find(-lit) == unit_literals.end())
-	    lits.push_back(lit);
-    }
-    if (!satisfied) {
-	add(new Clause(lits.data(), lits.size()));
+    Clause *snp = np->simplify(unit_literals);
+    if (snp != NULL) {
+	add(snp);
 	inverse_cid[clause_count()] = cid;
-	if (lits.size() == 0)
+	if (snp->length() == 0)
 	    unsatisfiable = true;
     }
 }
@@ -692,6 +737,8 @@ Clause * Cnf_reduced::get_proof_clause(std::vector<int> *context) {
     return nnp;
 }
 
+
+
 // Proof related
 Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) { 
     pwriter = NULL;
@@ -701,6 +748,8 @@ Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) {
     multi_literal = true;
     use_lemmas = true;
     delete_files = true;
+    clause_limit = INT_MAX;
+    xvar_count = max_variable();
 }
 
 Clause * Cnf_reasoner::get_clause(int cid) {
@@ -708,11 +757,16 @@ Clause * Cnf_reasoner::get_clause(int cid) {
     int proof_count = proof_clauses.size();
     if (cid <= input_count)
 	return get_input_clause(cid);
-    else if (cid <= input_count + proof_count)
-	return proof_clauses[cid - input_count - 1];
     else {
-	err(true, "Fatal.  Trying to acess clause #%d.  Have %d input and %d proof clauses\n", cid, input_count, proof_count);
-	exit(1);
+	Clause *np = get_aux_clause(cid);
+	if (np != NULL)
+	    return np;
+	else if (cid <= input_count + proof_count)
+	    return proof_clauses[cid - input_count - 1];
+	else {
+	    err(true, "Fatal.  Trying to acess clause #%d.  Have %d input and %d proof clauses\n", cid, input_count, proof_count);
+	    exit(1);
+	}
     }
 }
 
@@ -968,6 +1022,14 @@ int Cnf_reasoner::found_conflict(int cid) {
     add_hint(cid);
     finish_command(true);
     return ncid;
+}
+
+void Cnf_reasoner::reset_xvar() {
+    xvar_count = max_variable();
+}
+
+int Cnf_reasoner::new_xvar() {
+    return ++xvar_count;
 }
 
 // Enable POG generation
@@ -1520,7 +1582,7 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
 
 // Justify that set of literals hold.
 // Justifying clauses IDs are then loaded into jids vector
-void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids, int *xvar_counter) {
+void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
     jids.resize(lits.size());
     validation_mode_t mode = multi_literal ? MODE_BCP : MODE_FULL;
     std::vector<int> deferred_pos;
@@ -1546,7 +1608,7 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	jids[i] = validate_literal(lits[i], MODE_FULL);
 	return;
     }
-    int xvar = ++*xvar_counter;
+    int xvar = new_xvar();
     int nleft = deferred_pos.size();
     ilist args = ilist_new(nleft);
     for (int i : deferred_pos)
@@ -1588,4 +1650,45 @@ void Cnf_reasoner::delete_assertions() {
 	delete dvp;
 	deletion_stack.pop_back();
     }
+}
+
+// Managing set of auxilliary clauses as arguments to lemmas
+
+Clause *Cnf_reasoner::get_aux_clause(int cid) {
+    auto fid = aux_clauses.find(cid);
+    return fid == aux_clauses.end() ? NULL : fid->second;
+}
+
+int Cnf_reasoner::find_or_make_aux_clause(Clause *np) {
+    unsigned h = np->hash();
+    auto fid = aux_clause_lookup.find(h);
+    std::vector<int> *bucket = NULL;
+    if (fid != aux_clause_lookup.end()) {
+	bucket = fid->second;
+	for (int xcid : *bucket) {
+	    Clause *xcp = get_aux_clause(xcid);
+	    if (xcp == NULL)
+		err(false, "Oops.  Lookup table has clause #%d under hash %u, but no such clause exists\n", xcid, h);
+	    else if (np->is_equal(xcp))
+		return xcid;
+	}
+    }
+    // Must create new synthetic clause
+    int xvar = new_xvar();
+    int len = np->length();
+    ilist args = ilist_new(len);
+    for (int i = 0 ; i < len; i++)
+	args = ilist_push(args, -(*np)[i]);
+    incr_count(COUNT_AUX_AND);
+    incr_count_by(COUNT_DEFINING_AUX_CLAUSE, len+1);
+    int defining_cid = start_and(xvar, args);
+    finish_command(false);
+    document_and(defining_cid, xvar, args);
+    np->set_activating_literal(-xvar);
+    if (!bucket) {
+	bucket = new std::vector<int>;
+	aux_clause_lookup[h] = bucket;
+    }
+    bucket->push_back(defining_cid);
+    return defining_cid;
 }

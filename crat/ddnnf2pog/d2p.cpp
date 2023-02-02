@@ -13,9 +13,10 @@
 #include "counters.h"
 
 void usage(const char *name) {
-    printf("Usage: %s [-h] [-v VLEVEL] [-r] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
+    printf("Usage: %s [-h] [-v VLEVEL] [-C CLIM] [-r] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
     printf("  -h        Print this information\n");
     printf("  -v VLEVEL Set verbosity level\n");
+    printf("  -C CLIM   Abort if file size exceeds CLIM clauses");
     printf("  -r        Use own RUP proof generator, rather than drat-trim on SAT solver results\n");
     printf("  -s        Prove each literal separately, rather than combining into single proof\n");
     printf("  -e        Expand each node, rather than using lemmas\n");
@@ -30,6 +31,7 @@ bool use_drat = true;
 bool multi_literal = true;
 bool use_lemmas = true;
 bool delete_files  =  true;
+int clause_limit = INT_MAX;
 
 const char *prefix = "GEN:";
 static void stat_report(double start) {
@@ -146,6 +148,7 @@ static bool run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     cnf.multi_literal = multi_literal;
     cnf.use_lemmas = use_lemmas;
     cnf.delete_files = delete_files;
+    cnf.clause_limit = clause_limit;
     Pog pog(&cnf);
     if (verblevel >= 2)
 	pwriter->enable_comments();
@@ -174,13 +177,16 @@ int main(int argc, char *const argv[]) {
     verblevel = 1;
     double start = tod();
     int c;
-    while ((c = getopt(argc, argv, "hv:rsek")) != -1) {
+    while ((c = getopt(argc, argv, "hv:C:rsek")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
 	    break;
 	case 'v':
 	    verblevel = atoi(optarg);
+	    break;
+	case 'C':
+	    clause_limit = atoi(optarg);
 	    break;
 	case 'r':
 	    use_drat = false;
