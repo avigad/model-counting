@@ -22,6 +22,7 @@
   SOFTWARE.
   ========================================================================*/
 
+#define DEBUG 0
 
 #include <stdlib.h>
 #include <string.h>
@@ -124,7 +125,8 @@ void Pog_node::increment_indegree() {
 }
 
 bool Pog_node::want_lemma() {
-    return indegree > 1 and type == POG_OR;
+    return indegree > 1;
+    //    return indegree > 1 and type == POG_OR;
 }
 
 void Pog_node::add_lemma(Lemma_instance *lem) {
@@ -614,18 +616,20 @@ void Pog::prove_lemma(Pog_node *rp) {
 	lemma->jid = -1;
     } else
 	lemma->jid = jid;
-    report(1, "Created lemma for node N%d.  Justifying clause = %d\n", rp->get_xvar(), jid);
+    report(3, "Created lemma for node N%d.  Justifying clause = %d\n", rp->get_xvar(), jid);
     cnf->restore_from_proof(lemma);
+    incr_count(COUNT_LEMMA_DEFINITION);
 }
 
 int Pog::apply_lemma(Pog_node *rp) {
-    report(1, "Attempting to apply lemma for node N%d.\n", rp->get_xvar());
+    report(3, "Attempting to apply lemma for node N%d.\n", rp->get_xvar());
     Lemma_instance *lemma = rp->get_lemma();
     if (lemma == NULL)
 	return 0;
     if (lemma->jid < 0)
 	return 0;
     Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar());
+    incr_count(COUNT_LEMMA_APPLICATION);
     return cnf->apply_lemma(lemma, instance);
 }
 
@@ -641,6 +645,7 @@ int Pog::justify(int rlit, bool parent_or) {
 	    Lemma_instance *lemma = rnp->get_lemma();
 	    if (lemma == NULL) 
 		prove_lemma(rnp);
+	    lemma = rnp->get_lemma();
 	    if (lemma->jid != 0) {
 		// Lemma jid == 0 indicates that this call being used to prove the lemma
 		int jid = apply_lemma(rnp);
@@ -655,7 +660,6 @@ int Pog::justify(int rlit, bool parent_or) {
 	    jclause->add(-alit);
 	std::vector<int> hints;
 	cnf->new_context();
-	bool documented = false;
 	switch (rnp->get_type()) {
 	case POG_OR:
 	    {
@@ -683,7 +687,6 @@ int Pog::justify(int rlit, bool parent_or) {
 		    for (int alit : *cnf->get_assigned_literals())
 			jclause0->add(-alit);
 		    cnf->pwriter->comment("Justify node N%d_%s", xvar, pog_type_name[rnp->get_type()]);
-		    documented = true;
 		    int cid0 = cnf->start_assertion(jclause0);
 		    for (int h = 0; h < hcount[0]; h++)
 			cnf->add_hint(lhints[0][h]);
@@ -710,8 +713,15 @@ int Pog::justify(int rlit, bool parent_or) {
 		    int clit0 = (*rnp)[cnext++];
 		    cnf->push_assigned_literal(clit0);
 		    jclause->add(-clit0);
+		    cnf->pwriter->comment("Justify node N%d_%s, assuming literal %d",
+					  xvar, pog_type_name[rnp->get_type()], clit0);
+		    // Assertion my enable BCP, but it shouldn't lead to a conflict
+		    if (cnf->bcp() > 0)
+			err(false, "BCP encountered conflict when attempting to justify node N%d_s\n",
+			    xvar, pog_type_name[rnp->get_type()]);
+		} else {
+		    cnf->pwriter->comment("Justify node N%d_%s", xvar, pog_type_name[rnp->get_type()]);
 		}
-
 		// Bundle up the literals and justify them with single call
 		std::vector<int> lits;
 		std::vector<int> jids;
@@ -722,8 +732,10 @@ int Pog::justify(int rlit, bool parent_or) {
 		    lits.push_back(clit);
 		}
 		if (lits.size() > 0) {
-		    cnf->pwriter->comment("Justify node N%d_%s, starting with %d literals", xvar, pog_type_name[rnp->get_type()], lits.size());
-		    documented = true;
+#if DEBUG
+		    cnf->pwriter->comment("Justification of node N%d_%s includes justifying %d literals",
+					  xvar, pog_type_name[rnp->get_type()], lits.size());
+#endif
 		    report(4, "Justify node N%d_%s, starting with %d literals\n", xvar, pog_type_name[rnp->get_type()], lits.size());
 		    cnf->validate_literals(lits, jids);
 		    for (int jid : jids)
@@ -744,9 +756,7 @@ int Pog::justify(int rlit, bool parent_or) {
 			partition = true;
 			save_clauses = new std::set<int>;
 			cnf->extract_active_clauses(save_clauses);
-			if (!documented) 
-			    report(4, "Justifying node N%d.  Partitioned clauses into %d sets\n", xvar, rvar2cset.size());
-			documented = true;
+			report(4, "Justifying node N%d.  Partitioned clauses into %d sets\n", xvar, rvar2cset.size());
 		    }
 		    if (partition) {
 			int llit = first_literal(clit);
@@ -769,8 +779,6 @@ int Pog::justify(int rlit, bool parent_or) {
 	default:
 	    err(true, "Unknown POG type %d\n", (int) rnp->get_type());
 	}
-	if (!documented)
-	    cnf->pwriter->comment("Justify node N%d_%s", xvar, pog_type_name[rnp->get_type()]);
 	jcid = cnf->start_assertion(jclause);
 	for (int hint : hints)
 	    cnf->add_hint(hint);

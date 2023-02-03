@@ -29,6 +29,8 @@
 #include <cstdarg>
 #include <stdbool.h>
 #include <vector>
+#include <unordered_set>
+#include <set>
 
 // Copy string to allocated space
 const char *archive_string(const char *tstring);
@@ -56,8 +58,15 @@ public:
     // Write list/vector of literals with zero termination (but no EOL)
     void write_list(ilist vals);
     void write_vector(std::vector<int> &vec);
+
     // Write list of literals with zero termination and EOL as comment    
-    void comment_list(ilist vals);
+    void comment_list(const char *descr, ilist vals);
+
+    // Write vector of literals with zero termination and EOL as comment
+    void comment_container(const char *descr, std::vector<int> &vals);
+    void comment_container(const char *descr, std::unordered_set<int> &vals);
+    void comment_container(const char *descr, std::set<int> &vals);
+
     void finish_line(const char *txt);
     void finish_file();
 

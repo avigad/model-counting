@@ -22,6 +22,7 @@
   SOFTWARE.
   ========================================================================*/
 
+#define DEBUG 0
 
 #include <iostream>
 #include <ctype.h>
@@ -839,7 +840,7 @@ void Cnf_reasoner::document_input(int cid) {
     for (int i = 0; i < cp->length(); i++)
 	show = ilist_push(show, (*cp)[i]);
     show = ilist_push(show, 0);
-    pwriter->comment_list(show);
+    pwriter->comment_list("", show);
     ilist_free(show);
 }
 
@@ -873,13 +874,13 @@ void Cnf_reasoner::document_and(int cid, int var, ilist args) {
     show[1] = var;
     for (int i = 0; i < len; i++)
 	show[i+2] = -args[i];
-    pwriter->comment_list(show);
+    pwriter->comment_list("", show);
     show = ilist_resize(show, 3);
     for (int i = 0; i < ilist_length(args); i++) {
 	show[0] = cid+i+1;
 	show[1] = -var;
 	show[2] = args[i];
-	pwriter->comment_list(show);
+	pwriter->comment_list("", show);
     }
     ilist_free(show);
 }
@@ -915,13 +916,13 @@ void Cnf_reasoner::document_or(int cid, int var, ilist args) {
     show[1] = -var;
     for (int i = 0; i < len; i++)
 	show[i+2] = args[i];
-    pwriter->comment_list(show);
+    pwriter->comment_list("", show);
     show = ilist_resize(show, 3);
     for (int i = 0; i < ilist_length(args); i++) {
 	show[0] = cid+i+1;
 	show[1] = var;
 	show[2] = -args[i];
-	pwriter->comment_list(show);
+	pwriter->comment_list("", show);
     }
     ilist_free(show);
 }
@@ -954,6 +955,9 @@ void Cnf_reasoner::new_unit(int lit, int cid, bool input) {
     for (int alit : assigned_literals)
 	clp->add(-alit);
     incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
+#if DEBUG
+    pwriter->comment("Justified literal %d", lit);
+#endif
     int ncid = start_assertion(clp);
     if (clp->length() == 1) {
 	unit_literals.insert(lit);
@@ -1007,6 +1011,9 @@ int Cnf_reasoner::found_conflict(int cid) {
 		clp = new Clause();
 		for (int alit : assigned_literals)
 		    clp->add(-alit);
+#if DEBUG
+		pwriter->comment("Conflict clause");
+#endif
 		ncid = start_assertion(clp);
 		incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 	    }
@@ -1327,7 +1334,7 @@ void Cnf_reasoner::push_derived_literal(int lit, int cid) {
 }
 
 void Cnf_reasoner::push_clause(int cid, bool force) {
-    if (force || cid <= clause_count())
+    if (force || cid <= clause_count() || aux_clauses.find(cid) != aux_clauses.end())
 	context_clause_stack.push_back(cid);
 }
 
@@ -1374,6 +1381,7 @@ void Cnf_reasoner::clear_assigned_literals() {
 	int alit = assigned_literals.back(); assigned_literals.pop_back();
 	unit_literals.erase(alit);
 	context_cleared_literal_stack.push_back(alit);
+	report(4, "Cleared assigned literal %d\n", alit);
     }
 }
 
@@ -1561,6 +1569,9 @@ int Cnf_reasoner::reduce_run(int lit) {
 		}
 	    }
 	    pwriter->comment("End of proof clauses from SAT solver");
+	} else {
+	    const char *fname = rcp->get_file_name();
+	    pwriter->comment("SAT solver failed running on file %s to validate literal %d", fname, lit);
 	}
 	// The clauses used in generating this proof are no longer needed
 	for (int cid = first_ncid; cid <= ncid; cid++)
@@ -1575,18 +1586,33 @@ int Cnf_reasoner::reduce_run(int lit) {
 int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
     auto fid = justifying_ids.find(lit);
     if (fid != justifying_ids.end()) {
+#if DEBUG
+	pwriter->comment("Literal %d already derived literal", lit);
+#endif
 	return fid->second;
     }
     if (unit_literals.find(-lit) != unit_literals.end()) {
+#if DEBUG
+	pwriter->comment("Literal %d already asserted literal", lit);
+#endif
 	return 0;
     }
 
     int ncid = 0;
     new_context();
+#if DEBUG
+    pwriter->comment("Attempting to validate literal %d by assuming its complement and getting conflict", lit);
+#endif
     push_assigned_literal(-lit);
     if (mode != MODE_SAT) {
 	ncid = bcp();
     }
+#if DEBUG
+    if (ncid != 0)
+	pwriter->comment("Validated literal %d via BCP on complement", lit);
+    else
+	pwriter->comment("Failed to validate literal %d via BCP on complement", lit);
+#endif
     if (ncid == 0 && mode != MODE_BCP) {
 	ncid = reduce_run(lit);
     }
@@ -1607,6 +1633,13 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
     ilist args = ilist_new(0);
     // Map them back to positions in lits & jids
     std::unordered_map<int,int> lit2idx;
+
+#if DEBUG
+    pwriter->comment_container("Target literals:", lits);
+    pwriter->comment_container("Unit literals:", unit_literals);
+    pwriter->comment_container("Active clauses:", *curr_active_clauses);
+#endif
+
     // First pass: 
     // In standard mode, validate each literal separately
     // In multi_literal mode, look for easy cases.  Defer the rest
@@ -1726,8 +1759,8 @@ int Cnf_reasoner::find_or_make_aux_clause(ilist lits) {
     }
     aux_clauses[defining_cid] = nnp;
     bucket->push_back(defining_cid);
-    if (verblevel >= 1) {
-	report(1, "Generated new aux clause %d.  Hash = %u. ", defining_cid, h);
+    if (verblevel >= 4) {
+	report(4, "Generated new aux clause %d.  Hash = %u. ", defining_cid, h);
 	nnp->show();
     }
     return defining_cid;
@@ -1744,9 +1777,13 @@ void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
 	return;
     int ncid = ilist_length(slits) == np->length() ? cid : find_or_make_aux_clause(slits);
     auto fid = lemma->inverse_cid.find(ncid);
-    if (fid == lemma->inverse_cid.end() || fid->second > cid)
+    if (fid != lemma->inverse_cid.end()) 
+	incr_count(COUNT_LEMMA_ARGUMENT_MERGE);
+    if (fid == lemma->inverse_cid.end() ||  fid->first > cid) {
 	// If multiple clauses map to single argument, then choose one with smallest clause ID
 	lemma->inverse_cid[ncid] = cid;
+	report(3, "Clause %d serves as proxy for clause %d\n", ncid, cid);
+    }
     ilist_free(slits);
 }
 
@@ -1764,25 +1801,44 @@ Lemma_instance *Cnf_reasoner::extract_lemma(int xvar) {
 void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
     new_context();
     clear_assigned_literals();
+
+    report(3, "Proving lemma at N%d\n", lemma->xvar);
+#if DEBUG
+    int acount = 0;
+#endif
+
+    pwriter->comment("Proof of lemma for N%d", lemma->xvar);
+
     for (auto fid : lemma->inverse_cid) {
-	int ncid = fid.second;
-	int ocid = fid.first;
+	int ncid = fid.first;
+	int ocid = fid.second;
 	if (ncid != ocid) {
 	    deactivate_clause(ocid);
 	    activate_clause(ncid);
 	} 
 	Clause *nnp = get_clause(ncid);
+
+#if DEBUG
+	if (verblevel >= 4) {
+	    report(4, "  Argument #%d: clause #%d.  Activated by literal %d\n", ++acount, ncid, nnp->get_activating_literal());
+	    pwriter->comment("  Argument #%d: clause #%d.  Activated by literal %d", acount, ncid, nnp->get_activating_literal());
+	}
+#endif
+
 	int alit = nnp->get_activating_literal();
-	if (alit > 0)
+	if (alit != 0) 
 	    push_assigned_literal(alit);
     }
+    pwriter->comment("Set up to prove lemma");
+    pwriter->comment_container("Active clauses:", *curr_active_clauses);
+    pwriter->comment_container("Unit literals:", unit_literals);
 }
 
     // Restore context from lemma proof
 void Cnf_reasoner::restore_from_proof(Lemma_instance *lemma) {
     for (auto fid : lemma->inverse_cid) {
-	int ncid = fid.second;
-	int ocid = fid.first;
+	int ncid = fid.first;
+	int ocid = fid.second;
 	if (ncid != ocid) {
 	    deactivate_clause(ncid);
 	    activate_clause(ocid);
@@ -1796,14 +1852,14 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
     // Should have identical sets of new clause IDs
     bool ok = true;
     for (auto lfid : lemma->inverse_cid) {
-	int ncid = lfid.second;
+	int ncid = lfid.first;
 	if (instance->inverse_cid.find(ncid) == instance->inverse_cid.end()) {
 	    err(false, "Attempting to apply lemma for node N%d.  Lemma argument clause #%d not found in instance\n", lemma->xvar, ncid);
 	    ok = false;
 	}
     }
     for (auto ifid : instance->inverse_cid) {
-	int ncid = ifid.second;
+	int ncid = ifid.first;
 	if (lemma->inverse_cid.find(ncid) == lemma->inverse_cid.end()) {
 	    err(false, "Attempting to apply lemma for node N%d.  Instance argument clause #%d not found in lemma\n", lemma->xvar, ncid);
 	    ok = false;
@@ -1813,31 +1869,49 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
 	return 0;
     // Now justify each lemma argument
     std::vector<int> arg_jids;
+    pwriter->comment("Application of lemma for N%d", lemma->xvar);
+#if DEBUG
+    pwriter->comment_container("Assigned literals:", assigned_literals);
+    pwriter->comment_container("Unit literals:", unit_literals);
+#endif
+    int acount = 0;
     for (auto ifid : instance->inverse_cid) {
-	int ocid = ifid.first;
-	int ncid = ifid.second;
+	int ocid = ifid.second;
+	int ncid = ifid.first;
+	if (ocid == ncid) {
+	    pwriter->comment("  Arg %d.  Clause #%d used directly", ++acount, ocid);
+	    continue;
+	}
 	Clause *anp = get_clause(ncid);
 	int alit = anp->get_activating_literal();
-	if (alit == 0)
-	    // Unmodified input clause
-	    continue;
 	Clause *nnp = new Clause();
+	nnp->add(alit);
 	for (int lit : assigned_literals)
 	    nnp->add(-lit);
-	nnp->add(alit);
+	pwriter->comment("  Arg %d.  Clause #%d replaces #%d", ++acount, ocid, ncid);
 	int ccid = start_assertion(nnp);
 	arg_jids.push_back(ccid);
+	// Add hints from synthetic clause definition
 	for (int offset = 1; offset <= anp->length(); offset++)
 	    add_hint(ncid+offset);
+	// Add hints based on context
+	Clause *cnp = get_clause(ocid);
+	for (int i = 0; i < cnp->length(); i++) {
+	    int clit = (*cnp)[i];
+	    auto fid = justifying_ids.find(-clit);
+	    if (fid != justifying_ids.end())
+		add_hint(fid->second);
+	}
 	add_hint(ocid);
 	finish_command(true);
 	delete nnp;
     }
     // Finally, assert the root
     Clause *lnp = new Clause();
+    lnp->add(lemma->xvar);
     for (int lit : assigned_literals)
 	lnp->add(-lit);
-    lnp->add(lemma->xvar);
+    pwriter->comment("Justification of lemma root %d in context", lemma->xvar);
     int jid = start_assertion(lnp);
     for (int ajid : arg_jids)
 	add_hint(ajid);

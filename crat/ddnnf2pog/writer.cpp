@@ -101,12 +101,42 @@ void Writer::write_vector(std::vector<int> &vec) {
     add_int(0);
 }
 
-void Writer::comment_list(ilist vals) {
+void Writer::comment_list(const char *descr, ilist vals) {
     if (!do_comments || ilist_length(vals) == 0)
 	return;
-    fprintf(outfile, "c %d: ", vals[0]);
+    fprintf(outfile, "c %s %d: ", descr, vals[0]);
     for (int i = 1; i < ilist_length(vals); i++)
 	add_int(vals[i]);
+    add_int(0);
+    fprintf(outfile, "\n");
+}
+
+void Writer::comment_container(const char *descr, std::vector<int> &vals) {
+    if (!do_comments || vals.size() == 0)
+	return;
+    fprintf(outfile, "c %s: ", descr);
+    for (int val : vals)
+	add_int(val);
+    add_int(0);
+    fprintf(outfile, "\n");
+}
+
+void Writer::comment_container(const char *descr, std::unordered_set<int> &vals) {
+    if (!do_comments || vals.size() == 0)
+	return;
+    fprintf(outfile, "c %s: ", descr);
+    for (int val : vals)
+	add_int(val);
+    add_int(0);
+    fprintf(outfile, "\n");
+}
+
+void Writer::comment_container(const char *descr, std::set<int> &vals) {
+    if (!do_comments || vals.size() == 0)
+	return;
+    fprintf(outfile, "c %s: ", descr);
+    for (int val : vals)
+	add_int(val);
     add_int(0);
     fprintf(outfile, "\n");
 }
