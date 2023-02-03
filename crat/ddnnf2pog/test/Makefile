@@ -19,20 +19,20 @@ D2P_OPTIONS=
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
 
 .d4nnf.d4_rup_crat:
-	$(D2P) -r -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_rup_crat_data
+	$(D2P) -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_rup_crat_data
 
 .d4_rup_crat.d4_rup_check_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
 
 .d4nnf.d4_rup_ecrat:
-	$(D2P) -r -e -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_rup_ecrat_data
+	$(D2P) -e -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_rup_ecrat_data
 
 .d4_rup_ecrat.d4_rup_echeck_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
 
 
 .d4nnf.d4_dt_crat:
-	$(D2P) -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_dt_crat_data
+	$(D2P) -t -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_dt_crat_data
 
 .d4_dt_crat.d4_dt_check_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@

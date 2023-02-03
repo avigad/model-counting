@@ -13,11 +13,11 @@
 #include "counters.h"
 
 void usage(const char *name) {
-    printf("Usage: %s [-h] [-v VLEVEL] [-C CLIM] [-r] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
+    printf("Usage: %s [-h] [-v VLEVEL] [-C CLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
     printf("  -h        Print this information\n");
     printf("  -v VLEVEL Set verbosity level\n");
     printf("  -C CLIM   Abort if file size exceeds CLIM clauses");
-    printf("  -r        Use own RUP proof generator, rather than drat-trim on SAT solver results\n");
+    printf("  -t        Use drat-trim on SAT solver results\n");
     printf("  -s        Prove each literal separately, rather than combining into single proof\n");
     printf("  -e        Expand each node, rather than using lemmas\n");
     printf("  -k        Keep intermediate solver files\n");
@@ -27,7 +27,7 @@ void usage(const char *name) {
     exit(0);
 }
 
-bool use_drat = true;
+bool use_drat = false;
 bool multi_literal = true;
 bool use_lemmas = true;
 bool delete_files  =  true;
@@ -178,7 +178,7 @@ int main(int argc, char *const argv[]) {
     verblevel = 1;
     double start = tod();
     int c;
-    while ((c = getopt(argc, argv, "hv:C:rsek")) != -1) {
+    while ((c = getopt(argc, argv, "hv:C:tsek")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -189,8 +189,8 @@ int main(int argc, char *const argv[]) {
 	case 'C':
 	    clause_limit = atoi(optarg);
 	    break;
-	case 'r':
-	    use_drat = false;
+	case 't':
+	    use_drat = true;
 	    break;
 	case 's':
 	    multi_literal = false;

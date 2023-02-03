@@ -92,7 +92,7 @@ def runGen(root, home, logFile, force):
     cratName = home + "/" + root + ".crat"
     if not force and os.path.exists(cratName):
         return True
-    cmd = [genProgram, "-r", cnfName, nnfName, cratName]
+    cmd = [genProgram, cnfName, nnfName, cratName]
     ok = runProgram("GEN", root, cmd, logFile)
     if not ok and os.path.exists(cratName):
         os.remove(cratName)
