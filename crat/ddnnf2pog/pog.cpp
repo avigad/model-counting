@@ -65,7 +65,11 @@ Pog_node::~Pog_node() {
 	incr_count_by(COUNT_POG_AND, -1);
     if (type == POG_OR)
 	incr_count_by(COUNT_POG_OR, -1);
-    if (lemma) delete lemma;
+    while (lemma) {
+	Lemma_instance *nlemma = lemma->next;
+	delete lemma;
+	lemma = nlemma;
+    }
 }
 
 void Pog_node::set_type(pog_type_t t) {
@@ -129,6 +133,9 @@ bool Pog_node::want_lemma() {
 }
 
 void Pog_node::add_lemma(Lemma_instance *lem) {
+    if (lemma != NULL)
+	incr_count(COUNT_LEMMA_DUPLICATES);
+    lem->next = lemma;
     lemma = lem;
 }
 
@@ -602,33 +609,35 @@ int Pog::first_literal(int rlit) {
     return rlit;
 }
 
-void Pog::prove_lemma(Pog_node *rp, bool parent_or) {
-    // Setup lemma
-    Lemma_instance *lemma = cnf->extract_lemma(rp->get_xvar(), parent_or);
-    rp->add_lemma(lemma);
-    lemma->jid = 0;
-    // Now must generate proof
-    cnf->setup_proof(lemma);
-    int jid = justify(rp->get_xvar(), parent_or);
-    if (jid == 0) {
-	// Record failure
-	lemma->jid = -1;
-    } else
-	lemma->jid = jid;
-    report(3, "Created lemma for node N%d.  Justifying clause = %d\n", rp->get_xvar(), jid);
-    cnf->restore_from_proof(lemma);
-    incr_count(COUNT_LEMMA_DEFINITION);
-}
-
+// Prove lemma if needed, and apply to this instance
 int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
-    report(3, "Attempting to apply lemma for node N%d.\n", rp->get_xvar());
-    Lemma_instance *lemma = rp->get_lemma();
-    if (lemma == NULL)
-	return 0;
-    if (lemma->jid < 0)
-	return 0;
+    report(3, "Attempting to prove/apply lemma for node N%d.\n", rp->get_xvar());
     Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar(), parent_or);
+    // Search for compatible lemma
+    Lemma_instance *lemma = rp->get_lemma();
+    while (lemma != NULL) {
+	if (lemma->signature == instance->signature)
+	    break;
+	lemma = lemma->next;
+    }
+    if (lemma == NULL) {
+	// The instance becomes the new lemma.  Must prove it
+	lemma = instance;
+	rp->add_lemma(lemma);
+	cnf->setup_proof(lemma);
+	lemma->jid = justify(lemma->xvar, lemma->parent_or);
+	cnf->pwriter->comment("Created lemma for node N%d.  Signature = %u.  Justifying clause = %d",
+			      lemma->xvar, lemma->signature, lemma->jid);
+	report(3, "Created lemma for node N%d.  Signature = %u.  Justifying clause = %d\n",
+	       lemma->xvar, lemma->signature, lemma->jid);
+	cnf->restore_from_proof(lemma);
+	incr_count(COUNT_LEMMA_DEFINITION);
+    }
+    if (lemma->jid == 0)
+	return 0;
     incr_count(COUNT_LEMMA_APPLICATION);
+    report(3, "Applying lemma for node N%d.  Signature = %u\n", lemma->xvar, lemma->signature);
+    cnf->pwriter->comment("Applying lemma at node N%d.  Signature = %u", lemma->xvar, lemma->signature);
     return cnf->apply_lemma(lemma, instance);
 }
 
@@ -640,16 +649,9 @@ int Pog::justify(int rlit, bool parent_or) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
 	if (cnf->use_lemmas && rnp->want_lemma()) {
-	    Lemma_instance *lemma = rnp->get_lemma();
-	    if (lemma == NULL) 
-		prove_lemma(rnp, parent_or);
-	    lemma = rnp->get_lemma();
-	    if (lemma->jid != 0) {
-		// Lemma jid == 0 indicates that this call being used to prove the lemma
-		int jid = apply_lemma(rnp, parent_or);
-		if (jid > 0)
-		    return jid;
-	    }
+	    int jid = apply_lemma(rnp, parent_or);
+	    if (jid > 0)
+		return jid;
 	}
 	int xvar = rnp->get_xvar();
 	Clause *jclause = new Clause();

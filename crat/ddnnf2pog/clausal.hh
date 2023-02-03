@@ -251,7 +251,7 @@ public:
 
     // Methods
     // Assign value of hash signature.  Must do this to compare to other possible lemmas at node
-    void sign(bool parent_or);
+    void sign(int xvar, bool parent_or);
 };
 
 // Augment clauses with reasoning and proof-generation capabilities 

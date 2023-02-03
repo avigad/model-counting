@@ -61,7 +61,8 @@ static void stat_report(double start) {
     printf("%s Lemmas\n", prefix);
     printf("%s    definitions : %d\n", prefix, get_count(COUNT_LEMMA_DEFINITION));
     printf("%s    applications: %d\n", prefix, get_count(COUNT_LEMMA_APPLICATION));
-    printf("%s    merged args:  %d\n", prefix, get_count(COUNT_LEMMA_ARGUMENT_MERGE));
+    printf("%s    duplicates  : %d\n", prefix, get_count(COUNT_LEMMA_DUPLICATES));
+    printf("%s    merged args : %d\n", prefix, get_count(COUNT_LEMMA_ARGUMENT_MERGE));
     ilist problem_histo = get_histo(HISTO_PROBLEM);
     int problem_count = 0;
     int problem_clauses = 0;

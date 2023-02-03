@@ -1767,7 +1767,10 @@ int Cnf_reasoner::find_or_make_aux_clause(ilist lits) {
 }
 
 // Lemma support
-void Lemma_instance::sign(bool p_or) {
+void Lemma_instance::sign(int xv, bool p_or) {
+    next = NULL;
+    jid = 0;
+    xvar = xv;
     parent_or = p_or;
     unsigned sig = 1;
     sig = next_hash_int(sig, parent_or ? 1 : -1);
@@ -1776,6 +1779,7 @@ void Lemma_instance::sign(bool p_or) {
 	sig = next_hash_int(sig, ncid);
     }
     signature = sig;
+    jid = 0;
 }
 
 // Add active clause to lemma.  It will simplify the clause
@@ -1800,13 +1804,10 @@ void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
 
 Lemma_instance *Cnf_reasoner::extract_lemma(int xvar, bool parent_or) {
     Lemma_instance *lemma = new Lemma_instance;
-    lemma->xvar = xvar;
-    lemma->jid = 0;
     for (int cid : *curr_active_clauses) {
 	add_lemma_argument(lemma, cid);
     }
-    lemma->sign(parent_or);
-    lemma->next = NULL;
+    lemma->sign(xvar, parent_or);
     return lemma;
 }
 
@@ -1842,9 +1843,11 @@ void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
 	if (alit != 0) 
 	    push_assigned_literal(alit);
     }
+#if DEBUG
     pwriter->comment("Set up to prove lemma");
     pwriter->comment_container("Active clauses:", *curr_active_clauses);
     pwriter->comment_container("Unit literals:", unit_literals);
+#endif
 }
 
     // Restore context from lemma proof

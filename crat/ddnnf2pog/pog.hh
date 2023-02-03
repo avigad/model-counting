@@ -146,8 +146,6 @@ private:
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
     // Recursively descend Pog until find input literal
     int first_literal(int rlit);
-    // Create lemma for node.  Store justifying ID internally (0 if failed)
-    void prove_lemma(Pog_node *rp, bool parent_or);
-    // Apply lemma at node.  Return ID of justifying clause (0 if failed)
+    // Create/Apply lemma at node.  Return ID of justifying clause (0 if failed)
     int apply_lemma(Pog_node *rp, bool parent_or);
 };
