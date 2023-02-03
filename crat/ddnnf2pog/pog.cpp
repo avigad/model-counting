@@ -125,8 +125,7 @@ void Pog_node::increment_indegree() {
 }
 
 bool Pog_node::want_lemma() {
-    return indegree > 1;
-    //    return indegree > 1 and type == POG_OR;
+    return indegree >= 2;
 }
 
 void Pog_node::add_lemma(Lemma_instance *lem) {
@@ -603,14 +602,14 @@ int Pog::first_literal(int rlit) {
     return rlit;
 }
 
-void Pog::prove_lemma(Pog_node *rp) {
+void Pog::prove_lemma(Pog_node *rp, bool parent_or) {
     // Setup lemma
-    Lemma_instance *lemma = cnf->extract_lemma(rp->get_xvar());
+    Lemma_instance *lemma = cnf->extract_lemma(rp->get_xvar(), parent_or);
     rp->add_lemma(lemma);
     lemma->jid = 0;
     // Now must generate proof
     cnf->setup_proof(lemma);
-    int jid = justify(rp->get_xvar(), false);
+    int jid = justify(rp->get_xvar(), parent_or);
     if (jid == 0) {
 	// Record failure
 	lemma->jid = -1;
@@ -621,18 +620,17 @@ void Pog::prove_lemma(Pog_node *rp) {
     incr_count(COUNT_LEMMA_DEFINITION);
 }
 
-int Pog::apply_lemma(Pog_node *rp) {
+int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
     report(3, "Attempting to apply lemma for node N%d.\n", rp->get_xvar());
     Lemma_instance *lemma = rp->get_lemma();
     if (lemma == NULL)
 	return 0;
     if (lemma->jid < 0)
 	return 0;
-    Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar());
+    Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar(), parent_or);
     incr_count(COUNT_LEMMA_APPLICATION);
     return cnf->apply_lemma(lemma, instance);
 }
-
 
 // Justify each position in POG within current context
 // Return ID of justifying clause
@@ -644,11 +642,11 @@ int Pog::justify(int rlit, bool parent_or) {
 	if (cnf->use_lemmas && rnp->want_lemma()) {
 	    Lemma_instance *lemma = rnp->get_lemma();
 	    if (lemma == NULL) 
-		prove_lemma(rnp);
+		prove_lemma(rnp, parent_or);
 	    lemma = rnp->get_lemma();
 	    if (lemma->jid != 0) {
 		// Lemma jid == 0 indicates that this call being used to prove the lemma
-		int jid = apply_lemma(rnp);
+		int jid = apply_lemma(rnp, parent_or);
 		if (jid > 0)
 		    return jid;
 	    }

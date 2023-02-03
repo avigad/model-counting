@@ -290,12 +290,12 @@ static std::vector<unsigned> var_hash;
 
 #define CHUNK_SIZE 1024
 
-static unsigned next_hash_literal(unsigned sofar, int lit) {
+static unsigned next_hash_int(unsigned sofar, int val) {
     if (var_hash.size() == 0) {
 	// Initialization
 	initstate(1, hash_state, 256);
     }
-    unsigned var = IABS(lit);
+    unsigned var = IABS(val);
     if (var >= var_hash.size()) {
 	// Add more random values
 	size_t osize = var_hash.size();
@@ -307,7 +307,7 @@ static unsigned next_hash_literal(unsigned sofar, int lit) {
 	setstate(ostate);
     }
     unsigned vval = var_hash[var];
-    unsigned long  lval = lit < 0 ? 1 + hash_modulus - vval : vval;
+    unsigned long  lval = val < 0 ? 1 + hash_modulus - vval : vval;
     return (lval * sofar) % hash_modulus;
 }
     
@@ -315,7 +315,7 @@ unsigned Clause::hash() {
     canonize();
     unsigned val = 1;
     for (int i = 0; i < length(); i++)
-	val = next_hash_literal(val, contents[i]);
+	val = next_hash_int(val, contents[i]);
     return val;
 }
 
@@ -1767,6 +1767,17 @@ int Cnf_reasoner::find_or_make_aux_clause(ilist lits) {
 }
 
 // Lemma support
+void Lemma_instance::sign(bool p_or) {
+    parent_or = p_or;
+    unsigned sig = 1;
+    sig = next_hash_int(sig, parent_or ? 1 : -1);
+    for (auto fid : inverse_cid) {
+	int ncid = fid.first;
+	sig = next_hash_int(sig, ncid);
+    }
+    signature = sig;
+}
+
 // Add active clause to lemma.  It will simplify the clause
 // and find/create a synthetic clause to serve as the argument
 void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
@@ -1787,13 +1798,15 @@ void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
     ilist_free(slits);
 }
 
-Lemma_instance *Cnf_reasoner::extract_lemma(int xvar) {
+Lemma_instance *Cnf_reasoner::extract_lemma(int xvar, bool parent_or) {
     Lemma_instance *lemma = new Lemma_instance;
     lemma->xvar = xvar;
     lemma->jid = 0;
     for (int cid : *curr_active_clauses) {
 	add_lemma_argument(lemma, cid);
     }
+    lemma->sign(parent_or);
+    lemma->next = NULL;
     return lemma;
 }
 
@@ -1851,7 +1864,13 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
     // Make sure they're compatible
     // Should have identical sets of new clause IDs
     bool ok = true;
+    if (lemma->parent_or != instance->parent_or) {
+	err(false, "Attempting to apply lemma for node N%d.  Lemma and instance differ on type of parenthood\n", lemma->xvar);
+	ok = false;
+    }
     for (auto lfid : lemma->inverse_cid) {
+	if (!ok)
+	    break;
 	int ncid = lfid.first;
 	if (instance->inverse_cid.find(ncid) == instance->inverse_cid.end()) {
 	    err(false, "Attempting to apply lemma for node N%d.  Lemma argument clause #%d not found in instance\n", lemma->xvar, ncid);
@@ -1859,6 +1878,8 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
 	}
     }
     for (auto ifid : instance->inverse_cid) {
+	if (!ok)
+	    break;
 	int ncid = ifid.first;
 	if (lemma->inverse_cid.find(ncid) == lemma->inverse_cid.end()) {
 	    err(false, "Attempting to apply lemma for node N%d.  Instance argument clause #%d not found in lemma\n", lemma->xvar, ncid);

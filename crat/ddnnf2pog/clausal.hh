@@ -235,6 +235,8 @@ public:
 class Lemma_instance {
 
 public:
+    // Is this for the child of an OR node?
+    bool parent_or;
     // Mapping from Ids of synthetic clauses serving as arguments
     // to the clause (input or synthetic) from which the synthetic clause arises
     std::map<int,int> inverse_cid;
@@ -242,12 +244,14 @@ public:
     int jid;
     // What is the extension variable for the associated root node
     int xvar;
-    // Collect the set of clauses used to generate lemma proof
-    std::set<int> *get_lemma_clauses();
+    // Hash signature based on clause IDs of arguments
+    unsigned signature;
+    // Allow chaining of lemmas as linked list
+    Lemma_instance *next;
 
-    // Get the set of literals that will serve as the context for the lemma proof
-
-
+    // Methods
+    // Assign value of hash signature.  Must do this to compare to other possible lemmas at node
+    void sign(bool parent_or);
 };
 
 // Augment clauses with reasoning and proof-generation capabilities 
@@ -396,7 +400,7 @@ public:
     //// Lemma Support
 
     // Extract information required to define, prove, or apply a lemma
-    Lemma_instance *extract_lemma(int xvar);
+    Lemma_instance *extract_lemma(int xvar, bool parent_or);
 
     // Set up context for lemma proof
     void setup_proof(Lemma_instance *lemma);
