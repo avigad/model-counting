@@ -47,6 +47,27 @@ class SemanticEntails (α : Type u) (β : outParam $ Type v) where
 infix:51 " ⊨ " => SemanticEntails.entails
 infix:51 " ⊭ " => fun M φ => ¬(M ⊨ φ)
 
+/-! Data.List.Extra or something -/
+
+@[specialize]
+def List.foldlDep {α : Type u} {β : Type v} : (l : List β) → (f : α → (b : β) → b ∈ l → α) →
+    (init : α) → α
+  | nil,      _, init => init
+  | cons b l, f, init => foldlDep l (fun a b h => f a b (.tail _ h)) (f init b (.head l))
+
+@[specialize]
+def List.mapDep {α : Type u} {β : Type v} : (l : List α) → (f : (a : α) → a ∈ l → β) → List β
+  | nil,      _ => []
+  | cons a l, f => f a (.head l) :: mapDep l fun a h => f a (.tail _ h)
+
+@[simp]
+theorem List.map_mapDep {γ : Type u} : (l : List α) → (f : (a : α) → a ∈ l → β) → (g : β → γ) →
+    (l.mapDep f).map g = l.mapDep (fun a h => g (f a h))
+  | nil,      _, _ => rfl
+  | cons a l, f, g => by
+    -- https://www.youtube.com/watch?v=Hd2JgADY9d8
+    simp [map, mapDep, map_mapDep] 
+
 /-! Data.List.Lemmas -/
 
 namespace List
