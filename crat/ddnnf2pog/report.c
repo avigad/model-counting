@@ -17,7 +17,10 @@ void err(bool fatal, const char *fmt, ...) {
 	errfile = stdout;
     va_list ap;
     va_start(ap, fmt);
-    fprintf(errfile, "ERROR: ");
+    if (fatal)
+	fprintf(errfile, "ERROR: ");
+    else
+	fprintf(errfile, "WARNING: ");
     vfprintf(errfile, fmt, ap);
     fflush(errfile);
     va_end(ap);
