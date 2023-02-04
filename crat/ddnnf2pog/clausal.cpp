@@ -332,12 +332,13 @@ bool Clause::is_equal(Clause *op) {
     return true;
 }
 
-Cnf::Cnf() { read_failed = false; max_input_var = 0; }
+Cnf::Cnf() { read_failed = false; proof_failed = false; max_input_var = 0; }
 
 Cnf::Cnf(FILE *infile) { 
     int expectedMax = 0;
     int expectedCount = 0;
     read_failed = false;
+    proof_failed = false;
     max_input_var = 0;
     bool got_header = false;
     bool no_header = false;
@@ -346,8 +347,13 @@ Cnf::Cnf(FILE *infile) {
     while ((c = getc(infile)) != EOF) {
 	if (isspace(c)) 
 	    continue;
-	if (c == 'c' || c == 'd' || c == 'v' || c == 's')
+	if (c == 'c' || c == 'd')
 	    c = skip_line(infile);
+	if (c == 's') {
+	    // Failed proof
+	    proof_failed = true;
+	    return;
+	}
 	if (c == EOF) {
 	    err(false, "Not valid CNF file.  No header line found\n");
 	    read_failed = true;
@@ -560,8 +566,13 @@ bool Cnf_reduced::run_solver() {
     if (verblevel >= 5)
 	pclauses.show();
 
+    if (pclauses.proof_failed) {
+	err(true, "Execution of command '%s' shows formula satisfiable\n", cmd);
+	return false;
+    }
+
     if (pclauses.clause_count() == 0) {
-	err(false, "Execution of command '%s' yielded no proof clauses\n", cmd);
+	err(true, "Execution of command '%s' yielded no proof clauses\n", cmd);
 	return false;
     }
 

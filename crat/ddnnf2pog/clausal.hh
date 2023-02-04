@@ -120,14 +120,20 @@ public:
 };
 
 // Base class Cnf is a collection of clauses.  Can read from a DIMACS format CNF file
+// Also can read DRAT format proofs
 class Cnf {
 
 private:
     
     int max_input_var;
+    // Don't set this externally
     bool read_failed;
 
+
 public:
+
+    bool proof_failed;
+
     // Basic representation.
     // Should only be accessed by a superclass, but C++ doesn't provide this level of control
     std::vector<Clause *> clauses;

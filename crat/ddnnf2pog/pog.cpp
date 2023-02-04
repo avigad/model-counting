@@ -763,7 +763,13 @@ int Pog::justify(int rlit, bool parent_or) {
 		    }
 		    if (partition) {
 			int llit = first_literal(clit);
-			int rvar = var2rvar.find(IABS(llit))->second;
+			auto fid = var2rvar.find(IABS(llit));
+			if (fid == var2rvar.end()) {
+			    // This shouldn't happen
+			    err(true, "Partitioning error.  Couldn't find representative for variable %d, representing first child of node N%d\n",
+				IABS(llit), IABS(clit));
+			}
+			int rvar = fid->second;
 			pset = rvar2cset.find(rvar)->second;
 			// Restrict clauses to those relevant to this partition
 			cnf->set_active_clauses(pset);
