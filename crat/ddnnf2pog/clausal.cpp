@@ -567,7 +567,7 @@ bool Cnf_reduced::run_solver() {
 	pclauses.show();
 
     if (pclauses.proof_failed) {
-	err(true, "Execution of command '%s' shows formula satisfiable\n", cmd);
+	err(false, "Execution of command '%s' shows formula satisfiable\n", cmd);
 	return false;
     }
 
@@ -775,7 +775,7 @@ Clause * Cnf_reasoner::get_clause(int cid) {
 	else if (cid <= input_count + proof_count)
 	    return proof_clauses[cid - input_count - 1];
 	else {
-	    err(true, "Fatal.  Trying to acess clause #%d.  Have %d input and %d proof clauses\n", cid, input_count, proof_count);
+	    err(true, "Fatal.  Trying to access clause #%d.  Have %d input and %d proof clauses\n", cid, input_count, proof_count);
 	    exit(1);
 	}
     }
@@ -1529,7 +1529,7 @@ Cnf_reduced *Cnf_reasoner::extract_cnf() {
 // Incorporate generated conflict proof into larger proof
 // Return ID of conflict clause
 int Cnf_reasoner::reduce_run(int lit) {
-    int ncid;
+    int ncid = 0;
     Cnf_reduced *rcp = extract_cnf();
     if (use_drat) {
 	if (rcp->run_hinting_solver()) {
@@ -1580,13 +1580,13 @@ int Cnf_reasoner::reduce_run(int lit) {
 		}
 	    }
 	    pwriter->comment("End of proof clauses from SAT solver");
+	    // The clauses used in generating this proof are no longer needed
+	    for (int cid = first_ncid; cid <= ncid; cid++)
+		deactivate_clause(cid);
 	} else {
 	    const char *fname = rcp->get_file_name();
 	    pwriter->comment("SAT solver failed running on file %s to validate literal %d", fname, lit);
 	}
-	// The clauses used in generating this proof are no longer needed
-	for (int cid = first_ncid; cid <= ncid; cid++)
-	    deactivate_clause(cid);
     }
     delete rcp;
     return ncid;
@@ -1676,6 +1676,8 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	int nlit = args[0];
 	int  i = lit2idx.find(nlit)->second;
 	jids[i] = validate_literal(-nlit, MODE_FULL);
+	if (jids[i] == 0)
+	    err(true, "Failed to validate literal %d\n", nlit);
 	ilist_free(args);
 	return;
     }
@@ -1690,18 +1692,25 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
     pwriter->comment("Handle %d/%d literals with SAT solver to validate extension variable %d", nleft, lits.size(), xvar);
     report(3, "Handle %d/%d literals with SAT solver to validate extension variable %d\n", nleft, lits.size(), xvar);
     int ncid = validate_literal(xvar, MODE_FULL);
-    if (ncid == 0) {
-	err(false, "Couldn't validate literal %d representing conjunction of %d literals\n", xvar, nleft);
+    if (ncid > 0) {
+	// Final pass: Target units should be unit or provable with BCP
+	for (int i = 0; i < nleft; i++) {
+	    int nlit = (*anp)[i];
+	    int idx = lit2idx.find(nlit)->second;
+	    int jid = quick_validate_literal(-nlit, ncid, defining_cid+i+1);
+	    jids[idx] = jid;
+	}
+    } else {
+	err(false, "Couldn't validate literal %d representing conjunction of %d literals.  Try validating individually\n", xvar, nleft);
+	for (int i = 0; i < nleft; i++) {
+	    int nlit = (*anp)[i];
+	    int idx = lit2idx.find(nlit)->second;
+	    int jid = validate_literal(-nlit, MODE_FULL);
+	    if (jid == 0)
+		err(true, "Failed to validate literal %d\n", nlit);
+	    jids[idx] = jid;
+	}
     }
-
-    // Final pass: Target units should be unit or provable with BCP
-    for (int i = 0; i < nleft; i++) {
-	int nlit = (*anp)[i];
-	int idx = lit2idx.find(nlit)->second;
-	int jid = quick_validate_literal(-nlit, ncid, defining_cid+i+1);
-	jids[idx] = jid;
-    }
-
     pwriter->comment("Justifications of %d literals completed", nleft);
     deactivate_clause(defining_cid);
 }
@@ -1733,22 +1742,19 @@ Clause *Cnf_reasoner::get_aux_clause(int cid) {
 int Cnf_reasoner::find_or_make_aux_clause(ilist lits) {
     Clause *np = new Clause(lits, ilist_length(lits));
     unsigned h = np->hash();
-    auto fid = aux_clause_lookup.find(h);
-    std::vector<int> *bucket = NULL;
-    if (fid != aux_clause_lookup.end()) {
-	bucket = fid->second;
-	for (int xcid : *bucket) {
-	    Clause *xcp = get_aux_clause(xcid);
-	    if (xcp == NULL)
-		err(false, "Oops.  Lookup table has clause #%d under hash %u, but no such clause exists\n", xcid, h);
-	    else if (np->is_equal(xcp)) {
-		if (verblevel >= 3) {
-		    report(3, "Retrieved existing aux clause %d.  Hash = %u. ", xcid, h);
-		    xcp->show();
-		}
-		delete np;
-		return xcid;
+    auto bucket = aux_clause_lookup.equal_range(h);
+    for (auto iter = bucket.first; iter != bucket.second; iter++) {
+	int xcid = iter->second;
+	Clause *xcp = get_aux_clause(xcid);
+	if (xcp == NULL)
+	    err(false, "Oops.  Lookup table has clause #%d under hash %u, but no such clause exists\n", xcid, h);
+	else if (np->is_equal(xcp)) {
+	    if (verblevel >= 3) {
+		report(3, "Retrieved existing aux clause %d.  Hash = %u. ", xcid, h);
+		xcp->show();
 	    }
+	    delete np;
+	    return xcid;
 	}
     }
     // Must create new synthetic clause
@@ -1764,12 +1770,8 @@ int Cnf_reasoner::find_or_make_aux_clause(ilist lits) {
     document_and(defining_cid, xvar, args);
     Clause *nnp = new Clause(np);
     nnp->set_activating_literal(-xvar);
-    if (!bucket) {
-	bucket = new std::vector<int>;
-	aux_clause_lookup[h] = bucket;
-    }
     aux_clauses[defining_cid] = nnp;
-    bucket->push_back(defining_cid);
+    aux_clause_lookup.insert({h, defining_cid});
     if (verblevel >= 4) {
 	report(4, "Generated new aux clause %d.  Hash = %u. ", defining_cid, h);
 	nnp->show();
@@ -1802,14 +1804,8 @@ void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
 	// Tautology 
 	return;
     int ncid = ilist_length(slits) == np->length() ? cid : find_or_make_aux_clause(slits);
-    auto fid = lemma->inverse_cid.find(ncid);
-    if (fid != lemma->inverse_cid.end()) 
-	incr_count(COUNT_LEMMA_ARGUMENT_MERGE);
-    if (fid == lemma->inverse_cid.end() ||  fid->first > cid) {
-	// If multiple clauses map to single argument, then choose one with smallest clause ID
-	lemma->inverse_cid[ncid] = cid;
-	report(3, "Clause %d serves as proxy for clause %d\n", ncid, cid);
-    }
+    lemma->inverse_cid.insert({ncid, cid});
+    report(3, "Clause %d serves as proxy for clause %d\n", ncid, cid);
     ilist_free(slits);
 }
 
@@ -1834,13 +1830,18 @@ void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
 
     pwriter->comment("Proof of lemma for N%d", lemma->xvar);
 
+    int last_ncid = 0;
     for (auto fid : lemma->inverse_cid) {
 	int ncid = fid.first;
 	int ocid = fid.second;
 	if (ncid != ocid) {
 	    deactivate_clause(ocid);
-	    activate_clause(ncid);
+	    if (ncid != last_ncid) {
+		activate_clause(ncid);
+		last_ncid = ncid;
+	    }
 	} 
+
 	Clause *nnp = get_clause(ncid);
 
 #if DEBUG
@@ -1863,11 +1864,15 @@ void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
 
     // Restore context from lemma proof
 void Cnf_reasoner::restore_from_proof(Lemma_instance *lemma) {
+    int last_ncid = 0;
     for (auto fid : lemma->inverse_cid) {
 	int ncid = fid.first;
 	int ocid = fid.second;
 	if (ncid != ocid) {
-	    deactivate_clause(ncid);
+	    if (ncid != last_ncid) {
+		deactivate_clause(ncid);
+		last_ncid = ncid;
+	    }
 	    activate_clause(ocid);
 	} 
     }
@@ -1882,19 +1887,27 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
 	err(false, "Attempting to apply lemma for node N%d.  Lemma and instance differ on type of parenthood\n", lemma->xvar);
 	ok = false;
     }
+    int last_ncid = 0;
     for (auto lfid : lemma->inverse_cid) {
 	if (!ok)
 	    break;
 	int ncid = lfid.first;
+	if (ncid == last_ncid)
+	    continue;
+	last_ncid = ncid;
 	if (instance->inverse_cid.find(ncid) == instance->inverse_cid.end()) {
 	    err(false, "Attempting to apply lemma for node N%d.  Lemma argument clause #%d not found in instance\n", lemma->xvar, ncid);
 	    ok = false;
 	}
     }
+    last_ncid = 0;
     for (auto ifid : instance->inverse_cid) {
 	if (!ok)
 	    break;
 	int ncid = ifid.first;
+	if (ncid == last_ncid)
+	    continue;
+	last_ncid = ncid;
 	if (lemma->inverse_cid.find(ncid) == lemma->inverse_cid.end()) {
 	    err(false, "Attempting to apply lemma for node N%d.  Instance argument clause #%d not found in lemma\n", lemma->xvar, ncid);
 	    ok = false;
@@ -1910,9 +1923,12 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
     pwriter->comment_container("Unit literals:", unit_literals);
 #endif
     int acount = 0;
+    last_ncid = 0;
     for (auto ifid : instance->inverse_cid) {
 	int ocid = ifid.second;
 	int ncid = ifid.first;
+	if (ncid == last_ncid)
+	    continue;
 	if (ocid == ncid) {
 	    pwriter->comment("  Arg %d.  Clause #%d used directly", ++acount, ocid);
 	    continue;
