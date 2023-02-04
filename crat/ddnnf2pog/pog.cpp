@@ -145,11 +145,13 @@ Lemma_instance *Pog_node::get_lemma() {
 
 
 Pog::Pog() {
+    root_literal = 0;
     cnf = NULL;
     max_input_var = 0;
 }
 
 Pog::Pog(Cnf_reasoner *cset) {
+    root_literal = 0;
     cnf = cset;
     max_input_var = cset->max_variable();
 }
@@ -239,7 +241,8 @@ bool Pog::optimize() {
     // Get topological ordering of nodes accessible from root
     topo_order(root_literal, rtopo, remap.data());
 
-    report(2, "Compressing POG with %d nodes and root literal %d\n", nodes.size(), root_literal);
+    report(2, "Compressing POG with %d nodes (%d accessible from root) and root literal %d\n",
+	   nodes.size(), rtopo.size(), root_literal);
     // Process nodes in reverse topological order
     // Skip inaccessible nodes and simplify operations
     for (int oid : rtopo) {
@@ -586,7 +589,7 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 	    int degree = np->get_degree();
 	    if (degree == 0 || degree > 2) 
 		err(true, "NNF OR node %d.  Invalid degree %d\n", nid, degree);
-	    else if (degree == 1) {
+	    else if (degree == 1  && root_literal == 0) {
 		root_literal = pid;
 		report(3, "Setting root literal to %d\n", root_literal);
 	    }

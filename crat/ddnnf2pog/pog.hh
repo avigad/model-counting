@@ -94,7 +94,7 @@ private:
     // Current CNF + proof generation support
     Cnf_reasoner *cnf;
     // Stack to save higher level clausal representation 
-    std::vector<Cnf_reasoner *> reasoner_stack;
+    //    std::vector<Cnf_reasoner *> reasoner_stack;
 
 
     int max_input_var;
