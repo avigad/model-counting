@@ -1351,6 +1351,10 @@ void Cnf_reasoner::push_clause(int cid, bool force) {
 
 void Cnf_reasoner::pop_context() {
     report(4, "Popping context\n");
+    // It's important to first clear the assigned literals
+    // and then assign the previously literals.
+    // There are cases when both operations are performed for a single
+    // literal, and it's important that the net result is to set it to its former value.
     while (true) {
 	if (context_literal_stack.size() == 0)
 	    err(true, "Tried to pop beyond base of context literal stack\n");
@@ -1637,7 +1641,7 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
 
 // Justify that set of literals hold.
 // Justifying clauses IDs are then loaded into jids vector
-void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
+bool Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
     jids.resize(lits.size());
     validation_mode_t mode = multi_literal ? MODE_BCP : MODE_FULL;
     // Which literals can't be handled directly.  Put their negations on list
@@ -1668,7 +1672,7 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 
     if (nleft == 0) {
 	ilist_free(args);
-	return;
+	return true;
     }
 
     if (nleft == 1) {
@@ -1676,10 +1680,11 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	int nlit = args[0];
 	int  i = lit2idx.find(nlit)->second;
 	jids[i] = validate_literal(-nlit, MODE_FULL);
-	if (jids[i] == 0)
-	    err(true, "Failed to validate literal %d\n", nlit);
+	bool ok = jids[i] != 0;
+	if (!ok)
+	    err(false, "Failed to validate literal %d\n", nlit);
 	ilist_free(args);
-	return;
+	return ok;
     }
 
     int defining_cid = find_or_make_aux_clause(args);
@@ -1700,19 +1705,33 @@ void Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	    int jid = quick_validate_literal(-nlit, ncid, defining_cid+i+1);
 	    jids[idx] = jid;
 	}
+	pwriter->comment("Justifications of %d literals completed", nleft);
+	deactivate_clause(defining_cid);
+	return true;
     } else {
+	// Try doing the validations individually
+	deactivate_clause(defining_cid);
 	err(false, "Couldn't validate literal %d representing conjunction of %d literals.  Try validating individually\n", xvar, nleft);
 	for (int i = 0; i < nleft; i++) {
 	    int nlit = (*anp)[i];
 	    int idx = lit2idx.find(nlit)->second;
 	    int jid = validate_literal(-nlit, MODE_FULL);
-	    if (jid == 0)
-		err(true, "Failed to validate literal %d\n", nlit);
+	    if (jid == 0) {
+		err(false, "Failed to validate literal %d\n", nlit);
+		printf("  Assigned literals:");
+		for (int lit : assigned_literals)
+		    printf(" %d", lit);
+		printf("\n");
+		printf("  Active clauses:");
+		for (int acid : *curr_active_clauses)
+		    printf(" %d", acid);
+		printf("\n");
+		return false;
+	    }
 	    jids[idx] = jid;
 	}
+	return true;
     }
-    pwriter->comment("Justifications of %d literals completed", nleft);
-    deactivate_clause(defining_cid);
 }
 
 void Cnf_reasoner::delete_assertions() {
@@ -1838,22 +1857,22 @@ void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
 	    deactivate_clause(ocid);
 	    if (ncid != last_ncid) {
 		activate_clause(ncid);
-		last_ncid = ncid;
 	    }
 	} 
 
 	Clause *nnp = get_clause(ncid);
-
 #if DEBUG
 	if (verblevel >= 4) {
 	    report(4, "  Argument #%d: clause #%d.  Activated by literal %d\n", ++acount, ncid, nnp->get_activating_literal());
 	    pwriter->comment("  Argument #%d: clause #%d.  Activated by literal %d", acount, ncid, nnp->get_activating_literal());
 	}
 #endif
-
-	int alit = nnp->get_activating_literal();
-	if (alit != 0) 
-	    push_assigned_literal(alit);
+	if (ncid != last_ncid) {
+	    last_ncid = ncid;
+	    int alit = nnp->get_activating_literal();
+	    if (alit != 0) 
+		push_assigned_literal(alit);
+	}
     }
 #if DEBUG
     pwriter->comment("Set up to prove lemma");

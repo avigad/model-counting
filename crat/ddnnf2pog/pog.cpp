@@ -740,7 +740,14 @@ int Pog::justify(int rlit, bool parent_or) {
 					  xvar, pog_type_name[rnp->get_type()], lits.size());
 #endif
 		    report(4, "Justify node N%d_%s, starting with %d literals\n", xvar, pog_type_name[rnp->get_type()], lits.size());
-		    cnf->validate_literals(lits, jids);
+		    if (!cnf->validate_literals(lits, jids)) {
+			printf("Was attempting to validate node N%d_AND\n", xvar);
+			printf("  Arguments:");
+			for (int i = 0; i < rnp->get_degree(); i++)
+			    printf(" %d", (*rnp)[i]);
+			printf("\n");
+			err(true, "Can't recover\n");
+		    }
 		    for (int jid : jids)
 			hints.push_back(jid);
 		}

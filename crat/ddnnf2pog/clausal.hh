@@ -398,7 +398,8 @@ public:
 
     // Justify that set of literals hold.
     // Justifying clauses IDs are then loaded into jids vector
-    void validate_literals(std::vector<int> &lits, std::vector<int> &jids);
+    // Return true if successful
+    bool validate_literals(std::vector<int> &lits, std::vector<int> &jids);
 
     // Delete all but final asserted clause
     void delete_assertions();
