@@ -22,7 +22,7 @@
   SOFTWARE.
   ========================================================================*/
 
-#define DEBUG 0
+#define DEBUG 1
 
 #include <stdlib.h>
 #include <string.h>
@@ -129,7 +129,7 @@ void Pog_node::increment_indegree() {
 }
 
 bool Pog_node::want_lemma() {
-    return indegree >= 2;
+    return type == POG_OR && indegree >= 2;
 }
 
 void Pog_node::add_lemma(Lemma_instance *lem) {

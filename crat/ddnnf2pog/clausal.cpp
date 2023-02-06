@@ -22,7 +22,7 @@
   SOFTWARE.
   ========================================================================*/
 
-#define DEBUG 0
+#define DEBUG 1
 
 #include <iostream>
 #include <ctype.h>
