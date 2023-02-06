@@ -112,7 +112,7 @@ void Writer::comment_list(const char *descr, ilist vals) {
 }
 
 void Writer::comment_container(const char *descr, std::vector<int> &vals) {
-    if (!do_comments || vals.size() == 0)
+    if (!do_comments)
 	return;
     fprintf(outfile, "c %s: ", descr);
     for (int val : vals)
@@ -122,7 +122,7 @@ void Writer::comment_container(const char *descr, std::vector<int> &vals) {
 }
 
 void Writer::comment_container(const char *descr, std::unordered_set<int> &vals) {
-    if (!do_comments || vals.size() == 0)
+    if (!do_comments)
 	return;
     fprintf(outfile, "c %s: ", descr);
     for (int val : vals)
@@ -132,7 +132,7 @@ void Writer::comment_container(const char *descr, std::unordered_set<int> &vals)
 }
 
 void Writer::comment_container(const char *descr, std::set<int> &vals) {
-    if (!do_comments || vals.size() == 0)
+    if (!do_comments)
 	return;
     fprintf(outfile, "c %s: ", descr);
     for (int val : vals)
@@ -140,6 +140,87 @@ void Writer::comment_container(const char *descr, std::set<int> &vals) {
     add_int(0);
     fprintf(outfile, "\n");
 }
+
+void Writer::diagnose(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    fprintf(stdout, "\n");
+
+    if (!do_comments)
+	return;
+    va_start(ap, fmt);
+    fprintf(outfile, "c ");
+    vfprintf(outfile, fmt, ap);
+    fprintf(outfile, "\n");
+    line_count++;
+    fflush(outfile);
+    va_end(ap);
+}
+
+
+void Writer::diagnose_list(const char *descr, ilist vals) {
+    if (ilist_length(vals) == 0)
+	return;
+    fprintf(stdout, "%s %d:", descr, vals[0]);
+    for (int i = 1; i < ilist_length(vals); i++)
+	fprintf(stdout, " %d", vals[i]);
+    fprintf(stdout, " 0\n");
+
+    if (!do_comments)
+	return;
+    fprintf(outfile, "c %s %d: ", descr, vals[0]);
+    for (int i = 1; i < ilist_length(vals); i++)
+	add_int(vals[i]);
+    add_int(0);
+    fprintf(outfile, "\n");
+}
+
+void Writer::diagnose_container(const char *descr, std::vector<int> &vals) {
+    fprintf(stdout, "%s:", descr);
+    for (int val : vals)
+	fprintf(stdout, " %d", val);
+    fprintf(stdout, " 0\n");
+
+    if (!do_comments)
+	return;
+    fprintf(outfile, "c %s: ", descr);
+    for (int val : vals)
+	add_int(val);
+    add_int(0);
+    fprintf(outfile, "\n");
+}
+
+void Writer::diagnose_container(const char *descr, std::unordered_set<int> &vals) {
+    fprintf(stdout, "%s:", descr);
+    for (int val : vals)
+	fprintf(stdout, " %d", val);
+    fprintf(stdout, " 0\n");
+
+    if (!do_comments)
+	return;
+    fprintf(outfile, "c %s: ", descr);
+    for (int val : vals)
+	add_int(val);
+    add_int(0);
+    fprintf(outfile, "\n");
+}
+
+void Writer::diagnose_container(const char *descr, std::set<int> &vals) {
+    fprintf(stdout, "%s:", descr);
+    for (int val : vals)
+	fprintf(stdout, " %d", val);
+    fprintf(stdout, " 0\n");
+
+    if (!do_comments)
+	return;
+    fprintf(outfile, "c %s: ", descr);
+    for (int val : vals)
+	add_int(val);
+    add_int(0);
+    fprintf(outfile, "\n");
+}
+
 
 void Writer::finish_line(const char *txt) {
     write_text("%s\n", txt);

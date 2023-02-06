@@ -67,6 +67,15 @@ public:
     void comment_container(const char *descr, std::unordered_set<int> &vals);
     void comment_container(const char *descr, std::set<int> &vals);
 
+    // Put diagnostic information in comment and stdout
+    void diagnose(const char *fmt, ...);
+    // Write list of literals with zero termination and EOL.
+    void diagnose_list(const char *descr, ilist vals);
+    // Write vector of literals with zero termination and EOL.
+    void diagnose_container(const char *descr, std::vector<int> &vals);
+    void diagnose_container(const char *descr, std::unordered_set<int> &vals);
+    void diagnose_container(const char *descr, std::set<int> &vals);
+
     void finish_line(const char *txt);
     void finish_file();
 

@@ -22,8 +22,6 @@
   SOFTWARE.
   ========================================================================*/
 
-#define DEBUG 1
-
 #include <iostream>
 #include <ctype.h>
 #include <algorithm>
@@ -1806,9 +1804,12 @@ void Lemma_instance::sign(int xv, bool p_or) {
     parent_or = p_or;
     unsigned sig = 1;
     sig = next_hash_int(sig, parent_or ? 1 : -1);
+    int last_ncid = 0;
     for (auto fid : inverse_cid) {
 	int ncid = fid.first;
-	sig = next_hash_int(sig, ncid);
+	if (ncid != last_ncid)
+	    sig = next_hash_int(sig, ncid);
+	last_ncid = ncid;
     }
     signature = sig;
     jid = 0;
@@ -1823,17 +1824,29 @@ void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
 	// Tautology 
 	return;
     int ncid = ilist_length(slits) == np->length() ? cid : find_or_make_aux_clause(slits);
-    lemma->inverse_cid.insert({ncid, cid});
-    report(3, "Clause %d serves as proxy for clause %d\n", ncid, cid);
+    if (lemma->inverse_cid.find(ncid) == lemma->inverse_cid.end()) {
+	lemma->inverse_cid.insert({ncid, cid});
+#if DEBUG
+	pwriter->comment("  Clause %d serves as proxy for clause %d", ncid, cid);
+#endif
+    } else {
+#if DEBUG
+	pwriter->comment("  Clause %d already serves as proxy for clause %d", ncid, cid);
+#endif
+    }
     ilist_free(slits);
 }
 
 Lemma_instance *Cnf_reasoner::extract_lemma(int xvar, bool parent_or) {
     Lemma_instance *lemma = new Lemma_instance;
+#if DEBUG
+    pwriter->comment("Identifying arguments for lemma at node N%d", xvar);
+#endif
     for (int cid : *curr_active_clauses) {
 	add_lemma_argument(lemma, cid);
     }
     lemma->sign(xvar, parent_or);
+    pwriter->comment("  Extracted lemma for node N%d.  Signature %u", xvar, lemma->signature);
     return lemma;
 }
 
@@ -1847,7 +1860,7 @@ void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
     int acount = 0;
 #endif
 
-    pwriter->comment("Proof of lemma for N%d", lemma->xvar);
+    pwriter->comment("Proof of lemma for N%d, signature %u", lemma->xvar, lemma->signature);
 
     int last_ncid = 0;
     for (auto fid : lemma->inverse_cid) {
@@ -1862,9 +1875,16 @@ void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
 
 	Clause *nnp = get_clause(ncid);
 #if DEBUG
-	if (verblevel >= 4) {
-	    report(4, "  Argument #%d: clause #%d.  Activated by literal %d\n", ++acount, ncid, nnp->get_activating_literal());
-	    pwriter->comment("  Argument #%d: clause #%d.  Activated by literal %d", acount, ncid, nnp->get_activating_literal());
+	acount++;
+	int alit = nnp->get_activating_literal();
+	if (alit > 0) {
+	    if (verblevel >= 4)
+		report(4, "  Argument #%d: clause #%d.  Activated by literal %d\n", acount, ncid, alit);
+	    pwriter->comment("  Argument #%d: clause #%d.  Activated by literal %d", acount, ncid, alit);
+	} else {
+	    if (verblevel >= 4)
+		report(4, "  Argument #%d: Input clause #%d\n", acount, ncid);
+	    pwriter->comment("  Argument #%d: Input clause #%d", acount, ncid);
 	}
 #endif
 	if (ncid != last_ncid) {
@@ -1874,8 +1894,9 @@ void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
 		push_assigned_literal(alit);
 	}
     }
+    lemma->jid = 0;
 #if DEBUG
-    pwriter->comment("Set up to prove lemma");
+    pwriter->comment("Set up to prove lemma for N%d, signature %u", lemma->xvar, lemma->signature);
     pwriter->comment_container("Active clauses:", *curr_active_clauses);
     pwriter->comment_container("Unit literals:", unit_literals);
 #endif
@@ -1934,9 +1955,9 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
     }
     if (!ok)
 	return 0;
-    // Now justify each lemma argument
+    // Now justify lemma arguments
     std::vector<int> arg_jids;
-    pwriter->comment("Application of lemma for N%d", lemma->xvar);
+    pwriter->comment("Application of lemma for N%d, signature %u", lemma->xvar, lemma->signature);
 #if DEBUG
     pwriter->comment_container("Assigned literals:", assigned_literals);
     pwriter->comment_container("Unit literals:", unit_literals);
@@ -1954,27 +1975,34 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
 	}
 	Clause *anp = get_clause(ncid);
 	int alit = anp->get_activating_literal();
-	Clause *nnp = new Clause();
-	nnp->add(alit);
-	for (int lit : assigned_literals)
-	    nnp->add(-lit);
-	pwriter->comment("  Arg %d.  Clause #%d replaces #%d", ++acount, ocid, ncid);
-	int ccid = start_assertion(nnp);
-	arg_jids.push_back(ccid);
-	// Add hints from synthetic clause definition
-	for (int offset = 1; offset <= anp->length(); offset++)
-	    add_hint(ncid+offset);
-	// Add hints based on context
-	Clause *cnp = get_clause(ocid);
-	for (int i = 0; i < cnp->length(); i++) {
-	    int clit = (*cnp)[i];
-	    auto fid = justifying_ids.find(-clit);
+	if (unit_literals.find(alit) != unit_literals.end()) { 
+	    pwriter->comment("  Arg %d.  Clause #%d replaced by #%d, which is already unit", ++acount, ocid, ncid);
+	    auto fid = justifying_ids.find(alit);
 	    if (fid != justifying_ids.end())
-		add_hint(fid->second);
+		arg_jids.push_back(fid->second);
+	} else {
+	    Clause *nnp = new Clause();
+	    nnp->add(alit);
+	    for (int lit : assigned_literals)
+		nnp->add(-lit);
+	    pwriter->comment("  Arg %d.  Clause #%d replaced by #%d", ++acount, ocid, ncid);
+	    int ccid = start_assertion(nnp);
+	    arg_jids.push_back(ccid);
+	    // Add hints from synthetic clause definition
+	    for (int offset = 1; offset <= anp->length(); offset++)
+		add_hint(ncid+offset);
+	    // Add hints based on context
+	    Clause *cnp = get_clause(ocid);
+	    for (int i = 0; i < cnp->length(); i++) {
+		int clit = (*cnp)[i];
+		auto fid = justifying_ids.find(-clit);
+		if (fid != justifying_ids.end())
+		    add_hint(fid->second);
+	    }
+	    add_hint(ocid);
+	    finish_command(true);
+	    delete nnp;
 	}
-	add_hint(ocid);
-	finish_command(true);
-	delete nnp;
     }
     // Finally, assert the root
     Clause *lnp = new Clause();

@@ -156,14 +156,16 @@ static bool run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	pwriter->enable_comments();
     cnf.enable_pog(pwriter);
     if (!pog.read_d4ddnnf(nnf_file)) {
-	fprintf(stderr, "Error reading D4 NNF file\n");
+	err(false, "Error reading D4 NNF file\n");
 	return false;
     }
-
     int root_literal = pog.get_root();
     report(3, "Justifying root literal %d\n", root_literal);
-
-    int unit_cid = pog.justify(root_literal, false);
+    int unit_cid = pog.justify(root_literal, false, use_lemmas);
+    if (unit_cid == 0) {
+	err(false, "Failed to justify root literal %d\n", root_literal);
+	return false;
+    }
     cnf.delete_assertions();
     pwriter->comment("Delete input clauses");
     for (int cid = 1; cid <= cnf.clause_count(); cid++)

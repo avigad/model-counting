@@ -71,6 +71,9 @@ public:
     void set_defining_cid(int cid);
     int get_defining_cid();
 
+    // Store name in local buffer.
+    const char *name();
+
     // Set degree and import children
     void add_children(std::vector<int> *cvec);
 
@@ -93,10 +96,6 @@ class Pog {
 private:
     // Current CNF + proof generation support
     Cnf_reasoner *cnf;
-    // Stack to save higher level clausal representation 
-    //    std::vector<Cnf_reasoner *> reasoner_stack;
-
-
     int max_input_var;
     std::vector<Pog_node *> nodes;
     // Root literal can refer to either an input variable or the last node
@@ -130,7 +129,7 @@ public:
 
     // At each position in POG, generate justification within context
     // Return ID of justifying clause
-    int justify(int rlit, bool parent_or);
+    int justify(int rlit, bool parent_or, bool use_lemma);
 
     void delete_input_clause(int cid, int unit_cid);
 

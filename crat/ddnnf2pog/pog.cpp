@@ -22,7 +22,6 @@
   SOFTWARE.
   ========================================================================*/
 
-#define DEBUG 1
 
 #include <stdlib.h>
 #include <string.h>
@@ -97,6 +96,18 @@ int Pog_node::get_defining_cid() {
     return defining_cid;
 }
 
+// Hack to allow multiple names to be used in single printf
+#define BCOUNT 5
+static char nbuf[BCOUNT][100];
+
+const char *Pog_node::name() {
+    static int lastbuf = 0;
+    int b = lastbuf;
+    lastbuf = (lastbuf+1) % BCOUNT;
+    snprintf(nbuf[b], 100, "N%d_%s", xvar, pog_type_name[type]);
+    return nbuf[b];
+}
+
 
 void Pog_node::add_children(std::vector<int> *cvec) {
     degree = cvec->size();
@@ -116,7 +127,7 @@ int & Pog_node::operator[](int idx) {
 
 void Pog_node::show(FILE *outfile) {
     bool first = true;
-    fprintf(outfile, "N%d_%s(", xvar, pog_type_name[type]);
+    fprintf(outfile, "%s(", name());
     for (int i = 0; i < degree; i++) {
 	fprintf(outfile, first ? "%d" : ",%d", children[i]);
 	first = false;
@@ -531,7 +542,7 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 		err(true, "Line #%d.  Line not zero-terminated\n", line_number);
 	    else
 		nnf_idmap[largs[0]] = pid;
-	    report(3, "Line #%d.  Created POG %s Node %d from NNF node %d\n",
+	    report(3, "Line #%d.  Created POG node %s number %d from NNF node %d\n",
 		   line_number, pog_type_name[ntype], pid, largs[0]); 
 	} else {
 	    nnf_edge_count++;
@@ -614,7 +625,7 @@ int Pog::first_literal(int rlit) {
 
 // Prove lemma if needed, and apply to this instance
 int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
-    report(3, "Attempting to prove/apply lemma for node N%d.\n", rp->get_xvar());
+    report(3, "Attempting to prove/apply lemma for node .\n", rp->name());
     Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar(), parent_or);
     // Search for compatible lemma
     Lemma_instance *lemma = rp->get_lemma();
@@ -627,34 +638,59 @@ int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
 	// The instance becomes the new lemma.  Must prove it
 	lemma = instance;
 	rp->add_lemma(lemma);
+	report(3, "Setting up lemma for node %s.  Signature = %u\n",
+	       rp->name(), lemma->signature);
+#if DEBUG
+	cnf->pwriter->comment("Setting up lemma for node %s, signature = %u",
+			      rp->name(), lemma->signature);
+#endif
 	cnf->setup_proof(lemma);
-	lemma->jid = justify(lemma->xvar, lemma->parent_or);
-	cnf->pwriter->comment("Created lemma for node N%d.  Signature = %u.  Justifying clause = %d",
-			      lemma->xvar, lemma->signature, lemma->jid);
-	report(3, "Created lemma for node N%d.  Signature = %u.  Justifying clause = %d\n",
-	       lemma->xvar, lemma->signature, lemma->jid);
+	lemma->jid = justify(lemma->xvar, lemma->parent_or, false);
+	if (lemma->jid == 0) {
+	    cnf->pwriter->diagnose("Proof of lemma for node %s, signature %u failed", rp->name(), lemma->signature);
+	    return 0;
+	}
+	cnf->pwriter->comment("Created lemma for node %s.  Signature = %u.  Justifying clause = %d",
+			      rp->name(), lemma->signature, lemma->jid);
+	report(3, "Completed lemma for node %s.  Signature = %u.  Justifying clause = %d\n",
+	       rp->name(), lemma->signature, lemma->jid);
 	cnf->restore_from_proof(lemma);
 	incr_count(COUNT_LEMMA_DEFINITION);
+#if DEBUG
+	cnf->pwriter->comment("Completed proof of lemma for node %s.  Signature = %u.  Justifying clause = %d",
+			      rp->name(), lemma->signature, lemma->jid);
+#endif
     }
     if (lemma->jid == 0)
 	return 0;
     incr_count(COUNT_LEMMA_APPLICATION);
-    report(3, "Applying lemma for node N%d.  Signature = %u\n", lemma->xvar, lemma->signature);
-    cnf->pwriter->comment("Applying lemma at node N%d.  Signature = %u", lemma->xvar, lemma->signature);
-    return cnf->apply_lemma(lemma, instance);
+    report(3, "Applying lemma for node %s.  Signature = %u\n", rp->name(), lemma->signature);
+    cnf->pwriter->comment("Applying lemma at node %s.  Signature = %u", rp->name(), lemma->signature);
+    int jid = cnf->apply_lemma(lemma, instance);
+    if (jid == 0)
+	cnf->pwriter->diagnose("Application of lemma at node %s, signature %u, failed",
+			       rp->name(), lemma->signature);
+    else {
+#if DEBUG
+	cnf->pwriter->comment("Application of lemma for node %s, signature = %u, succeeded. Justifying clause = %d",
+			      rp->name(), lemma->signature, lemma->jid);
+#endif
+    }
+    return jid;
 }
 
 // Justify each position in POG within current context
 // Return ID of justifying clause
-int Pog::justify(int rlit, bool parent_or) {
+int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
     int jcid = 0;
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
-	if (cnf->use_lemmas && rnp->want_lemma()) {
+	if (use_lemma && cnf->use_lemmas && rnp->want_lemma()) {
 	    int jid = apply_lemma(rnp, parent_or);
-	    if (jid > 0)
-		return jid;
+	    if (jid == 0)
+		cnf->pwriter->diagnose("Failed lemma.  Giving up on validation of node %s", rnp->name());
+	    return jid;
 	}
 	int xvar = rnp->get_xvar();
 	Clause *jclause = new Clause();
@@ -675,11 +711,14 @@ int Pog::justify(int rlit, bool parent_or) {
 		for (int i = 0; i < 2; i++) {
 		    clit[i] = (*rnp)[i];
 		    lhints[i][hcount[i]++] = rnp->get_defining_cid()+i+1;
-		    jid = justify(clit[i], true);
-		    if (jid > 0) {
-			jcount++;
-			lhints[i][hcount[i]++] = jid;
+		    jid = justify(clit[i], true, true);
+		    if (jid == 0) {
+			cnf->pwriter->diagnose("Justification of node %s failed.  Couldn't validate %s child %d.  Splitting literal = %d",
+					       rnp->name(), i == 0 ? "first" : "second", clit[i], first_literal(clit[i]));
+			return 0;
 		    }
+		    jcount++;
+		    lhints[i][hcount[i]++] = jid;
 		}
 		if (jcount > 1) {
 		    // Must prove in two steps
@@ -689,7 +728,7 @@ int Pog::justify(int rlit, bool parent_or) {
 		    jclause0->add(xvar);
 		    for (int alit : *cnf->get_assigned_literals())
 			jclause0->add(-alit);
-		    cnf->pwriter->comment("Justify node N%d_%s", xvar, pog_type_name[rnp->get_type()]);
+		    cnf->pwriter->comment("Justify node %s", rnp->name());
 		    int cid0 = cnf->start_assertion(jclause0);
 		    for (int h = 0; h < hcount[0]; h++)
 			cnf->add_hint(lhints[0][h]);
@@ -716,14 +755,16 @@ int Pog::justify(int rlit, bool parent_or) {
 		    int clit0 = (*rnp)[cnext++];
 		    cnf->push_assigned_literal(clit0);
 		    jclause->add(-clit0);
-		    cnf->pwriter->comment("Justify node N%d_%s, assuming literal %d",
-					  xvar, pog_type_name[rnp->get_type()], clit0);
-		    // Assertion my enable BCP, but it shouldn't lead to a conflict
-		    if (cnf->bcp() > 0)
-			err(false, "BCP encountered conflict when attempting to justify node N%d_s\n",
-			    xvar, pog_type_name[rnp->get_type()]);
+		    cnf->pwriter->comment("Justify node %s, assuming literal %d",
+					  rnp->name(), clit0);
+		    // Assertion may enable BCP, but it shouldn't lead to a conflict
+		    if (cnf->bcp() > 0) {
+			cnf->pwriter->diagnose("BCP encountered conflict when attempting to justify node %s with assigned literal %d\n",
+					       rnp->name(), clit0);
+			return 0;
+		    }
 		} else {
-		    cnf->pwriter->comment("Justify node N%d_%s", xvar, pog_type_name[rnp->get_type()]);
+		    cnf->pwriter->comment("Justify node %s", rnp->name());
 		}
 		// Bundle up the literals and justify them with single call
 		std::vector<int> lits;
@@ -736,22 +777,23 @@ int Pog::justify(int rlit, bool parent_or) {
 		}
 		if (lits.size() > 0) {
 #if DEBUG
-		    cnf->pwriter->comment("Justification of node N%d_%s includes justifying %d literals",
-					  xvar, pog_type_name[rnp->get_type()], lits.size());
+		    cnf->pwriter->comment("Justification of node %s includes justifying %d literals",
+					  rnp->name(), lits.size());
+		    cnf->pwriter->comment_container("  Literals", lits);
 #endif
-		    report(4, "Justify node N%d_%s, starting with %d literals\n", xvar, pog_type_name[rnp->get_type()], lits.size());
+		    report(4, "Justify node %s, starting with %d literals\n", rnp->name(), lits.size());
 		    if (!cnf->validate_literals(lits, jids)) {
-			printf("Was attempting to validate node N%d_AND\n", xvar);
+			cnf->pwriter->diagnose("Was attempting to validate node %s", rnp->name());
 			printf("  Arguments:");
 			for (int i = 0; i < rnp->get_degree(); i++)
 			    printf(" %d", (*rnp)[i]);
 			printf("\n");
-			err(true, "Can't recover\n");
+			cnf->pwriter->diagnose("Justification of node %s failed", rnp->name());
+			return 0;
 		    }
 		    for (int jid : jids)
 			hints.push_back(jid);
 		}
-
 		// Now deal with the node arguments
 		bool partition = false;
 		std::unordered_map<int,int> var2rvar;
@@ -766,14 +808,14 @@ int Pog::justify(int rlit, bool parent_or) {
 			partition = true;
 			save_clauses = new std::set<int>;
 			cnf->extract_active_clauses(save_clauses);
-			report(4, "Justifying node N%d.  Partitioned clauses into %d sets\n", xvar, rvar2cset.size());
+			report(4, "Justifying node %s.  Partitioned clauses into %d sets\n", rnp->name(), rvar2cset.size());
 		    }
 		    if (partition) {
 			int llit = first_literal(clit);
 			auto fid = var2rvar.find(IABS(llit));
 			if (fid == var2rvar.end()) {
 			    // This shouldn't happen
-			    err(true, "Partitioning error.  Couldn't find representative for variable %d, representing first child of node N%d\n",
+			    cnf->pwriter->diagnose("Partitioning error.  Couldn't find representative for variable %d, representing first child of N%d\n",
 				IABS(llit), IABS(clit));
 			}
 			int rvar = fid->second;
@@ -781,7 +823,13 @@ int Pog::justify(int rlit, bool parent_or) {
 			// Restrict clauses to those relevant to this partition
 			cnf->set_active_clauses(pset);
 		    } 
-		    int jid = justify(clit, false);
+		    int jid = justify(clit, false, true);
+		    if (jid == 0) {
+			cnf->pwriter->diagnose("Justification of node %s failed.  Argument = %d", rnp->name(), clit);
+			if (partition)
+			    cnf->pwriter->diagnose(" Clauses were split into %d partitions", rvar2cset.size());
+			return 0;
+		    }
 		    hints.push_back(jid);
 		    if (pset != NULL)
 			delete pset;
@@ -800,8 +848,12 @@ int Pog::justify(int rlit, bool parent_or) {
 	    cnf->add_hint(hint);
 	cnf->finish_command(true);
 	cnf->pop_context();
-    } else if (!parent_or)
+    } else if (!parent_or) {
 	jcid = cnf->validate_literal(rlit, Cnf_reasoner::MODE_FULL);
+	if (jcid == 0) {
+	    cnf->pwriter->diagnose("Validation of literal %d failed", rlit);
+	}
+    }
     if (jcid > 0)
 	report(4, "Literal %d in POG justified by clause %d\n", rlit, jcid);
     return jcid;
@@ -861,7 +913,7 @@ void Pog::delete_input_clause(int cid, int unit_cid) {
 		dvp->push_back(np->get_defining_cid());
 	    break;
 	default:
-	    err(true, "Uknown POG type %d for node N%d\n", (int) np->get_type(), np->get_xvar());
+	    err(true, "Unknown POG type %d for node N%d\n", (int) np->get_type(), np->get_xvar());
 	}
 	implies_clause[nidx] = implies;	    
     }

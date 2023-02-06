@@ -25,6 +25,11 @@
 
 #pragma once
 
+// Enable/disable more info in file comments
+#ifndef DEBUG
+#define DEBUG 0
+#endif
+
 // Used to convert literal to variable
 #define IABS(x) ((x)<0?-(x):(x))
 
