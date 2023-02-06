@@ -65,6 +65,18 @@ theorem set_get_of_ne [DecidableEq ν] {x y : ν} (τ : PropAssignment ν) (v : 
   intro h
   simp [set, h.symm]
 
+@[simp]
+theorem set_set [DecidableEq ν] (τ : PropAssignment ν) (x : ν) (v v' : Bool) :
+    (τ.set x v).set x v' = τ.set x v' := by
+  ext x'
+  dsimp [set]; split <;> simp_all
+
+@[simp]
+theorem set_same [DecidableEq ν] (τ : PropAssignment ν) (x : ν) :
+    τ.set x (τ x) = τ := by
+  ext x'
+  dsimp [set]; split <;> simp_all
+
 end PropAssignment
 
 namespace PropForm
