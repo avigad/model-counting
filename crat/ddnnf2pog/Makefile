@@ -5,7 +5,7 @@ OPT=-O2
 CFLAGS=-g $(OPT) -Wno-nullability-completeness
 CPPFLAGS=-g $(OPT) -Wno-nullability-completeness -std=c++11
 
-all: brun rrun d2p
+all: brun rrun d2p dd2p
 
 ilist.o: ilist.c ilist.h
 	$(CC) $(CFLAGS) -c ilist.c

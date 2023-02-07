@@ -248,9 +248,10 @@ class Lemma_instance {
 public:
     // Is this for the child of an OR node?
     bool parent_or;
-    // Mapping from Ids of synthetic clauses serving as arguments
-    // to the clause(s) (input or synthetic) from which the synthetic clause arises
-    std::multimap<int,int> inverse_cid;
+    // Mapping from lemma argument clause IDs to clauses from which these clauses arise
+    std::map<int,int> inverse_cid;
+    // Set of additional original clause that duplicate other argument clauses
+    std::unordered_set<int> duplicate_cid;
     // Clause ID for lemma proof
     int jid;
     // What is the extension variable for the associated root node
@@ -456,6 +457,10 @@ private:
     // Add active clause to lemma.  It will simplify the clause
     // and, if changed, will find/create a synthetic clause to serve as the argument
     void add_lemma_argument(Lemma_instance *lemma, int cid);
+
+    // Debugging support
+    // Sanity checks on active clauses
+    bool check_active();
 
 };
 

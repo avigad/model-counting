@@ -679,6 +679,9 @@ int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
     return jid;
 }
 
+// Special value used during OR justification
+#define TRIVIAL_ARGUMENT -1
+
 // Justify each position in POG within current context
 // Return ID of justifying clause
 int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
@@ -716,9 +719,10 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 			cnf->pwriter->diagnose("Justification of node %s failed.  Couldn't validate %s child %d.  Splitting literal = %d",
 					       rnp->name(), i == 0 ? "first" : "second", clit[i], first_literal(clit[i]));
 			return 0;
+		    } else if (jid != TRIVIAL_ARGUMENT) {
+			jcount++;
+			lhints[i][hcount[i]++] = jid;
 		    }
-		    jcount++;
-		    lhints[i][hcount[i]++] = jid;
 		}
 		if (jcount > 1) {
 		    // Must prove in two steps
@@ -848,7 +852,10 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 	    cnf->add_hint(hint);
 	cnf->finish_command(true);
 	cnf->pop_context();
-    } else if (!parent_or) {
+    } else if (parent_or) {
+	// Special value to let OR verification proceed
+	jcid = TRIVIAL_ARGUMENT;
+    } else {
 	jcid = cnf->validate_literal(rlit, Cnf_reasoner::MODE_FULL);
 	if (jcid == 0) {
 	    cnf->pwriter->diagnose("Validation of literal %d failed", rlit);

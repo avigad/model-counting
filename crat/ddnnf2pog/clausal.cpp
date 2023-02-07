@@ -1600,11 +1600,11 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
     auto fid = justifying_ids.find(lit);
     if (fid != justifying_ids.end()) {
 #if DEBUG
-	pwriter->comment("Literal %d already derived literal", lit);
+	pwriter->comment("Literal %d already derived literal, justified by %d", lit, fid->second);
 #endif
 	return fid->second;
     }
-    if (unit_literals.find(-lit) != unit_literals.end()) {
+    if (unit_literals.find(lit) != unit_literals.end()) {
 #if DEBUG
 	pwriter->comment("Literal %d already asserted literal", lit);
 #endif
@@ -1804,12 +1804,9 @@ void Lemma_instance::sign(int xv, bool p_or) {
     parent_or = p_or;
     unsigned sig = 1;
     sig = next_hash_int(sig, parent_or ? 1 : -1);
-    int last_ncid = 0;
     for (auto fid : inverse_cid) {
 	int ncid = fid.first;
-	if (ncid != last_ncid)
-	    sig = next_hash_int(sig, ncid);
-	last_ncid = ncid;
+	sig = next_hash_int(sig, ncid);
     }
     signature = sig;
     jid = 0;
@@ -1824,14 +1821,26 @@ void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
 	// Tautology 
 	return;
     int ncid = ilist_length(slits) == np->length() ? cid : find_or_make_aux_clause(slits);
-    if (lemma->inverse_cid.find(ncid) == lemma->inverse_cid.end()) {
-	lemma->inverse_cid.insert({ncid, cid});
+    auto fid = lemma->inverse_cid.find(ncid);
+    if (fid == lemma->inverse_cid.end()) {
+	lemma->inverse_cid[ncid] = cid;
 #if DEBUG
-	pwriter->comment("  Clause %d serves as proxy for clause %d", ncid, cid);
+	if (ncid == cid)
+	    pwriter->comment("  Clause %d used as direct argument", cid);
+	else
+	    pwriter->comment("  Clause %d serves as proxy for clause %d", ncid, cid);
 #endif
-    } else {
+    } else if (ncid == cid && fid->second != cid) {
+	int ocid = fid->second;
+	lemma->duplicate_cid.insert(ocid);
 #if DEBUG
-	pwriter->comment("  Clause %d already serves as proxy for clause %d", ncid, cid);
+	pwriter->comment("  Use clause %d directly, rather than having it be proxy for clause %d", cid, ocid);
+#endif
+	lemma->inverse_cid[ncid] = cid;
+    } else {
+	lemma->duplicate_cid.insert(cid);
+#if DEBUG
+	pwriter->comment("  Don't need clause %d as proxy for clause %d", ncid, cid);
 #endif
     }
     ilist_free(slits);
@@ -1846,7 +1855,9 @@ Lemma_instance *Cnf_reasoner::extract_lemma(int xvar, bool parent_or) {
 	add_lemma_argument(lemma, cid);
     }
     lemma->sign(xvar, parent_or);
-    pwriter->comment("  Extracted lemma for node N%d.  Signature %u", xvar, lemma->signature);
+    pwriter->comment("Extracted lemma for node N%d.  Signature %u", xvar, lemma->signature);
+    if (lemma->duplicate_cid.size() > 0)
+	pwriter->comment_container("  Duplicate clause IDs", lemma->duplicate_cid);
     return lemma;
 }
 
@@ -1862,61 +1873,70 @@ void Cnf_reasoner::setup_proof(Lemma_instance *lemma) {
 
     pwriter->comment("Proof of lemma for N%d, signature %u", lemma->xvar, lemma->signature);
 
-    int last_ncid = 0;
     for (auto fid : lemma->inverse_cid) {
 	int ncid = fid.first;
 	int ocid = fid.second;
 	if (ncid != ocid) {
 	    deactivate_clause(ocid);
-	    if (ncid != last_ncid) {
-		activate_clause(ncid);
-	    }
-	} 
+	    activate_clause(ncid);
+	}
 
 	Clause *nnp = get_clause(ncid);
-#if DEBUG
-	acount++;
 	int alit = nnp->get_activating_literal();
-	if (alit > 0) {
-	    if (verblevel >= 4)
-		report(4, "  Argument #%d: clause #%d.  Activated by literal %d\n", acount, ncid, alit);
-	    pwriter->comment("  Argument #%d: clause #%d.  Activated by literal %d", acount, ncid, alit);
-	} else {
-	    if (verblevel >= 4)
-		report(4, "  Argument #%d: Input clause #%d\n", acount, ncid);
-	    pwriter->comment("  Argument #%d: Input clause #%d", acount, ncid);
-	}
+
+	if (alit == 0) {
+#if DEBUG
+	    acount++;
+	    report(3, "  Argument #%d: Clause #%d\n", acount, ncid);
+	    pwriter->comment("  Argument #%d: Clause #%d", acount, ncid);
 #endif
-	if (ncid != last_ncid) {
-	    last_ncid = ncid;
-	    int alit = nnp->get_activating_literal();
-	    if (alit != 0) 
-		push_assigned_literal(alit);
+	} else {
+	    push_assigned_literal(alit);
+#if DEBUG
+	    acount++;
+	    report(3, "  Argument #%d: clause #%d.  Activated by literal %d\n", acount, ncid, alit);
+	    pwriter->comment("  Argument #%d: clause #%d.  Activated by literal %d", acount, ncid, alit);
+#endif
 	}
+    }
+    for (int ocid : lemma->duplicate_cid) {
+	deactivate_clause(ocid);
     }
     lemma->jid = 0;
 #if DEBUG
     pwriter->comment("Set up to prove lemma for N%d, signature %u", lemma->xvar, lemma->signature);
     pwriter->comment_container("Active clauses:", *curr_active_clauses);
     pwriter->comment_container("Unit literals:", unit_literals);
+    if (!check_active()) {
+	err(false, "Inconsistent reasoner state\n");
+    }
 #endif
 }
 
     // Restore context from lemma proof
 void Cnf_reasoner::restore_from_proof(Lemma_instance *lemma) {
-    int last_ncid = 0;
     for (auto fid : lemma->inverse_cid) {
 	int ncid = fid.first;
 	int ocid = fid.second;
 	if (ncid != ocid) {
-	    if (ncid != last_ncid) {
-		deactivate_clause(ncid);
-		last_ncid = ncid;
-	    }
+	    deactivate_clause(ncid);
 	    activate_clause(ocid);
 	} 
     }
     pop_context();
+    for (int ocid : lemma->duplicate_cid) {
+	activate_clause(ocid);
+	incr_count(COUNT_LEMMA_ARGUMENT_MERGE);
+    }
+#if DEBUG
+    pwriter->comment("Restoring context after proving lemma for N%d, signature %u", lemma->xvar, lemma->signature);
+    pwriter->comment_container("Active clauses:", *curr_active_clauses);
+    pwriter->comment_container("Unit literals:", unit_literals);
+    if (!check_active()) {
+	err(false, "Inconsistent reasoner state\n");
+    }
+#endif
+
 }
 
 int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
@@ -1927,27 +1947,19 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
 	err(false, "Attempting to apply lemma for node N%d.  Lemma and instance differ on type of parenthood\n", lemma->xvar);
 	ok = false;
     }
-    int last_ncid = 0;
     for (auto lfid : lemma->inverse_cid) {
 	if (!ok)
 	    break;
 	int ncid = lfid.first;
-	if (ncid == last_ncid)
-	    continue;
-	last_ncid = ncid;
 	if (instance->inverse_cid.find(ncid) == instance->inverse_cid.end()) {
 	    err(false, "Attempting to apply lemma for node N%d.  Lemma argument clause #%d not found in instance\n", lemma->xvar, ncid);
 	    ok = false;
 	}
     }
-    last_ncid = 0;
     for (auto ifid : instance->inverse_cid) {
 	if (!ok)
 	    break;
 	int ncid = ifid.first;
-	if (ncid == last_ncid)
-	    continue;
-	last_ncid = ncid;
 	if (lemma->inverse_cid.find(ncid) == lemma->inverse_cid.end()) {
 	    err(false, "Attempting to apply lemma for node N%d.  Instance argument clause #%d not found in lemma\n", lemma->xvar, ncid);
 	    ok = false;
@@ -1963,14 +1975,22 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
     pwriter->comment_container("Unit literals:", unit_literals);
 #endif
     int acount = 0;
-    last_ncid = 0;
     for (auto ifid : instance->inverse_cid) {
 	int ocid = ifid.second;
 	int ncid = ifid.first;
-	if (ncid == last_ncid)
-	    continue;
 	if (ocid == ncid) {
 	    pwriter->comment("  Arg %d.  Clause #%d used directly", ++acount, ocid);
+#if DEBUG
+	    // Double check
+	    Clause *anp = get_clause(ncid);
+	    int alit = anp->get_activating_literal();
+	    if (alit != 0 && unit_literals.find(alit) == unit_literals.end()) {
+		pwriter->diagnose("Couldn't apply lemma N%d, signature %u", lemma->xvar, lemma->signature);
+		pwriter->diagnose("Clause #%d used directly in lemma, but activating literal %d not unit",
+				  ncid, alit);
+		return 0;
+	    }
+#endif	  
 	    continue;
 	}
 	Clause *anp = get_clause(ncid);
@@ -2017,4 +2037,23 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
     finish_command(true);
     delete lnp;
     return jid;
+}
+
+// Debugging support
+bool Cnf_reasoner::check_active() {
+    bool ok = true;
+#if DEBUG
+    for (int cid : *curr_active_clauses) {
+	if (cid > clause_count()) {
+	    Clause *nnp = get_clause(cid);
+	    int alit = nnp->get_activating_literal();
+	    if (alit != 0 && unit_literals.find(alit) == unit_literals.end()) {
+		pwriter->diagnose("Lost track of activating literal %d for active clause #%d", alit, cid);
+		ok = false;
+		break;
+	    }
+	}
+    }
+#endif
+    return ok;
 }
