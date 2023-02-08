@@ -33,13 +33,23 @@ theorem mapsTo_of_find?_eq {m : HashMap α β} {a : α} {b : β} : m.find? a = s
 theorem find?_ne_none_of_mapsTo {m : HashMap α β} {a : α} {b : β} : m.mapsTo a b → m.find? a ≠ none :=
   fun h₁ h₂ => by cases h₁ ▸ h₂
 
-def contains_iff_mapsTo {m : HashMap α β} {a : α} : m.contains a ↔ ∃ b, m.mapsTo a b :=
+def contains_iff_mapsTo (m : HashMap α β) ⦃a : α⦄ : m.contains a ↔ ∃ b, m.mapsTo a b :=
   sorry
 
 theorem find?_ne_none_of_contains {m : HashMap α β} {a : α} : m.contains a → m.find? a ≠ none :=
   fun h =>
     have ⟨_, h⟩ := (m.contains_iff_mapsTo).mp h
     m.find?_ne_none_of_mapsTo h
+
+@[simp]
+theorem mapsTo_empty (a : α) (b : β) : (@empty α β _ _).mapsTo a b ↔ False := by
+  simp [mapsTo]
+
+@[simp]
+theorem contains_empty (a : α) : (@empty α β _ _).contains a = false := by
+  apply Bool.eq_false_of_ne_true
+  intro h
+  simp [contains_iff_mapsTo] at h
 
 /-! Dependently-typed accessors -/
 

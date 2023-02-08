@@ -143,6 +143,29 @@ theorem exists_of_toListModel_update (bkts : Buckets α β) (i d h) :
   . simp [toListModel_eq, hTgt]
   . simp [toListModel_eq, hUpd]
 
+theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
+    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
+      ∧ (bkts.update i d h).toListModel = l₁ ++ d.toList ++ l₂
+      ∧ ∀ ab ∈ l₁, ((hash ab.fst).toUSize % bkts.val.size) < i := by
+  have ⟨bs₁, bs₂, hTgt, hLen, hUpd⟩ := bkts.exists_of_update i d h
+  refine ⟨bs₁.bind (·.toList), bs₂.bind (·.toList), ?_, ?_, ?_⟩
+  . simp [toListModel_eq, hTgt]
+  . simp [toListModel_eq, hUpd]
+  . intro ab hMem
+    have ⟨bkt, hBkt, hAb⟩ := mem_bind.mp hMem
+    clear hMem
+    have ⟨⟨j, hJ⟩, hEq⟩ := get_of_mem hBkt
+    have hJ' : j < bkts.val.size := by
+      apply Nat.lt_trans hJ
+      simp [Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
+    have : ab ∈ (bkts.val[j]).toList := by
+      suffices bkt = bkts.val[j] by rwa [this] at hAb
+      have := @List.get_append _ _ (bkts.val[i] :: bs₂) j hJ
+      dsimp at this
+      rw [← hEq, ← this, ← get_of_eq hTgt ⟨j, _⟩]
+      rfl
+    rwa [hLen, ← H.hash_self _ _ _ this] at hJ
+
 theorem toListModel_reinsertAux (tgt : Buckets α β) (a : α) (b : β) :
     (reinsertAux tgt a b).toListModel ~ (a, b) :: tgt.toListModel := by
   unfold reinsertAux
@@ -192,29 +215,6 @@ where
       have : src.data.length ≤ i := by simp [Nat.le_of_not_lt, hI]
       simp [Perm.refl, drop_eq_nil_of_le this]
     termination_by _ i src _ => src.size - i
-
-theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
-    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
-      ∧ (bkts.update i d h).toListModel = l₁ ++ d.toList ++ l₂
-      ∧ ∀ ab ∈ l₁, ((hash ab.fst).toUSize % bkts.val.size) < i := by
-  have ⟨bs₁, bs₂, hTgt, hLen, hUpd⟩ := bkts.exists_of_update i d h
-  refine ⟨bs₁.bind (·.toList), bs₂.bind (·.toList), ?_, ?_, ?_⟩
-  . simp [toListModel_eq, hTgt]
-  . simp [toListModel_eq, hUpd]
-  . intro ab hMem
-    have ⟨bkt, hBkt, hAb⟩ := mem_bind.mp hMem
-    clear hMem
-    have ⟨⟨j, hJ⟩, hEq⟩ := get_of_mem hBkt
-    have hJ' : j < bkts.val.size := by
-      apply Nat.lt_trans hJ
-      simp [Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
-    have : ab ∈ (bkts.val[j]).toList := by
-      suffices bkt = bkts.val[j] by rwa [this] at hAb
-      have := @List.get_append _ _ (bkts.val[i] :: bs₂) j hJ
-      dsimp at this
-      rw [← hEq, ← this, ← get_of_eq hTgt ⟨j, _⟩]
-      rfl
-    rwa [hLen, ← H.hash_self _ _ _ this] at hJ
 
 end Buckets
 
@@ -381,6 +381,15 @@ theorem findEntry?_erase {a a'} {m : Imp α β} (H : m.WF) :
     simp only [Bool.bnot_eq_to_not_eq, Bool.not_eq_true, Bool.bne_eq_false]
     exact PartialEquivBEq.trans h (PartialEquivBEq.symm hEq)
 
+theorem contains_iff (a) (m : Imp α β) (H : m.WF) :
+    m.contains a ↔ ∃ a' b, a == a' ∧ (a, b) ∈ m.buckets.toListModel := by
+  haveI := mkIdx (hash a) m.buckets.property
+  suffices m.contains a ↔ ∃ a' b, a == a' ∧ (a, b) ∈ (m.buckets.val[this.1.toNat]'this.2).toList by
+    sorry
+  apply Iff.intro
+  . sorry
+  . sorry
+
 end Imp
 
 theorem toList_eq_reverse_toListModel (m : HashMap α β) :
@@ -398,6 +407,11 @@ theorem toList_eq_reverse_toListModel (m : HashMap α β) :
     intro l₂
     simp only [List.foldl, ← List.reverse_append, ih]
 
+@[simp]
+theorem findEntry?_empty {a : α} :
+    (HashMap.empty : HashMap α β).findEntry? a = none :=
+  sorry
+
 theorem findEntry?_insert {a a' b} (m : HashMap α β) :
     a == a' → (m.insert a b).findEntry? a' = some (a, b) :=
   m.val.findEntry?_insert m.property
@@ -412,6 +426,11 @@ theorem findEntry?_erase {a a'} (m : HashMap α β) :
 
 theorem find?_eq (m : HashMap α β) (a : α) : m.find? a = (m.findEntry? a).map (·.2) :=
   AssocList.find?_eq_findEntry? _ _
+
+@[simp]
+theorem find?_empty {a : α} :
+    (HashMap.empty : HashMap α β).find? a = none :=
+  by simp [find?_eq, findEntry?_empty]
 
 theorem find?_insert {a a' b} (m : HashMap α β) : a == a' → (m.insert a b).find? a' = some b :=
   fun h => by simp [find?_eq, findEntry?_insert m h]
