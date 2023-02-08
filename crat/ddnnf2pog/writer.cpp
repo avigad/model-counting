@@ -32,11 +32,6 @@
 #include "ilist.h"
 #include "writer.hh"
 
-const char *archive_string(const char *tstring) {
-    char *rstring = (char *) malloc(strlen(tstring)+1);
-    strcpy(rstring, tstring);
-    return (const char *) rstring;
-}
 
 /// Generic Writer
 

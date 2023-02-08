@@ -12,12 +12,22 @@
 #include "writer.hh"
 #include "counters.h"
 
+static bool multi_literal = true;
+static bool use_lemmas = true;
+static bool delete_files  =  true;
+// Temporarily disable features that seem to be causing problems
+static int drat_threshold = INT_MAX;  // Should be ~500
+static int bcp_limit = INT_MAX;       // Should be 0 or 1
+static int clause_limit = INT_MAX;
+
 void usage(const char *name) {
-    printf("Usage: %s [-h] [-v VLEVEL] [-C CLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
+    //    printf("Usage: %s [-h] [-v VLEVEL] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
+    printf("Usage: %s [-h] [-v VLEVEL] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
     printf("  -h        Print this information\n");
     printf("  -v VLEVEL Set verbosity level\n");
-    printf("  -C CLIM   Abort if file size exceeds CLIM clauses");
-    printf("  -t        Use drat-trim on SAT solver results\n");
+    //    printf("  -C CLIM   Abort if file size exceeds CLIM clauses\n");
+    printf("  -b BLIM   Limit depth of Boolean constraint propagation for contradiction proofs (default = %d)\n", bcp_limit);
+    printf("  -t THRESH Use drat-trim on proofs when SAT problems are above THRESH clauses (default = %d)\n", drat_threshold);
     printf("  -s        Prove each literal separately, rather than combining into single proof\n");
     printf("  -e        Expand each node, rather than using lemmas\n");
     printf("  -k        Keep intermediate solver files\n");
@@ -27,13 +37,8 @@ void usage(const char *name) {
     exit(0);
 }
 
-bool use_drat = false;
-bool multi_literal = true;
-bool use_lemmas = true;
-bool delete_files  =  true;
-int clause_limit = INT_MAX;
-
 const char *prefix = "GEN:";
+
 static void stat_report(double start) {
     if (verblevel < 1)
 	return;
@@ -51,7 +56,7 @@ static void stat_report(double start) {
     printf("%s    aux product: %d\n", prefix, get_count(COUNT_AUX_AND));
     printf("%s Node visits\n", prefix);
     int vprod = get_count(COUNT_VISIT_AND);
-    int vps = get_count(COUNT_SAT_CALL);
+    int vps = get_count(COUNT_VISIT_AND_SAT);
     int vpb = vprod-vps;
     int vsum = get_count(COUNT_VISIT_OR);
     printf("%s    product/BCP: %d\n", prefix, vpb);
@@ -146,11 +151,12 @@ static bool run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	fprintf(stderr, "Aborted\n");
 	return false;
     }
-    cnf.use_drat = use_drat;
     cnf.multi_literal = multi_literal;
     cnf.use_lemmas = use_lemmas;
     cnf.delete_files = delete_files;
+    cnf.drat_threshold = drat_threshold;
     cnf.clause_limit = clause_limit;
+    cnf.bcp_limit = bcp_limit;
     Pog pog(&cnf);
     if (verblevel >= 2)
 	pwriter->enable_comments();
@@ -181,7 +187,7 @@ int main(int argc, char *const argv[]) {
     verblevel = 1;
     double start = tod();
     int c;
-    while ((c = getopt(argc, argv, "hv:C:tsek")) != -1) {
+    while ((c = getopt(argc, argv, "hv:C:b:t:sek")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -192,8 +198,11 @@ int main(int argc, char *const argv[]) {
 	case 'C':
 	    clause_limit = atoi(optarg);
 	    break;
+	case 'b':
+	    bcp_limit = atoi(optarg);
+	    break;
 	case 't':
-	    use_drat = true;
+	    drat_threshold = atoi(optarg);
 	    break;
 	case 's':
 	    multi_literal = false;
@@ -240,6 +249,14 @@ int main(int argc, char *const argv[]) {
 	argi++;
     } else
 	pwriter = new Pog_writer();
+
+    printf("%s Program options\n", prefix);
+    printf("%s   Multi-literal:   %s\n", prefix, multi_literal ? "yes" : "no");
+    printf("%s   Use lemmas:      %s\n", prefix, use_lemmas ? "yes" : "no");
+    printf("%s   Delete files:    %s\n", prefix, delete_files ? "yes" : "no");
+    //    printf("%s   Clause limit:   %d\n", prefix, clause_limit);
+    printf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
+    printf("%s   BCP limit:       %d\n", prefix, bcp_limit);
 
     bool success = run(cnf_file, nnf_file, pwriter);
     stat_report(start);

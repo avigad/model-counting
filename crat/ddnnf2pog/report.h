@@ -50,7 +50,7 @@
 extern "C" {
 #endif
 
-// Time of day for wall clock timing
+// Time of day for wall clock timing. Measured in seconds
 extern double tod();
 
 extern int verblevel;
@@ -63,6 +63,16 @@ extern FILE *verbfile;
 void err(bool fatal, const char *fmt, ...);
 /* Report useful information */
 void report(int verblevel, const char *fmt, ...);
+
+// Copy string to allocated space
+const char *archive_string(const char *tstring);
+
+//  Logging information
+// Establish a log file
+void set_logname(const char *fname);
+
+// Record entry in logfile
+void log_info(const char *fmt, ...);
 
 
 #ifdef CPLUSPLUS

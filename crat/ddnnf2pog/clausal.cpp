@@ -31,6 +31,10 @@
 #include "report.h"
 #include "counters.h"
 
+#ifndef LOG
+#define LOG 1
+#endif
+
 static int skip_line(FILE *infile) {
     int c;
     while ((c = getc(infile)) != EOF) {
@@ -550,8 +554,8 @@ bool Cnf_reduced::run_solver() {
     fclose(cout);
     report(3, "Wrote file with %d clauses to %s\n", clause_count(), fname);
     
-    snprintf(cmd, 150, "cadical --unsat -q --no-binary %s -", fname);
     double start = tod();
+    snprintf(cmd, 150, "cadical --unsat -q --no-binary %s -", fname);
     FILE *sfile = popen(cmd, "r");
     if (sfile == NULL) {
 	err(true, "Couldn't execute command '%s'\n", cmd);
@@ -590,7 +594,11 @@ bool Cnf_reduced::run_solver() {
 	if (pnp->length() == 0)
 	    break;
     }
-    report(3, "File %s.  %d input clauses --> %d proof clauses\n", fname, clause_count(), proof_clauses.size());
+    double micro = (tod() - start) * 1e6;
+#if LOG
+    log_info("r,%d,%d,%.0f\n", clause_count(), pclauses.clause_count(), micro);
+#endif
+    report(3, "File %s.  %d input clauses --> %d proof clauses (%.0f us)\n", fname, clause_count(), proof_clauses.size(), micro);
     incr_histo(HISTO_PROBLEM, clause_count());
     incr_histo(HISTO_PROOF, proof_clauses.size());
 
@@ -625,8 +633,8 @@ bool Cnf_reduced::run_hinting_solver() {
     const char *lratname = archive_string(tlratname);
     file_names.push_back(lratname);
 
-    snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
     double start = tod();
+    snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
     int rc = system(cmd);
     incr_timer(TIME_SAT, tod()-start);
     if (rc != 0)
@@ -645,13 +653,17 @@ bool Cnf_reduced::run_hinting_solver() {
 	err(false, "Execution of command '%s' yielded no proof clauses\n", cmd);
 	return false;
     }
-
+    report(1, "Drat-trim.  %s %d problem clauses.  %d proof clauses\n", cnfname, clause_count(), proof_clauses.size()); 
     Clause *lnp = proof_clauses.back();
     if (lnp->length() != 0) {
 	err(false, "Execution of command '%s' did not generate empty clause\n", cmd);	
 	return false;
     }
-    report(3, "File %s.  %d input clauses --> %d proof clauses\n", cnfname, clause_count(), proof_clauses.size());
+    double micro = (tod() - start) * 1e6;
+#if LOG
+    log_info("t,%d,%d,%.0f\n", clause_count(), proof_clauses.size(), micro);
+#endif
+    report(3, "File %s.  %d input clauses --> %d proof clauses (%.0f us)\n", cnfname, clause_count(), proof_clauses.size(), micro);
     incr_histo(HISTO_PROBLEM, clause_count());
     incr_histo(HISTO_PROOF, proof_clauses.size());
     return true;
@@ -753,11 +765,12 @@ Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) {
     pwriter = NULL;
     asserting = false;
     unsatisfiable = false;
-    use_drat = true;
     multi_literal = true;
     use_lemmas = true;
     delete_files = true;
+    drat_threshold = 50;
     clause_limit = INT_MAX;
+    bcp_limit = 2;
     xvar_count = max_variable();
 }
 
@@ -1068,7 +1081,7 @@ bool Cnf_reasoner::enable_pog(Pog_writer *pw) {
 	else
 	    activate_clause(cid);
     }
-    int ncid = bcp();
+    int ncid = bcp(false);
     if (ncid > 0) {
 	pwriter->comment("Read failed.  Formula unsatisfiable (justifying ID = %d)", ncid);
 	return false;
@@ -1080,14 +1093,18 @@ bool Cnf_reasoner::enable_pog(Pog_writer *pw) {
 // Return ID of any generated conflict clause (or 0)
 // Each pass uses clauses from current active clauses and adds to next active clauses
 // And then swaps the two sets
-int Cnf_reasoner::bcp() {
+int Cnf_reasoner::bcp(bool bounded) {
     bool converged = false;
     bool conflict = false;
     int ncid = 0;
+    int pcount = 0;
     while (!converged && !conflict) {
+	if (bounded && pcount >= bcp_limit && curr_active_clauses->size() >= drat_threshold) 
+	    break;
+	pcount++;
 	converged = true;
 	if (verblevel >= 3) {
-	    report(3, "BCP Pass.  Active clauses:");
+	    report(3, "BCP Pass %d.  Active clauses:", pcount);
 	    for (int cid : *curr_active_clauses) {
 		report(3, " %d", cid);
 	    }
@@ -1322,10 +1339,23 @@ std::vector<int> *Cnf_reasoner::get_assigned_literals() {
 }
 
 void Cnf_reasoner::push_assigned_literal(int lit) {
-    if (unit_literals.find(-lit) != unit_literals.end())
-	err(false, "Attempt to assert literal %d.  But, already have %d as unit\n", lit, -lit);
-    if (unit_literals.find(lit) != unit_literals.end())
+    //  For some strange reason, this warning gets triggered when it shouldn't.
+    if (unit_literals.find(lit) != unit_literals.end()) {
 	err(false, "Attempt to assert literal %d.  But, it is already unit\n", lit);
+#if DEBUG
+	pwriter->comment("Attempt to assert literal %d.  But, it is already unit", lit);
+	pwriter->comment_container("  Current unit literals", unit_literals);
+#endif 
+    }
+
+    if (unit_literals.find(-lit) != unit_literals.end())
+	err(false, "Attempt to assert literal %d.  But, already have %d as unit\n", lit, -lit); {
+#if DEBUG
+	pwriter->comment("Attempt to assert literal %d.  But, already have %d as unit", lit, -lit);
+	pwriter->comment_container("  Current unit literals", unit_literals);
+#endif
+    }
+
     report(4, "Asserting literal %d\n", lit);
     unit_literals.insert(lit);
     assigned_literals.push_back(lit);
@@ -1334,9 +1364,9 @@ void Cnf_reasoner::push_assigned_literal(int lit) {
 
 void Cnf_reasoner::push_derived_literal(int lit, int cid) {
     if (unit_literals.find(-lit) != unit_literals.end())
-	err(false, "Attempt to assert literal %d.  But, already have derived -%d as unit\n", lit, lit);
+	err(false, "Attempt to add unit literal %d.  But, already have derived -%d as unit\n", lit, lit);
     if (unit_literals.find(lit) != unit_literals.end())
-	err(false, "Attempt to assert literal %d.  But, it is already unit\n", lit);
+	err(false, "Attempt to add unit literal %d.  But, it is already unit\n", lit);
     unit_literals.insert(lit);
     justifying_ids[lit] = cid;
     context_literal_stack.push_back(lit);
@@ -1421,7 +1451,7 @@ void Cnf_reasoner::set_active_clauses(std::set<int> *new_set) {
 void Cnf_reasoner::partition_clauses(std::unordered_map<int,int> &var2rvar,
 				     std::unordered_map<int,std::set<int>*> &rvar2cset) {
     // Simplify clauses
-    int ccid = bcp();
+    int ccid = bcp(false);
     if (ccid > 0)
 	err(true, "BCP generated conflict on clause %d prior to partitioning\n", ccid);
     // First figure out a partitioning of the variables
@@ -1533,7 +1563,7 @@ Cnf_reduced *Cnf_reasoner::extract_cnf() {
 int Cnf_reasoner::reduce_run(int lit) {
     int ncid = 0;
     Cnf_reduced *rcp = extract_cnf();
-    if (use_drat) {
+    if (rcp->clause_count() >= drat_threshold) {
 	if (rcp->run_hinting_solver()) {
 	    const char *fname = rcp->get_file_name();
 	    pwriter->comment("Adding proof clauses from SAT solver running on file %s to validate literal %d", fname, lit);
@@ -1617,8 +1647,8 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
     pwriter->comment("Attempting to validate literal %d by assuming its complement and getting conflict", lit);
 #endif
     push_assigned_literal(-lit);
-    if (mode != MODE_SAT) {
-	ncid = bcp();
+    if (mode != MODE_SAT && bcp_limit > 0) {
+	ncid = bcp(mode == MODE_BBCP);
     }
 #if DEBUG
     if (ncid != 0)
@@ -1626,13 +1656,14 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
     else
 	pwriter->comment("Failed to validate literal %d via BCP on complement", lit);
 #endif
-    if (ncid == 0 && mode != MODE_BCP) {
+    if (ncid == 0 && mode != MODE_BCP && mode != MODE_BBCP) {
 	ncid = reduce_run(lit);
     }
     pop_context();
 
-    if (ncid != 0) 
+    if (ncid != 0 && unit_literals.find(lit) == unit_literals.end()) {
 	push_derived_literal(lit, ncid);
+    }
 
     return ncid;
 }
@@ -1641,7 +1672,7 @@ int Cnf_reasoner::validate_literal(int lit, validation_mode_t mode) {
 // Justifying clauses IDs are then loaded into jids vector
 bool Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &jids) {
     jids.resize(lits.size());
-    validation_mode_t mode = multi_literal ? MODE_BCP : MODE_FULL;
+    validation_mode_t mode = multi_literal ? MODE_BBCP : MODE_FULL;
     // Which literals can't be handled directly.  Put their negations on list
     ilist args = ilist_new(0);
     // Map them back to positions in lits & jids

@@ -69,7 +69,7 @@ int main(int argc, const char *argv[]) {
 		return 1;
 	    }
 	    cnf.pop_context();
-	    int ncid = cnf.bcp();
+	    int ncid = cnf.bcp(false);
 	    if (ncid > 0) {
 		conflict_found = true;
 		printf("c Conflict found.  Clause %d\n", ncid);
@@ -81,7 +81,7 @@ int main(int argc, const char *argv[]) {
 	    cnf.new_context();
 	    depth++;
 	    cnf.push_assigned_literal(lit);
-	    int ncid = cnf.bcp();
+	    int ncid = cnf.bcp(false);
 	    if (ncid > 0) {
 		conflict_found = true;
 		printf("c Conflict found.  Clause %d\n", ncid);

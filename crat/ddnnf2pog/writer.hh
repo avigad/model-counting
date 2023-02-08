@@ -32,10 +32,6 @@
 #include <unordered_set>
 #include <set>
 
-// Copy string to allocated space
-const char *archive_string(const char *tstring);
-
-
 // Capability to write different file types
 
 class Writer {

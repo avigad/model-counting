@@ -399,7 +399,7 @@ bool Pog::optimize() {
 	    }
 	}
     }
-    report(2, "Compressed POG has %d nodes and root literal %d\n", nodes.size(), root_literal);
+    report(1, "Compressed POG has %d nodes and root literal %d\n", nodes.size(), root_literal);
     return true;
 }
     
@@ -762,7 +762,7 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 		    cnf->pwriter->comment("Justify node %s, assuming literal %d",
 					  rnp->name(), clit0);
 		    // Assertion may enable BCP, but it shouldn't lead to a conflict
-		    if (cnf->bcp() > 0) {
+		    if (cnf->bcp(false) > 0) {
 			cnf->pwriter->diagnose("BCP encountered conflict when attempting to justify node %s with assigned literal %d\n",
 					       rnp->name(), clit0);
 			return 0;
@@ -786,6 +786,8 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 		    cnf->pwriter->comment_container("  Literals", lits);
 #endif
 		    report(4, "Justify node %s, starting with %d literals\n", rnp->name(), lits.size());
+		    // Hack to detect whether SAT call was made
+		    int prev_sat_calls = get_count(COUNT_SAT_CALL);
 		    if (!cnf->validate_literals(lits, jids)) {
 			cnf->pwriter->diagnose("Was attempting to validate node %s", rnp->name());
 			printf("  Arguments:");
@@ -795,6 +797,8 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 			cnf->pwriter->diagnose("Justification of node %s failed", rnp->name());
 			return 0;
 		    }
+		    if (get_count(COUNT_SAT_CALL) > prev_sat_calls)
+			incr_count(COUNT_VISIT_AND_SAT);
 		    for (int jid : jids)
 			hints.push_back(jid);
 		}

@@ -8,6 +8,15 @@ int verblevel = 1;
 FILE *errfile = NULL;
 FILE *verbfile = NULL;
 
+static const char *logfile_name = "logfile.csv";
+
+const char *archive_string(const char *tstring) {
+    char *rstring = (char *) malloc(strlen(tstring)+1);
+    strcpy(rstring, tstring);
+    return (const char *) rstring;
+}
+
+
 void set_verblevel(int level) {
     verblevel = level;
 }
@@ -39,6 +48,26 @@ void report(int level, const char *fmt, ...) {
 	va_end(ap);
     }
 }
+
+//  Logging information
+// Establish a log file
+void set_logname(const char *fname) {
+    logfile_name = archive_string(fname);
+}
+
+void log_info(const char *fmt, ...) {
+    va_list ap;
+    if (logfile_name == NULL)
+	return;
+    FILE *logfile = fopen(logfile_name, "a");
+    if (!logfile)
+	return;
+    va_start(ap, fmt);
+    vfprintf(logfile, fmt, ap);
+    va_end(ap);
+    fclose(logfile);
+}
+
 
 double tod() {
     struct timeval tv;
