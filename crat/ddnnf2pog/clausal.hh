@@ -174,6 +174,8 @@ public:
     // Access input clause, with id 1 being first input clause
     Clause * operator[](int);    
 
+    // Compute hash of set of clauses
+    unsigned hash();
 
     // Semi-private methods for general CNF
     // Add a new clause
@@ -212,6 +214,9 @@ public:
     // Add clause.  It will be simplified according to the context
     void add_clause(Clause *np, std::unordered_set<int> &unit_literals, int cid);
     
+    // Generate output file.  Overloads one from Cnf
+    void show(FILE *outfile);
+
     // Run SAT solver.
     // Save away generated proof clauses
     // Return true if successful

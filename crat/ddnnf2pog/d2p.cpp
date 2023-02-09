@@ -15,9 +15,8 @@
 static bool multi_literal = true;
 static bool use_lemmas = true;
 static bool delete_files  =  true;
-// Temporarily disable features that seem to be causing problems
-static int drat_threshold = INT_MAX;  // Should be ~500
-static int bcp_limit = INT_MAX;       // Should be 0 or 1
+static int drat_threshold = 1000;
+static int bcp_limit = 0;
 static int clause_limit = INT_MAX;
 
 void usage(const char *name) {

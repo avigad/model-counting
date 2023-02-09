@@ -32,7 +32,7 @@
 #include "counters.h"
 
 #ifndef LOG
-#define LOG 1
+#define LOG 0
 #endif
 
 static int skip_line(FILE *infile) {
@@ -83,7 +83,6 @@ Clause::Clause(int *array, size_t len) {
     contents = ilist_new(len);
     for (int i = 0; i < len; i++)
 	add(array[i]);
-    canonize();
     activating_literal = 0;
 }
 
@@ -91,11 +90,6 @@ Clause::Clause(Clause *np) {
     is_tautology = false;
     canonized = np->canonized;
     contents = ilist_copy(np->contents);
-    //    int len = np->length();
-    //    contents = ilist_new(len);
-    //    for (int i = 0; i < len; i++)
-    //	add((*np)[i]);
-    canonize();
     activating_literal = np->get_activating_literal();
 }
 
@@ -128,7 +122,8 @@ Clause::Clause(FILE *infile, bool from_proof, bool *eof) {
 	else
 	    add(lit);
     }
-    canonize();
+    if (!from_proof)
+	canonize();
     activating_literal = 0;
 }
 
@@ -450,6 +445,14 @@ Clause * Cnf::get_input_clause(int cid) {
     }
 }
 
+unsigned Cnf::hash() {
+    unsigned sig = 1;
+    for (Clause *cp : clauses) {
+	sig = next_hash_int(sig, cp->hash());
+    }
+    return sig;
+}
+
 Clause * Cnf::operator[](int cid) {
     return get_input_clause(cid);
 }
@@ -530,6 +533,22 @@ void Cnf_reduced::add_clause(Clause *np, std::unordered_set<int> &unit_literals,
     }
 }
 
+// Special version of show that includes comments
+void Cnf_reduced::show(FILE *outfile) {
+    fprintf(outfile, "p cnf %d %d\n", max_variable(), (int) clause_count());
+#if DEBUG
+    int cid = 0;
+#endif
+    for (std::vector<Clause *>::iterator clp = clauses.begin(); clp != clauses.end(); clp++) {
+#if DEBUG
+	cid++;
+	fprintf(outfile, "c local clause %d -> global clause %d\n", cid, inverse_cid.find(cid)->second);
+#endif
+	(*clp)->show(outfile);
+    }
+}
+
+
 bool Cnf_reduced::run_solver() {
     incr_count(COUNT_SAT_CALL);
     static int vnum = 1000000;
@@ -596,7 +615,7 @@ bool Cnf_reduced::run_solver() {
     }
     double micro = (tod() - start) * 1e6;
 #if LOG
-    log_info("r,%d,%d,%.0f\n", clause_count(), pclauses.clause_count(), micro);
+    log_info("s,%u,%d,%d,%.0f\n", hash(), clause_count(), pclauses.clause_count(), micro);
 #endif
     report(3, "File %s.  %d input clauses --> %d proof clauses (%.0f us)\n", fname, clause_count(), proof_clauses.size(), micro);
     incr_histo(HISTO_PROBLEM, clause_count());
@@ -635,6 +654,7 @@ bool Cnf_reduced::run_hinting_solver() {
 
     double start = tod();
     snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
+    //snprintf(cmd, 350, "cadical --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
     int rc = system(cmd);
     incr_timer(TIME_SAT, tod()-start);
     if (rc != 0)
@@ -653,7 +673,7 @@ bool Cnf_reduced::run_hinting_solver() {
 	err(false, "Execution of command '%s' yielded no proof clauses\n", cmd);
 	return false;
     }
-    report(1, "Drat-trim.  %s %d problem clauses.  %d proof clauses\n", cnfname, clause_count(), proof_clauses.size()); 
+    report(3, "Drat-trim.  %s %d problem clauses.  %d proof clauses\n", cnfname, clause_count(), proof_clauses.size()); 
     Clause *lnp = proof_clauses.back();
     if (lnp->length() != 0) {
 	err(false, "Execution of command '%s' did not generate empty clause\n", cmd);	
@@ -661,7 +681,7 @@ bool Cnf_reduced::run_hinting_solver() {
     }
     double micro = (tod() - start) * 1e6;
 #if LOG
-    log_info("t,%d,%d,%.0f\n", clause_count(), proof_clauses.size(), micro);
+    log_info("t,%u,%d,%d,%.0f\n", hash(), clause_count(), proof_clauses.size(), micro);
 #endif
     report(3, "File %s.  %d input clauses --> %d proof clauses (%.0f us)\n", cnfname, clause_count(), proof_clauses.size(), micro);
     incr_histo(HISTO_PROBLEM, clause_count());
@@ -1580,8 +1600,11 @@ int Cnf_reasoner::reduce_run(int lit) {
 		// Add extra information about unit literals
 		for (int ulit : unit_literals) {
 		    auto fid = justifying_ids.find(ulit);
-		    if (fid != justifying_ids.end())
-			add_hint(fid->second);
+		    if (fid != justifying_ids.end()) {
+			int hid = fid->second;
+			if (hid != ncid)
+			    add_hint(hid);
+		    }
 		}
 		add_hints(php);
 		finish_command(true);
@@ -1596,6 +1619,9 @@ int Cnf_reasoner::reduce_run(int lit) {
 	    const char *fname = rcp->get_file_name();
 	    pwriter->comment("Adding proof clauses from SAT solver running on file %s to validate literal %d", fname, lit);
 	    int pcount = 0;
+#if LOG
+	    double start = tod();
+#endif
 	    while (true) {
 		Clause *pnp = rcp->get_proof_clause(&assigned_literals);
 		if (pnp == NULL)
@@ -1611,7 +1637,11 @@ int Cnf_reasoner::reduce_run(int lit) {
 			pnp->show();
 		}
 	    }
-	    pwriter->comment("End of proof clauses from SAT solver");
+#if LOG
+	    double micro = (tod() - start) * 1e6;
+	    log_info("r,%u,%d,%d,%.0f\n", rcp->hash(), rcp->clause_count(), pcount, micro);
+#endif
+	    pwriter->comment("End of proof clauses from SAT solver running on file %s", fname);
 	    // The clauses used in generating this proof are no longer needed
 	    for (int cid = first_ncid; cid <= ncid; cid++)
 		deactivate_clause(cid);
