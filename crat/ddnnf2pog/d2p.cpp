@@ -16,7 +16,7 @@ static bool multi_literal = true;
 static bool use_lemmas = true;
 static bool delete_files  =  true;
 static int drat_threshold = 1000;
-static int bcp_limit = 0;
+static int bcp_limit = 1;
 static int clause_limit = INT_MAX;
 
 void usage(const char *name) {
