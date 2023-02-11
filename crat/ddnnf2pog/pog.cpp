@@ -223,7 +223,7 @@ void Pog::topo_order(int rlit, std::vector<int> &rtopo, int *markers) {
 
 bool Pog::optimize() {
     if (verblevel >= 5) {
-	printf("Before optimization:\n");
+	report(5, "Before optimization:\n");
 	show(stdout);
     }
 
@@ -877,14 +877,118 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
     return jcid;
 }
 
+
+// Produce a partial assignment that satisfies the POG but contradicts the clause
+// Input includes vector indicating for each node whether it implies the given clause
+// in vector consisting of literals in assignment
+// Returns true if successful
+bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause, std::vector<int> &literals) {
+    // Mark nodes in subgraph to be covered by counterexample
+    std::vector<bool> subgraph_node;
+    subgraph_node.resize(nodes.size());
+    for (int nidx = 0; nidx < nodes.size(); nidx++)
+	subgraph_node[nidx] = false;
+    // Record assignment for each variable as 0 (arbitrary), 1 (positive), or -1 (negative)
+    std::vector<int> assignment;
+    assignment.resize(max_input_var);
+    for (int i = 0; i < max_input_var; i++)
+	assignment[i] = 0;
+    Clause *cp = cnf->get_input_clause(cid);
+    for (int i = 0; i < cp->length(); i++) {
+	int lit = (*cp)[i];
+	int var = IABS(lit);
+	// Want to contradict clause
+	int phase = lit > 0 ? -1 : 1;
+	assignment[var-1] = phase;
+    }
+    subgraph_node[nodes.size()-1] = true;
+    for (int nidx = nodes.size()-1; nidx > 0; nidx--) {
+	if (!subgraph_node[nidx])
+	    continue;
+	Pog_node *np = nodes[nidx];
+	bool found = false;
+	switch (np->get_type()) {
+	case POG_AND:
+	    // Must satisfy all children
+	    for (int i = 0; i < np->get_degree(); i++) {
+		int clit = (*np)[i];
+		if (is_node(clit)) {
+		    if (clit <= 0)
+			err(true, "Encountered invalid Pog identifier %d while generating counterexample\n", clit);
+		    subgraph_node[clit-max_input_var-1] = true;
+		} else {
+		    int var = IABS(clit);
+		    int phase = clit > 0 ? 1 : -1;
+		    int ophase = assignment[var-1];
+		    if (ophase != 0 && ophase != phase) {
+			// Failure
+			err(false, "Couldn't generate counterexample at Pog node N%d. Child literal %d gave conflict to partial assignment\n",
+			    np->name(), clit);
+			return false;
+		    }
+		    assignment[var-1] = phase;
+		}
+	    }
+	    break;
+	case POG_OR:
+	    // Choose first child for which implication did not hold
+	    found = false;
+	    for (int i = 0; i < np->get_degree(); i++) {
+		int clit = (*np)[i];
+		if (is_node(clit)) {
+		    if (clit <= 0)
+			err(true, "Encountered invalid Pog identifier %d while generating counterexample\n", clit);
+		    int idx = clit-max_input_var-1;
+		    if (!implies_clause[idx]) {
+			subgraph_node[idx] = true;
+			found = true;
+			break;
+		    }
+		} else {
+		    // See if value has been or can be assigned
+		    int var = IABS(clit);
+		    int phase = clit > 0 ? 1 : -1;
+		    if (assignment[var-1] == 0)
+			assignment[var-1] = phase;
+		    if (assignment[var-1] == phase) {
+			// This branch satisfied by assignment
+			found = true;
+			break;
+		    }
+		}
+		if (!found) {
+		    // Failure
+		    err(false, "Couldn't generate counterexample at Pog node N%d. Couldn't satisfy either child\n",
+			np->name(), clit);
+		    return false;
+		}
+	    }
+	    break;
+	default:
+	    err(true, "Unknown POG type %d for node N%d\n", (int) np->get_type(), np->get_xvar());
+	}
+    }
+    // Now convert to list of literals
+    literals.clear();
+    for (int var = 1; var <= max_input_var; var++) {
+	int phase = assignment[var-1];
+	if (phase != 0)
+	    literals.push_back(phase * var);
+    }
+    return true;
+}
+
 // Objective: Prove that Pog cannot evalute to true for any input that doesn't satisfy the clause
 // I.e., that pog node logically implies clause
-void Pog::delete_input_clause(int cid, int unit_cid) {
+// Return true if successful.
+// If fail, convert overcount_literals into vector of literals that satisfies the POG but not the clause
+bool Pog::delete_input_clause(int cid, int unit_cid, std::vector<int> &overcount_literals) {
     Clause *cp = cnf->get_input_clause(cid);
 
     // Label each node by whether or not it is guaranteed to imply the clause
-    bool *implies_clause = new bool[nodes.size()];
-
+    std::vector<bool> implies_clause;
+    implies_clause.resize(nodes.size());
+    // Vector starting with clause ID and then having hints for deletion
     std::vector<int> *dvp = new std::vector<int>;
     dvp->push_back(cid);
     dvp->push_back(unit_cid);
@@ -935,9 +1039,11 @@ void Pog::delete_input_clause(int cid, int unit_cid) {
 	}
 	implies_clause[nidx] = implies;	    
     }
-    if (!implies_clause[nodes.size()-1])
-	err(true, "Failed to generate deletion proof of clause %d for root node\n", cid);
-    cnf->pwriter->clause_deletion(dvp);
+    bool proved = implies_clause[nodes.size()-1];
+    if (proved)
+	cnf->pwriter->clause_deletion(dvp);
+    else if (get_deletion_counterexample(cid, implies_clause, overcount_literals))
+	err(false, "Error attempting to delete clause.  Prover failed to generate proof, but also couldn't generate counterexample\n");
     delete dvp;
-    delete[] implies_clause;
+    return proved;
 }
