@@ -235,15 +235,13 @@ bool Pog::optimize() {
 	return true;
     }
     std::vector<Pog_node *> new_nodes;
-    // Mapping from old id to new literal
-    // Possibly create node for Boolean true
-    // Create placeholder value for its use
-    //    Pog_node *true_np = new Pog_node(POG_TRUE);
-    //    new_nodes.push_back(true_np);
-    //    int true_id = max_input_var + new_nodes.size();
-    int true_id = max_input_var + nodes.size() + 1;
-    cnf->reset_xvar();
 
+    // Pseudo-node for representing value true
+    int true_id = max_input_var + nodes.size() + 1;
+
+    // Restart number of extension variables
+    cnf->reset_xvar();
+    // Mapping from old id to new literal
     std::vector<int> remap;
     remap.resize(nodes.size(), 0);
     // Order old nodes in reverse topological order
@@ -504,6 +502,8 @@ static bool read_numbers(FILE *infile, std::vector<int> &vec, int *rc) {
 bool Pog::read_d4ddnnf(FILE *infile) {
     // Mapping from NNF ID to POG Node ID
     std::map<int,int> nnf_idmap;
+    // Set of POG nodes that have at least one parent
+    std::unordered_set<int> node_with_parent;
     // Vector of arguments for each POG node
     std::vector<std::vector<int> *> arguments;
     // Capture arguments for each line
@@ -581,6 +581,7 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 	    }
 	    std::vector<int> *pargs = arguments[ppid-max_input_var-1];
 	    pargs->push_back(cpid);
+	    node_with_parent.insert(cpid);
 	    report(4, "Line #%d.  Adding edge between POG nodes %d and %d\n", line_number, ppid, cpid);
 	}
     }
@@ -600,12 +601,18 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 	    int degree = np->get_degree();
 	    if (degree == 0 || degree > 2) 
 		err(true, "NNF OR node %d.  Invalid degree %d\n", nid, degree);
-	    else if (degree == 1  && root_literal == 0) {
-		root_literal = pid;
-		report(3, "Setting root literal to %d\n", root_literal);
+	    else if (degree == 1  && node_with_parent.find(pid) == node_with_parent.end()) {
+		if (root_literal == 0) {
+		    root_literal = pid;
+		    report(3, "Setting root literal to %d\n", root_literal);
+		} else {
+		    err(false, "Ambiguous root literal.  Thought it was %d.  But it might be %d\n", root_literal, pid);
+		}
 	    }
 	}
     }
+    if (root_literal == 0)
+	err(true, "Failed to find root node in NNF file\n");
     report(1, "Read D4 NNF file with %d nodes (%d explicit) and %d edges\n",
 	   nnf_node_count, nnf_explicit_node_count, nnf_edge_count);
     if (!optimize())

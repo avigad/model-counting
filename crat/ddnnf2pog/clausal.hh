@@ -351,6 +351,7 @@ public:
     // POG generation.  Returns false if BCP shows formula is UNSAT
     bool enable_pog(Pog_writer *cw);
 
+    // Reset next xvar counter
     void reset_xvar();
     int new_xvar();
 
