@@ -1777,11 +1777,11 @@ bool Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	    int jid = validate_literal(-nlit, MODE_FULL);
 	    if (jid == 0) {
 		err(false, "Failed to validate literal %d\n", nlit);
-		printf("  Assigned literals:");
+		printf("c  Assigned literals:");
 		for (int lit : assigned_literals)
 		    printf(" %d", lit);
 		printf("\n");
-		printf("  Active clauses:");
+		printf("c  Active clauses:");
 		for (int acid : *curr_active_clauses)
 		    printf(" %d", acid);
 		printf("\n");

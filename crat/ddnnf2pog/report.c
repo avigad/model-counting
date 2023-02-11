@@ -27,9 +27,9 @@ void err(bool fatal, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     if (fatal)
-	fprintf(errfile, "ERROR: ");
+	fprintf(errfile, "c ERROR: ");
     else
-	fprintf(errfile, "WARNING: ");
+	fprintf(errfile, "c WARNING: ");
     vfprintf(errfile, fmt, ap);
     fflush(errfile);
     va_end(ap);
@@ -42,6 +42,7 @@ void report(int level, const char *fmt, ...) {
 	verbfile = stdout;
     va_list ap;
     if (level <= verblevel) {
+	fprintf(verbfile, "c ");
 	va_start(ap, fmt);
 	vfprintf(verbfile, fmt, ap);
 	fflush(verbfile);

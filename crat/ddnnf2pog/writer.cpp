@@ -157,7 +157,7 @@ void Writer::diagnose(const char *fmt, ...) {
 void Writer::diagnose_list(const char *descr, ilist vals) {
     if (ilist_length(vals) == 0)
 	return;
-    fprintf(stdout, "%s %d:", descr, vals[0]);
+    fprintf(stdout, "c %s %d:", descr, vals[0]);
     for (int i = 1; i < ilist_length(vals); i++)
 	fprintf(stdout, " %d", vals[i]);
     fprintf(stdout, " 0\n");
@@ -172,7 +172,7 @@ void Writer::diagnose_list(const char *descr, ilist vals) {
 }
 
 void Writer::diagnose_container(const char *descr, std::vector<int> &vals) {
-    fprintf(stdout, "%s:", descr);
+    fprintf(stdout, "c %s:", descr);
     for (int val : vals)
 	fprintf(stdout, " %d", val);
     fprintf(stdout, " 0\n");
@@ -187,7 +187,7 @@ void Writer::diagnose_container(const char *descr, std::vector<int> &vals) {
 }
 
 void Writer::diagnose_container(const char *descr, std::unordered_set<int> &vals) {
-    fprintf(stdout, "%s:", descr);
+    fprintf(stdout, "c %s:", descr);
     for (int val : vals)
 	fprintf(stdout, " %d", val);
     fprintf(stdout, " 0\n");
@@ -202,7 +202,7 @@ void Writer::diagnose_container(const char *descr, std::unordered_set<int> &vals
 }
 
 void Writer::diagnose_container(const char *descr, std::set<int> &vals) {
-    fprintf(stdout, "%s:", descr);
+    fprintf(stdout, "c %s:", descr);
     for (int val : vals)
 	fprintf(stdout, " %d", val);
     fprintf(stdout, " 0\n");
