@@ -405,14 +405,16 @@ int lset_get_lit(int var) {
     return 0;
 }
 
-void lset_add_lit(int lit) {
+/* Attempt to add literal to set.  Return false if already have opposite literal */
+bool lset_add_lit(int lit) {
     int var = IABS(lit);
     lset_check_size(var);
     int olit = lset_get_lit(var);
     if (olit != 0 && olit != lit)
-	err_printf(__cfunc__, "Attempt to add literal %d.  Already have %d\n", lit, olit);
+	return false;
     int val = lit > 0 ? lset_generation : -lset_generation;
     lset_array[var-1] = val;
+    return true;
 }
 
 void lset_show(FILE *out) {
@@ -778,13 +780,16 @@ void clause_show_all(FILE *out) {
 #define RUP_STALL 0
 
 /* Initialize lset to complement of literals */
-void rup_setup(int *lits) {
+/* Return false if encounter conflict */
+bool rup_setup(int *lits) {
     lset_clear();
     int lit;
     while ((lit = *lits) != 0) {
-	lset_add_lit(-lit);
+	if (!lset_add_lit(-lit))
+	    return false;
 	lits++;
     }
+    return true;
 }
 
 int rup_unit_prop(int cid) {
@@ -1058,12 +1063,12 @@ void crat_delete_clause() {
 	err_printf(__cfunc__, "Unexpected token %s ('%s')\n", token_name[token], token_last);
     int cid = token_value;
     int *lits = clause_locate(cid);
-    rup_setup(lits);
-
+    bool tautology = !rup_setup(lits);
     bool deleted = clause_delete(cid);
     if (!deleted) 
 	err_printf(__cfunc__, "Could not delete clause %d.  Never defined or already deleted\n", cid);
-    rup_run();
+    if (!tautology)
+	rup_run();
     token_find_eol();
     crat_assertion_deletion_count ++;
     info_printf(3, "Processed clause %d deletion\n", cid);
