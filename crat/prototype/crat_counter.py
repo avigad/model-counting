@@ -26,6 +26,13 @@ import sys
 import getopt
 import datetime
 
+        
+# Undocumented way to enable printing of very large numbers
+try:
+    sys.set_int_max_str_digits(0)
+except:
+    pass
+
 def usage(name):
     print("Usage: %s -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn]" % name)
     print("   -w WEIGHTS   Provide colon-separated set of input weights.")
@@ -522,7 +529,7 @@ def run(name, args):
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
-            return
+            return True
         elif opt == '-i':
             cnfName = val
         elif opt == '-p':
@@ -534,29 +541,29 @@ def run(name, args):
             except Exception as ex:
                 print("COUNTER: Couldn't extract weights from '%s' (%s)" % (val, str(ex)))
                 usage(name)
-                return
+                return False
         else:
             usage(name)
-            return
+            return False
     if cnfName is None:
         print("COUNTER: Need CNF file name")
-        return
+        return False
     if proofName is None:
         print("COUNTER: Need CRAT file name")
-        return
+        return False
     start = datetime.datetime.now()
     creader = CnfReader(cnfName)
     if creader.failed:
         print("Error reading CNF file: %s" % creader.errorMessage)
         print("PROOF FAILED")
-        return
+        return False
     if weights is None:
         if creader.weights is not None:
             print("Obtained weights from CNF file")
             weights = creader.weights
     if weights is not None and len(weights) != creader.nvar:
         print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
-        return
+        return False
     builder = Builder(creader)
     builder.build(proofName)
     delta = datetime.datetime.now() - start
@@ -567,6 +574,12 @@ def run(name, args):
         print("COUNTER: Unweighted count = %s" % count.render())
     else:
         print("COUNTER: Weighted count = %s" % count.render())
+    return True
     
 if __name__ == "__main__":
-    run(sys.argv[0], sys.argv[1:])
+    ok = run(sys.argv[0], sys.argv[1:])
+    if ok:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+    
