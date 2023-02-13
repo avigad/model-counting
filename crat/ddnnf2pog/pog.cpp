@@ -276,8 +276,6 @@ bool Pog::optimize() {
 		continue;
 	    }
 	    std::vector<int> nchildren;
-	    // In case have only one non-false child
-	    Pog_node *pcnp = NULL;
 	    for (int i = 0; i < np->get_degree(); i++) {
 		int child_lit = (*np)[i];
 		int nchild_lit = child_lit;
@@ -285,23 +283,20 @@ bool Pog::optimize() {
 		    int child_id = IABS(child_lit);
 		    nchild_lit = MATCH_PHASE(remap[child_id-max_input_var-1], child_lit);
 		}
-		if (is_node(nchild_lit) && nchild_lit > 0) {
-		    Pog_node *cnp = new_nodes[nchild_lit-max_input_var-1];
-		    if (cnp->get_type() == POG_AND) {
-			pcnp = cnp;
-		    }
-		}
 		nchildren.push_back(nchild_lit);
 	    }
-	    // If one of the children is true, then replace this node with other child
-	    if ((nchildren[0] == -true_id || nchildren[1] == -true_id) && pcnp != NULL) {
-		remap[oid-max_input_var-1] = pcnp->get_xvar();
+	    if (nchildren[0] == -true_id || nchildren[1] == -true_id) {
+		// If one of the children is false, then replace this node with other child
+		int other_lit = nchildren[0] == -true_id ? nchildren[1] : nchildren[0];
+		if (is_node(other_lit)) {
+		    int other_id = IABS(other_lit);
+		    other_lit = MATCH_PHASE(remap[other_id-max_input_var-1], other_lit);
+		}
+		remap[oid-max_input_var-1] = other_lit;
 		if (verblevel >= 4) {
 		    report(4, "  Node ");
 		    np->show(stdout);
-		    printf("  maps to ");
-		    pcnp->show(stdout);
-		    printf("\n");
+		    printf("  maps to %d\n", other_lit);
 		}
 		continue;
 	    } else {
@@ -620,12 +615,19 @@ bool Pog::read_d4ddnnf(FILE *infile) {
     return (concretize());
 }
 
-// Recursively descend Pog until find input literal
+// Descend Pog until find input literal
 int Pog::first_literal(int rlit) {
-    if (is_node(rlit)) {
-	Pog_node *np = get_node(IABS(rlit));
-	int clit = (*np)[0];
-	return first_literal(clit);
+    Pog_node *np = NULL;
+    while (is_node(rlit)) {
+	np = get_node(IABS(rlit));
+	rlit = (*np)[0];
+    }
+    int final_var = IABS(rlit);
+    if (final_var > max_input_var) {
+	if (np == NULL)
+	    err(true, "First literal %d invalid.  Given a input argument\n", rlit);
+	else
+	    err(true, "First literal %d invalid.  Got it from node %s\n", rlit, np->name());
     }
     return rlit;
 }
@@ -830,8 +832,10 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 			auto fid = var2rvar.find(IABS(llit));
 			if (fid == var2rvar.end()) {
 			    // This shouldn't happen
-			    cnf->pwriter->diagnose("Partitioning error.  Couldn't find representative for variable %d, representing first child of N%d\n",
+			    cnf->pwriter->diagnose("Partitioning error.  Couldn't find representative for variable %d, representing first child of N%d",
 				IABS(llit), IABS(clit));
+			    err(true, "Cannot recover from partitioning error.  Node %s has %d children.  Partitioner found %d partitions.\n",
+				rnp->name(), rnp->get_degree(), rvar2cset.size());
 			}
 			int rvar = fid->second;
 			pset = rvar2cset.find(rvar)->second;
@@ -924,7 +928,7 @@ bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause
 		    int ophase = assignment[var-1];
 		    if (ophase != 0 && ophase != phase) {
 			// Failure
-			err(false, "Couldn't generate counterexample at Pog node N%d. Child literal %d gave conflict to partial assignment\n",
+			err(true, "Couldn't generate counterexample at Pog node N%d. Child literal %d gave conflict to partial assignment\n",
 			    np->name(), clit);
 			return false;
 		    }
