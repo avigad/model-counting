@@ -201,7 +201,10 @@ class P52:
                     ival = -ival
             except:
                 raise PNumException("Invalid number '%s'" % s)
-            return P52(ival)
+            val = P52(ival)
+            if p10 != 0:
+                val = val.scale10(p10)
+            return val
         elif len(fields) == 2:
             try:
                 h = int(fields[0]) if len(fields[0]) > 0 else 0
