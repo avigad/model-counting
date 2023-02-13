@@ -288,10 +288,6 @@ bool Pog::optimize() {
 	    if (nchildren[0] == -true_id || nchildren[1] == -true_id) {
 		// If one of the children is false, then replace this node with other child
 		int other_lit = nchildren[0] == -true_id ? nchildren[1] : nchildren[0];
-		if (is_node(other_lit)) {
-		    int other_id = IABS(other_lit);
-		    other_lit = MATCH_PHASE(remap[other_id-max_input_var-1], other_lit);
-		}
 		remap[oid-max_input_var-1] = other_lit;
 		if (verblevel >= 4) {
 		    report(4, "  Node ");
