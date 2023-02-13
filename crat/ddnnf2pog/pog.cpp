@@ -924,7 +924,7 @@ bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause
 		    int ophase = assignment[var-1];
 		    if (ophase != 0 && ophase != phase) {
 			// Failure
-			err(true, "Couldn't generate counterexample at Pog node N%d. Child literal %d gave conflict to partial assignment\n",
+			err(true, "Couldn't generate counterexample at Pog node N%s. Child literal %d gave conflict to partial assignment\n",
 			    np->name(), clit);
 			return false;
 		    }
