@@ -297,7 +297,7 @@ bool Pog::optimize() {
 	    if ((nchildren[0] == -true_id || nchildren[1] == -true_id) && pcnp != NULL) {
 		remap[oid-max_input_var-1] = pcnp->get_xvar();
 		if (verblevel >= 4) {
-		    printf("  Node ");
+		    report(4, "  Node ");
 		    np->show(stdout);
 		    printf("  maps to ");
 		    pcnp->show(stdout);
@@ -312,7 +312,7 @@ bool Pog::optimize() {
 		nnp->set_xvar(nid);
 		remap[oid-max_input_var-1] = nid;
 		if (verblevel >= 4) {
-		    printf("  Converted node ");
+		    report(4, "  Converted node ");
 		    np->show(stdout);
 		    printf(" to ");
 		    nnp->show(stdout);
@@ -335,7 +335,7 @@ bool Pog::optimize() {
 			// Zero node
 			remap[oid-max_input_var-1] = -true_id;
 			if (verblevel >= 4) {
-			    printf("  Converted node ");
+			    report(4, "  Converted node ");
 			    np->show(stdout);
 			    printf(" to FALSE\n");
 			}
@@ -362,7 +362,7 @@ bool Pog::optimize() {
 		nnp->set_xvar(nid);
 		remap[oid-max_input_var-1] = nid;
 		if (verblevel >= 4) {
-		    printf("  Converted node ");
+		    report(4, "  Converted node ");
 		    np->show(stdout);
 		    printf(" to ");
 		    nnp->show(stdout);
@@ -404,7 +404,7 @@ bool Pog::optimize() {
 
 bool Pog::concretize() {
     if (verblevel >= 5) {
-	printf("Before concretizing:\n");
+	report(5, "Before concretizing:\n");
 	show(stdout);
     }
 
@@ -797,7 +797,7 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 		    int prev_sat_calls = get_count(COUNT_SAT_CALL);
 		    if (!cnf->validate_literals(lits, jids)) {
 			cnf->pwriter->diagnose("Was attempting to validate node %s", rnp->name());
-			printf("  Arguments:");
+			report(1, "  Arguments:");
 			for (int i = 0; i < rnp->get_degree(); i++)
 			    printf(" %d", (*rnp)[i]);
 			printf("\n");
@@ -883,6 +883,7 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 // in vector consisting of literals in assignment
 // Returns true if successful
 bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause, std::vector<int> &literals) {
+    report(1, "Creating overcount counterexample with clause #%d\n", cid);
     // Mark nodes in subgraph to be covered by counterexample
     std::vector<bool> subgraph_node;
     subgraph_node.resize(nodes.size());
@@ -894,6 +895,7 @@ bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause
     for (int i = 0; i < max_input_var; i++)
 	assignment[i] = 0;
     Clause *cp = cnf->get_input_clause(cid);
+    cp->show(stdout);
     for (int i = 0; i < cp->length(); i++) {
 	int lit = (*cp)[i];
 	int var = IABS(lit);
@@ -948,8 +950,9 @@ bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause
 		    // See if value has been or can be assigned
 		    int var = IABS(clit);
 		    int phase = clit > 0 ? 1 : -1;
-		    if (assignment[var-1] == 0)
+		    if (assignment[var-1] == 0) {
 			assignment[var-1] = phase;
+		    }
 		    if (assignment[var-1] == phase) {
 			// This branch satisfied by assignment
 			found = true;
@@ -984,13 +987,17 @@ bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause
 // If fail, convert overcount_literals into vector of literals that satisfies the POG but not the clause
 bool Pog::delete_input_clause(int cid, int unit_cid, std::vector<int> &overcount_literals) {
     Clause *cp = cnf->get_input_clause(cid);
-
     // Label each node by whether or not it is guaranteed to imply the clause
     std::vector<bool> implies_clause;
     implies_clause.resize(nodes.size());
     // Vector starting with clause ID and then having hints for deletion
     std::vector<int> *dvp = new std::vector<int>;
     dvp->push_back(cid);
+    if (cp->tautology()) {
+	cnf->pwriter->clause_deletion(dvp);
+	delete dvp;
+	return true;
+    }
     dvp->push_back(unit_cid);
 
     for (int nidx = 0; nidx < nodes.size(); nidx++) {
@@ -1042,8 +1049,11 @@ bool Pog::delete_input_clause(int cid, int unit_cid, std::vector<int> &overcount
     bool proved = implies_clause[nodes.size()-1];
     if (proved)
 	cnf->pwriter->clause_deletion(dvp);
-    else if (get_deletion_counterexample(cid, implies_clause, overcount_literals))
-	err(false, "Error attempting to delete clause.  Prover failed to generate proof, but also couldn't generate counterexample\n");
+    else {
+	cp->show(stdout);
+	if (get_deletion_counterexample(cid, implies_clause, overcount_literals))
+	    err(false, "Error attempting to delete clause.  Prover failed to generate proof, but also couldn't generate counterexample\n");
+    }
     delete dvp;
     return proved;
 }

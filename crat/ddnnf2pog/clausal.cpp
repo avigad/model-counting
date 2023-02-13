@@ -186,14 +186,17 @@ bool Clause::contains(int lit) {
     return false;
 }
 
+static char buf[10000];
 
 void Clause::canonize() {
     if (canonized)
 	return;
+    
     std::sort(contents, contents + length(), abs_less);
     int last_lit = 0;
     size_t read_pos = 0;
     size_t write_pos = 0;
+    is_tautology = false;
     while(read_pos < length()) {
 	int lit = contents[read_pos++];
 	if (abs(lit) == abs(last_lit)) {
@@ -399,6 +402,7 @@ Cnf::Cnf(FILE *infile) {
 	if (eof || read_failed)
 	    break;
 	add(clp);
+
     }
     if (!no_header && max_input_var > expectedMax) {
 	err(false, "Invalid CNF.  Encountered variable %d. Expected max = %d\n",  max_input_var, expectedMax);

@@ -36,7 +36,7 @@ void usage(const char *name) {
     exit(0);
 }
 
-const char *prefix = "GEN:";
+const char *prefix = "c GEN:";
 
 static void stat_report(double start) {
     if (verblevel < 1)
@@ -143,12 +143,30 @@ static void stat_report(double start) {
     printf("%s   time TOTAL     : %.2f\n", prefix, elapsed);
 }
 
-static bool run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
+#define LPL 25
+
+static void print_solution(std::vector<int> &literals) {
+    int start;
+    report(1, "Printing counterexample with %d literals\n", literals.size());
+    for (start = 0; start < literals.size() - LPL; start += LPL) {
+	printf("s");
+	for (int i = start; i < start+LPL; i++)
+	    printf(" %d", literals[i]);
+	printf("\n");
+    }
+    printf("s");
+    for (int i = start; i < literals.size(); i++)
+	printf(" %d", literals[i]);
+    printf(" 0\n");
+}
+
+// Return value is return code for program
+static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     Cnf_reasoner cnf(cnf_file);
     fclose(cnf_file);
     if (cnf.failed()) {
 	fprintf(stderr, "Aborted\n");
-	return false;
+	return 1;
     }
     cnf.multi_literal = multi_literal;
     cnf.use_lemmas = use_lemmas;
@@ -162,21 +180,31 @@ static bool run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     cnf.enable_pog(pwriter);
     if (!pog.read_d4ddnnf(nnf_file)) {
 	err(false, "Error reading D4 NNF file\n");
-	return false;
+	return 1;
     }
     int root_literal = pog.get_root();
     report(3, "Justifying root literal %d\n", root_literal);
     int unit_cid = pog.justify(root_literal, false, use_lemmas);
     if (unit_cid == 0) {
 	err(false, "Failed to justify root literal %d\n", root_literal);
-	return false;
+	// Undercount
+	return 10;
     }
     cnf.delete_assertions();
     pwriter->comment("Delete input clauses");
-    for (int cid = 1; cid <= cnf.clause_count(); cid++)
-	pog.delete_input_clause(cid, unit_cid);
+    std::vector<int> overcount_literals;
+    bool overcount = false;
+    for (int cid = 1; !overcount && cid <= cnf.clause_count(); cid++) {
+	bool deleted = pog.delete_input_clause(cid, unit_cid, overcount_literals);
+	if (!deleted) {
+	    report(1, "OVERCOUNT.  Generating partial assignment that contradicts clause %d\n", cid);
+	    print_solution(overcount_literals);
+	    report(1, "Skipping remaining deletions\n", cid);
+	    overcount = true;
+	}
+    }
     pwriter->finish_file();
-    return true;
+    return overcount ? 20 : 0;
 }
 
 int main(int argc, char *const argv[]) {
@@ -257,8 +285,8 @@ int main(int argc, char *const argv[]) {
     printf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
     printf("%s   BCP limit:       %d\n", prefix, bcp_limit);
 
-    bool success = run(cnf_file, nnf_file, pwriter);
+    int return_code = run(cnf_file, nnf_file, pwriter);
     stat_report(start);
     
-    return success ? 0 : 1;
+    return return_code;
 }
