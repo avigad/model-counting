@@ -227,9 +227,9 @@ void Writer::finish_file() {
 	fclose(outfile);
     outfile = NULL;
     if (file_name == NULL)
-	report(1, "%d lines written\n", line_count);
+	report(2, "%d lines written\n", line_count);
     else
-	report(1, "File %s.  %d lines written\n", file_name, line_count);
+	report(2, "File %s.  %d lines written\n", file_name, line_count);
 }
 
 /// Writing CNF files

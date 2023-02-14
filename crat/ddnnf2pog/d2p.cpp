@@ -19,6 +19,8 @@ static int drat_threshold = 1000;
 static int bcp_limit = 1;
 static int clause_limit = INT_MAX;
 
+double start_time = 0.0;
+
 void usage(const char *name) {
     //    printf("Usage: %s [-h] [-v VLEVEL] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
     printf("Usage: %s [-h] [-v VLEVEL] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
@@ -38,10 +40,10 @@ void usage(const char *name) {
 
 const char *prefix = "c GEN:";
 
-static void stat_report(double start) {
+static void stat_report() {
     if (verblevel < 1)
 	return;
-    double elapsed = tod()-start;
+    double elapsed = tod()-start_time;
     printf("%s Formula\n", prefix);
     printf("%s    input variables: %d\n", prefix, get_count(COUNT_VAR));
     printf("%s    input clauses  : %d\n", prefix, get_count(COUNT_CLAUSE));
@@ -146,23 +148,27 @@ static void stat_report(double start) {
 #define LPL 25
 
 static void print_solution(std::vector<int> &literals) {
-    int start;
+    int sidx;
     report(1, "Printing counterexample with %d literals\n", literals.size());
-    for (start = 0; start < literals.size() - LPL; start += LPL) {
+    for (sidx = 0; sidx < literals.size() - LPL; sidx += LPL) {
 	printf("s");
-	for (int i = start; i < start+LPL; i++)
+	for (int i = sidx; i < sidx+LPL; i++)
 	    printf(" %d", literals[i]);
 	printf("\n");
     }
     printf("s");
-    for (int i = start; i < literals.size(); i++)
+    for (int i = sidx; i < literals.size(); i++)
 	printf(" %d", literals[i]);
     printf(" 0\n");
 }
 
 // Return value is return code for program
 static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
+    start_time = tod();
+    double elapsed = 0.0;
     Cnf_reasoner cnf(cnf_file);
+    elapsed = tod() - start_time;
+    printf("%s Time = %.2f.  Read input file with %d variables and %d clauses\n", prefix, elapsed, cnf.max_variable(), (int) cnf.clause_count());
     fclose(cnf_file);
     if (cnf.failed()) {
 	fprintf(stderr, "Aborted\n");
@@ -182,6 +188,8 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	err(false, "Error reading D4 NNF file\n");
 	return 1;
     }
+    elapsed = tod() - start_time;
+    printf("%s Time = %.2f.  Generated POG representation\n", prefix, elapsed);
     int root_literal = pog.get_root();
     report(3, "Justifying root literal %d\n", root_literal);
     int unit_cid = pog.justify(root_literal, false, use_lemmas);
@@ -190,7 +198,11 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	// Undercount
 	return 10;
     }
+    elapsed = tod() - start_time;
+    printf("%s Time = %.2f.  Completed justification of root literal %d\n", prefix, elapsed, root_literal);
     cnf.delete_assertions();
+    elapsed = tod() - start_time;
+    printf("%s Time = %.2f.  Deleted asserted clauses\n", prefix, elapsed);
     pwriter->comment("Delete input clauses");
     std::vector<int> overcount_literals;
     bool overcount = false;
@@ -204,6 +216,8 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	}
     }
     pwriter->finish_file();
+    elapsed = tod() - start_time;
+    printf("%s Time = %.2f. Deleted input clauses\n", prefix, elapsed);
     return overcount ? 20 : 0;
 }
 
@@ -212,7 +226,6 @@ int main(int argc, char *const argv[]) {
     FILE *nnf_file = NULL;
     Pog_writer *pwriter = NULL;
     verblevel = 1;
-    double start = tod();
     int c;
     while ((c = getopt(argc, argv, "hv:C:b:t:sek")) != -1) {
 	switch (c) {
@@ -284,9 +297,8 @@ int main(int argc, char *const argv[]) {
     //    printf("%s   Clause limit:   %d\n", prefix, clause_limit);
     printf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
     printf("%s   BCP limit:       %d\n", prefix, bcp_limit);
-
     int return_code = run(cnf_file, nnf_file, pwriter);
-    stat_report(start);
+    stat_report();
     
     return return_code;
 }
