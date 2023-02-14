@@ -800,6 +800,9 @@ int rup_unit_prop(int cid) {
     int lit;
     while ((lit = *lits) != 0) {
 	lits++;
+	if (lit == unit) 
+	    /* Repeated unit literal */
+	    continue;
 	int var = IABS(lit);
 	int rlit = lset_get_lit(var);
 	if (rlit == lit)
@@ -815,7 +818,7 @@ int rup_unit_prop(int cid) {
 }
 
 /* Run RUP on hints from file.  Assume already set up  */
-void rup_run() {
+void rup_run(int tcid) {
     bool conflict = false;
     int steps = 0;
     while (true) {
@@ -823,11 +826,11 @@ void rup_run() {
 	if (token == TOK_STAR)
 	    err_printf(__cfunc__, "This checker requires explicit hints\n");
 	else if (token != TOK_INT)
-	    err_printf(__cfunc__, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
+	    err_printf(__cfunc__, "RUP for clause %d.  Expecting integer hint.  Got %s ('%s') instead\n", tcid, token_name[token], token_last);
 	else if (token_value == 0) {
 	    if (!conflict)
-		err_printf(__cfunc__, "RUP failure.  Didn't have conflict on final clause\n");
-	    info_printf(3, "RUP succeeded in %d steps\n", steps);
+		err_printf(__cfunc__, "RUP failure for clause %d.  Didn't have conflict on final clause\n", tcid);
+	    info_printf(3, "RUP for clause %d.  Succeeded in %d steps\n", tcid, steps);
 	    return;
 	} else {
 	    if (conflict) {
@@ -835,13 +838,13 @@ void rup_run() {
 		    while (token_value != 0) {
 			token = token_next();
 			if (token != TOK_INT)
-			    err_printf(__cfunc__, "Expecting integer hint.  Got %s ('%s') instead\n", token_name[token], token_last);
+			    err_printf(__cfunc__, "RUP for clause %d.  Expecting integer hint.  Got %s ('%s') instead\n", tcid, token_name[token], token_last);
 		    }
-		    info_printf(3, "RUP succeeded in %d steps\n", steps);
+		    info_printf(3, "RUP for clause %d.  Succeeded in %d steps\n", tcid, steps);
 		    return;
 		} else
 		    err_printf(__cfunc__, 
-			       "RUP failure.  Encountered conflict after processing %d hints.  Not at end of hints list\n", steps);
+			       "RUP failure for clause %d.  Encountered conflict after processing %d hints.  Not at end of hints list\n", tcid, steps);
 	    }
 	    int cid = token_value;
 	    int unit = rup_unit_prop(cid);
@@ -849,14 +852,14 @@ void rup_run() {
 	    if (unit == RUP_CONFLICT)
 		conflict = true;
 	    else if (unit == RUP_STALL) {
-		fprintf(ERROUT, "ERROR: Clause %d did not cause unit propagation\n", cid);
+		fprintf(ERROUT, "FAILURE: Clause %d did not cause unit propagation\n", cid);
 		if (verb_level >= 2) {
 		    fprintf(ERROUT, "    Added literals: ");
 		    lset_show(ERROUT);
 		    fprintf(ERROUT, "\n    Clause ");
 		    clause_show(ERROUT, cid, true);
 		}
-		err_printf(__cfunc__, "RUP failure\n");
+		err_printf(__cfunc__, "RUP failure for clause %d\n", tcid);
 	    } else
 		lset_add_lit(unit);
 	}
@@ -903,6 +906,7 @@ void cnf_read(char *fname) {
     /* Read clauses */
     int found_clause_count = 0;
     bool within_clause = false;
+    int last_literal = INT_MAX;
     while (true) {
 	token_t token = token_next();
 	if (token == TOK_EOF)
@@ -917,8 +921,10 @@ void cnf_read(char *fname) {
 	    if (!within_clause) {
 		clause_new(found_clause_count+1);
 		within_clause = true;
+		last_literal = INT_MAX;
 	    }
 	    clause_add_literal(token_value);
+	    last_literal = token_value;
 	    if (token_value == 0) {
 		found_clause_count ++;
 		within_clause = false;
@@ -1045,7 +1051,7 @@ void crat_add_clause(int cid) {
 	else
 	    lset_add_lit(-lit);
     }
-    rup_run();
+    rup_run(cid);
     token_confirm_eol();
     crat_assertion_count ++;
     info_printf(3, "Processed clause %d addition\n", cid);
@@ -1068,7 +1074,7 @@ void crat_delete_clause() {
     if (!deleted) 
 	err_printf(__cfunc__, "Could not delete clause %d.  Never defined or already deleted\n", cid);
     if (!tautology)
-	rup_run();
+	rup_run(cid);
     token_find_eol();
     crat_assertion_deletion_count ++;
     info_printf(3, "Processed clause %d deletion\n", cid);
@@ -1185,7 +1191,7 @@ void crat_add_sum(int cid) {
     lset_clear();
     lset_add_lit(node->children[0]);
     lset_add_lit(node->children[1]);
-    rup_run();
+    rup_run(cid);
 
     token_confirm_eol();
     /* Add sum clause */
