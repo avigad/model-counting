@@ -36,6 +36,16 @@ const char *pog_type_name[5] = { "NONE", "TRUE", "FALSE", "AND", "OR" };
 
 const char pog_type_char[5] = { '\0', 't', 'f', 'a', 'o' };
 
+// Reporting validation progress
+// Reporting parameters
+#define REPORT_MIN_INTERVAL 1000
+#define REPORT_MAX_COUNT 10
+// Report status
+static int vreport_interval = INT_MAX;
+static int vreport_last = 0;
+static int vcount = 0;
+
+
 Pog_node::Pog_node() {
     type = POG_TRUE;
     xvar = 0;
@@ -292,7 +302,7 @@ bool Pog::optimize() {
 		if (verblevel >= 4) {
 		    report(4, "  Node ");
 		    np->show(stdout);
-		    printf("  maps to %d\n", other_lit);
+		    lprintf("  maps to %d\n", other_lit);
 		}
 		continue;
 	    } else {
@@ -305,9 +315,9 @@ bool Pog::optimize() {
 		if (verblevel >= 4) {
 		    report(4, "  Converted node ");
 		    np->show(stdout);
-		    printf(" to ");
+		    lprintf(" to ");
 		    nnp->show(stdout);
-		    printf("\n");
+		    lprintf("\n");
 		}
 	    }
 	} else {
@@ -328,7 +338,7 @@ bool Pog::optimize() {
 			if (verblevel >= 4) {
 			    report(4, "  Converted node ");
 			    np->show(stdout);
-			    printf(" to FALSE\n");
+			    lprintf(" to FALSE\n");
 			}
 			zeroed = true;
 			break;
@@ -355,9 +365,9 @@ bool Pog::optimize() {
 		if (verblevel >= 4) {
 		    report(4, "  Converted node ");
 		    np->show(stdout);
-		    printf(" to ");
+		    lprintf(" to ");
 		    nnp->show(stdout);
-		    printf("\n");
+		    lprintf("\n");
 		}
 	    }
 	}
@@ -389,6 +399,11 @@ bool Pog::optimize() {
 	}
     }
     report(1, "Compressed POG has %d nodes and root literal %d\n", nodes.size(), root_literal);
+
+    // Set parameters for progress reporting
+    vreport_interval = nodes.size() / REPORT_MAX_COUNT;
+    if (vreport_interval < REPORT_MIN_INTERVAL)
+	vreport_interval = REPORT_MIN_INTERVAL;
     return true;
 }
     
@@ -797,8 +812,8 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 			cnf->pwriter->diagnose("Was attempting to validate node %s", rnp->name());
 			report(1, "  Arguments:");
 			for (int i = 0; i < rnp->get_degree(); i++)
-			    printf(" %d", (*rnp)[i]);
-			printf("\n");
+			    lprintf(" %d", (*rnp)[i]);
+			lprintf("\n");
 			cnf->pwriter->diagnose("Justification of node %s failed", rnp->name());
 			return 0;
 		    }
@@ -872,8 +887,14 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 	    cnf->pwriter->diagnose("Validation of literal %d failed", rlit);
 	}
     }
-    if (jcid > 0)
+    if (jcid > 0) {
 	report(4, "Literal %d in POG justified by clause %d\n", rlit, jcid);
+	vcount ++;
+	if (vcount >= vreport_last + vreport_interval) {
+	    report(1, "Time = %.2f.  Justifications of %d/%d nodes completed\n", get_elapsed(), vcount, nodes.size());
+	    vreport_last = vcount;
+	}
+    }
     return jcid;
 }
 

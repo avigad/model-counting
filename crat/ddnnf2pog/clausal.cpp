@@ -619,7 +619,7 @@ bool Cnf_reduced::run_solver() {
     }
     double micro = (tod() - start) * 1e6;
 #if LOG
-    log_info("s,%u,%d,%d,%.0f\n", hash(), clause_count(), pclauses.clause_count(), micro);
+    log_data("s,%u,%d,%d,%.0f\n", hash(), clause_count(), pclauses.clause_count(), micro);
 #endif
     report(3, "File %s.  %d input clauses --> %d proof clauses (%.0f us)\n", fname, clause_count(), proof_clauses.size(), micro);
     incr_histo(HISTO_PROBLEM, clause_count());
@@ -685,7 +685,7 @@ bool Cnf_reduced::run_hinting_solver() {
     }
     double micro = (tod() - start) * 1e6;
 #if LOG
-    log_info("t,%u,%d,%d,%.0f\n", hash(), clause_count(), proof_clauses.size(), micro);
+    log_data("t,%u,%d,%d,%.0f\n", hash(), clause_count(), proof_clauses.size(), micro);
 #endif
     report(3, "File %s.  %d input clauses --> %d proof clauses (%.0f us)\n", cnfname, clause_count(), proof_clauses.size(), micro);
     incr_histo(HISTO_PROBLEM, clause_count());
@@ -1664,7 +1664,7 @@ int Cnf_reasoner::reduce_run(int lit) {
 	    }
 #if LOG
 	    double micro = (tod() - start) * 1e6;
-	    log_info("r,%u,%d,%d,%.0f\n", rcp->hash(), rcp->clause_count(), pcount, micro);
+	    log_data("r,%u,%d,%d,%.0f\n", rcp->hash(), rcp->clause_count(), pcount, micro);
 #endif
 	    pwriter->comment("End of proof clauses from SAT solver running on file %s", fname);
 	    // The clauses used in generating this proof are no longer needed
@@ -1802,14 +1802,14 @@ bool Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
 	    int jid = validate_literal(-nlit, MODE_FULL);
 	    if (jid == 0) {
 		err(false, "Failed to validate literal %d\n", nlit);
-		printf("c  Assigned literals:");
+		lprintf("c  Assigned literals:");
 		for (int lit : assigned_literals)
-		    printf(" %d", lit);
-		printf("\n");
-		printf("c  Active clauses:");
+		    lprintf(" %d", lit);
+		lprintf("\n");
+		lprintf("c  Active clauses:");
 		for (int acid : *curr_active_clauses)
-		    printf(" %d", acid);
-		printf("\n");
+		    lprintf(" %d", acid);
+		lprintf("\n");
 		return false;
 	    }
 	    jids[idx] = jid;

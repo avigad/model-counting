@@ -53,26 +53,35 @@ extern "C" {
 // Time of day for wall clock timing. Measured in seconds
 extern double tod();
 
+// Start recording elapsed time
+void start_timer();
+
+// Get elapsed time since timer started
+double get_elapsed();
+
 extern int verblevel;
 void set_verblevel(int level);
 
 extern FILE *errfile;
 extern FILE *verbfile;
 
+// Record all information in separate file.  Opens and closes with each write
+// so that will be preserved even if process terminates due to segfault or kill
+void set_logname(const char *fname);
+
 /* Report Errors */
 void err(bool fatal, const char *fmt, ...);
 /* Report useful information */
 void report(int verblevel, const char *fmt, ...);
 
+/* Like printf, but also records to log file */
+void lprintf(const char *fmt, ...);
+
 // Copy string to allocated space
 const char *archive_string(const char *tstring);
 
-//  Logging information
-// Establish a log file
-void set_logname(const char *fname);
-
-// Record entry in logfile
-void log_info(const char *fmt, ...);
+// Record data entry in logfile
+void log_data(const char *fmt, ...);
 
 
 #ifdef CPLUSPLUS

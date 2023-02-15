@@ -8,12 +8,26 @@ int verblevel = 1;
 FILE *errfile = NULL;
 FILE *verbfile = NULL;
 
-static const char *logfile_name = "logfile.csv";
+static const char *logfile_name = NULL;
+
+static const char *datafile_name = "datafile.csv";
+
+static double start_time = 0.0;
 
 const char *archive_string(const char *tstring) {
     char *rstring = (char *) malloc(strlen(tstring)+1);
     strcpy(rstring, tstring);
     return (const char *) rstring;
+}
+
+//  Logging information
+// Establish a log file
+void set_logname(const char *fname) {
+    logfile_name = archive_string(fname);
+    // Clear out whatever was there
+    FILE *logfile = fopen(logfile_name, "w");
+    if (logfile)
+	fclose(logfile);
 }
 
 
@@ -33,6 +47,18 @@ void err(bool fatal, const char *fmt, ...) {
     vfprintf(errfile, fmt, ap);
     fflush(errfile);
     va_end(ap);
+    if (logfile_name) {
+	FILE *logfile = fopen(logfile_name, "a");
+	if (logfile) {
+	    va_start(ap, fmt);
+	    if (fatal)
+		fprintf(logfile, "c ERROR: ");
+	    else
+		fprintf(logfile, "c WARNING: ");
+	    vfprintf(logfile, fmt, ap);
+	    va_end(ap);
+	}
+    }
     if (fatal)
 	exit(1);
 }
@@ -47,26 +73,45 @@ void report(int level, const char *fmt, ...) {
 	vfprintf(verbfile, fmt, ap);
 	fflush(verbfile);
 	va_end(ap);
+	if (logfile_name) {
+	    FILE *logfile = fopen(logfile_name, "a");
+	    if (logfile) {
+		fprintf(logfile, "c ");
+		va_start(ap, fmt);
+		vfprintf(logfile, fmt, ap);
+		va_end(ap);
+	    }
+	}
     }
 }
 
-//  Logging information
-// Establish a log file
-void set_logname(const char *fname) {
-    logfile_name = archive_string(fname);
+void lprintf(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(stdout, fmt, ap);
+    fflush(stdout);
+    va_end(ap);
+    if (logfile_name) {
+	FILE *logfile = fopen(logfile_name, "a");
+	if (logfile) {
+	    va_start(ap, fmt);
+	    vfprintf(logfile, fmt, ap);
+	    va_end(ap);
+	}
+    }
 }
 
-void log_info(const char *fmt, ...) {
+void log_data(const char *fmt, ...) {
     va_list ap;
-    if (logfile_name == NULL)
+    if (datafile_name == NULL)
 	return;
-    FILE *logfile = fopen(logfile_name, "a");
-    if (!logfile)
+    FILE *datafile = fopen(datafile_name, "a");
+    if (!datafile)
 	return;
     va_start(ap, fmt);
-    vfprintf(logfile, fmt, ap);
+    vfprintf(datafile, fmt, ap);
     va_end(ap);
-    fclose(logfile);
+    fclose(datafile);
 }
 
 
@@ -76,4 +121,12 @@ double tod() {
 	return (double) tv.tv_sec + 1e-6 * tv.tv_usec;
     else
 	return 0.0;
+}
+
+void start_timer() {
+    start_time = tod();
+}
+
+double get_elapsed() {
+    return tod() - start_time;
 }
