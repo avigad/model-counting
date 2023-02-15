@@ -616,7 +616,7 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 		    root_literal = pid;
 		    report(3, "Setting root literal to %d\n", root_literal);
 		} else {
-		    err(false, "Ambiguous root literal.  Thought it was %d.  But it might be %d\n", root_literal, pid);
+		    report(2, "Ambiguous root literal.  Thought it was %d.  But it might be %d\n", root_literal, pid);
 		}
 	    }
 	}
