@@ -15,15 +15,17 @@
 static bool multi_literal = true;
 static bool use_lemmas = true;
 static bool delete_files  =  true;
+static bool early_quit = false;
 static int drat_threshold = 1000;
 static int bcp_limit = 1;
 static int clause_limit = INT_MAX;
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
+    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
     lprintf("  -h        Print this information\n");
     lprintf("  -v VLEVEL Set verbosity level\n");
     lprintf("  -L LOG    Record all results to file LOG\n");
+    lprintf("  -p        Quit after determining POG size\n");
     lprintf("  -b BLIM   Limit depth of Boolean constraint propagation for contradiction proofs (default = %d)\n", bcp_limit);
     lprintf("  -t THRESH Use drat-trim on proofs when SAT problems are above THRESH clauses (default = %d)\n", drat_threshold);
     lprintf("  -s        Prove each literal separately, rather than combining into single proof\n");
@@ -186,6 +188,10 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     }
     elapsed = get_elapsed();
     lprintf("%s Time = %.2f.  Generated POG representation\n", prefix, elapsed);
+    if (early_quit) {
+	lprintf("POG created.  Exiting\n");
+	return 0;
+    }
     int root_literal = pog.get_root();
     report(3, "Justifying root literal %d\n", root_literal);
     int unit_cid = pog.justify(root_literal, false, use_lemmas);
@@ -225,10 +231,13 @@ int main(int argc, char *const argv[]) {
     Pog_writer *pwriter = NULL;
     verblevel = 1;
     int c;
-    while ((c = getopt(argc, argv, "hv:L:b:t:sek")) != -1) {
+    while ((c = getopt(argc, argv, "hpv:L:b:t:sek")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
+	    break;
+	case 'p':
+	    early_quit = true;
 	    break;
 	case 'v':
 	    verblevel = atoi(optarg);
@@ -288,15 +297,17 @@ int main(int argc, char *const argv[]) {
     } else
 	pwriter = new Pog_writer();
 
-    lprintf("%s Program options\n", prefix);
-    lprintf("%s   Multi-literal:   %s\n", prefix, multi_literal ? "yes" : "no");
-    lprintf("%s   Use lemmas:      %s\n", prefix, use_lemmas ? "yes" : "no");
-    lprintf("%s   Delete files:    %s\n", prefix, delete_files ? "yes" : "no");
-    //    lprintf("%s   Clause limit:   %d\n", prefix, clause_limit);
-    lprintf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
-    lprintf("%s   BCP limit:       %d\n", prefix, bcp_limit);
+    if (!early_quit) {
+	lprintf("%s Program options\n", prefix);
+	lprintf("%s   Multi-literal:   %s\n", prefix, multi_literal ? "yes" : "no");
+	lprintf("%s   Use lemmas:      %s\n", prefix, use_lemmas ? "yes" : "no");
+	lprintf("%s   Delete files:    %s\n", prefix, delete_files ? "yes" : "no");
+	lprintf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
+	lprintf("%s   BCP limit:       %d\n", prefix, bcp_limit);
+    }
     int return_code = run(cnf_file, nnf_file, pwriter);
-    stat_report();
+    if (!early_quit)
+	stat_report();
     
     return return_code;
 }

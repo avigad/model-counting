@@ -37,7 +37,7 @@ countProgram = countHome + "/crat_counter.py"
 
 timeLimits = { "D4" : 300, "GEN" : 1200, "FCHECK" : 1200, "COUNT" : 1200 }
 
-def runProgram(prefix, root, commandList, logFile):
+def runProgram(prefix, root, commandList, logFile, extraLogName = None):
     if prefix in timeLimits:
         timeLimit = timeLimits[prefix]
     else:
@@ -51,6 +51,15 @@ def runProgram(prefix, root, commandList, logFile):
     try:
         cp = subprocess.run(commandList, capture_output = True, timeout=timeLimit, text=True)
     except subprocess.TimeoutExpired as ex:
+        # Incorporate information recorded by external logging
+        if (extraLogName is not None):
+            try:
+                xlog = open(extraLogName, "r")
+                for line in xlog:
+                    logFile.write(line)
+                xlog.close()
+            except:
+                pass
         print("%s. %s Program timed out after %d seconds" % (root, prefix, timeLimit))
         result += "%s ERROR: Timeout after %d seconds\n" % (prefix, timeLimit)
         delta = datetime.datetime.now() - start
@@ -87,13 +96,14 @@ def runD4(root, home, logFile, force):
     return ok
 
 def runGen(root, home, logFile, force):
+    extraLogName = "d2p.log"
     cnfName = home + "/" + root + ".cnf"
     nnfName = home + "/" + root + ".nnf"
     cratName = home + "/" + root + ".crat"
     if not force and os.path.exists(cratName):
         return True
-    cmd = [genProgram, cnfName, nnfName, cratName]
-    ok = runProgram("GEN", root, cmd, logFile)
+    cmd = [genProgram, "-L", extraLogName, cnfName, nnfName, cratName]
+    ok = runProgram("GEN", root, cmd, logFile, extraLogName = extraLogName)
     if not ok and os.path.exists(cratName):
         os.remove(cratName)
     return ok

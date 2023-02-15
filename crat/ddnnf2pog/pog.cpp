@@ -237,6 +237,8 @@ bool Pog::optimize() {
 	show(stdout);
     }
 
+    int defining_clause_count = 0;
+
     // If root represents input variable, then nothing need be done
     if (!is_node(root_literal)) {
 	for (Pog_node *np : nodes)
@@ -309,6 +311,7 @@ bool Pog::optimize() {
 		Pog_node *nnp = new Pog_node(POG_OR);
 		nnp->add_children(&nchildren);
 		new_nodes.push_back(nnp);
+		defining_clause_count += 1 + nchildren.size();
 		int nid = max_input_var + new_nodes.size();
 		nnp->set_xvar(nid);
 		remap[oid-max_input_var-1] = nid;
@@ -359,6 +362,7 @@ bool Pog::optimize() {
 		Pog_node *nnp = new Pog_node(POG_AND);
 		nnp->add_children(&nchildren);
 		new_nodes.push_back(nnp);
+		defining_clause_count += 1 + nchildren.size();
 		int nid = max_input_var + new_nodes.size();
 		nnp->set_xvar(nid);
 		remap[oid-max_input_var-1] = nid;
@@ -398,7 +402,7 @@ bool Pog::optimize() {
 	    }
 	}
     }
-    report(1, "Compressed POG has %d nodes and root literal %d\n", nodes.size(), root_literal);
+    report(1, "Compressed POG has %d nodes, root literal %d, and %d defining clauses\n", nodes.size(), root_literal, defining_clause_count);
 
     // Set parameters for progress reporting
     vreport_interval = nodes.size() / REPORT_MAX_COUNT;

@@ -57,6 +57,7 @@ void err(bool fatal, const char *fmt, ...) {
 		fprintf(logfile, "c WARNING: ");
 	    vfprintf(logfile, fmt, ap);
 	    va_end(ap);
+	    fclose(logfile);
 	}
     }
     if (fatal)
@@ -80,6 +81,7 @@ void report(int level, const char *fmt, ...) {
 		va_start(ap, fmt);
 		vfprintf(logfile, fmt, ap);
 		va_end(ap);
+		fclose(logfile);
 	    }
 	}
     }
@@ -97,6 +99,7 @@ void lprintf(const char *fmt, ...) {
 	    va_start(ap, fmt);
 	    vfprintf(logfile, fmt, ap);
 	    va_end(ap);
+	    fclose(logfile);
 	}
     }
 }
