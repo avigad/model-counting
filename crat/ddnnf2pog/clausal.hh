@@ -436,6 +436,9 @@ private:
 
     // Private methods for proof generation
 
+    // Filter out the unit literals that are required for proof, given the main clause and the hint clauses
+    void filter_units(Clause *pnp, Clause *php, std::unordered_set<int> &units);
+
     // Run SAT solver on reduced set of clauses as part of effort to validate literal lit.
     // Incorporate generated conflict proof into larger proof
     // Identify literals that will become unit and their justifying IDs

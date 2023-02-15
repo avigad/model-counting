@@ -1581,12 +1581,32 @@ Cnf_reduced *Cnf_reasoner::extract_cnf() {
     return rcp;
 }
 
+// Filter out the unit literals that are required for proof, given the main clause and the hint clauses
+void Cnf_reasoner::filter_units(Clause *pnp, Clause *php, std::unordered_set<int> &units) {
+    units.clear();
+    for (int i = 0; i < pnp->length(); i++) {
+	int lit = (*pnp)[i];
+	if (unit_literals.find(-lit) != unit_literals.end())
+	    units.insert(-lit);
+    }
+    for (int i = 0; i < php->length(); i++) {
+	int cid = (*php)[i];
+	Clause *hcp = get_clause(cid);
+	for (int hi = 0; hi < hcp->length(); hi++) {
+	    int lit = (*hcp)[hi];
+	    if (unit_literals.find(-lit) != unit_literals.end())
+		units.insert(-lit);
+	}
+    }
+}
+
 // Run SAT solver on reduced set of clauses as part of effort to validate literal lit.
 // Incorporate generated conflict proof into larger proof
 // Return ID of conflict clause
 int Cnf_reasoner::reduce_run(int lit) {
     int ncid = 0;
     Cnf_reduced *rcp = extract_cnf();
+    std::unordered_set<int> real_units;
     if (rcp->clause_count() >= drat_threshold) {
 	if (rcp->run_hinting_solver()) {
 	    const char *fname = rcp->get_file_name();
@@ -1602,7 +1622,8 @@ int Cnf_reasoner::reduce_run(int lit) {
 		incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 		ncid = start_assertion(pnp);
 		// Add extra information about unit literals
-		for (int ulit : unit_literals) {
+		filter_units(pnp, php, real_units);
+		for (int ulit : real_units) {
 		    auto fid = justifying_ids.find(ulit);
 		    if (fid != justifying_ids.end()) {
 			int hid = fid->second;
