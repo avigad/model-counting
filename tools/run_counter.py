@@ -95,6 +95,17 @@ def runD4(root, home, logFile, force):
         os.remove(nnfName)
     return ok
 
+def runPartialGen(root, home, logFile, force):
+    cnfName = home + "/" + root + ".cnf"
+    nnfName = home + "/" + root + ".nnf"
+    cratName = home + "/" + root + ".crat"
+    cmd = [genProgram, "-p", cnfName, nnfName, cratName]
+    ok = runProgram("GEN", root, cmd, logFile)
+    if not ok and os.path.exists(cratName):
+        os.remove(cratName)
+    return ok
+
+
 def runGen(root, home, logFile, force):
     extraLogName = "d2p.log"
     cnfName = home + "/" + root + ".cnf"
@@ -140,7 +151,9 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     ok = False
     done = False
     ok = runD4(root, home, logFile, force)
-    done = stopD4
+    if stopD4:
+        ok = ok and runPartialGen(root, home, logFile, force)
+        done = True
     if not done:
         ok = ok and runGen(root, home, logFile, force)
     done = done or stopGen
