@@ -189,7 +189,7 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     elapsed = get_elapsed();
     lprintf("%s Time = %.2f.  Generated POG representation\n", prefix, elapsed);
     if (early_quit) {
-	lprintf("POG created.  Exiting\n");
+	lprintf("%s POG created.  Exiting\n", prefix);
 	return 0;
     }
     int root_literal = pog.get_root();
