@@ -757,7 +757,7 @@ void start_clause(int cid) {
     clause_last_id = cid;
     clause_count ++;
     current_clause = ilist_resize(current_clause, 0);
-    info_printf(2, "Starting clause %d\n", cid);
+    info_printf(3, "Starting clause %d\n", cid);
 }
 
 /* Save the current clause */
@@ -784,8 +784,8 @@ void finish_clause(int cid) {
     clause_blocks[clause_block_count-1].chunk = ilist_push(clause_blocks[clause_block_count-1].chunk, chunk_count-1);
     clause_blocks[clause_block_count-1].offset = ilist_push(clause_blocks[clause_block_count-1].offset, pos);
     clause_blocks[clause_block_count-1].length ++;
-    info_printf(2, "Finished clause.  Full length %d.  Chunk ID %d.  Offset %d ", need, chunk_count-1, pos);
-    if (verb_level >= 2) 
+    info_printf(3, "Finished clause.  Full length %d.  Chunk ID %d.  Offset %d ", need, chunk_count-1, pos);
+    if (verb_level >= 3) 
 	clause_show(stdout, cid, true);
 }
 
