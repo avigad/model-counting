@@ -315,7 +315,12 @@ int main(int argc, char *const argv[]) {
 	lprintf("%s   Clause limit:    %d\n", prefix, clause_limit);
 	lprintf("%s   BCP limit:       %d\n", prefix, bcp_limit);
     }
-    int return_code = run(cnf_file, nnf_file, pwriter);
+    int return_code = 0;
+    try {
+	return_code = run(cnf_file, nnf_file, pwriter);
+    } catch (const std::bad_alloc &e) {
+	err(true, "Memory allocation error\n");
+    }
     if (!early_quit)
 	stat_report();
     
