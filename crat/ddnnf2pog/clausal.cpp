@@ -792,9 +792,9 @@ Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) {
     multi_literal = true;
     use_lemmas = true;
     delete_files = true;
-    drat_threshold = 50;
+    drat_threshold = 1000;
     clause_limit = INT_MAX;
-    bcp_limit = 2;
+    bcp_limit = 1;
     xvar_count = max_variable();
 }
 
@@ -848,6 +848,8 @@ int Cnf_reasoner::add_proof_clause(Clause *clp) {
 
 int Cnf_reasoner::start_assertion(Clause *clp) {
     int cid = add_proof_clause(clp);
+    if (cid > clause_limit)
+	err(true, "Adding clause %d exceeds limit\n", cid);
     pwriter->start_assertion(cid);
     clp->write(pwriter);
     std::vector<int> *dvp = new std::vector<int>();
@@ -897,6 +899,8 @@ int Cnf_reasoner::start_and(int var, ilist args) {
     for (int i = 0; i < ilist_length(args); i++) 
 	clp->add(-args[i]);
     int cid = add_proof_clause(clp);
+    if (cid + ilist_length(args) > clause_limit)
+	err(true, "Adding operation starting with clause %d exceeds limit\n", cid);
     for (int i = 0; i < ilist_length(args); i++) {
 	Clause *aclp = new Clause();
 	aclp->add(-var);
@@ -939,6 +943,8 @@ int Cnf_reasoner::start_or(int var, ilist args) {
     Clause *clp = new Clause();
     clp->add(-var); clp->add(arg1); clp->add(arg2);
     int cid = add_proof_clause(clp);
+    if (cid + ilist_length(args) > clause_limit)
+	err(true, "Adding operation starting with clause %d exceeds limit\n", cid);
     Clause *aclp1 = new Clause();
     aclp1->add(var); aclp1->add(-arg2);
     add_proof_clause(aclp1);

@@ -62,6 +62,10 @@ double get_elapsed();
 extern int verblevel;
 void set_verblevel(int level);
 
+typedef void (*panic_function_t)(void);
+
+void set_panic(panic_function_t fun);
+
 extern FILE *errfile;
 extern FILE *verbfile;
 

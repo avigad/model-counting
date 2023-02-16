@@ -18,14 +18,15 @@ static bool delete_files  =  true;
 static bool early_quit = false;
 static int drat_threshold = 1000;
 static int bcp_limit = 1;
-static int clause_limit = INT_MAX;
+static int clause_limit = 2 * 1000 * 1000 * 1000;
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
+    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
     lprintf("  -h        Print this information\n");
     lprintf("  -v VLEVEL Set verbosity level\n");
     lprintf("  -L LOG    Record all results to file LOG\n");
     lprintf("  -p        Quit after determining POG size\n");
+    lprintf("  -C CLIM   Limit total number of clauses in input + proof (default = %d)\n", clause_limit);
     lprintf("  -b BLIM   Limit depth of Boolean constraint propagation for contradiction proofs (default = %d)\n", bcp_limit);
     lprintf("  -t THRESH Use drat-trim on proofs when SAT problems are above THRESH clauses (default = %d)\n", drat_threshold);
     lprintf("  -s        Prove each literal separately, rather than combining into single proof\n");
@@ -146,6 +147,12 @@ static void stat_report() {
     lprintf("%s   time TOTAL     : %.2f\n", prefix, elapsed);
 }
 
+void panic() {
+    err(false, "Execution incomplete.  Here's the results so far:\n");
+    stat_report();
+    err(false, "Results not valid\n");
+}
+
 #define LPL 25
 
 static void print_solution(std::vector<int> &literals) {
@@ -202,8 +209,6 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	// Undercount
 	return 10;
     }
-    elapsed = get_elapsed();
-    lprintf("%s Time = %.2f.  Completed justification of root literal %d\n", prefix, elapsed, root_literal);
     cnf.delete_assertions();
     elapsed = get_elapsed();
     lprintf("%s Time = %.2f.  Deleted asserted clauses\n", prefix, elapsed);
@@ -222,8 +227,6 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     elapsed = get_elapsed();
     lprintf("%s Time = %.2f.  Deleted input clauses\n", prefix, elapsed);
     pwriter->finish_file();
-    elapsed = get_elapsed();
-    lprintf("%s Time = %.2f. Deleted input clauses\n", prefix, elapsed);
     return overcount ? 20 : 0;
 }
 
@@ -233,7 +236,8 @@ int main(int argc, char *const argv[]) {
     Pog_writer *pwriter = NULL;
     verblevel = 1;
     int c;
-    while ((c = getopt(argc, argv, "hpv:L:b:t:sek")) != -1) {
+    set_panic(panic);
+    while ((c = getopt(argc, argv, "hpv:L:C:b:t:sek")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -246,6 +250,9 @@ int main(int argc, char *const argv[]) {
 	    break;
 	case 'L':
 	    set_logname(optarg);
+	    break;
+	case 'C':
+	    clause_limit = atoi(optarg);
 	    break;
 	case 'b':
 	    bcp_limit = atoi(optarg);
@@ -305,6 +312,7 @@ int main(int argc, char *const argv[]) {
 	lprintf("%s   Use lemmas:      %s\n", prefix, use_lemmas ? "yes" : "no");
 	lprintf("%s   Delete files:    %s\n", prefix, delete_files ? "yes" : "no");
 	lprintf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
+	lprintf("%s   Clause limit:    %d\n", prefix, clause_limit);
 	lprintf("%s   BCP limit:       %d\n", prefix, bcp_limit);
     }
     int return_code = run(cnf_file, nnf_file, pwriter);

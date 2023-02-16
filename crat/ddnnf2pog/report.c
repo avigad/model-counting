@@ -8,6 +8,8 @@ int verblevel = 1;
 FILE *errfile = NULL;
 FILE *verbfile = NULL;
 
+static panic_function_t panic_function = NULL;
+
 static const char *logfile_name = NULL;
 
 static const char *datafile_name = "datafile.csv";
@@ -35,6 +37,10 @@ void set_verblevel(int level) {
     verblevel = level;
 }
 
+void set_panic(panic_function_t fun) {
+    panic_function = fun;
+}
+
 void err(bool fatal, const char *fmt, ...) {
     if (!errfile)
 	errfile = stdout;
@@ -60,8 +66,11 @@ void err(bool fatal, const char *fmt, ...) {
 	    fclose(logfile);
 	}
     }
-    if (fatal)
+    if (fatal) {
+	if (panic_function)
+	    panic_function();
 	exit(1);
+    }
 }
 
 void report(int level, const char *fmt, ...) {
