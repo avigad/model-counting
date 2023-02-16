@@ -145,6 +145,12 @@ class P52:
         result =  P52(na, nm2, nm5)
         return result
 
+    # This only works for case where a == 1
+    def recip(self):
+        if self.a != 1:
+            return None
+        return P52(self.a, -self.m2, -self.m5)
+
     def add(self, other):
         ax = self.a
         ay = other.a
@@ -249,6 +255,7 @@ class P52:
 class CnfReader():
     file = None
     weights = None
+    finalScale = None
     # List of input variables.
     nvar = 0
     failed = False
@@ -288,10 +295,19 @@ class CnfReader():
                     self.weights[lit] = wt
                 elif -lit in self.weights:
                     pwt = self.weights[-lit]
-                    if wt.add(pwt) != P52(1):
-                        msg = "Noncomplementary weights: w(%d) = %s, w(%d) = %s" % (-lit, pwt.render(), lit, wt.render())
-                        self.fail(msg)
-                        return
+                    swt = wt.add(pwt)
+                    if swt != P52(1):
+                        # Try to normalize
+                        rwt = swt.recip()
+                        if rwt is None:
+                            msg = "Cannot normalize weights: w(%d) = %s, w(%d) = %s" % (-lit, pwt.render(), lit, wt.render())
+                            self.fail(msg)
+                            return
+                        self.weights[-lit] = self.weights[-lit].mul(rwt)
+                        if self.finalScale is None:
+                            self.finalScale = swt
+                        else:
+                            self.finalScale = self.finalScale.mul(swt)
 
 
     def readCnf(self):
@@ -467,11 +483,11 @@ class Builder:
                 break
         pfile.close()
             
-    def count(self, weights = None):
+    def count(self, weights = None, finalScale = None):
         if self.rootLiteral is None:
             print("COUNTER: Can't determine count.  Don't know root")
             return P52()
-        return self.omgr.count(self.rootLiteral, weights)
+        return self.omgr.count(self.rootLiteral, weights, finalScale)
 
     def invalidCommand(self, cmd):
         self.flagError("Invalid command '%s' in proof" % cmd)
@@ -528,6 +544,7 @@ def run(name, args):
     cnfName = None
     proofName = None
     weights = None
+    finalScale = None
     optList, args = getopt.getopt(args, "hi:p:w:")
     for (opt, val) in optList:
         if opt == '-h':
@@ -564,6 +581,7 @@ def run(name, args):
         if creader.weights is not None:
             print("Obtained weights from CNF file")
             weights = creader.weights
+            finalScale = creader.finalScale
     if weights is not None and len(weights) != creader.nvar:
         print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
         return False
@@ -571,7 +589,7 @@ def run(name, args):
     builder.build(proofName)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
-    count = builder.count(weights)
+    count = builder.count(weights, finalScale)
     print("COUNTER: Elapsed time for count: %.2f seconds" % seconds)
     if weights is None:
         print("COUNTER: Unweighted count = %s" % count.render())
