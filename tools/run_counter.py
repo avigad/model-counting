@@ -37,6 +37,8 @@ countProgram = countHome + "/crat_counter.py"
 
 timeLimits = { "D4" : 3600, "GEN" : 3600, "FCHECK" : 3600, "COUNT" : 3600 }
 
+clauseLimit = 500 * 1000 * 1000
+
 def runProgram(prefix, root, commandList, logFile, extraLogName = None):
     if prefix in timeLimits:
         timeLimit = timeLimits[prefix]
@@ -113,7 +115,7 @@ def runGen(root, home, logFile, force):
     cratName = home + "/" + root + ".crat"
     if not force and os.path.exists(cratName):
         return True
-    cmd = [genProgram, "-L", extraLogName, cnfName, nnfName, cratName]
+    cmd = [genProgram, "-C", clauseLimit, "-L", extraLogName, cnfName, nnfName, cratName]
     ok = runProgram("GEN", root, cmd, logFile, extraLogName = extraLogName)
     if not ok and os.path.exists(cratName):
         os.remove(cratName)
