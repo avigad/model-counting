@@ -35,7 +35,7 @@ interpreter = "python3"
 countHome = homePath + "/model-counting/crat/prototype"
 countProgram = countHome + "/crat_counter.py"
 
-timeLimits = { "D4" : 900, "GEN" : 1800, "FCHECK" : 1800, "COUNT" : 1800 }
+timeLimits = { "D4" : 3600, "GEN" : 3600, "FCHECK" : 3600, "COUNT" : 3600 }
 
 def runProgram(prefix, root, commandList, logFile, extraLogName = None):
     if prefix in timeLimits:
