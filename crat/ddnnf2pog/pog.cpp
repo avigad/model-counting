@@ -710,6 +710,7 @@ int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
 // Return ID of justifying clause
 int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
     int jcid = 0;
+    counter_t jtype = COUNT_LITERAL_JUSTIFICATION_CLAUSE;
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
@@ -765,6 +766,7 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 		    hints.push_back(cid0);
 		    for (int h = 0; h < hcount[1]; h++)
 			hints.push_back(lhints[1][h]);
+		    jtype = COUNT_OR_JUSTIFICATION_CLAUSE;
 		} else {
 		    // Can do with single proof step
 		    incr_count(COUNT_OR_JUSTIFICATION_CLAUSE);
@@ -871,7 +873,7 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 		hints.push_back(rnp->get_defining_cid());
 		if (save_clauses != NULL)
 		    cnf->set_active_clauses(save_clauses);
-		incr_count(COUNT_AND_JUSTIFICATION_CLAUSE);
+		jtype = COUNT_AND_JUSTIFICATION_CLAUSE;
 	    }
 	    break;
 	default:
@@ -881,6 +883,7 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 	for (int hint : hints)
 	    cnf->add_hint(hint);
 	cnf->finish_command(true);
+	incr_count(jtype);
 	cnf->pop_context();
     } else if (parent_or) {
 	// Special value to let OR verification proceed
@@ -894,8 +897,12 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
     if (jcid > 0) {
 	report(4, "Literal %d in POG justified by clause %d\n", rlit, jcid);
 	vcount ++;
-	if (vcount >= vreport_last + vreport_interval) {
-	    report(1, "Time = %.2f.  Justifications of %d/%d nodes completed\n", get_elapsed(), vcount, nodes.size());
+	if (rlit == root_literal) {
+	    report(1, "Time = %.2f.  Justifications of %d nodes, including root, completed.  %d total clauses\n",
+		   get_elapsed(), vcount, jcid - cnf->clause_count());
+	} else if (vcount >= vreport_last + vreport_interval) {
+	    report(1, "Time = %.2f.  Justifications of %d nodes completed.  %d total clauses\n",
+		   get_elapsed(), vcount, jcid - cnf->clause_count());
 	    vreport_last = vcount;
 	}
     }

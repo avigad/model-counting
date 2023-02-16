@@ -130,13 +130,15 @@ static void stat_report() {
     int caj = get_count(COUNT_AND_JUSTIFICATION_CLAUSE);
     int coj = get_count(COUNT_OR_JUSTIFICATION_CLAUSE);
     int clj = get_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
+    int cla = get_count(COUNT_LEMMA_APPLICATION_CLAUSE);
     lprintf("%s Clauses\n", prefix);    
     lprintf("%s    POG definition       : %d\n", prefix, cdp);
     lprintf("%s    AUX definition       : %d\n", prefix, cda);
     lprintf("%s    product justification: %d\n", prefix, caj);
     lprintf("%s    sum justification    : %d\n", prefix, coj);
     lprintf("%s    literal justification: %d\n", prefix, clj);
-    lprintf("%s    clause TOTAL         : %d\n", prefix, cdp+cda+coj+caj+clj);
+    lprintf("%s    lemma application    : %d\n", prefix, cla);
+    lprintf("%s    clause TOTAL         : %d\n", prefix, cdp+cda+coj+caj+clj+cla);
     double sat_time = get_timer(TIME_SAT);
     lprintf("%s Time\n", prefix);
     lprintf("%s   SAT execution  : %.2f\n", prefix, sat_time);

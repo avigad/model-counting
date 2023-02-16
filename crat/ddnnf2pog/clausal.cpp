@@ -1000,7 +1000,6 @@ void Cnf_reasoner::new_unit(int lit, int cid, bool input) {
     clp->add(lit);
     for (int alit : assigned_literals)
 	clp->add(-alit);
-    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 #if DEBUG
     pwriter->comment("Justified literal %d", lit);
 #endif
@@ -1020,6 +1019,7 @@ void Cnf_reasoner::new_unit(int lit, int cid, bool input) {
     }
     add_hint(cid);
     finish_command(true);
+    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     report(3, "Unit literal %d justified by proof clause #%d\n", lit, ncid);
 }
 
@@ -1029,7 +1029,6 @@ int Cnf_reasoner::quick_validate_literal(int lit, int cid1, int cid2) {
     for (int alit : assigned_literals)
 	clp->add(-alit);
     int ncid = start_assertion(clp);
-    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     if (clp->length() == 1) {
 	unit_literals.insert(lit);
     } else {
@@ -1038,6 +1037,7 @@ int Cnf_reasoner::quick_validate_literal(int lit, int cid1, int cid2) {
     add_hint(cid1);
     add_hint(cid2);
     finish_command(true);
+    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     return ncid;
 }
 
@@ -1061,7 +1061,6 @@ int Cnf_reasoner::found_conflict(int cid) {
 		pwriter->comment("Conflict clause");
 #endif
 		ncid = start_assertion(clp);
-		incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 	    }
 	    add_hint(fid->second);
 	}
@@ -1073,6 +1072,7 @@ int Cnf_reasoner::found_conflict(int cid) {
     }
     add_hint(cid);
     finish_command(true);
+    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     return ncid;
 }
 
@@ -1335,11 +1335,11 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 	}
 	// Put hints in proper order
 	std::reverse(hints.begin(), hints.end());
-	incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 	ncid = start_assertion(cltp);
 	for (int hid : hints)
 	    add_hint(hid);
 	finish_command(true);
+	incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 	activate_clause(ncid);
     }
     // Undo assignments
@@ -1619,7 +1619,6 @@ int Cnf_reasoner::reduce_run(int lit) {
 		if (pnp == NULL)
 		    break;
 		pcount++;
-		incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 		ncid = start_assertion(pnp);
 		// Add extra information about unit literals
 		filter_units(pnp, php, real_units);
@@ -1633,6 +1632,7 @@ int Cnf_reasoner::reduce_run(int lit) {
 		}
 		add_hints(php);
 		finish_command(true);
+		incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 		delete php;
 	    }
 	    pwriter->comment("End of proof clauses from SAT solver");
@@ -2107,6 +2107,7 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
 	    }
 	    add_hint(ocid);
 	    finish_command(true);
+	    incr_count(COUNT_LEMMA_APPLICATION_CLAUSE);
 	    delete nnp;
 	}
     }
@@ -2121,6 +2122,7 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
 	add_hint(ajid);
     add_hint(lemma->jid);
     finish_command(true);
+    incr_count(COUNT_LEMMA_APPLICATION_CLAUSE);
     delete lnp;
     return jid;
 }
