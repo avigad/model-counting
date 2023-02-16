@@ -52,6 +52,15 @@ void usage(char *name) {
 #define DPREFIX "FCHECK"
 #define __cfunc__ (char *) __func__
 
+/* How many ints fit into a single chunk (2^20) */
+#define CHUNK_SIZE (1L << 20)
+//#define CHUNK_SIZE (1L << 8)
+/* What is assumed limit of VM (64 GB) */
+#define VM_LIMIT (1L << 36)
+//#define VM_LIMIT (1L << 20)
+/* What is the maximum number of chunks (16K) */
+#define CHUNK_MAX (VM_LIMIT/(CHUNK_SIZE * sizeof(int)))
+
 /*============================================
   Global variables.  Others are later in file.
 ============================================*/
@@ -70,6 +79,11 @@ int input_clause_count = 0;
 int input_variable_count = 0;
 int variable_limit = 0;
 
+/*============================================
+  Prototypes
+============================================*/
+
+void clause_show(FILE *out, int cid, bool endline);
 
 /*============================================
   Utility functions
@@ -565,12 +579,30 @@ void token_find_eol() {
   Core data structures
 ============================================*/
 
-/* Maintain set of all clauses as single array.  Each entry zero-terminated */
-int *clause_list = NULL;
-long int clause_next_pos = 0;
-long int clause_asize = 0;
+/* 
+   Maintain set of all clauses as set of chunks.  Within a chunk,
+   clauses are organized as zero-terminated sequences of int's.  A
+   clause does not break across chunks
+*/
+
+/*
+  Fixed array containing pointers to all chunks.  Individual chunks
+  are allocated dynamically.
+*/
+int *chunk_set[CHUNK_MAX];
+
+/* How many chunks have been allocated? */
+int chunk_count = 0;
+
+/* How much of the current chunk has been used */
+int chunk_used = 0;
+
+/* Tracking clauses */
 int clause_count = 0;
 int clause_last_id = 0;
+
+// Working area for creating a new clause
+ilist current_clause = NULL;
 
 /* 
    For each extension variable, count of number of clauses containing
@@ -587,7 +619,8 @@ ilist clause_xvar_reference = NULL;
 typedef struct BELE {
     int start_id;  // Clause ID of initial entry
     int length;    // Number of (possibly null) clauses in block
-    ilist offset;  // Sequence of clause offsets
+    ilist chunk;   // Sequence of chunk IDs (numbered from 0)
+    ilist offset;  // Sequence of clause offsets within chunk
 } clause_block_t;
 
 clause_block_t *clause_blocks = NULL;
@@ -596,18 +629,21 @@ int clause_block_count = 0;
 
 /* Operations */
 void clause_init() {
-    clause_asize = MIN_SIZE;
-    clause_list = calloc(clause_asize, sizeof(int));
-    if (clause_list == NULL)
-	err_printf(__cfunc__, "Couldn't allocate space for clauses\n");
+    /* Allocate a single starting chunk */
+    chunk_set[chunk_count] = calloc(CHUNK_SIZE, sizeof(int));
+    if (chunk_set[chunk_count] == NULL)
+	err_printf(__cfunc__, "Couldn't allocate space for clause chunk %d\n", chunk_count);	
+    chunk_count++;
+    current_clause = ilist_new(0);
     clause_block_alloc = 10;
     clause_blocks = calloc(clause_block_alloc, sizeof(clause_block_t));
     if (clause_blocks == NULL)
-	err_printf(__cfunc__, "Couldn't allocate space for clause block\n");
+	err_printf(__cfunc__, "Couldn't allocate space for clause blocks\n");	
     clause_block_count = 1;
     clause_blocks[clause_block_count-1].start_id = 1;
     clause_blocks[clause_block_count-1].length = 0;
-    clause_blocks[clause_block_count-1].offset = ilist_new(10);
+    clause_blocks[clause_block_count-1].chunk = ilist_new(MIN_SIZE);
+    clause_blocks[clause_block_count-1].offset = ilist_new(MIN_SIZE);
     clause_xvar_reference = ilist_new(MIN_SIZE);
 }
 
@@ -621,14 +657,17 @@ int clause_probe_block(int bid, int cid) {
     return 0;
 }
 
+/* Return pointer to beginning of clause within block */
 int *clause_locate_within(int bid, int cid) {
     int pos = cid - clause_blocks[bid].start_id;
+    int chunk = clause_blocks[bid].chunk[pos];
     int offset = clause_blocks[bid].offset[pos];
     if (offset < 0)
 	return NULL;
-    return clause_list + offset;
+    return chunk_set[chunk] + offset;
 }
 
+/* Return pointer to beginning of any existing clause */
 int *clause_locate(int cid) {
     int bid;
     /* Ensure that lid <= bid <= rid */
@@ -661,10 +700,11 @@ bool clause_delete(int cid) {
 	    lid = bid+1;
 	else {
 	    int pos = cid - clause_blocks[bid].start_id;
+	    int chunk = clause_blocks[bid].chunk[pos];
 	    int offset = clause_blocks[bid].offset[pos];
 	    bool deleting = offset >= 0;
 	    if (deleting) {
-		int *loc = clause_list + offset;
+		int *loc = chunk_set[chunk] + offset;
 		while (*loc) {
 		    int lit = *loc++;
 		    int var = IABS(lit);
@@ -675,6 +715,7 @@ bool clause_delete(int cid) {
 		    }
 		}
 	    }
+	    clause_blocks[bid].chunk[pos] = -1;
 	    clause_blocks[bid].offset[pos] = -1;
 	    return deleting;
 	}
@@ -682,7 +723,7 @@ bool clause_delete(int cid) {
     return false;
 }
 
-void clause_new(int cid) {
+void start_clause(int cid) {
     if (clause_last_id == 0)
 	clause_init();
     if (clause_locate(cid) != NULL)
@@ -702,38 +743,55 @@ void clause_new(int cid) {
 	info_printf(3, "Starting new clause block.  Id = %d\n", cid);
 	clause_blocks[clause_block_count-1].start_id = cid;
 	clause_blocks[clause_block_count-1].length = 0;
+	clause_blocks[clause_block_count-1].chunk = ilist_new(MIN_SIZE);
 	clause_blocks[clause_block_count-1].offset = ilist_new(MIN_SIZE);
     } else {
 	/* Fill in with null clauses */
 	int ncid;
 	for (ncid = clause_last_id+1; ncid < cid; ncid++) {
+	    clause_blocks[clause_block_count-1].chunk = ilist_push(clause_blocks[clause_block_count-1].chunk, -1);
 	    clause_blocks[clause_block_count-1].offset = ilist_push(clause_blocks[clause_block_count-1].offset, -1);
 	    clause_blocks[clause_block_count-1].length ++;
 	}
     }
-    clause_blocks[clause_block_count-1].offset = ilist_push(clause_blocks[clause_block_count-1].offset, (int) clause_next_pos);
-    clause_blocks[clause_block_count-1].length ++;
     clause_last_id = cid;
     clause_count ++;
+    current_clause = ilist_resize(current_clause, 0);
+    info_printf(2, "Starting clause %d\n", cid);
+}
+
+/* Save the current clause */
+void finish_clause(int cid) {
+    long int need = ilist_length(current_clause);
+    if (need > CHUNK_SIZE) {
+	err_printf("finish_clause", "Attempt to save clause of length %d.  Max allowed length = %d\n", ilist_length(current_clause), CHUNK_SIZE);
+	exit(1);
+    }
+    if (need + chunk_used > CHUNK_SIZE) {
+	// Must start new chunk
+	if (chunk_count >= CHUNK_MAX-1)
+	    err_printf(__cfunc__, "Reached maximum of %d chunks\n", CHUNK_MAX);	
+	chunk_set[chunk_count] = calloc(CHUNK_SIZE, sizeof(int));
+	if (chunk_set[chunk_count] == NULL)
+	    err_printf(__cfunc__, "Couldn't allocate space for clause chunk %d\n", chunk_count);	
+	chunk_count++;
+	chunk_used = 0;
+    }
+    int pos = chunk_used;
+    memcpy(chunk_set[chunk_count-1] + chunk_used, current_clause, ilist_length(current_clause) * sizeof(int));
+    chunk_used += ilist_length(current_clause);
+    // Record clause position
+    clause_blocks[clause_block_count-1].chunk = ilist_push(clause_blocks[clause_block_count-1].chunk, chunk_count-1);
+    clause_blocks[clause_block_count-1].offset = ilist_push(clause_blocks[clause_block_count-1].offset, pos);
+    clause_blocks[clause_block_count-1].length ++;
+    info_printf(2, "Finished clause.  Full length %d.  Chunk ID %d.  Offset %d ", need, chunk_count-1, pos);
+    if (verb_level >= 2) 
+	clause_show(stdout, cid, true);
 }
 
 /* Add either literal or terminating 0 to current clause */
 void clause_add_literal(int lit) { 
-    if (clause_next_pos >= clause_asize) {
-	long int oasize = clause_asize;
-	clause_asize = (long int) (GROW_RATIO * clause_asize);
-	if (clause_asize > INT_MAX) {
-	    if (oasize < INT_MAX)
-		clause_asize = INT_MAX;
-	    else
-		err_printf(__cfunc__, "Couldn't allocate space for clauses.  Exceeding INT_MAX positions\n");
-	}
-	clause_list = realloc(clause_list, clause_asize * sizeof(int));
-	info_printf(3, "Resizing clause list %ld --> %ld\n", oasize, clause_asize);
-	if (clause_list == NULL)
-	    err_printf(__cfunc__, "Couldn't allocate space for clauses\n");
-    }
-    clause_list[clause_next_pos++] = lit;
+    current_clause = ilist_push(current_clause, lit);
     int var = IABS(lit);
     if (var > input_variable_count) {
 	if (var > variable_limit)
@@ -743,9 +801,14 @@ void clause_add_literal(int lit) {
 }
 
 bool clause_is_unit(int *lits) {
-    return lits != NULL 
-	&& lits[0] != 0
-	&& lits[1] == 0;
+    /* Can have multiple repetitions of single literal */
+    if (lits == NULL || lits[0] == 0)
+	return false;
+    int lit = lits[0];
+    int i;
+    for (i = 1; lits[i] == lit; i++)
+	;
+    return lits[i] == 0;
 }
 
 void clause_show(FILE *out, int cid, bool endline) {
@@ -919,7 +982,7 @@ void cnf_read(char *fname) {
 	    continue;
 	else if (token == TOK_INT) {
 	    if (!within_clause) {
-		clause_new(found_clause_count+1);
+		start_clause(found_clause_count+1);
 		within_clause = true;
 		last_literal = INT_MAX;
 	    }
@@ -928,6 +991,7 @@ void cnf_read(char *fname) {
 	    if (token_value == 0) {
 		found_clause_count ++;
 		within_clause = false;
+		finish_clause(found_clause_count);
 	    }
 	}
 	else
@@ -1039,7 +1103,7 @@ void crat_show(FILE *out) {
 /* Handlers for different command types.  Each starts after parsing command token */
 void crat_add_clause(int cid) {
     lset_clear();
-    clause_new(cid);
+    start_clause(cid);
     while (true) {
 	token_t token = token_next();
 	if (token != TOK_INT)
@@ -1051,6 +1115,7 @@ void crat_add_clause(int cid) {
 	else
 	    lset_add_lit(-lit);
     }
+    finish_clause(cid);
     rup_run(cid);
     token_confirm_eol();
     crat_assertion_count ++;
@@ -1131,18 +1196,20 @@ void crat_add_product(int cid) {
 	err_printf(__cfunc__, "Expected end of line.  Got %s ('%s') instead\n", token_name[token], token_last);
 
     /* Add clauses */
-    clause_new(cid);
+    start_clause(cid);
     clause_add_literal(nid);
     int i;
     int n = ilist_length(node->children);
     for (i = 0; i < n; i++)
 	clause_add_literal(-node->children[i]);
     clause_add_literal(0);
+    finish_clause(cid);
     for (i = 0; i < n; i++) {
-	clause_new(cid+i+1);
+	start_clause(cid+i+1);
 	clause_add_literal(-nid);
 	clause_add_literal(node->children[i]);
 	clause_add_literal(0);
+	finish_clause(cid+i+1);
     }
     crat_operation_count ++;
     crat_operation_clause_count += (n+1);
@@ -1195,19 +1262,22 @@ void crat_add_sum(int cid) {
 
     token_confirm_eol();
     /* Add sum clause */
-    clause_new(cid);
+    start_clause(cid);
     clause_add_literal(-nid);
     int i;
     int n = ilist_length(node->children);
     for (i = 0; i < n; i++)
 	clause_add_literal(node->children[i]);
     clause_add_literal(0);
+    finish_clause(cid);
     for (i = 0; i < n; i++) {
-	clause_new(cid+i+1);
+	start_clause(cid+i+1);
 	clause_add_literal(nid);
 	clause_add_literal(-node->children[i]);
 	clause_add_literal(0);
+	finish_clause(cid+i+1);
     }
+
     crat_operation_count ++;
     crat_operation_clause_count += (n+1);
     info_printf(3, "Processed sum %d addition\n", nid);
