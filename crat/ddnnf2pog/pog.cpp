@@ -425,6 +425,9 @@ bool Pog::concretize() {
 	    cnf->document_input(cid);
     }
 
+    // Insert declaration of root literal
+    cnf->pwriter->declare_root(root_literal);
+
     for (Pog_node *np : nodes) {
 	ilist args = ilist_copy_list(&(*np)[0], np->get_degree());
 	int xvar = np->get_xvar();

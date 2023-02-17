@@ -244,6 +244,11 @@ void Cnf_writer::write_header(int nv, int nc) {
 Pog_writer::Pog_writer() : Writer() {}
 Pog_writer::Pog_writer(const char *fname) : Writer(fname) {}
 
+void Pog_writer::declare_root(int root_literal) {
+    write_text("r %d", root_literal);
+    finish_line("");
+}
+
 void Pog_writer::start_assertion(int cid) {
 #ifdef LRAT
     write_text("%d ", cid);

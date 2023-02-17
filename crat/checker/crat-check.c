@@ -79,6 +79,10 @@ int input_clause_count = 0;
 int input_variable_count = 0;
 int variable_limit = 0;
 
+/* Allow declaration of root node.  Make sure it matches literal in
+   only remaining unit clause */
+int declared_root = 0;
+
 /*============================================
   Prototypes
 ============================================*/
@@ -1101,6 +1105,14 @@ void crat_show(FILE *out) {
 }
 
 /* Handlers for different command types.  Each starts after parsing command token */
+void crat_read_root() {
+    token_t token = token_next();
+    if (token != TOK_INT)
+	err_printf(__cfunc__, "Unexpected token %s ('%s')\n", token_name[token], token_last);
+    declared_root = token_value;
+    info_printf(3, "Root literal declared as %d\n", declared_root);
+}
+
 void crat_add_clause(int cid) {
     lset_clear();
     start_clause(cid);
@@ -1121,6 +1133,7 @@ void crat_add_clause(int cid) {
     crat_assertion_count ++;
     info_printf(3, "Processed clause %d addition\n", cid);
 }
+
 void crat_delete_clause() {
     /* Before start deletions, lets show what was there */ 
     if (verb_level >= 3 && crat_assertion_deletion_count == 0) {
@@ -1338,6 +1351,9 @@ int crat_final_root() {
     }
     if (root == 0) 
 	err_printf(__cfunc__, "Didn't find root node\n");
+    if (declared_root != 0 && declared_root != root) 
+	err_printf(__cfunc__, "Declared root node %d doesn't match remaining unit literal %d\n", declared_root, root);
+
     return root;
 }
 
@@ -1362,6 +1378,8 @@ void crat_read(char *fname) {
 	    err_printf(__cfunc__, "Expecting CRAT command.  Got %s ('%s') instead\n", token_name[token], token_last);
 	else if (strcmp(token_last, "a") == 0)
 	    crat_add_clause(cid);
+	else if (strcmp(token_last, "r") == 0)
+	    crat_read_root();
 	else if (strcmp(token_last, "dc") == 0)
 	    crat_delete_clause();
 	else if (strcmp(token_last, "p") == 0)

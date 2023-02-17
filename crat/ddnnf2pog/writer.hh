@@ -94,6 +94,7 @@ public:
     Pog_writer();
     Pog_writer(const char *fname);
 
+    void declare_root(int rid);
     void start_assertion(int cid);
     void start_and(int cid, int var);
     void start_or(int cid, int var);

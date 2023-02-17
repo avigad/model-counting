@@ -56,7 +56,7 @@ earlyRup = True
 # Lit*: Clause consisting of specified literals
 # HINT: Either Id+ or *
 
-# Id  i [Lit*] 0             -- Input clause
+#     r Lit                  -- Declare root literal
 # Id  a [Lit*] 0    HINT 0   -- RUP clause addition
 #    dc Id          HINT 0   -- RUP clause deletion
 # Id  p Var Lit*         0   -- And operation
@@ -541,6 +541,8 @@ class ClauseManager:
     liveClauseSet = set([])
     # Final root 
     root = None
+    # Literal declared in file
+    declaredRoot = None
     verbose = False
     laxMode = False
     requireHintsMode = False
@@ -768,6 +770,8 @@ class ClauseManager:
                 
         if self.root is None:
             return (False, "No root found")
+        if self.declaredRoot is not None and self.declaredRoot != self.root:
+            return (False, "Declared root %d does not match literal %d in final unit clause" % (self.declaredRoot, self.root))
         return (True, "")
 
 class OperationManager:
@@ -927,7 +931,7 @@ class Prover:
         self.cratWriter = cratWriter
         self.failed = False
         self.subsetOK = False
-        self.ruleCounters = { 'i' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0 }
+        self.ruleCounters = { 'i' : 0, 'r' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0 }
 
         id = 0
         for clause in creader.clauses:
@@ -984,7 +988,7 @@ class Prover:
             if len(fields) == 0 or fields[0][0] == 'c':
                 continue
             id = None
-            if fields[0] not in ['dc', 'do']:
+            if fields[0] not in ['dc', 'do', 'r']:
                 try:
                     id = int(fields[0])
                 except:
@@ -1001,6 +1005,8 @@ class Prover:
                 self.doAddRup(id, rest)
             elif cmd == 'dc':
                 self.doDeleteRup(id, rest)
+            elif cmd == 'r':
+                self.doDeclareRoot(id, rest)
             elif cmd == 'p':
                 self.doProduct(id, rest)
             elif cmd == 's':
@@ -1097,6 +1103,17 @@ class Prover:
         if self.cratWriter is not None:
             self.cratWriter.doDeleteClause(id, hints)
         
+    def doDeclareRoot(self, id, rest):
+        if len(rest) != 1:
+            self.flagError("Root declaration should consist just of root literal")
+            return
+        try:
+            rlit = int(rest[0])
+        except:
+            self.flagError("Invalid root literal '%s'", rest[0])
+            return
+        self.cmgr.declaredRoot = rlit
+
     def doProduct(self, id, rest):
 # REVISED
 #        if len(rest) < 2:

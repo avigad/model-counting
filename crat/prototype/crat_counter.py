@@ -55,7 +55,7 @@ def usage(name):
 # Lit*: Clause consisting of specified literals
 # HINT: Either Id+ or *
 
-# Id  i [Lit*] 0             -- Input clause
+#     r lit                  -- Declare root literal
 # Id  a [Lit*] 0    HINT 0   -- RUP clause addition
 #    dc Id          HINT 0   -- RUP clause deletion
 # Id  p Var Lit*         0   -- And operation
@@ -360,6 +360,9 @@ class OperationManager:
         self.operationDict[outVar] = tuple([op] + inLits)
         return (True, "")
 
+    def haveOperation(self, outVar):
+        return outVar in self.operationDict
+
     def deleteOperation(self, outVar):
         return (True, "")
 
@@ -454,7 +457,7 @@ class Builder:
             if len(fields) == 0 or fields[0][0] == 'c':
                 continue
             id = None
-            if fields[0] not in ['dc', 'do']:
+            if fields[0] not in ['dc', 'do', 'r']:
                 try:
                     id = int(fields[0])
                 except:
@@ -471,6 +474,8 @@ class Builder:
                 self.doAddRup(id, rest)
             elif cmd == 'dc':
                 pass
+            elif cmd == 'r':
+                self.doDeclareRoot(id, rest)
             elif cmd == 'p':
                 self.doProduct(id, rest)
             elif cmd == 's':
@@ -480,6 +485,8 @@ class Builder:
             else:
                 self.invalidCommand(cmd)
             if self.failed:
+                break
+            if self.rootLiteral is not None and self.omgr.haveOperation(self.rootLiteral):
                 break
         pfile.close()
             
@@ -496,10 +503,21 @@ class Builder:
         (lits, rest) = self.findList(rest)
         if self.failed:
             return
-        if len(lits) == 1:
+        if len(lits) == 1 and self.rootLiteral is None:
             self.rootLiteral = lits[0]
-
         
+    def doDeclareRoot(self, id, rest):
+        if len(rest) != 1:
+            self.flagError("Root declaration should consist just of root literal")
+            return
+        try:
+            rlit = int(rest[0])
+        except:
+            self.flagError("Invalid root literal '%s'", rest[0])
+            return
+        self.rootLiteral = rlit
+
+
     def doProduct(self, id, rest):
 # REVISED
 #        if len(rest) < 2:

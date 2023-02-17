@@ -485,12 +485,13 @@ quantified Boolean formulas (QBF).  The following are its key properties:
      & {\tt dc} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause.  Explicit hint \\
      & {\tt dc} & $C$             & {\tt * 0} & Delete RUP clause.  Inferred hint \\
     \midrule
-    $C$    & {\tt p} & $V \; L^{2+}$ {\tt 0}    &                  & Declare $\pand$ operation \\
+    $C$    & {\tt p} & $V \; L^{*}$ {\tt 0}    &                  & Declare $\pand$ operation \\
     $C$    & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation.  Explicit hint \\ 
     $C$    & {\tt s} & $V \; L \; L$    & {\tt * 0}  & Declare $\por$ operation.  Inferred hint \\ 
 %%        & {\tt ite} & $V \; L \; L\; L$    &                  & Declare $\pite$ operation \\
      & {\tt do} & $V$             &  & Delete operation. \\
-
+    \midrule
+     & {\tt r} & $L$             &            & Declare root literal\\
   \end{tabular}
   }
 \end{table}
@@ -535,7 +536,13 @@ This declaration implicitly causes $k+1$ clauses to be added to the proof:
   $i\!+\!k$ & $-v$ & $l_k$  \\
 \end{tabular}
 \end{center}
-The dependency sets for the arguments represented by each pair of literals $l_{j_1}$ and $l_{j_2}$, for $1 \leq j_1 < j_2 \leq k$, must be disjoint.
+The dependency sets for the arguments represented by each pair of
+literals $l_{j_1}$ and $l_{j_2}$, for $1 \leq j_1 < j_2 \leq k$, must
+be disjoint.  Note that a $\pand$ operation can have no arguments,
+representing $\tautology$.  The only clause added to the proof will be
+the unit literal $v$.  A reference to literal $-v$ then becomes a way
+of representing $\nil$.
+
 
 The declaration of a $\por$ operation has the form:
 \begin{center}
@@ -560,13 +567,19 @@ This declaration implicitly causes three clauses to be added to the proof:
 \end{center}
 The explicit or implied hints must provide a RUP proof of the clause $-l_1 \lor -l_2$.
 
-Finally, operator deletion ({\tt do}) specifies which operator to
+Operator deletion ({\tt do}) specifies which operator to
 delete via the extension variable associated with the operator.  Doing
 so for operator $v$ requires that there is no
 (undeleted) RUP clause containing a literal of $v$.
 Implicitly, that means
 that there is no (undeleted) operator $u$
 having a literal of $v$ as one of its inputs.  The defining clauses for the operation are also deleted.
+
+Finally, the literal denoting the root of the POG is declared with the
+{\tt r} command.  It can occur anywhere in the file.  Typically, it
+will be the extension node representing the root of a graph, but in
+degenerate cases it can be the positive or negative literal of one of
+the input variables.
 
 \subsection{Semantics}
 
@@ -584,10 +597,7 @@ and each deletion must be falsehood preserving.  At the end, the following condi
 The remaining
 unit clause consists of some variable or its
 complement.  Except for trivial cases, the final literal will be an
-extension variable or its complement.  That literal will indicate the
-root of the POG as the (possibly negated) output of a POG
-operation.  Working from that root backward, the POG can be
-extracted from the CRAT file.
+extension variable or its complement.  That literal must match the one declared as the root literal.
 
 \subsection{Example 1}
 
@@ -617,6 +627,7 @@ extracted from the CRAT file.
     {\tt 5}        & {\tt s}   & {\tt 5 2 4}   & {\tt 3 0}  & & Declare $s_5 = x_2 \por p_4$ \\
     {\tt 8}        & {\tt p}   & {\tt 6 -1 5 0}  &            & & Declare $p_6 = \obar{x}_1 \pand s_5$ \\
     {\tt 11}         & {\tt s}   & {\tt 7 1 6}   & {\tt 9 0}  & & Declare $s_7 = x_1 \por p_6$ \\
+             & {\tt r}  & {\tt 7} & && Declare root literal \\
     {\tt 14} & {\tt a}  & {\tt 7 0} & {\tt 13 12 8 7 6 2 1 0} & & Assert unit clause $[s_7]$ \\
              & {\tt dc}  & {\tt 1}  & {\tt 4 5 10 11 14 0} & & Delete input clause \\
   \end{tabular}
@@ -726,6 +737,7 @@ equivalent to the input formula.
     {\tt 11} & {\tt a} & {\tt -5 0} & {\tt 10 9 2 0}  & & Assert $t_2 = \obar{p}_5 = \obar{x}_1 \lor x_2$ \\
             & {\tt dc}  & {\tt 2 } & {\tt 8 11 0} & & Delete clause $C_2$\\
     {\tt 12} & {\tt s}   & {\tt 6 4 5}   & {\tt 4 9 0}  & & Declare $s_6 = \obar{t}_1 \por \obar{t}_2$ \\
+             & {\tt r}  & {\tt -6} & && Declare root literal \\
     {\tt 15} & {\tt a}  & {\tt -6 0}       & {\tt 7 11 12 0} & & Assert $t_3 = \obar{s}_6 = t_1 \land t_2$ \\
              & {\tt dc}  & {\tt 7}          & {\tt 13 15 0} & & Delete $t_1$\\
              & {\tt dc}  & {\tt 11}         & {\tt 14 15 0} & & Delete $t_2$\\
@@ -828,6 +840,7 @@ computation shown in Figure~\ref{fig:p2-bdd:pog}B\@.
     {\tt 6} & {\tt p}   & {\tt 5 -1 -4 0}  &             & & Declare $p_5 = \obar{x}_1 \pand \obar{p}_4$ \\
     {\tt 9} & {\tt p}   & {\tt 6 1 2 0} &              & & Declare $p_6 = x_1 \pand x_2$ \\    
     {\tt 12} & {\tt s}   & {\tt 7 5 6}   & {\tt 7 10 0}  & & Declare $s_7 = p_5 \por p_6$ \\
+             & {\tt r}  & {\tt 7} & && Declare root literal \\
     {\tt 15} & {\tt a}  & {\tt 1 -4 0}    & {\tt 4 5 1 0} & & Justify $\obar{x}_1 \rightarrow \obar{p}_4$ \\
     {\tt 16} & {\tt a}  & {\tt 1 7 0}     & {\tt 13 6 15 0} & & Justify $\obar{x}_1 \rightarrow s_7$ \\
     {\tt 17} & {\tt a}  & {\tt -1 7 0}    & {\tt 14 9 2 0} & & Justify $x_1 \rightarrow s_7$ \\
