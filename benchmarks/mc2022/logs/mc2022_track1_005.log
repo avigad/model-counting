@@ -1,0 +1,77 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -C 500000000 -L d2p.log ./mc2022_track1_005.cnf ./mc2022_track1_005.nnf ./mc2022_track1_005.crat
+GEN LOG: Time limit 3600 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    500000000
+c GEN:   BCP limit:       1
+c GEN: Time = 0.01.  Read input file with 18224 variables and 31454 clauses
+c Read D4 NNF file with 34 nodes (13 explicit) and 21 edges
+c Compressed POG has 13 nodes, root literal 18237, and 18271 defining clauses
+c GEN: Time = 0.03.  Generated POG representation
+c Time = 8.82.  Justifications of 13 nodes, including root, completed.  161794 total clauses
+c GEN: Time = 9.07.  Deleted asserted clauses
+c GEN: Time = 10.89.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 18224
+c GEN:    input clauses  : 31454
+c GEN: POG nodes
+c GEN:    product   : 11
+c GEN:    sum       : 1
+c GEN:    node TOTAL: 12
+c GEN: Other nodes
+c GEN:    aux product: 9
+c GEN: Node visits
+c GEN:    product/BCP: 3
+c GEN:    product/SAT: 9
+c GEN:    sum        : 1
+c GEN:    visit TOTAL: 13
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (9 instances)
+c GEN:    PROBLEM TOTAL : 89876
+c GEN:    PROBLEM MIN   : 4317
+c GEN:    PROBLEM AVG   : 9986.22
+c GEN:    PROBLEM MAX   : 12869
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 70428
+c GEN:    PROOF MIN   : 6
+c GEN:    PROOF AVG   : 7825.33
+c GEN:    PROOF MAX   : 47822
+c GEN: Clauses
+c GEN:    POG definition       : 18271
+c GEN:    AUX definition       : 4258
+c GEN:    product justification: 12
+c GEN:    sum justification    : 2
+c GEN:    literal justification: 139251
+c GEN:    lemma application    : 0
+c GEN:    clause TOTAL         : 161794
+c GEN: Time
+c GEN:   SAT execution  : 3.25
+c GEN:   other execution: 7.65
+c GEN:   time TOTAL     : 10.90
+GEN LOG: Elapsed time = 11.147 seconds
+GEN OUTCOME: normal
+FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track1_005.cnf ./mc2022_track1_005.crat
+FCHECK LOG: Time limit 3600 seconds
+FCHECK: Read CNF file with 18224 variables and 31454 clauses
+FCHECK: Read CRAT file with 22 operations,  139265 asserted + 22529 defining = 161794 clauses
+FCHECK: Deleted 170718 input and asserted clauses
+FCHECK: Final root literal 18237
+FCHECK: SUCCESS.  CRAT representation verified
+FCHECK: Elapsed seconds: 1.450
+FCHECK LOG: Elapsed time = 1.575 seconds
+FCHECK OUTCOME: normal
+COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track1_005.cnf -p ./mc2022_track1_005.crat
+COUNT LOG: Time limit 3600 seconds
+COUNTER: Elapsed time for count: 0.01 seconds
+COUNTER: Unweighted count = 2
+COUNT LOG: Elapsed time = 0.085 seconds
+COUNT OUTCOME: normal
+OVERALL LOG: Elapsed time = 12.808 seconds
+OVERALL OUTCOME: normal
