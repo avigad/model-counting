@@ -35,7 +35,7 @@ interpreter = "python3"
 countHome = homePath + "/model-counting/crat/prototype"
 countProgram = countHome + "/crat_counter.py"
 
-timeLimits = { "D4" : 3600, "GEN" : 10800, "FCHECK" : 10800, "COUNT" : 3600 }
+timeLimits = { "D4" : 3600, "GEN" : 9000, "FCHECK" : 9000, "COUNT" : 3600 }
 
 clauseLimit = 2 * 1000 * 1000 * 1000
 
