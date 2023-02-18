@@ -55,8 +55,8 @@ void usage(char *name) {
 /* How many ints fit into a single chunk (2^20) */
 #define CHUNK_SIZE (1L << 20)
 //#define CHUNK_SIZE (1L << 8)
-/* What is assumed limit of VM (64 GB) */
-#define VM_LIMIT (1L << 36)
+/* What is assumed limit of VM (128 GB) */
+#define VM_LIMIT (1L << 37)
 //#define VM_LIMIT (1L << 20)
 /* What is the maximum number of chunks (16K) */
 #define CHUNK_MAX (VM_LIMIT/(CHUNK_SIZE * sizeof(int)))
