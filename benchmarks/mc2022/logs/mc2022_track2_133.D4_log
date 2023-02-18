@@ -1,0 +1,77 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_133.cnf -dDNNF -out=./mc2022_track2_133.nnf
+D4 LOG: Time limit 900 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 24488
+c Number of clauses: 44670
+c Number of literals: 80840
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -20520 
+c top 5: -20520 -5958 
+c top 5: -20520 -5958 -19848 
+c top 5: -20520 -5958 -19848 -20384 
+c unitLits 1048577 4194308 Bytes
+c top 5: -20520 5958 
+c top 5: -20520 5958 -19119 
+c top 5: -20520 5958 -19119 -19118 
+c top 5: -20520 5958 19119 
+c top 5: -20520 5958 19119 -19118 
+c top 5: 20520 
+c top 5: 20520 -19118 
+c top 5: 20520 -19118 -19119 
+c top 5: 20520 -19118 -19119 21124 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 13569
+c Number of split formula: 29006
+c Number of decision node: 6784
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 9183
+c Number of backbone calls: 0
+c Number of partitioner calls: 3070
+c Average number of assigned literal to obtain decomposable AND nodes: 23951.92/24488
+c Minimum number of assigned variable where a decomposable AND appeared: 22783
+c 
+c [33mGraph Information[0m
+c Number of nodes: 657886
+c Number of edges: 684493
+c 
+c [1m[34mCache Information[0m
+c Memory used: 613 MB
+c
+c Number of positive hit: 25220
+c Number of negative hit: 6784
+c Number of reduceCall: 0
+c
+c Final time: 21.818054
+c 
+s 0.000000
+D4 LOG: Elapsed time = 22.917 seconds
+D4 OUTCOME: normal
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -p ./mc2022_track2_133.cnf ./mc2022_track2_133.nnf ./mc2022_track2_133.crat
+GEN LOG: Time limit 1800 seconds
+c GEN: Time = 0.04.  Read input file with 24488 variables and 44670 clauses
+c Read D4 NNF file with 29539 nodes (15970 explicit) and 42575 edges
+c Compressed POG has 29274 nodes, root literal 53762, and 740235 defining clauses
+c GEN: Time = 0.26.  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 0.304 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 23.221 seconds
+OVERALL OUTCOME: normal
