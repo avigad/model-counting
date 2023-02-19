@@ -1,0 +1,88 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -C 2000000000 -L d2p.log ./mc2022_track2_033.cnf ./mc2022_track2_033.nnf ./mc2022_track2_033.crat
+GEN LOG: Time limit 9000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2000000000
+c GEN:   BCP limit:       1
+c GEN: Time = 0.00.  Read input file with 168 variables and 722 clauses
+c Read D4 NNF file with 406644 nodes (190727 explicit) and 418997 edges
+c Compressed POG has 405808 nodes, root literal 405976, and 1891045 defining clauses
+c GEN: Time = 0.83.  Generated POG representation
+c Time = 3.61.  Justifications of 40580 nodes completed.  2020962 total clauses
+c Time = 4.98.  Justifications of 81160 nodes completed.  2158470 total clauses
+c Time = 8.28.  Justifications of 121740 nodes completed.  2318122 total clauses
+c Time = 10.35.  Justifications of 162320 nodes completed.  2475569 total clauses
+c Time = 11.58.  Justifications of 202900 nodes completed.  2597764 total clauses
+c Time = 12.49.  Justifications of 243480 nodes completed.  2719070 total clauses
+c Time = 13.91.  Justifications of 284060 nodes completed.  2853333 total clauses
+c Time = 15.76.  Justifications of 324640 nodes completed.  3003357 total clauses
+c Time = 17.86.  Justifications of 365220 nodes completed.  3179388 total clauses
+c Time = 20.34.  Justifications of 405800 nodes completed.  3386894 total clauses
+c Time = 20.34.  Justifications of 405808 nodes, including root, completed.  3386906 total clauses
+c GEN: Time = 21.11.  Deleted asserted clauses
+c GEN: Time = 29.10.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 168
+c GEN:    input clauses  : 722
+c GEN: POG nodes
+c GEN:    product   : 297952
+c GEN:    sum       : 107855
+c GEN:    node TOTAL: 405807
+c GEN: Other nodes
+c GEN:    aux product: 723
+c GEN: Node visits
+c GEN:    product/BCP: 297280
+c GEN:    product/SAT: 673
+c GEN:    sum        : 107855
+c GEN:    visit TOTAL: 405808
+c GEN: Lemmas
+c GEN:    definitions : 20836
+c GEN:    applications: 245859
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (673 instances)
+c GEN:    PROBLEM TOTAL : 114016
+c GEN:    PROBLEM MIN   : 17
+c GEN:    PROBLEM AVG   : 169.41
+c GEN:    PROBLEM MAX   : 438
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 11895
+c GEN:    PROOF MIN   : 6
+c GEN:    PROOF AVG   : 17.67
+c GEN:    PROOF MAX   : 69
+c GEN: Clauses
+c GEN:    POG definition       : 1891045
+c GEN:    AUX definition       : 4520
+c GEN:    product justification: 297953
+c GEN:    sum justification    : 215083
+c GEN:    literal justification: 415176
+c GEN:    lemma application    : 563756
+c GEN:    clause TOTAL         : 3387533
+c GEN: Time
+c GEN:   SAT execution  : 2.14
+c GEN:   other execution: 26.97
+c GEN:   time TOTAL     : 29.11
+GEN LOG: Elapsed time = 29.125 seconds
+GEN OUTCOME: normal
+FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track2_033.cnf ./mc2022_track2_033.crat
+FCHECK LOG: Time limit 9000 seconds
+FCHECK: Read CNF file with 168 variables and 722 clauses
+FCHECK: Read CRAT file with 406531 operations,  1491341 asserted + 1895565 defining = 3386906 clauses
+FCHECK: Deleted 1492062 input and asserted clauses
+FCHECK: Final root literal 405976
+FCHECK: SUCCESS.  CRAT representation verified
+FCHECK: Elapsed seconds: 17.010
+FCHECK LOG: Elapsed time = 17.039 seconds
+FCHECK OUTCOME: normal
+COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track2_033.cnf -p ./mc2022_track2_033.crat
+COUNT LOG: Time limit 3600 seconds
+Obtained weights from CNF file
+COUNTER: Elapsed time for count: 0.80 seconds
+COUNTER: Weighted count = 0.23679488351910034635465425491351434488569400488797438451025042990355132482686719817669274134668420859616249197614138011232114673441135559576119753349602056231130271163620200338390410750876477365712652647356247927081990318485789623322337533966484686482682999179187339615920075975945910392262906071998942367680791425805860387461156240503353459388158061131534470214244212134089410137110294777876247453613849647304763076982249084141388490007539946473456850031114116718100875283175314747795289566608210813311921393114864846140195435014109385163417917822082186172672320017721446909220630390579625732264277718315498389951879713809186778201888298078959482128959495129281678217624087474273611073965910707624906440642086377484800009178155090822986045215315443853983794119225187151827483462305157696012332247301140076872748690380937604173658344451610397159755859129511343777612474504341657249629266123434759220929866556991176909188365050814794912264838935850761477014826309983294872925318797791742233120990658835913753063571139839312328916540956062825845168312850951155579725733470859726836393686236582281590792620443675413044013208622359733046247724571165039627365783039999998094610975795801473039775809994605624622864518858834479523167797004027018568247764161447229601552277874496614336299008
+COUNT LOG: Elapsed time = 4.039 seconds
+COUNT OUTCOME: normal
+OVERALL LOG: Elapsed time = 50.204 seconds
+OVERALL OUTCOME: normal

@@ -1,0 +1,79 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -C 2000000000 -L d2p.log ./mc2022_track2_005.cnf ./mc2022_track2_005.nnf ./mc2022_track2_005.crat
+GEN LOG: Time limit 9000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2000000000
+c GEN:   BCP limit:       1
+c GEN: Time = 0.00.  Read input file with 100 variables and 250 clauses
+c Read D4 NNF file with 1649004 nodes (848296 explicit) and 1811204 edges
+c Compressed POG has 1648967 nodes, root literal 1649067, and 6074672 defining clauses
+c GEN: Time = 3.31.  Generated POG representation
+c Time = 6.84.  Justifications of 164896 nodes completed.  6755166 total clauses
+c Time = 10.48.  Justifications of 329792 nodes completed.  7458351 total clauses
+c Time = 14.34.  Justifications of 494688 nodes completed.  8204175 total clauses
+c Time = 17.77.  Justifications of 659584 nodes completed.  8878852 total clauses
+c Time = 21.83.  Justifications of 824480 nodes completed.  9649088 total clauses
+c Time = 25.42.  Justifications of 989376 nodes completed.  10342805 total clauses
+c Time = 29.32.  Justifications of 1154272 nodes completed.  11096299 total clauses
+c Time = 32.67.  Justifications of 1319168 nodes completed.  11758034 total clauses
+c Time = 36.18.  Justifications of 1484064 nodes completed.  12467918 total clauses
+c Time = 39.20.  Justifications of 1648960 nodes completed.  13104863 total clauses
+c Time = 39.20.  Justifications of 1648967 nodes, including root, completed.  13104874 total clauses
+c GEN: Time = 42.74.  Deleted asserted clauses
+c GEN: Time = 52.86.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 100
+c GEN:    input clauses  : 250
+c GEN: POG nodes
+c GEN:    product   : 1248612
+c GEN:    sum       : 400354
+c GEN:    node TOTAL: 1648966
+c GEN: Other nodes
+c GEN:    aux product: 227
+c GEN: Node visits
+c GEN:    product/BCP: 1248613
+c GEN:    product/SAT: 0
+c GEN:    sum        : 400354
+c GEN:    visit TOTAL: 1648967
+c GEN: Lemmas
+c GEN:    definitions : 120809
+c GEN:    applications: 1081814
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 6074672
+c GEN:    AUX definition       : 874
+c GEN:    product justification: 1248613
+c GEN:    sum justification    : 800673
+c GEN:    literal justification: 35
+c GEN:    lemma application    : 4980042
+c GEN:    clause TOTAL         : 13104909
+c GEN: Time
+c GEN:   SAT execution  : 0.00
+c GEN:   other execution: 52.87
+c GEN:   time TOTAL     : 52.87
+GEN LOG: Elapsed time = 52.937 seconds
+GEN OUTCOME: normal
+FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track2_005.cnf ./mc2022_track2_005.crat
+FCHECK LOG: Time limit 9000 seconds
+FCHECK: Read CNF file with 100 variables and 250 clauses
+FCHECK: Read CRAT file with 1649194 operations,  7029328 asserted + 6075546 defining = 13104874 clauses
+FCHECK: Deleted 7029577 input and asserted clauses
+FCHECK: Final root literal 1649067
+FCHECK: SUCCESS.  CRAT representation verified
+FCHECK: Elapsed seconds: 52.266
+FCHECK LOG: Elapsed time = 52.311 seconds
+FCHECK OUTCOME: normal
+COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track2_005.cnf -p ./mc2022_track2_005.crat
+COUNT LOG: Time limit 3600 seconds
+Obtained weights from CNF file
+COUNTER: Elapsed time for count: 3.06 seconds
+COUNTER: Weighted count = 0.07254430529810625677217525188487037254087007421556500095248857926747534271855478558007377131128101032589078556431908429917236627357400648348278445909324836060814729473709146110827988390980359844473229633824973097748808272764619640309845142292803888048504599068849970801527933805207766744610708507724927453434982915913048449416421942572702319943092748734711252970778538941692088241831936
+COUNT LOG: Elapsed time = 8.659 seconds
+COUNT OUTCOME: normal
+OVERALL LOG: Elapsed time = 113.909 seconds
+OVERALL OUTCOME: normal
