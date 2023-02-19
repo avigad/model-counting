@@ -69,13 +69,14 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \begin{tikzpicture}[scale = 1.00]
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000, 
                               x post scale=2.0, y post scale=2.0,
-                              xmin=0,xmax=900,
-                              xtick = {0,100,200,300,400,500,600,700,800,900},
+                              xmin=0,xmax=1000,
+                              xtick = {0,100,200,300,400,500,600,700,800,900,1000},
                               ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
-                              xlabel={D4 runtime}, ylabel={Defining Clauses},
+                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
 %                              title={D4 Defining Clause Generation}
             ]
-    \input{data-formatted/time+defining}
+    \input{data-formatted/time+defining-success}
+    \input{data-formatted/time+defining-failure}
           \end{axis}
 \end{tikzpicture}
 } % centering
@@ -89,12 +90,13 @@ Carnegie Mellon University, Pittsburgh, PA, United States
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000, 
                               x post scale=2.0, y post scale=2.0,
                               xmode=log, xmin=001,xmax=1000,
-                              xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100, 1000},
+                              xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
                               ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
-                              xlabel={D4 runtime}, ylabel={Defining Clauses},
+                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
 %                              title={D4 Defining Clause Generation}
             ]
-    \input{data-formatted/time+defining}
+    \input{data-formatted/time+defining-success}
+    \input{data-formatted/time+defining-failure}
           \end{axis}
 \end{tikzpicture}
 } % centering
@@ -135,18 +137,18 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \begin{figure}
 \centering{%
 \begin{tikzpicture}[scale = 1.00]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=10000,
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=20000,
                               x post scale=2.0, y post scale=2.2,
                               xmode=log,xmin=0.01,xmax=1000,
-                              xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100, 1000},
-                              ytick={0.01, 0.1,1.0,10,100,1000,10000}, yticklabels={0.01, 0.1, 1.0, 10, 100, 1000,10000},
-                              xlabel={D4 runtime}, ylabel={CRAT generation runtime},
+                              xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
+                              ytick={0.01, 0.1,1.0,10,100,1000,10000,20000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{20,000}},
+                              xlabel={D4 runtime (seconds)}, ylabel={CRAT generation and checking runtime (seconds)},
 %                              title={D4 Defining Clause Generation}
             ]
     \addplot[mark=none, color=darkestblue] coordinates{(0.01,0.01) (1000.0,1000.0)};
     \addplot[mark=none, color=midblue] coordinates{(0.01,0.1) (1000,10000)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (100,10000)};
-    \input{data-formatted/time-d4-gen}
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (200,20000)};
+    \input{data-formatted/time-d4-verify}
     \node[left] at (axis cs: 0.09,0.12) {$1{}.0\times$};
     \node[left] at (axis cs: 0.09,1.2) {$10\times$};
     \node[left] at (axis cs: 0.09,12.0) {$100\times$};
@@ -154,7 +156,7 @@ Carnegie Mellon University, Pittsburgh, PA, United States
           \end{axis}
 \end{tikzpicture}
 } % centering
-\caption{Runtime for CRAT proof generation as function of D4 runtime}
+\caption{Combined runtime for CRAT proof generation and checking  as function of D4 runtime}
 \label{fig:d4:crat}
 
 \end{figure}

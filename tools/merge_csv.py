@@ -16,8 +16,9 @@ def eprint(s):
 
 
 def usage(name):
-    eprint("Usage: %s [-h] [-f] [-l L0,L1,L2,...,Ln] FILE1.csv FILE2.csv ... FILEn.csv" % name)
+    eprint("Usage: %s [-h] [-f]  [-s] [-l L0,L1,L2,...] FILE1.csv FILE2.csv ... FILEn.csv" % name)
     eprint("  -f            Filter out lines that have at least one field missing")
+    eprint("  -s I1:I2:...:Ik Sum the values from specified files 1..n and add as new column")
     eprint("  -h            Print this message")
     eprint("  -l LABELS     Provide comma-separated set of heading labels")
     eprint("  FILE1.csv ... Source files")
@@ -60,6 +61,7 @@ def addData(fname, first = False):
                 eprint("File %s, row %d.  Couldn't find key '%s'" % (fname, row, key))
                 sys.exit(1)                
             lines[row-1] += "," + val
+    row += 1
     while row <= len(lines):
         lines[row-1] += ","
         missingKeys.add(keys[row-1])
@@ -78,7 +80,22 @@ def filter():
             keys.append(key)
             lines.append(line)
     
-def build(lstring, flist, doFilter):
+def sumLine(sumSet):
+    global lines
+    olines = lines
+    lines = []
+    for (key,line) in zip(keys, olines):
+        fields = line.split(",")
+        sfields = [fields[i] for i in range(len(fields)) if i in sumSet]
+        sval = ""
+        try:
+            nums = [float(field) if len(field) > 0 else 0.0 for field in sfields]
+            sval = str(sum(nums))
+        except:
+            eprint("key = %s.  Couldn't parse numbers in line '%s'" % (key, line))
+        lines.append(line + "," + sval)
+
+def build(lstring, flist, doFilter, sumSet):
     global lines
     first = True
     for fname in flist:
@@ -86,6 +103,8 @@ def build(lstring, flist, doFilter):
         first = False
     if doFilter:
         filter()
+    if sumSet is not None:
+        sumLine(sumSet)
     if len(lstring) > 0:
         lines = [lstring] + lines
     for line in lines:
@@ -93,21 +112,31 @@ def build(lstring, flist, doFilter):
 
 def run(name, args):
     doFilter = False
+    sumSet = None
     lstring = ""
-    optList, args = getopt.getopt(args, "hfl:")
+    optList, args = getopt.getopt(args, "hfs:l:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             sys.exit(0)
         elif opt == '-f':
             doFilter = True
+        elif opt == '-s':
+            fields = val.split(':')
+            try:
+                ivals = [int(field) for field in fields]
+                sumSet = set(ivals)
+            except:
+                eprint("Couldn't extract column numbers from argument '%s'" % val)
+                usage(name)
+                sys.exit(1)
         elif opt == '-l':
             lstring = val
         else:
             eprint("Unknown option '%s'" % opt)
             usage(name)
             sys.exit(1)
-    build(lstring, args, doFilter)
+    build(lstring, args, doFilter, sumSet)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
