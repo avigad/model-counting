@@ -1,0 +1,30 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -C 2000000000 -L d2p.log ./mc2022_track1_129.cnf ./mc2022_track1_129.nnf ./mc2022_track1_129.crat
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2000000000
+c GEN:   BCP limit:       1
+c GEN: Time = 0.02.  Read input file with 900 variables and 72344 clauses
+c Read D4 NNF file with 730220 nodes (278459 explicit) and 569039 edges
+c Compressed POG has 505474 nodes, root literal 506374, and 7992626 defining clauses
+c GEN: Time = 2.39.  Generated POG representation
+c Time = 644.90.  Justifications of 50547 nodes completed.  12083293 total clauses
+c Time = 1533.68.  Justifications of 101094 nodes completed.  17118148 total clauses
+c Time = 2454.34.  Justifications of 151641 nodes completed.  21993426 total clauses
+c Time = 3430.15.  Justifications of 202188 nodes completed.  27123283 total clauses
+c Time = 4584.22.  Justifications of 252735 nodes completed.  32645401 total clauses
+c Time = 5408.47.  Justifications of 303282 nodes completed.  37270832 total clauses
+c Time = 5976.08.  Justifications of 353829 nodes completed.  40516031 total clauses
+c Time = 7203.39.  Justifications of 404376 nodes completed.  46591176 total clauses
+c Time = 8319.83.  Justifications of 454923 nodes completed.  52033384 total clauses
+c Time = 9420.27.  Justifications of 505470 nodes completed.  57303243 total clauses
+c Time = 9423.05.  Justifications of 505585 nodes, including root, completed.  57314424 total clauses
+c GEN: Time = 9475.66.  Deleted asserted clauses
+GEN ERROR: Timeout after 10000 seconds
+GEN LOG: Elapsed time = 10003.519 seconds
+GEN OUTCOME: Timeout
+OVERALL LOG: Elapsed time = 10073.665 seconds
+OVERALL OUTCOME: failed
