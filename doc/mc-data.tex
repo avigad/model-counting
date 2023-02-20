@@ -10,10 +10,8 @@
 \usepackage{adjustbox}
 \usepackage{marvosym}
 %% Colored hyperlink 
-\newcommand{\cref}[2]{\href{#1}{\color{blue}#2}}
-%% Colored hyperlink showing link in TT font
-% \newcommand{\chref}[1]{\href{#1}{\small\tt \color{blue}#1}}
-\newcommand{\hcref}[1]{\cref{#1}{\small\tt #1}}
+\newcommand{\hcref}[1]{\texttt{\small\url{#1}}}
+
 
 \bibliographystyle{splncs04}
 %\bibliographystyle{abbrv}
@@ -64,25 +62,68 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \maketitle
 
 
-\begin{figure}
-\centering{%
-\begin{tikzpicture}[scale = 1.00]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000, 
-                              x post scale=2.0, y post scale=2.0,
-                              xmin=0,xmax=1000,
-                              xtick = {0,100,200,300,400,500,600,700,800,900,1000},
-                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
-                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
-%                              title={D4 Defining Clause Generation}
-            ]
-    \input{data-formatted/time+defining-success}
-    \input{data-formatted/time+defining-failure}
-          \end{axis}
-\end{tikzpicture}
-} % centering
-\caption{Number of defining clauses in generated POG as function of D4 runtime}
-\label{fig:generate:d4}
-\end{figure}
+\section*{Benchmark machine}
+\begin{itemize}
+\item 2021 MacBook Pro 18,4
+  \begin{itemize}
+  \item 3.2 Ghz Apple M1 processor
+  \item 64 GB Ram
+  \end{itemize}
+\item  Samsung T7 solid-state disk
+  \begin{itemize}
+  \item 2TB capacity
+  \item Up to 1 GB/s R/W
+  \item Critical for performance.  Wrote and read files of over 162 GB.
+  \end{itemize}
+\end{itemize}
+
+\section*{Methodology}
+\begin{enumerate}
+   \item Retrieved 200 public model counting benchmarks from 2022 Model Counting Competition website
+     \begin{center}
+       \hcref{https://mccompetition.org/2022/mc\_description.html}
+     \end{center}
+     \begin{itemize}
+     \item 100 public instances from Track 1 (unweighted model counting)
+     \item 100 public instances from Track 2 (weighted model counting)
+     \end{itemize}
+   \item Removed duplicates
+     \begin{itemize}
+    \item  20 instances were duplicated in the two tracks
+     \item Reduces set of benchmarks to 180
+     \end{itemize}
+   \item Ran D4 on 180 instances with time limit of 1000 seconds
+     \begin{itemize}
+     \item Completed for 114 instances
+     \end{itemize}
+   \item Generated POG representations from dDNNF graphs
+     \begin{itemize}
+     \item Simplifications via constant propagation
+       \begin{itemize}
+       \item Number of POG nodes around $0{.}90\times$ number of dDNNF nodes
+       \end{itemize}
+     \item Used heuristics to identify root node, and then put in topological ordering
+     \item Measure complexity by number of defining clauses $D$
+       \begin{itemize}
+       \item Product or sum node with degree $k$ requires $k+1$ clauses
+       \item $D$ also equals sum of number of edges and number of nodes
+       \item For 114 instances, Min = 304, Median = 674,179, Mean = 27,918,017, Max = 404,276,843
+       \end{itemize}
+     \end{itemize}
+   \item Ran program {\sc d2p} to generate CRAT file for maximum of 10,000 seconds
+     \begin{itemize}
+     \item Completed for 105 instances
+     \item Timed out for eight instances
+     \item Ran out of memory for one instance
+     \end{itemize}
+   \item For completed CRAT files, ran {\sc crat-check} CRAT checker
+     \begin{itemize}
+     \item Tests all conditions for correct CRAT
+     \item Most time spent performing RUP checks for clause addition and deletion
+     \item Completed successfully for all 105 instances
+     \item Time generally faster than {\sc d2p}.
+     \end{itemize}
+\end{enumerate}
 
 \begin{figure}
 \centering{%
@@ -104,6 +145,12 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \label{fig:generate:d4:log}
 \end{figure}
 
+\section*{Generated CRAT Files}
+
+\begin{itemize}
+\item Proof Clauses: Min 554, Average 44,335,021, Max 770,382,773
+\item Ratio to number of defining clauses: Min 1.54, Harmonic Mean 3.05, Max 6073
+\end{itemize}
 
 
 \begin{figure}
@@ -134,6 +181,15 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 
 \end{figure}
 
+\section*{Time to Generate and Validate CRAT}
+
+\begin{itemize}
+\item Min 0.01, Average 1190.0, Max 13,144.7
+\item Ratio to time for D4: Min 0.50, Harmonic Mean 6.16, Max 457.7
+\end{itemize}
+
+
+
 \begin{figure}
 \centering{%
 \begin{tikzpicture}[scale = 1.00]
@@ -162,6 +218,25 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \end{figure}
 
 
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000, 
+                              x post scale=2.0, y post scale=2.0,
+                              xmin=0,xmax=1000,
+                              xtick = {0,100,200,300,400,500,600,700,800,900,1000},
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \input{data-formatted/time+defining-success}
+    \input{data-formatted/time+defining-failure}
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Number of defining clauses in generated POG as function of D4 runtime (X linear scale)}
+\label{fig:generate:d4}
+\end{figure}
 
 
 \bibliography{references}
