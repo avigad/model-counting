@@ -238,6 +238,20 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \label{fig:generate:d4}
 \end{figure}
 
+\section*{Computing Counts and Weighted Counts}
+
+\begin{itemize}
+\item Implemented package to represent numbers of form $a \cdot 2^b \cdot 5^c$.
+  \begin{itemize}
+  \item For unweighted counts, first compute density and then scale by $2^n$
+  \item For unweighted counts, perform exact decimal arithmetic
+  \item The set of numbers of this form is not closed under a reciprocal operation, but the weights in the competion are either of the form
+    $w(x) + w(\overline{x}) = 1.0$ or $w(x) = w(\overline{x}) = 1$.  The latter case sums to 2, with reciprocal $1/2$.
+  \end{itemize}
+\item Can implement having $a$ be integer of arbitrary size and $b$ and $c$ being 32-bit integers.
+\item Weighted counts ranged up to 260,909 digits.
+\end{itemize}
+
 
 \bibliography{references}
 
