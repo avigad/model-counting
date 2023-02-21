@@ -52,13 +52,11 @@ void usage(char *name) {
 #define DPREFIX "FCHECK"
 #define __cfunc__ (char *) __func__
 
-/* How many ints fit into a single chunk (2^20) */
+/* How many ints fit into a single chunk (2^20 = 4MB) */
 #define CHUNK_SIZE (1L << 20)
-//#define CHUNK_SIZE (1L << 8)
 /* What is assumed limit of VM (128 GB) */
 #define VM_LIMIT (1L << 37)
-//#define VM_LIMIT (1L << 20)
-/* What is the maximum number of chunks (16K) */
+/* What is the maximum number of chunks (32K) */
 #define CHUNK_MAX (VM_LIMIT/(CHUNK_SIZE * sizeof(int)))
 
 /*============================================
