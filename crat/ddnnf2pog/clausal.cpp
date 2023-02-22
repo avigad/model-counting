@@ -834,7 +834,11 @@ void Cnf_reasoner::deactivate_clause(int cid) {
 }
 
 int Cnf_reasoner::add_proof_clause(Clause *clp) {
-    int cid = clause_count() + proof_clauses.size() + 1;
+    int pcid = clause_count() + proof_clauses.size();
+    if (pcid == clause_limit) {
+	err(true, "Adding clause %ld exceeds limit\n", (long) pcid + 1);
+    }
+    int cid = pcid + 1;
     proof_clauses.push_back(clp);
     if (clp->length() == 0)
 	unsatisfiable = true;
@@ -848,8 +852,6 @@ int Cnf_reasoner::add_proof_clause(Clause *clp) {
 
 int Cnf_reasoner::start_assertion(Clause *clp) {
     int cid = add_proof_clause(clp);
-    if (cid > clause_limit)
-	err(true, "Adding clause %d exceeds limit\n", cid);
     pwriter->start_assertion(cid);
     clp->write(pwriter);
     std::vector<int> *dvp = new std::vector<int>();
@@ -899,8 +901,9 @@ int Cnf_reasoner::start_and(int var, ilist args) {
     for (int i = 0; i < ilist_length(args); i++) 
 	clp->add(-args[i]);
     int cid = add_proof_clause(clp);
-    if (cid + ilist_length(args) > clause_limit)
-	err(true, "Adding operation starting with clause %d exceeds limit\n", cid);
+    long ncid = (long) cid + ilist_length(args);
+    if (ncid > clause_limit)
+	err(true, "Adding operation with %d arguments starting with clause %d exceeds limit\n", ilist_length(args), cid);
     for (int i = 0; i < ilist_length(args); i++) {
 	Clause *aclp = new Clause();
 	aclp->add(-var);
