@@ -8,6 +8,7 @@ import sys
 import os.path
 import subprocess
 import datetime
+import time
 
 def usage(name):
     print("Usage: %s [-h] [-f] [-s n|g|c] [-H HPATH] FILE.EXT ..." % name)
@@ -16,6 +17,10 @@ def usage(name):
     print("  -s n|g|c Stop after NNF generation, CRAT generation (g) or proof check (c)")
     print("  -H HPATH Specify pathname for directory")
     print("  EXT      Can be any extension for wild-card matching (e.g., cnf, nnf)")
+
+# Blocking file.  If present in directory, won't proceed.  Recheck every sleepTime seconds
+blockPath = "./block.txt"
+sleepTime = 60
 
 # Defaults
 standardTimeLimit = 60
@@ -35,9 +40,17 @@ interpreter = "python3"
 countHome = homePath + "/model-counting/crat/prototype"
 countProgram = countHome + "/crat_counter.py"
 
-timeLimits = { "D4" : 1000, "GEN" : 10000, "FCHECK" : 10000, "COUNT" : 3600 }
+timeLimits = { "D4" : 4000, "GEN" : 12000, "FCHECK" : 12000, "COUNT" : 4000 }
 
-clauseLimit = 2 * 1000 * 1000 * 1000
+clauseLimit = (1 << 31) - 1
+
+def waitWhileBlocked():
+    first = True
+    while os.path.exists(blockPath):
+        if first:
+            print("Waiting to unblock")
+        first = False
+        time.sleep(sleepTime)
 
 def runProgram(prefix, root, commandList, logFile, extraLogName = None):
     if prefix in timeLimits:
@@ -136,11 +149,15 @@ def runCount(root, home, logFile):
     return ok
 
 def runSequence(root, home, stopD4, stopGen, stopCheck, force):
+    waitWhileBlocked()
     result = ""
     prefix = "OVERALL"
     start = datetime.datetime.now()
     if stopD4:
         logName = root + ".D4_log"
+        if os.path.exists(logName):
+            print("Already have file %s.  Skipping benchmark" % logName)
+            return
     elif stopGen:
         logName = root + ".d2p_log"
     else:
