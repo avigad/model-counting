@@ -40,7 +40,7 @@ interpreter = "python3"
 countHome = homePath + "/model-counting/crat/prototype"
 countProgram = countHome + "/crat_counter.py"
 
-timeLimits = { "D4" : 4000, "GEN" : 12000, "FCHECK" : 12000, "COUNT" : 4000 }
+timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 10000, "COUNT" : 4000 }
 
 clauseLimit = (1 << 31) - 1
 
