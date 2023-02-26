@@ -1,0 +1,22 @@
+cc NOTE.  This is an artificial log file for running d2p on instance
+cc mc2022_track2_123.  The number of defining clauses exceeds the program
+cc capacity.  It should therefore be recorded as a failure.
+
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -p ./mc2022_track2_123.cnf ./mc2022_track2_123.nnf ./mc2022_track2_123.crat
+GEN LOG: Time limit 12000 seconds
+c GEN: Time = 0.00.  Read input file with 267 variables and 2746 clauses
+c Read D4 NNF file with 842779888 nodes (323880214 explicit) and 750663789 edges
+
+cccc REB 2023/02/24
+cccc Note that the original line has been modified.  (Editted to cause match failure)
+c Compressed DOG has 820584013 nodes, root literal 820584280, and -1533509531 defining clauses
+
+cccc Modified line (correct arithmetic overflow
+c Compressed DOG has 820584013 nodes, root literal 820584280, and 2761457765 defining clauses
+
+
+GEN ERROR: Return code = -9
+GEN LOG: Elapsed time = 2943.503 seconds
+GEN OUTCOME: failed
+OVERALL LOG: Elapsed time = 6013.911 seconds
+OVERALL OUTCOME: failed
