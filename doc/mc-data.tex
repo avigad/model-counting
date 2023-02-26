@@ -40,6 +40,7 @@
 \definecolor{lightpurple}{rgb}{0.776471, 0.690196, 0.737255}
 \definecolor{softgreen}{rgb}{0.733333, 0.772549, 0.572549}
 \definecolor{offwhite}{rgb}{0.839216, 0.823529, 0.768627}
+\definecolor{medgreen}{rgb}{0.15, 0.6, 0.15}
 
 
 
@@ -92,9 +93,9 @@ Carnegie Mellon University, Pittsburgh, PA, United States
     \item  20 instances were duplicated in the two tracks
      \item Reduces set of benchmarks to 180
      \end{itemize}
-   \item Ran D4 on 180 instances with time limit of 1000 seconds
+   \item Ran D4 on 180 instances with time limit of 4000 seconds
      \begin{itemize}
-     \item Completed for 114 instances
+     \item Completed for 124 instances
      \end{itemize}
    \item Generated POG representations from dDNNF graphs
      \begin{itemize}
@@ -107,38 +108,45 @@ Carnegie Mellon University, Pittsburgh, PA, United States
        \begin{itemize}
        \item Product or sum node with degree $k$ requires $k+1$ clauses
        \item $D$ also equals sum of number of edges and number of nodes
-       \item For 114 instances, Min = 304, Median = 674,179, Mean = 27,918,017, Max = 404,276,843
+       \item For 124 instances, Min = 304, Median = 848,784, Mean = 93,107,937, Max = 2,761,457,765
        \end{itemize}
      \end{itemize}
    \item Ran program {\sc d2p} to generate CRAT file for maximum of 10,000 seconds
      \begin{itemize}
-     \item Completed for 105 instances
-     \item Timed out for eight instances
-     \item Ran out of memory for one instance
+     \item Completed for 108 instances
+     \item Exceeded clause limit for 1 instance
+     \item Ran out of memory for 1 instance
+     \item Timed out for 14 instances
      \end{itemize}
    \item For completed CRAT files, ran {\sc crat-check} CRAT checker
      \begin{itemize}
      \item Tests all conditions for correct CRAT
      \item Most time spent performing RUP checks for clause addition and deletion
-     \item Completed successfully for all 105 instances
-     \item Time generally faster than {\sc d2p}.
+     \item Completed successfully for all 108 instances
+     \item Time generally faster than {\sc d2p}. (min = 0.005, max = 1.4, harmonic mean = 0.10)
      \end{itemize}
 \end{enumerate}
 
 \begin{figure}
 \centering{%
 \begin{tikzpicture}[scale = 1.00]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000, 
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=10000000000,
+      legend style={at={(0.30,0.98)}},
+      legend cell align={left},
                               x post scale=2.0, y post scale=2.0,
-                              xmode=log, xmin=001,xmax=1000,
-                              xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
-                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              xmode=log, xmin=001,xmax=10000,
+                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 1e10}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$,$10^{10}$},
                               xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
 %                              title={D4 Defining Clause Generation}
             ]
-    \input{data-formatted/time+defining-success}
     \input{data-formatted/time+defining-failure}
-          \end{axis}
+    \input{data-formatted/time+defining-success}
+    \legend{
+      \scriptsize \textsf{Limit exceeded},
+      \scriptsize \textsf{Validated},
+    }
+ \end{axis}
 \end{tikzpicture}
 } % centering
 \caption{Number of defining clauses in generated POG as function of D4 runtime}
@@ -148,8 +156,8 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \section*{Generated CRAT Files}
 
 \begin{itemize}
-\item Proof Clauses: Min 554, Average 44,335,021, Max 770,382,773
-\item Ratio to number of defining clauses: Min 1.54, Harmonic Mean 3.05, Max 6073
+\item Proof Clauses: Min 554, Median 1,719,245, Average 45,001,945, Max 1,719,245
+\item Ratio to number of defining clauses: Min 1.54, Harmonic Mean 3.13, Max 6073
 \end{itemize}
 
 
@@ -164,8 +172,8 @@ Carnegie Mellon University, Pittsburgh, PA, United States
                               xlabel={Defining Clauses}, ylabel={Proof Clauses},
 %                              title={D4 Defining Clause Generation}
             ]
-    \addplot[mark=none, color=darkestblue] coordinates{(100,100) (1e9,1e9)};
-    \addplot[mark=none, color=midblue] coordinates{(100,1000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,1000) (1e8,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,10000) (1e7,1e9)};
     \input{data-formatted/defining+total}
     \node[left] at (axis cs: 900,1200) {$1{}.0\times$};
@@ -184,8 +192,8 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \section*{Time to Generate and Validate CRAT}
 
 \begin{itemize}
-\item Min 0.01, Average 1190.0, Max 13,144.7
-\item Ratio to time for D4: Min 0.50, Harmonic Mean 6.16, Max 457.7
+\item Min 0.01, Average 1318.3, Max 13,144.8, Median 71.64
+\item Ratio to time for D4: Min 0.50, Harmonic Mean 5.5, Max 457.7
 \end{itemize}
 
 
@@ -193,17 +201,17 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \begin{figure}
 \centering{%
 \begin{tikzpicture}[scale = 1.00]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=20000,
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=100000,
                               x post scale=2.0, y post scale=2.2,
-                              xmode=log,xmin=0.01,xmax=1000,
-                              xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
-                              ytick={0.01, 0.1,1.0,10,100,1000,10000,20000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{20,000}},
+                              xmode=log,xmin=0.01,xmax=10000,
+                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
+                              ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
                               xlabel={D4 runtime (seconds)}, ylabel={CRAT generation and checking runtime (seconds)},
 %                              title={D4 Defining Clause Generation}
             ]
-    \addplot[mark=none, color=darkestblue] coordinates{(0.01,0.01) (1000.0,1000.0)};
-    \addplot[mark=none, color=midblue] coordinates{(0.01,0.1) (1000,10000)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (200,20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
     \input{data-formatted/time-d4-verify}
     \node[left] at (axis cs: 0.09,0.12) {$1{}.0\times$};
     \node[left] at (axis cs: 0.09,1.2) {$10\times$};
@@ -216,6 +224,65 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \label{fig:d4:crat}
 
 \end{figure}
+
+
+
+\section*{Computing Counts and Weighted Counts}
+
+\begin{itemize}
+\item Implemented package to represent numbers of form $a \cdot 2^b \cdot 5^c$.
+  \begin{itemize}
+  \item For unweighted counts, first compute density and then scale by $2^n$
+  \item For unweighted counts, perform exact decimal arithmetic
+  \item The set of numbers of this form is not closed under a reciprocal operation, but the weights in the competion are either of the form
+    $w(x) + w(\overline{x}) = 1.0$ or $w(x) = w(\overline{x}) = 1$.  The latter case sums to 2, with reciprocal $1/2$.
+  \end{itemize}
+\item Can implement having $a$ be integer of arbitrary size and $b$ and $c$ being 32-bit integers.
+\item Weighted counts ranged up to 260,909 digits.
+\end{itemize}
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1e9, 
+      legend style={at={(0.40,0.98)}},
+      legend cell align={left},
+                              x post scale=2.0, y post scale=2.3,
+                              xmode=log,xmin=100,xmax=1e7, 
+                              xtick={100,1000, 10000, 100000, 1000000, 10000000}, xticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$},
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1e9}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$, $10^9$},
+                              xlabel={Proof Clauses using Lemmas and Literal Grouping}, ylabel={Proof Clauses},
+            ]
+    \input{data-formatted/clauses-lemma-nolemma}
+    \input{data-formatted/clauses-nosplit-split}
+    \legend{
+      \scriptsize \textsf{Without lemmas},
+      \scriptsize \textsf{Without literal grouping},
+    }
+    \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e8,1e8)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,1000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,10000) (1e7,1e9)};
+
+    \node[left] at (axis cs: 900,1200) {$1{}.0\times$};
+    \node[left] at (axis cs: 900,12000) {$10\times$};
+    \node[left] at (axis cs: 900,120000) {$100\times$};
+
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Proof Clauses when Disable Options}
+\label{fig:defining:unoptimized}
+
+\end{figure}
+
+
+
+
+\bibliography{references}
+
+
+\end{document}
 
 
 \begin{figure}
@@ -237,25 +304,3 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \caption{Number of defining clauses in generated POG as function of D4 runtime (X linear scale)}
 \label{fig:generate:d4}
 \end{figure}
-
-\section*{Computing Counts and Weighted Counts}
-
-\begin{itemize}
-\item Implemented package to represent numbers of form $a \cdot 2^b \cdot 5^c$.
-  \begin{itemize}
-  \item For unweighted counts, first compute density and then scale by $2^n$
-  \item For unweighted counts, perform exact decimal arithmetic
-  \item The set of numbers of this form is not closed under a reciprocal operation, but the weights in the competion are either of the form
-    $w(x) + w(\overline{x}) = 1.0$ or $w(x) = w(\overline{x}) = 1$.  The latter case sums to 2, with reciprocal $1/2$.
-  \end{itemize}
-\item Can implement having $a$ be integer of arbitrary size and $b$ and $c$ being 32-bit integers.
-\item Weighted counts ranged up to 260,909 digits.
-\end{itemize}
-
-
-\bibliography{references}
-
-
-\end{document}
-
-

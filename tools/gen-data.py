@@ -10,7 +10,7 @@ import getopt
 #          \addplot coordinates {(4, 900) (8, 8320) (9, 39628) (11, 252970) (12, 1324539) (13, 4095084) (14, 7131764) (15, 15225960)};
 
 # Threshold value.  Don't include data with Y values exceeding this value
-yThresh = 1000 * 1000 * 1000
+yThresh = 10000 * 1000 * 1000
 xThresh = 1000 * 1000 * 1000
 # Set any y value below yMin to yMin
 yMin = 0.0

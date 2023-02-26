@@ -11,6 +11,8 @@ data:
 	$(INTERP) $(GRAB) "GEN ERROR" *.log > failures.csv
 	$(INTERP) $(GRAB) -1 "Compressed POG has" *.D4_log > clauses-defining.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.log > clauses-total.csv
+	$(INTERP) $(GRAB) "clause TOTAL" *.nolemma_log > clauses-total-nolemma.csv
+	$(INTERP) $(GRAB) "clause TOTAL" *.split_log > clauses-total-split.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv > time+defining.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv clauses-total.csv > time+defining-success.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv failures.csv > time+defining-failure.csv
@@ -18,3 +20,5 @@ data:
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv > time-d4-gen.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen.csv seconds-check.csv > time-d4-verify.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv seconds-check.csv seconds-count.csv > times.csv
+	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-nolemma.csv > clauses-lemma-nolemma.csv
+	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split.csv > clauses-nosplit-split.csv
