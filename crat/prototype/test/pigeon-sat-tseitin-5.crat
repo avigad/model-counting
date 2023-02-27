@@ -5592,6 +5592,7 @@ c Assert unit clause for AND node P563
 c Assert ITE at node S564 (root)
 3429 a -26 564 0 2957 2518 0
 3430 a 564 0 3429 3428 2519 0
+r 564
 c Delete all but final asserted clause
 dc 3429 2957 2518 0
 dc 3428 2958 866 867 3427 2513 0

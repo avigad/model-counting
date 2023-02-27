@@ -1,5 +1,7 @@
 import ProofChecker.Data.Cnf
 
+/-! OUTDATED FILE -/
+
 -- TODO add namespace and scope syntax, instances
 
 declare_syntax_cat varlit

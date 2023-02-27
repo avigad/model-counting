@@ -18,7 +18,7 @@ static bool delete_files  =  true;
 static bool early_quit = false;
 static int drat_threshold = 1000;
 static int bcp_limit = 1;
-static int clause_limit = 2 * 1000 * 1000 * 1000;
+static int clause_limit = INT_MAX;
 
 void usage(const char *name) {
     lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);

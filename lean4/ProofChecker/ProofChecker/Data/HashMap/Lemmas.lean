@@ -9,7 +9,7 @@ import Std.Tactic.ShowTerm
 
 import Mathlib.Data.List.Perm
 
-import ProofChecker.ToMathlib
+import ProofChecker.Model.ToMathlib
 import ProofChecker.Data.HashMap.Basic
 import ProofChecker.Data.HashMap.WF
 
@@ -143,6 +143,29 @@ theorem exists_of_toListModel_update (bkts : Buckets α β) (i d h) :
   . simp [toListModel_eq, hTgt]
   . simp [toListModel_eq, hUpd]
 
+theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
+    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
+      ∧ (bkts.update i d h).toListModel = l₁ ++ d.toList ++ l₂
+      ∧ ∀ ab ∈ l₁, ((hash ab.fst).toUSize % bkts.val.size) < i := by
+  have ⟨bs₁, bs₂, hTgt, hLen, hUpd⟩ := bkts.exists_of_update i d h
+  refine ⟨bs₁.bind (·.toList), bs₂.bind (·.toList), ?_, ?_, ?_⟩
+  . simp [toListModel_eq, hTgt]
+  . simp [toListModel_eq, hUpd]
+  . intro ab hMem
+    have ⟨bkt, hBkt, hAb⟩ := mem_bind.mp hMem
+    clear hMem
+    have ⟨⟨j, hJ⟩, hEq⟩ := get_of_mem hBkt
+    have hJ' : j < bkts.val.size := by
+      apply Nat.lt_trans hJ
+      simp [Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
+    have : ab ∈ (bkts.val[j]).toList := by
+      suffices bkt = bkts.val[j] by rwa [this] at hAb
+      have := @List.get_append _ _ (bkts.val[i] :: bs₂) j hJ
+      dsimp at this
+      rw [← hEq, ← this, ← get_of_eq hTgt ⟨j, _⟩]
+      rfl
+    rwa [hLen, ← H.hash_self _ _ _ this] at hJ
+
 theorem toListModel_reinsertAux (tgt : Buckets α β) (a : α) (b : β) :
     (reinsertAux tgt a b).toListModel ~ (a, b) :: tgt.toListModel := by
   unfold reinsertAux
@@ -192,29 +215,6 @@ where
       have : src.data.length ≤ i := by simp [Nat.le_of_not_lt, hI]
       simp [Perm.refl, drop_eq_nil_of_le this]
     termination_by _ i src _ => src.size - i
-
-theorem exists_of_toListModel_update_WF (bkts : Buckets α β) (H : bkts.WF) (i d h) :
-    ∃ l₁ l₂, bkts.toListModel = l₁ ++ bkts.1[i.toNat].toList ++ l₂
-      ∧ (bkts.update i d h).toListModel = l₁ ++ d.toList ++ l₂
-      ∧ ∀ ab ∈ l₁, ((hash ab.fst).toUSize % bkts.val.size) < i := by
-  have ⟨bs₁, bs₂, hTgt, hLen, hUpd⟩ := bkts.exists_of_update i d h
-  refine ⟨bs₁.bind (·.toList), bs₂.bind (·.toList), ?_, ?_, ?_⟩
-  . simp [toListModel_eq, hTgt]
-  . simp [toListModel_eq, hUpd]
-  . intro ab hMem
-    have ⟨bkt, hBkt, hAb⟩ := mem_bind.mp hMem
-    clear hMem
-    have ⟨⟨j, hJ⟩, hEq⟩ := get_of_mem hBkt
-    have hJ' : j < bkts.val.size := by
-      apply Nat.lt_trans hJ
-      simp [Array.size, hTgt, Nat.lt_add_of_pos_right (Nat.succ_pos _)]
-    have : ab ∈ (bkts.val[j]).toList := by
-      suffices bkt = bkts.val[j] by rwa [this] at hAb
-      have := @List.get_append _ _ (bkts.val[i] :: bs₂) j hJ
-      dsimp at this
-      rw [← hEq, ← this, ← get_of_eq hTgt ⟨j, _⟩]
-      rfl
-    rwa [hLen, ← H.hash_self _ _ _ this] at hJ
 
 end Buckets
 
@@ -381,6 +381,15 @@ theorem findEntry?_erase {a a'} {m : Imp α β} (H : m.WF) :
     simp only [Bool.bnot_eq_to_not_eq, Bool.not_eq_true, Bool.bne_eq_false]
     exact PartialEquivBEq.trans h (PartialEquivBEq.symm hEq)
 
+theorem contains_iff (a) (m : Imp α β) (H : m.WF) :
+    m.contains a ↔ ∃ a' b, a == a' ∧ (a, b) ∈ m.buckets.toListModel := by
+  haveI := mkIdx (hash a) m.buckets.property
+  suffices m.contains a ↔ ∃ a' b, a == a' ∧ (a, b) ∈ (m.buckets.val[this.1.toNat]'this.2).toList by
+    sorry
+  apply Iff.intro
+  . sorry
+  . sorry
+
 end Imp
 
 theorem toList_eq_reverse_toListModel (m : HashMap α β) :
@@ -398,29 +407,89 @@ theorem toList_eq_reverse_toListModel (m : HashMap α β) :
     intro l₂
     simp only [List.foldl, ← List.reverse_append, ih]
 
-theorem findEntry?_insert {a a' b} (m : HashMap α β) :
+/-! `toList` -/
+
+@[simp]
+theorem toList_empty : (HashMap.empty : HashMap α β).toList = [] :=
+  sorry
+
+/-! `empty` -/
+
+theorem isEmpty_empty : (HashMap.empty : HashMap α β).isEmpty :=
+  sorry
+
+/-! `findEntry?` -/
+
+@[simp]
+theorem findEntry?_of_isEmpty (m : HashMap α β) (a : α) : m.isEmpty → m.findEntry? a = none :=
+  sorry
+
+@[simp]
+theorem findEntry?_empty (a : α) : (HashMap.empty : HashMap α β).findEntry? a = none :=
+  findEntry?_of_isEmpty _ a isEmpty_empty
+
+theorem findEntry?_insert {a a'} (m : HashMap α β) (b) :
     a == a' → (m.insert a b).findEntry? a' = some (a, b) :=
   m.val.findEntry?_insert m.property
 
-theorem findEntry?_insert_of_ne {a a' b} (m : HashMap α β) :
+theorem findEntry?_insert_of_ne {a a'} (m : HashMap α β) (b) :
     a != a' → (m.insert a b).findEntry? a' = m.findEntry? a' :=
   m.val.findEntry?_insert_of_ne m.property
 
-theorem findEntry?_erase {a a'} (m : HashMap α β) :
-    a == a' → (m.erase a).findEntry? a' = none :=
+theorem findEntry?_erase {a a'} (m : HashMap α β) : a == a' → (m.erase a).findEntry? a' = none :=
   m.val.findEntry?_erase m.property
+
+theorem ext_findEntry? (m₁ m₂ : HashMap α β) : (∀ a, m₁.findEntry? a = m₂.findEntry? a) → m₁ = m₂ :=
+  sorry
+
+/-! `find?` -/
 
 theorem find?_eq (m : HashMap α β) (a : α) : m.find? a = (m.findEntry? a).map (·.2) :=
   AssocList.find?_eq_findEntry? _ _
 
-theorem find?_insert {a a' b} (m : HashMap α β) : a == a' → (m.insert a b).find? a' = some b :=
-  fun h => by simp [find?_eq, findEntry?_insert m h]
+theorem find?_of_isEmpty (m : HashMap α β) (a : α) : m.isEmpty → m.find? a = none :=
+  sorry
 
-theorem find?_insert_of_ne {a a' b} (m : HashMap α β) :
+@[simp]
+theorem find?_empty (a : α) : (HashMap.empty : HashMap α β).find? a = none :=
+  find?_of_isEmpty _ a isEmpty_empty
+
+theorem find?_insert {a a'} (m : HashMap α β) (b) : a == a' → (m.insert a b).find? a' = some b :=
+  fun h => by simp [find?_eq, findEntry?_insert m b h]
+
+theorem find?_insert_of_ne {a a'} (m : HashMap α β) (b) :
     a != a' → (m.insert a b).find? a' = m.find? a' :=
-  fun h => by simp [find?_eq, findEntry?_insert_of_ne m h]
+  fun h => by simp [find?_eq, findEntry?_insert_of_ne m b h]
 
 theorem find?_erase {a a'} (m : HashMap α β) : a == a' → (m.erase a).find? a' = none :=
   fun h => by simp [find?_eq, findEntry?_erase m h]
+
+/-! `insert` -/
+
+theorem insert_comm [LawfulBEq α] (m : HashMap α β) (a₁ a₂ : α) (b : β) :
+    (m.insert a₁ b).insert a₂ b = (m.insert a₂ b).insert a₁ b := by
+  apply ext_findEntry?
+  intro a
+  cases Bool.beq_or_bne a₁ a <;> cases Bool.beq_or_bne a₂ a <;>
+    simp_all [findEntry?_insert, findEntry?_insert_of_ne]
+
+/-! `fold` -/
+
+theorem fold_eq_fold_toList (m : HashMap α β) (f : δ → α → β → δ) (init : δ) :
+    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) →
+    m.fold f init = m.toList.foldl (init := init) (fun d p => f d p.1 p.2) :=
+  sorry
+
+theorem fold_insert_of_comm (m : HashMap α β) (a : α) (b) (f : δ → α → β → δ) (init : δ) :
+    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) → !m.contains a →
+    (m.insert a b).fold f init = f (m.fold f init) a b :=
+  sorry
+
+/-- If an entry appears in the map, it will appear "last" in a commutative `fold` over the map. -/
+theorem fold_of_mapsTo (m : HashMap α β) (f : δ → α → β → δ) (init : δ) (a : α) (b : β) :
+    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) →
+    m.find? a = some b →
+    ∃ d, m.fold f init = f d a b :=
+   sorry
 
 end HashMap

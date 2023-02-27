@@ -1,41 +1,34 @@
 import Cli
 
-import ProofChecker.Data.Dimacs
-import ProofChecker.Cat
-
-def readDimacsCnf (fname : String) : IO (Array (Array Int)) := do
-  let mut cnf := #[]
-  let _hdr :: lns ← Dimacs.tokenizeFile fname | throwThe IO.Error s!"missing CNF header"
-  let clauseOfLitTks (tks : List Dimacs.Token) : Except String (Array Int) := do
-    List.toArray <$> tks.mapM (·.getInt? |> Except.ofOption "expected int")
-  for tks in lns do
-    let some (.int 0) := tks.getLast? | throwThe IO.Error s!"missing terminating 0"
-    let lits := tks.dropLast
-    match clauseOfLitTks lits with
-    | .ok C => cnf := cnf.push C
-    | .error e => throw <| IO.userError e
-  return cnf
+import ProofChecker.Checker.Parse
+import ProofChecker.Checker.CheckerCore
 
 def runCheckCmd (p : Cli.Parsed) : IO UInt32 := do
   let cnfFname := p.positionalArg! "cnf"
   let cratFname := p.positionalArg! "crat"
-  try
-    IO.print "Parsing CNF.."
-    let cnf ← readDimacsCnf cnfFname.value
-    IO.print "done.\nParsing CRAT.."
-    (← IO.getStdout).flush
-    let pf ← CratStep.readDimacsFile cratFname.value
-    IO.print "done.\nChecking.."
-    (← IO.getStdout).flush
-    CheckerState.check cnf pf.toList (verbose := p.hasFlag "verbose")
-    IO.println "\nPROOF SUCCESSFUL"
+  let verbose := p.hasFlag "verbose"
+  IO.print "Parsing CNF..\n"
+  let cnf ← ICnf.readDimacsFile cnfFname.value
+  IO.print "done.\nParsing CRAT..\n"
+  (← IO.getStdout).flush
+  let pf ← CratStep.readDimacsFile cratFname.value
+  IO.print "done.\n"
+  if verbose then
+    IO.print "Reprinted proof:\n"
+    for step in pf do
+      IO.println step.toDimacs
+  IO.print "Checking proof..\n"
+  (← IO.getStdout).flush
+  match checkProof cnf pf with
+  | .ok _ =>
+    IO.println "PROOF SUCCESSFUL"
     return 0
-  catch e =>
-    IO.println s!"\nPROOF FAILED\n{e}"
+  | .error e =>
+    IO.println s!"PROOF FAILED\n{e}"
     return 1
 
 def checkCmd : Cli.Cmd := `[Cli|
-  CheckCRAT VIA runCheckCmd; ["0.0.2"]
+  CheckCRAT VIA runCheckCmd; ["0.0.3"]
   "Check a CRAT proof."
 
   FLAGS:

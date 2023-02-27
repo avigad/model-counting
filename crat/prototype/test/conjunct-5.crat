@@ -15,6 +15,7 @@ c 11 a -6 5 0
 c Node P6 = AND(var-1, var-2, var-3, var-4, var-5)
 c Assert unit clause for AND node P6 (root)
 12 a 6 0 1 2 3 4 5 6 0
+r 6
 c Delete input clauses
 dc 1 7 12 0
 dc 2 8 12 0

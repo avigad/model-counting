@@ -904,8 +904,8 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 	    report(1, "Time = %.2f.  Justifications of %d nodes, including root, completed.  %d total clauses\n",
 		   get_elapsed(), vcount, jcid - cnf->clause_count());
 	} else if (vcount >= vreport_last + vreport_interval) {
-	    report(1, "Time = %.2f.  Justifications of %d nodes completed.  %d total clauses\n",
-		   get_elapsed(), vcount, jcid - cnf->clause_count());
+	    report(1, "Time = %.2f.  Justifications of %d nodes completed.  %d total clauses.  %d SAT calls\n",
+		   get_elapsed(), vcount, jcid - cnf->clause_count(), get_count(COUNT_SAT_CALL));
 	    vreport_last = vcount;
 	}
     }

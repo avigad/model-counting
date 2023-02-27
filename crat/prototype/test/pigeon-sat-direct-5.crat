@@ -4812,6 +4812,7 @@ c Assert ITE at node S620
 c Assert ITE at node S624 (root)
 2837 a -1 624 0 2286 2111 0
 2838 a 624 0 2837 2836 2107 2112 0
+r 624
 c Delete all but final asserted clause
 dc 2837 2286 2111 0
 dc 2836 2835 2834 2097 2102 0

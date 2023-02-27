@@ -6,9 +6,9 @@ Authors: Wojciech Nawrocki
 
 import Mathlib.Data.Rat.Order
 import Mathlib.Tactic.Linarith
-import Mathlib.Data.Erased
 
 import ProofChecker.Data.HashMap.Extra
+import ProofChecker.Model.PropForm
 
 /- ! Some utilities for using the order on `ℚ`. -/
 
@@ -52,6 +52,12 @@ inductive DagException (α : Type u) where
   /-- The node indexed by `a` has incoming edges `ps`. -/
   | hasParents (a : α) (ps : List α)
 
+instance [ToString α] : ToString (DagException α) where
+  toString := fun
+    | .alreadyExists a => s!"node '{a}' already exists"
+    | .hasParents a ps => s!"node '{a}' cannot be deleted because it has incoming edges '{ps}'"
+    | .invalidIndex a => s!"no node is indexed by '{a}'"
+
 variable [BEq α] [Hashable α]
 
 namespace Imp
@@ -59,8 +65,10 @@ namespace Imp
 def empty : Imp α β γ where
   nodes := .empty
 
-def addNode (G : Imp α β γ) (a : α) (label : β) : Imp α β γ :=
-  { G with
+def addNode (G : Imp α β γ) (a : α) (label : β) : Except (DagException α) (Imp α β γ) := do
+  if G.nodes.contains a then
+    throw <| .alreadyExists a
+  return { G with
     nodes := G.nodes.insert a {
       label
       inEdges := []
@@ -136,6 +144,24 @@ A directed graph G is acyclic iff DFS produces no back edges.
 --       |>.adjust a₂ (fun n => { n with inEdges := n.inEdges.erase a₁ })
 --   }
 
+--  A-->|text|B
+/-
+def Dag.toMermaidChart [ToString ν] [ToString β] (g : Graph ν β) : String := Id.run do
+  let mut ret := "flowchart TB\n"
+  let mkArrowEnd (x : β) := if 0 ≤ b then s!"{x.var}" else s!"|NOT|{x.var}"
+  for (x, node) in g.nodes.toArray do
+    match node with
+    | .sum a b =>
+      ret := ret ++ s!"{x}([{x} OR])\n"
+      ret := ret ++ s!"{x} -->{mkArrowEnd a}\n"
+      ret := ret ++ s!"{x} -->{mkArrowEnd b}\n"
+    | .prod ls =>
+      ret := ret ++ s!"{x}({x} AND)\n"
+      for l in ls do
+        ret := ret ++ s!"{x} -->{mkArrowEnd l}\n"
+  return ret
+-/
+
 end Imp
 
 /-! The mathematical model of DAGs is a forest of trees (we don't prove anything about sharing
@@ -177,43 +203,61 @@ namespace Imp
 
 /-! Well-formedness invariants. -/
 
-/-- An out-edge `a ↦ b` exists in `G`. -/
+/-- A node `a` with an out-edge `a ↦ b` exists in `G`. -/
 def hasOutEdge (G : Imp α β γ) (a b : α) : Prop :=
   ∃ n l, G.nodes.mapsTo a n ∧ (l, b) ∈ n.outEdges
 
-/-- An in-edge `b ↤ a` (note flipped arguments) exists in `G`. In any well-formed graph this should
-be equivalent to `hasOutEdge`. -/
-def hasInEdge (G : Imp α β γ) (b a : α) : Prop :=
+/-- A node `b` with an in-edge `a ↦ b` exists in `G`.
+In any well-formed graph this should be equivalent to `hasOutEdge`. -/
+def hasInEdge (G : Imp α β γ) (a b : α) : Prop :=
   ∃ n, G.nodes.mapsTo b n ∧ a ∈ n.inEdges
 
 /-- The DAG `G` is well-formed. -/
 structure WF (G : Imp α β γ) : Prop where
-  inEdge_closed : ∀ {b a}, G.hasInEdge b a → G.nodes.contains a
-  outEdge_closed : ∀ {a b}, G.hasOutEdge a b → G.nodes.contains b
-  edges_match : ∀ a b, G.hasOutEdge a b ↔ G.hasInEdge b a
-  acc_inEdge : ∀ {a}, G.nodes.contains a → Acc G.hasInEdge a
+  -- NB: If this causes any difficulty, it *can be removed* just to support `addParent`
+  edges_match : ∀ ⦃a b⦄, G.hasOutEdge a b ↔ G.hasInEdge a b
+  acc_outEdge : ∀ ⦃a⦄, G.nodes.contains a → Acc (flip G.hasOutEdge) a
+
+theorem WF.inEdge_closed_left {G : Imp α β γ} (H : G.WF) : G.hasInEdge a b →
+    G.nodes.contains a := by
+  intro h
+  have ⟨n, _, hA, _⟩ := H.edges_match.mpr h
+  exact G.nodes.contains_iff_mapsTo.mpr ⟨n, hA⟩
+
+theorem WF.outEdge_closed_left {G : Imp α β γ} (H : G.WF) : G.hasOutEdge a b →
+    G.nodes.contains a := by
+  intro ⟨_, _, h, _⟩
+  exact G.nodes.contains_iff_mapsTo.mpr ⟨_, h⟩
+
+theorem WF.outEdge_closed_right {G : Imp α β γ} (H : G.WF) : G.hasOutEdge a b →
+    G.nodes.contains b := by
+  intro h
+  have ⟨n, hA, _⟩ := H.edges_match.mp h
+  exact G.nodes.contains_iff_mapsTo.mpr ⟨n, hA⟩
 
 /-- Any index `a : α` is accessible because either it is accessible, or it's not in the graph. -/
-theorem WF.acc_inEdge' {G : Imp α β γ} (H : G.WF) : ∀ a, Acc G.hasInEdge a := by
+theorem WF.acc_outEdge' {G : Imp α β γ} (H : G.WF) : ∀ a, Acc (flip G.hasOutEdge) a := by
   intro a
   by_cases h : G.nodes.contains a
-  . exact H.acc_inEdge h 
-  . refine Acc.intro a fun y hY => ?_
-    exfalso
-    apply h (H.inEdge_closed hY)
-
-theorem WF.acc_outEdge {G : Imp α β γ} (H : G.WF) : ∀ a, Acc (fun a b => G.hasOutEdge b a) a := by
-  intro a
-  conv => enter [1]; intro a b; rw [H.edges_match]
-  exact H.acc_inEdge' a
-
-/-! TODO: Correctness of operations. -/
+  . exact H.acc_outEdge h 
+  . exact Acc.intro a fun y hY => False.elim (h <| H.outEdge_closed_left hY)
 
 theorem empty_WF : (@Imp.empty α _ _ β γ).WF where
-  inEdge_closed h := sorry
-  outEdge_closed h := sorry
+  edges_match := by simp [hasInEdge, hasOutEdge, empty]
+  acc_outEdge _ h := by simp [empty] at h
+
+theorem addNode_WF {G G' : Imp α β γ} (H : G.WF) (a : α) (label : β)
+    (hOk : G.addNode a label = .ok G') : G'.WF where
+  edges_match := sorry
+  acc_outEdge := sorry
+
+-- TODO: Important well-formedness theorem
+theorem addParent_WF {G G' : Imp α β γ} (H : G.WF) (a : α) (label : β) (children : List (γ × α))
+    (hOk : G.addParent a l cs = .ok G') : G'.WF where
   edges_match a b := sorry
-  acc_inEdge a := sorry
+  acc_outEdge _ h := .intro _ (by
+    intro b hIn
+    sorry)
 
 /-! Recursors. -/
 
@@ -222,30 +266,29 @@ def ofAcc {r : β → β → Prop} (F : α → {x : β // Acc r x}) : WellFounde
   invImage F ⟨InvImage r (·.1), ⟨fun ⟨_, h⟩ => InvImage.accessible _ h⟩⟩
 
 /-- Non-caching recursive node fold. -/
-def mapNode (G : Imp α β γ) (H : G.WF) (f : α → β → List (γ × σ) → σ) (a : α) (n : DagNode α β γ)
-    (h : G.nodes.mapsTo a n) : σ :=
+def mapNode (G : Imp α β γ) (H : G.WF) (f : α → β → List (γ × σ) → σ)
+    (a : α) (n : DagNode α β γ) (h : G.nodes.mapsTo a n) : σ :=
   let cs : List (γ × σ) := n.outEdges.mapDep fun (a₂Label, a₂) h₂ =>
-    have hEdge : G.hasInEdge a₂ a := by
-      rw [← H.edges_match]
-      exact ⟨n, a₂Label, h, h₂⟩
+    have hEdge : G.hasOutEdge a a₂ :=
+      ⟨n, a₂Label, h, h₂⟩
     match hFind : G.nodes.find? a₂ with
     | some n₂ => (a₂Label, G.mapNode H f a₂ n₂ hFind)
     | none    => False.elim (by
-      have ⟨_, hN, _⟩ := hEdge
-      apply G.nodes.find?_ne_none_of_mapsTo hN hFind)
+      have hContains := H.outEdge_closed_right hEdge
+      apply G.nodes.find?_ne_none_of_contains hContains hFind)
   f a n.label cs
-termination_by' mapNode => ofAcc fun ⟨a, _, _⟩ => ⟨a, H.acc_inEdge' a⟩
+termination_by' mapNode => ofAcc fun ⟨a, _, _⟩ => ⟨a, H.acc_outEdge' a⟩
 
 def nodeToTree (G : Imp α β γ) (H : G.WF) (a : α) (n : DagNode α β γ) (h : G.nodes.mapsTo a n) :
     Tree α β γ :=
   G.mapNode H (fun a b cs => .node a b cs) a n h
 
 -- Correctness theorem for recursive fold.
-theorem mapNode_eq (G : Imp α β γ) (H : G.WF) (f : α → β → List (γ × σ) → σ) (a : α)
-    (n : DagNode α β γ) (h : G.nodes.mapsTo a n) :
+theorem mapNode_eq (G : Imp α β γ) (H : G.WF) (f : α → β → List (γ × σ) → σ)
+    (a : α) (n : DagNode α β γ) (h : G.nodes.mapsTo a n) :
     G.mapNode H f a n h = (G.nodeToTree H a n h).recOnNonDep f := by
   -- Recursive step
-  have : ∀ (a₂ n₂) (hFind : G.nodes.find? a₂ = some n₂), G.hasInEdge a₂ a →
+  have : ∀ (a₂ n₂) (hFind : G.nodes.find? a₂ = some n₂), G.hasOutEdge a a₂ →
       G.mapNode H f a₂ n₂ hFind = (G.nodeToTree H a₂ n₂ hFind).recOnNonDep f :=
     fun a₂ n₂ hFind _ => mapNode_eq G H f a₂ n₂ hFind
   unfold mapNode
@@ -259,26 +302,58 @@ theorem mapNode_eq (G : Imp α β γ) (H : G.WF) (f : α → β → List (γ × 
   funext (a₂Label, a₂) h₂
   split
   . simp
-  next hNone =>
+  next hFind =>
     exfalso
-    have ⟨_, hN, _⟩ : G.hasInEdge a₂ a := by
-      rw [← H.edges_match]
-      exact ⟨n, a₂Label, h, h₂⟩
-    apply G.nodes.find?_ne_none_of_mapsTo hN hNone
-termination_by' mapNode_eq => ofAcc fun ⟨a, _, _⟩ => ⟨a, H.acc_inEdge' a⟩
+    have hEdge : G.hasOutEdge a a₂ :=
+      ⟨n, a₂Label, h, h₂⟩
+    have hContains := H.outEdge_closed_right hEdge
+    apply G.nodes.find?_ne_none_of_contains hContains hFind
+termination_by' mapNode_eq => ofAcc fun ⟨a, _, _⟩ => ⟨a, H.acc_outEdge' a⟩
 
 def recNonDep? (G : Imp α β γ) (H : G.WF) (start : α) (f : α → β → List (γ × σ) → σ) : Option σ :=
   match hFind : G.nodes.find? start with
   | some n => some (G.mapNode H f start n hFind)
   | none   => none
 
-/-- TODO: A caching recursor. -/
-def recCachedNonDep (G : Imp α β γ) (H : G.WF) (start : α) (f : α → β → List (γ × σ) → σ) : Option σ :=
-  sorry
+def mapNodeCached (G : Imp α β γ) (H : G.WF) (f : α → β → List (γ × σ) → σ) (cache : HashMap α σ) 
+    (a : α) (n : DagNode α β γ) (h : G.nodes.mapsTo a n) : HashMap α σ × σ :=
+  match cache.find? a with
+  | some v => (cache, v)
+  | none =>
+    let (cache', cs) : HashMap α σ × List (γ × σ) := n.outEdges.foldlDep
+      (init := (cache, []))
+      fun (cache, acc) (a₂Label, a₂) h₂ =>
+        have hEdge : G.hasOutEdge a a₂ :=
+          ⟨n, a₂Label, h, h₂⟩
+        match hFind : G.nodes.find? a₂ with
+        | some n₂ =>
+          let (cache', val) := G.mapNodeCached H f cache a₂ n₂ hFind
+          (cache', (a₂Label, val) :: acc)
+        | none    => False.elim (by
+          have hContains := H.outEdge_closed_right hEdge
+          apply G.nodes.find?_ne_none_of_contains hContains hFind)
+    (cache', f a n.label cs)
+termination_by' mapNodeCached => ofAcc fun ⟨_, a, _, _⟩ => ⟨a, H.acc_outEdge' a⟩
 
--- TODO: The caching correctness theorem
-theorem recCachedNonDep_eq (G : Imp α β γ) (H) (start) (f : α → β → List (γ × σ) → σ) :
-  G.recCachedNonDep H start f = sorry := sorry
+def mapNodeCached_eq (G : Imp α β γ) (H : G.WF) (f : α → β → List (γ × σ) → σ)
+    (cache : HashMap α σ) (hCache : ∀ a n h s, cache.find? a = some s → G.mapNode H f a n h = s)
+    (a : α) (n : DagNode α β γ) (h : G.nodes.mapsTo a n) :
+    (G.mapNodeCached H f cache a n h).snd = G.mapNode H f a n h := by
+  unfold mapNodeCached; split
+  next hFind => rw [hCache a n h _ hFind]
+  next hFind =>
+    -- TODO: Will need some reasoning about List.foldlDep and List.map
+    sorry
+
+def mapNodeCachedTL (G : Imp α β γ) (H : G.WF) (f : α → β → List (γ × σ) → σ)
+    (a : α) (n : DagNode α β γ) (h : G.nodes.mapsTo a n) : σ :=
+  G.mapNodeCached H f .empty a n h |>.snd
+
+@[csimp]
+theorem mapNode_eq_mapNodeCachedTL : @mapNode = @mapNodeCachedTL := by
+  unfold mapNodeCachedTL
+  conv in mapNodeCached _ _ _ _ _ _ _ |>.snd =>
+    rw [mapNodeCached_eq _ _ _ _ (fun _ _ _ _ h => (by rw [HashMap.find?_empty] at h; cases h))] 
 
 /-! TODO: Change of model under operations. -/
 
@@ -286,9 +361,7 @@ theorem toModel_addNode : True := sorry
 
 theorem toModel_addParent : True := sorry
 
-theorem toModel_delParent : True := sorry
-
-/-! TODO: Conclusions about how recursion proceeds after operations. -/
+/-! TODO: Conclusions about how recursion proceeds after operations given change of model. -/
 
 end Imp
 
@@ -298,6 +371,24 @@ data.
 
 It is designed for FBIP mutation with efficient node/edge insertion and removal. -/
 def _root_.Dag (α : Type u) (β : Type v) (γ : Type w) [BEq α] [Hashable α] := {G : Imp α β γ // G.WF}
+
+def empty : Dag α β γ :=
+  ⟨Imp.empty, Imp.empty_WF⟩
+
+def addNode (G : Dag α β γ) (a : α) (label : β) : Except (DagException α) (Dag α β γ) :=
+  -- The exception effect and dependency don't compose nicely :(
+  match h : G.val.addNode a label with
+  | .error e => .error e
+  | .ok v => .ok ⟨v, Imp.addNode_WF G.property a label h⟩
+
+def addParent (G : Dag α β γ) (a : α) (label : β) (children : List (γ × α)) :
+    Except (DagException α) (Dag α β γ) :=
+  match h : G.val.addParent a label children with
+  | .error e => .error e
+  | .ok v => .ok ⟨v, Imp.addParent_WF G.property a label children h⟩
+
+def recNonDep? (G : Dag α β γ) (start : α) (f : α → β → List (γ × σ) → σ) : Option σ :=
+  G.val.recNonDep? G.property start f
 
 end Dag
 
@@ -311,9 +402,52 @@ inductive PropDag.Node where
 /-- A propositional DAG is a forest of propositional formulas represented as shared graphs. -/
 def PropDag (ν : Type) [BEq ν] [Hashable ν] := Dag ν PropDag.Node Bool
 
-def PropDag.count : Nat := sorry
+namespace PropDag
 
-def PropDag.toPropForm : Unit := sorry
+variable [BEq ν] [Hashable ν]
+
+def empty : PropDag ν :=
+  .empty
+
+def addConj (G : PropDag ν) (x : ν) (children : List (Bool × ν)) :
+    Except (Dag.DagException ν) (PropDag ν) :=
+  G.addParent x .conj children
+
+def addDisj (G : PropDag ν) (x : ν) (children : List (Bool × ν)) :
+    Except (Dag.DagException ν) (PropDag ν) :=
+  G.addParent x .disj children
+
+def addVar (G : PropDag ν) (x : ν) : Except (Dag.DagException ν) (PropDag ν) :=
+  G.addNode x .var
+
+def count (G : PropDag ν) (x : ν) (nvars : Nat) : Option Nat :=
+  G.recNonDep? x fun _ b cs =>
+    match b with
+    | .var => 2^(nvars - 1)
+    | .conj => cs.foldl (init := 2^nvars) fun acc (neg, c) =>
+      let c' := if neg then 2^nvars - c else c
+      acc * c' / 2^nvars
+    | .disj => cs.foldl (init := 0) fun acc (neg, c) =>
+      let c' := if neg then 2^nvars - c else c
+      acc + c'
+
+/-- Return the formula corresponding to `x` in the POG, or simply `var x` if `x` is not in the POG.
+-/
+def toPropForm (G : PropDag ν) (x : ν) : PropForm ν :=
+  let ret := G.recNonDep? x fun a b cs =>
+    match b with
+    | .var => .var a
+    | .conj => cs.foldl (init := .tr) fun acc (neg, φ) =>
+      let φ' := if neg then .neg φ else φ
+      .conj acc φ'
+    | .disj => cs.foldl (init := .fls) fun acc (neg, φ) =>
+      let φ' := if neg then .neg φ else φ
+      .disj acc φ'
+  ret.getD (.var x)
+  
+instance : Inhabited (PropDag Nat) := ⟨.empty⟩
+
+end PropDag
 
 #exit
 
