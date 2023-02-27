@@ -11,11 +11,12 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-f] [-s n|g|c] [-H HPATH] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-f] [-L] [-G] [-s n|g|c] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -s n|g|c Stop after NNF generation, CRAT generation (g) or proof check (c)")
-    print("  -H HPATH Specify pathname for directory")
+    print("  -L       Expand each node, rather than using lemmas");
+    print("  -G       Prove each literal separately, rather than grouping into single proof");
     print("  EXT      Can be any extension for wild-card matching (e.g., cnf, nnf)")
 
 # Blocking file.  If present in directory, won't proceed.  Recheck every sleepTime seconds
@@ -24,6 +25,10 @@ sleepTime = 60
 
 # Defaults
 standardTimeLimit = 60
+
+useLemma = True
+group = True
+
 
 # Pathnames
 homePath = "/Users/bryant/repos"
@@ -128,7 +133,12 @@ def runGen(root, home, logFile, force):
     cratName = home + "/" + root + ".crat"
     if not force and os.path.exists(cratName):
         return True
-    cmd = [genProgram, "-C", str(clauseLimit), "-L", extraLogName, cnfName, nnfName, cratName]
+    cmd = [genProgram]
+    if not useLemma:
+        cmd += ['-e']
+    if not group:
+        cmd += ['-s']
+    cmd += ["-C", str(clauseLimit), "-L", extraLogName, cnfName, nnfName, cratName]
     ok = runProgram("GEN", root, cmd, logFile, extraLogName = extraLogName)
     if not ok and os.path.exists(cratName):
         os.remove(cratName)
@@ -153,15 +163,20 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     result = ""
     prefix = "OVERALL"
     start = datetime.datetime.now()
+    extension = "log"
+    if not useLemma:
+        extension = "nolemma_" + extension
+    if not group:
+        extension = "split_" + extension
     if stopD4:
-        logName = root + ".D4_log"
+        logName = root + ".D4_" + extension
         if os.path.exists(logName):
             print("Already have file %s.  Skipping benchmark" % logName)
             return
     elif stopGen:
-        logName = root + ".d2p_log"
+        logName = root + ".d2p_" + extension
     else:
-        logName = root + ".log"
+        logName = root + "." + extension
     try:
         logFile = open(logName, 'w')
     except:
@@ -206,18 +221,23 @@ def runBatch(home, fileList, stopD4, stopGen, stopCheck, force):
         runSequence(r, home, stopD4, stopGen, stopCheck, force)
 
 def run(name, args):
+    global useLemma, group
     home = "."
     stopD4 = False
     stopGen = False
     stopCheck = False
     force = False
-    optList, args = getopt.getopt(args, "hfH:s:")
+    optList, args = getopt.getopt(args, "hfLGs:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
         elif opt == '-f':
             force = True
+        elif opt == '-L':
+            useLemma = False
+        elif opt == '-G':
+            group = False
         elif opt == '-s':
             if val == 'n':
                 stopD4 = True
