@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wojciech Nawrocki
 -/
 
-import ProofChecker.PropForm
+import ProofChecker.Model.PropForm
 
 /-! The Lindenbaum-Tarski algebra on propositional logic. We show that it is a Boolean algebra with
 ordering given by semantic entailment. -/
@@ -19,9 +19,18 @@ instance PropTerm.setoid (ν : Type) : Setoid (PropForm ν) where
   }
 
 /-- A propositional term in the algebra is a propositional formula up to semantic equivalence. -/
+-- PropFun ν
 def PropTerm ν := Quotient (PropTerm.setoid ν)
 
 namespace PropTerm
+
+-- TODO Explain "generalized rewriting with quotient"
+
+theorem exact {φ₁ φ₂ : PropForm ν} : @Eq (PropTerm ν) ⟦φ₁⟧ ⟦φ₂⟧ → PropForm.equivalent φ₁ φ₂ :=
+  Quotient.exact
+
+theorem sound {φ₁ φ₂ : PropForm ν} : PropForm.equivalent φ₁ φ₂ → @Eq (PropTerm ν) ⟦φ₁⟧ ⟦φ₂⟧ :=
+  @Quotient.sound _ (PropTerm.setoid ν) _ _
 
 def var (x : ν) : PropTerm ν := ⟦.var x⟧
 
@@ -262,5 +271,31 @@ theorem satisfies_impl' {τ : PropAssignment ν} : τ ⊨ φ₁ ⇨ φ₂ ↔ τ
 @[simp]
 theorem satisfies_biImpl {τ : PropAssignment ν} : τ ⊨ biImpl φ₁ φ₂ ↔ (τ ⊨ φ₁ ↔ τ ⊨ φ₂) := by
   simp [sEntails, satisfies]
+
+-- TODO: custom simp set?
+
+attribute [-simp] Quotient.eq
+-- #check Quotient.eq
+
+@[simp]
+theorem mk_var (x : ν) : ⟦.var x⟧ = var x := sorry
+
+@[simp]
+theorem mk_tr : @Eq (PropTerm ν) ⟦.tr⟧ ⊤ := sorry
+
+@[simp]
+theorem mk_fls : @Eq (PropTerm ν) ⟦.fls⟧ ⊥ := sorry
+
+@[simp]
+theorem mk_neg (φ : PropForm ν) : @Eq (PropTerm ν) ⟦.neg φ⟧ (⟦φ⟧ᶜ) := sorry
+
+@[simp]
+theorem mk_conj (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.conj φ₁ φ₂⟧ (⟦φ₁⟧ ⊓ ⟦φ₂⟧) := sorry
+
+@[simp]
+theorem mk_disj (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.disj φ₁ φ₂⟧ (⟦φ₁⟧ ⊔ ⟦φ₂⟧) := sorry
+
+@[simp]
+theorem mk_impl (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.impl φ₁ φ₂⟧ (⟦φ₁⟧ ⇨ ⟦φ₂⟧) := sorry
 
 end PropTerm

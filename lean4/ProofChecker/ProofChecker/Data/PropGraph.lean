@@ -6,9 +6,9 @@ Authors: Wojciech Nawrocki
 
 import Mathlib.Data.Rat.Order
 import Mathlib.Tactic.Linarith
-import Mathlib.Data.Erased
 
 import ProofChecker.Data.HashMap.Extra
+import ProofChecker.Model.PropForm
 
 /- ! Some utilities for using the order on `ℚ`. -/
 
@@ -52,6 +52,12 @@ inductive DagException (α : Type u) where
   /-- The node indexed by `a` has incoming edges `ps`. -/
   | hasParents (a : α) (ps : List α)
 
+instance [ToString α] : ToString (DagException α) where
+  toString := fun
+    | .alreadyExists a => s!"node '{a}' already exists"
+    | .hasParents a ps => s!"node '{a}' cannot be deleted because it has incoming edges '{ps}'"
+    | .invalidIndex a => s!"no node is indexed by '{a}'"
+
 variable [BEq α] [Hashable α]
 
 namespace Imp
@@ -59,8 +65,10 @@ namespace Imp
 def empty : Imp α β γ where
   nodes := .empty
 
-def addNode (G : Imp α β γ) (a : α) (label : β) : Imp α β γ :=
-  { G with
+def addNode (G : Imp α β γ) (a : α) (label : β) : Except (DagException α) (Imp α β γ) := do
+  if G.nodes.contains a then
+    throw <| .alreadyExists a
+  return { G with
     nodes := G.nodes.insert a {
       label
       inEdges := []
@@ -135,6 +143,24 @@ A directed graph G is acyclic iff DFS produces no back edges.
 --         | none => n)
 --       |>.adjust a₂ (fun n => { n with inEdges := n.inEdges.erase a₁ })
 --   }
+
+--  A-->|text|B
+/-
+def Dag.toMermaidChart [ToString ν] [ToString β] (g : Graph ν β) : String := Id.run do
+  let mut ret := "flowchart TB\n"
+  let mkArrowEnd (x : β) := if 0 ≤ b then s!"{x.var}" else s!"|NOT|{x.var}"
+  for (x, node) in g.nodes.toArray do
+    match node with
+    | .sum a b =>
+      ret := ret ++ s!"{x}([{x} OR])\n"
+      ret := ret ++ s!"{x} -->{mkArrowEnd a}\n"
+      ret := ret ++ s!"{x} -->{mkArrowEnd b}\n"
+    | .prod ls =>
+      ret := ret ++ s!"{x}({x} AND)\n"
+      for l in ls do
+        ret := ret ++ s!"{x} -->{mkArrowEnd l}\n"
+  return ret
+-/
 
 end Imp
 
@@ -219,6 +245,11 @@ theorem WF.acc_outEdge' {G : Imp α β γ} (H : G.WF) : ∀ a, Acc (flip G.hasOu
 theorem empty_WF : (@Imp.empty α _ _ β γ).WF where
   edges_match := by simp [hasInEdge, hasOutEdge, empty]
   acc_outEdge _ h := by simp [empty] at h
+
+theorem addNode_WF {G G' : Imp α β γ} (H : G.WF) (a : α) (label : β)
+    (hOk : G.addNode a label = .ok G') : G'.WF where
+  edges_match := sorry
+  acc_outEdge := sorry
 
 -- TODO: Important well-formedness theorem
 theorem addParent_WF {G G' : Imp α β γ} (H : G.WF) (a : α) (label : β) (children : List (γ × α))
@@ -341,6 +372,24 @@ data.
 It is designed for FBIP mutation with efficient node/edge insertion and removal. -/
 def _root_.Dag (α : Type u) (β : Type v) (γ : Type w) [BEq α] [Hashable α] := {G : Imp α β γ // G.WF}
 
+def empty : Dag α β γ :=
+  ⟨Imp.empty, Imp.empty_WF⟩
+
+def addNode (G : Dag α β γ) (a : α) (label : β) : Except (DagException α) (Dag α β γ) :=
+  -- The exception effect and dependency don't compose nicely :(
+  match h : G.val.addNode a label with
+  | .error e => .error e
+  | .ok v => .ok ⟨v, Imp.addNode_WF G.property a label h⟩
+
+def addParent (G : Dag α β γ) (a : α) (label : β) (children : List (γ × α)) :
+    Except (DagException α) (Dag α β γ) :=
+  match h : G.val.addParent a label children with
+  | .error e => .error e
+  | .ok v => .ok ⟨v, Imp.addParent_WF G.property a label children h⟩
+
+def recNonDep? (G : Dag α β γ) (start : α) (f : α → β → List (γ × σ) → σ) : Option σ :=
+  G.val.recNonDep? G.property start f
+
 end Dag
 
 /-! Propositional DAGs. -/
@@ -353,9 +402,52 @@ inductive PropDag.Node where
 /-- A propositional DAG is a forest of propositional formulas represented as shared graphs. -/
 def PropDag (ν : Type) [BEq ν] [Hashable ν] := Dag ν PropDag.Node Bool
 
-def PropDag.count : Nat := sorry
+namespace PropDag
 
-def PropDag.toPropForm : Unit := sorry
+variable [BEq ν] [Hashable ν]
+
+def empty : PropDag ν :=
+  .empty
+
+def addConj (G : PropDag ν) (x : ν) (children : List (Bool × ν)) :
+    Except (Dag.DagException ν) (PropDag ν) :=
+  G.addParent x .conj children
+
+def addDisj (G : PropDag ν) (x : ν) (children : List (Bool × ν)) :
+    Except (Dag.DagException ν) (PropDag ν) :=
+  G.addParent x .disj children
+
+def addVar (G : PropDag ν) (x : ν) : Except (Dag.DagException ν) (PropDag ν) :=
+  G.addNode x .var
+
+def count (G : PropDag ν) (x : ν) (nvars : Nat) : Option Nat :=
+  G.recNonDep? x fun _ b cs =>
+    match b with
+    | .var => 2^(nvars - 1)
+    | .conj => cs.foldl (init := 2^nvars) fun acc (neg, c) =>
+      let c' := if neg then 2^nvars - c else c
+      acc * c' / 2^nvars
+    | .disj => cs.foldl (init := 0) fun acc (neg, c) =>
+      let c' := if neg then 2^nvars - c else c
+      acc + c'
+
+/-- Return the formula corresponding to `x` in the POG, or simply `var x` if `x` is not in the POG.
+-/
+def toPropForm (G : PropDag ν) (x : ν) : PropForm ν :=
+  let ret := G.recNonDep? x fun a b cs =>
+    match b with
+    | .var => .var a
+    | .conj => cs.foldl (init := .tr) fun acc (neg, φ) =>
+      let φ' := if neg then .neg φ else φ
+      .conj acc φ'
+    | .disj => cs.foldl (init := .fls) fun acc (neg, φ) =>
+      let φ' := if neg then .neg φ else φ
+      .disj acc φ'
+  ret.getD (.var x)
+  
+instance : Inhabited (PropDag Nat) := ⟨.empty⟩
+
+end PropDag
 
 #exit
 

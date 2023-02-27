@@ -4,9 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Wojciech Nawrocki
 -/
 
+import Std.Classes.BEq
+
+import Mathlib.Tactic.Linarith
 import Mathlib.Data.List.Lemmas
 import Mathlib.Data.List.Perm
-import Std.Classes.BEq
 
 /-! Std.Logic or Std.Bool? -/
 
@@ -24,8 +26,15 @@ import Std.Classes.BEq
 theorem Bool.not_eq_true_iff_ne_true {b : Bool} : (!b) = true ↔ ¬(b = true) := by
   cases b <;> decide
 
-theorem Bool.bne_iff_not_beq [BEq α] {a a' : α} : a != a' ↔ ¬(a == a')  :=
+theorem Bool.bne_iff_not_beq [BEq α] {a a' : α} : a != a' ↔ ¬(a == a') :=
   Bool.not_eq_true_iff_ne_true
+
+theorem Bool.beq_or_bne [BEq α] (a a' : α) : a == a' ∨ a != a' :=
+  by
+    cases h : a == a'
+    . apply Or.inr
+      simp [bne_iff_not_beq, h]
+    . exact Or.inl rfl
 
 @[simp]
 theorem Bool.bne_eq_false [BEq α] {a a' : α} : (a != a') = false ↔ a == a' := by 
@@ -33,6 +42,10 @@ theorem Bool.bne_eq_false [BEq α] {a a' : α} : (a != a') = false ↔ a == a' :
   cases (a == a') <;> simp
 
 /-! Std.Classes.BEq -/
+
+instance [BEq α] [LawfulBEq α] : PartialEquivBEq α where
+  symm h := by cases (beq_iff_eq _ _).mp h; exact h
+  trans h₁ h₂ := by cases (beq_iff_eq _ _).mp h₁; cases (beq_iff_eq _ _).mp h₂; exact h₁
 
 theorem bne_symm [BEq α] [PartialEquivBEq α] {a b : α} : a != b → b != a :=
   fun h => Bool.not_eq_true_iff_ne_true.mpr fun h' =>
@@ -262,3 +275,11 @@ theorem replaceF_of_unique {a b : α} {l : List α} (f : α → Option α) :
       exact .trans (.cons x this) (.swap b x _)
 
 end List
+
+/-! Int -/
+
+theorem Int.eq_zero_of_lt_neg_iff_lt (i : Int) : (0 < -i ↔ 0 < i) → i = 0 := by
+  intro h
+  by_cases hLt : 0 < i
+  . have := h.mpr hLt; linarith
+  . have : ¬ 0 < -i := fun h₂ => hLt (h.mp h₂); linarith

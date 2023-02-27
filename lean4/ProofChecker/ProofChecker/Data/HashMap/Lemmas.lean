@@ -9,7 +9,7 @@ import Std.Tactic.ShowTerm
 
 import Mathlib.Data.List.Perm
 
-import ProofChecker.ToMathlib
+import ProofChecker.Model.ToMathlib
 import ProofChecker.Data.HashMap.Basic
 import ProofChecker.Data.HashMap.WF
 
@@ -407,39 +407,89 @@ theorem toList_eq_reverse_toListModel (m : HashMap α β) :
     intro l₂
     simp only [List.foldl, ← List.reverse_append, ih]
 
+/-! `toList` -/
+
 @[simp]
-theorem findEntry?_empty {a : α} :
-    (HashMap.empty : HashMap α β).findEntry? a = none :=
+theorem toList_empty : (HashMap.empty : HashMap α β).toList = [] :=
   sorry
 
-theorem findEntry?_insert {a a' b} (m : HashMap α β) :
+/-! `empty` -/
+
+theorem isEmpty_empty : (HashMap.empty : HashMap α β).isEmpty :=
+  sorry
+
+/-! `findEntry?` -/
+
+@[simp]
+theorem findEntry?_of_isEmpty (m : HashMap α β) (a : α) : m.isEmpty → m.findEntry? a = none :=
+  sorry
+
+@[simp]
+theorem findEntry?_empty (a : α) : (HashMap.empty : HashMap α β).findEntry? a = none :=
+  findEntry?_of_isEmpty _ a isEmpty_empty
+
+theorem findEntry?_insert {a a'} (m : HashMap α β) (b) :
     a == a' → (m.insert a b).findEntry? a' = some (a, b) :=
   m.val.findEntry?_insert m.property
 
-theorem findEntry?_insert_of_ne {a a' b} (m : HashMap α β) :
+theorem findEntry?_insert_of_ne {a a'} (m : HashMap α β) (b) :
     a != a' → (m.insert a b).findEntry? a' = m.findEntry? a' :=
   m.val.findEntry?_insert_of_ne m.property
 
-theorem findEntry?_erase {a a'} (m : HashMap α β) :
-    a == a' → (m.erase a).findEntry? a' = none :=
+theorem findEntry?_erase {a a'} (m : HashMap α β) : a == a' → (m.erase a).findEntry? a' = none :=
   m.val.findEntry?_erase m.property
+
+theorem ext_findEntry? (m₁ m₂ : HashMap α β) : (∀ a, m₁.findEntry? a = m₂.findEntry? a) → m₁ = m₂ :=
+  sorry
+
+/-! `find?` -/
 
 theorem find?_eq (m : HashMap α β) (a : α) : m.find? a = (m.findEntry? a).map (·.2) :=
   AssocList.find?_eq_findEntry? _ _
 
+theorem find?_of_isEmpty (m : HashMap α β) (a : α) : m.isEmpty → m.find? a = none :=
+  sorry
+
 @[simp]
-theorem find?_empty {a : α} :
-    (HashMap.empty : HashMap α β).find? a = none :=
-  by simp [find?_eq, findEntry?_empty]
+theorem find?_empty (a : α) : (HashMap.empty : HashMap α β).find? a = none :=
+  find?_of_isEmpty _ a isEmpty_empty
 
-theorem find?_insert {a a' b} (m : HashMap α β) : a == a' → (m.insert a b).find? a' = some b :=
-  fun h => by simp [find?_eq, findEntry?_insert m h]
+theorem find?_insert {a a'} (m : HashMap α β) (b) : a == a' → (m.insert a b).find? a' = some b :=
+  fun h => by simp [find?_eq, findEntry?_insert m b h]
 
-theorem find?_insert_of_ne {a a' b} (m : HashMap α β) :
+theorem find?_insert_of_ne {a a'} (m : HashMap α β) (b) :
     a != a' → (m.insert a b).find? a' = m.find? a' :=
-  fun h => by simp [find?_eq, findEntry?_insert_of_ne m h]
+  fun h => by simp [find?_eq, findEntry?_insert_of_ne m b h]
 
 theorem find?_erase {a a'} (m : HashMap α β) : a == a' → (m.erase a).find? a' = none :=
   fun h => by simp [find?_eq, findEntry?_erase m h]
+
+/-! `insert` -/
+
+theorem insert_comm [LawfulBEq α] (m : HashMap α β) (a₁ a₂ : α) (b : β) :
+    (m.insert a₁ b).insert a₂ b = (m.insert a₂ b).insert a₁ b := by
+  apply ext_findEntry?
+  intro a
+  cases Bool.beq_or_bne a₁ a <;> cases Bool.beq_or_bne a₂ a <;>
+    simp_all [findEntry?_insert, findEntry?_insert_of_ne]
+
+/-! `fold` -/
+
+theorem fold_eq_fold_toList (m : HashMap α β) (f : δ → α → β → δ) (init : δ) :
+    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) →
+    m.fold f init = m.toList.foldl (init := init) (fun d p => f d p.1 p.2) :=
+  sorry
+
+theorem fold_insert_of_comm (m : HashMap α β) (a : α) (b) (f : δ → α → β → δ) (init : δ) :
+    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) → !m.contains a →
+    (m.insert a b).fold f init = f (m.fold f init) a b :=
+  sorry
+
+/-- If an entry appears in the map, it will appear "last" in a commutative `fold` over the map. -/
+theorem fold_of_mapsTo (m : HashMap α β) (f : δ → α → β → δ) (init : δ) (a : α) (b : β) :
+    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) →
+    m.find? a = some b →
+    ∃ d, m.fold f init = f d a b :=
+   sorry
 
 end HashMap

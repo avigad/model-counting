@@ -1,34 +1,9 @@
 import Mathlib.Data.Finset.Powerset
 import Mathlib.Data.Finset.Card
-import ProofChecker.PropForm
+
+import ProofChecker.Model.PropVars
 
 open Finset
-
-/-
-A finset version of `PropForm.vars`.
--/
-
-namespace PropForm
-
-variable {ν : Type u} [DecidableEq ν]
-
-/-- The unique evaluation function on formulas which extends `τ`. -/
-@[simp]
-def vars : PropForm ν → Finset ν
-  | var x        => {x}
-  | tr           => ∅
-  | fls          => ∅
-  | neg φ        => vars φ
-  | conj φ₁ φ₂   => vars φ₁ ∪ vars φ₂
-  | disj φ₁ φ₂   => vars φ₁ ∪ vars φ₂
-  | impl φ₁ φ₂   => vars φ₁ ∪ vars φ₂
-  | biImpl φ₁ φ₂ => vars φ₁ ∪ vars φ₂
-
-theorem eval_ext {φ : PropForm ν} {v₁ v₂ : PropAssignment ν} (h : ∀ x ∈ φ.vars, v₁ x = v₂ x) :
-    φ.eval v₁ = φ.eval v₂ := by
-  induction φ <;> simp_all [eval, vars]
-
-end PropForm
 
 /-
 This is the counting function for decomposable formulas, also known as POGs. The main theorem,

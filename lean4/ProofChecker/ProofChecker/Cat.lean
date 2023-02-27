@@ -1,7 +1,7 @@
-import Std.Data.HashMap
-import Std.Data.RBMap
 import Std.Data.Array.Basic
 import Lean.Data.HashSet
+
+/-! OUTDATED FILE -/
 
 import ProofChecker.Data.Dimacs
 import ProofChecker.Data.ClauseDb
@@ -24,7 +24,7 @@ inductive CratStep (α ν β : Type)
     delOp (x : ν)
   deriving Repr
 
--- maybe:
+-- ~~maybe~~ nah
 class SignedType (α : Type u) (β : outParam $ Type v) :=
   embed : α → β
   inj : ∀ a a', embed a = embed a' → a = a'
@@ -101,6 +101,8 @@ inductive Node β
   | prod (ls : Array β)
   deriving Repr, Inhabited
 
+-- G.toPropForm = φ
+-- ∀ τ, τ ⊨ G (could be different implementation of ⊨ ) ↔ τ ⊨ φ
 structure Graph (ν β : Type) [BEq ν] [Hashable ν] where
   /--
   `nodes x = y` when x ↔ y, i.e. the node `y` defines the extension variable `x`
@@ -211,7 +213,7 @@ instance : ToString CheckerError where
     | duplicateClauseIdx idx => s!"duplicate clause index: {idx}"
     | wrongClauseIdx idx => s!"wrong clause index: {idx}"
     | hintNotUnit idx => s!"hinted clause at {idx} did not become unit"
-    | upNoContradiction τ => s!"unit propagation did not derive contradiction (final assignment {@id (List _) τ})"
+    | upNoContradiction τ => s!"unit propagation did not derive contradiction (final assignment {@id (Std.HashMap Int _) τ |>.toList})"
     | varNotExtension x => s!"variable '{x}' is not an extension variable"
     | varHasRevDeps x => s!"variable '{x}' cannot be removed as others depend on it"
     | duplicateExtVar x => s!"extension variable '{x}' already introduced"
@@ -319,7 +321,7 @@ def delExtVar (x : Nat) : CheckerM Unit := do
 /-- Check if `C` is an asymmetric tautology wrt the clause database. -/
 def checkAtWithHints (C : Array Int) (hints : Array Nat) : CheckerM Unit := do
   let st ← get
-  match st.clauseDb'.unitPropWithHints (C.toList.map Int.neg) hints with
+  match st.clauseDb'.unitPropWithHints (C.foldl (init := .empty) fun acc l => acc.insert (-l) ()) hints with
   | .contradiction =>
     log! "{C} implied by UP"
     return

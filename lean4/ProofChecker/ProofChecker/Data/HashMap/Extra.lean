@@ -23,7 +23,8 @@ def adjust (m : HashMap α β) (a : α) (f : β → β) : HashMap α β :=
 
 /-! `mapsTo` -/
 
-/-- This relation characterizes the map stored in `m`. -/
+/-- This relation characterizes the map stored in `m` (but not the data of `m` itself unless we
+have `LawfulBEq`). -/
 def mapsTo (m : HashMap α β) (a : α) (b : β) : Prop :=
   m.find? a = some b
 

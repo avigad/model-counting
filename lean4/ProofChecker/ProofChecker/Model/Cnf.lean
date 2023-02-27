@@ -8,8 +8,8 @@ import Std.Data.List.Basic
 import Std.Data.List.Lemmas
 import Mathlib.Data.List.Basic
 
-import ProofChecker.PropTerm
-import ProofChecker.PropVars
+import ProofChecker.Model.PropTerm
+import ProofChecker.Model.PropVars
 
 /-! Propositional formulas in CNF form. This is only intended for mathematical modelling.
 For performant CNF see `ClauseDb`. -/
@@ -21,10 +21,12 @@ inductive Lit (ν : Type)
 
 namespace Lit
 
+variable [DecidableEq ν]
+
 def toPropForm : Lit ν → PropForm ν
   | pos x => .var x
   | neg x => .neg (.var x)
-
+  
 def toPropTerm : Lit ν → PropTerm ν
   | pos x => .var x
   | neg x => (.var x)ᶜ
@@ -39,6 +41,10 @@ def var : Lit ν → ν
 def polarity : Lit ν → Bool
   | pos _ => true
   | neg _ => false
+  
+@[simp]
+theorem toPropForm_vars (l : Lit ν) : l.toPropForm.vars = {l.var} := by
+  cases l <;> rw [toPropForm, var] <;> simp [PropForm.vars]
 
 @[ext]
 theorem ext {l₁ l₂ : Lit ν} : l₁.var = l₂.var → l₁.polarity = l₂.polarity → l₁ = l₂ := by
@@ -76,8 +82,32 @@ abbrev Clause ν := List (Lit ν)
 
 namespace Clause
 
+variable [DecidableEq ν]
+
+-- This isn't computational however :(
+def vars (C : Clause ν) : Finset ν :=
+  C.foldr (init := ∅) fun l s => {l.var} ∪ s
+
+@[simp]
+def vars_cons (C : Clause ν) (l : Lit ν) :
+    vars (l :: C) = {l.var} ∪ vars C := by
+  simp [vars, List.foldr_cons]
+
 def toPropForm : Clause ν → PropForm ν :=
   List.foldr (init := .fls) (fun l φ => .disj l.toPropForm φ)
+
+@[simp]
+def toPropForm_cons (C : Clause ν) (l : Lit ν) :
+    toPropForm (l :: C) = .disj l.toPropForm C.toPropForm := by
+  rw [toPropForm, List.foldr_cons]
+
+@[simp]
+theorem toPropForm_vars (C : Clause ν) : C.toPropForm.vars = C.vars := by
+  induction C with
+  | nil => simp [vars, PropForm.vars]
+  | cons _ _ ih => 
+    rw [toPropForm_cons, PropForm.vars, ih, vars_cons]
+    simp 
 
 def toPropTerm : Clause ν → PropTerm ν :=
   List.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
@@ -149,8 +179,31 @@ abbrev CnfForm ν := List (Clause ν)
 
 namespace CnfForm
 
+variable [DecidableEq ν]
+
+def vars (F : CnfForm ν) : Finset ν :=
+  F.foldr (init := ∅) fun C s => C.vars ∪ s
+
+@[simp]
+def vars_cons (F : CnfForm ν) (C : Clause ν) :
+    vars (C :: F) = C.vars ∪ F.vars := by
+  simp [vars, List.foldr_cons]
+
 def toPropForm : CnfForm ν → PropForm ν :=
   List.foldr (init := .tr) (fun C φ => .conj C.toPropForm φ)
+
+@[simp]
+def toPropForm_cons (F : CnfForm ν) (C : Clause ν) :
+    toPropForm (C :: F) = .conj C.toPropForm F.toPropForm := by
+  rw [toPropForm, List.foldr_cons]
+
+@[simp]
+theorem toPropForm_vars (F : CnfForm ν) : F.toPropForm.vars = F.vars := by
+  induction F with
+  | nil => simp [vars, PropForm.vars]
+  | cons _ _ ih => 
+    rw [toPropForm_cons, PropForm.vars, ih]
+    simp
 
 def toPropTerm : CnfForm ν → PropTerm ν :=
   List.foldr (init := ⊤) (fun C φ => C.toPropTerm ⊓ φ)
@@ -163,7 +216,7 @@ theorem toPropTerm_nil : toPropTerm ([] : CnfForm ν) = ⊤ := by
   simp [toPropTerm]
 
 @[simp]
-theorem toPropForm_cons (C : Clause ν) (F : CnfForm ν) :
+theorem toPropTerm_cons (C : Clause ν) (F : CnfForm ν) :
     toPropTerm (C :: F) = C.toPropTerm ⊓ F.toPropTerm := by
   simp [toPropTerm]
 
@@ -242,6 +295,7 @@ theorem equivalentOver_of_isRIMP [DecidableEq ν] {X : Set ν} (F : CnfForm ν) 
 
 -- PROBLEM: I think this is actually false. For example `x ∨ y` is RAT on `y` w.r.t `x` but `x`
 -- does not extend uniquely to `x ∧ (x ∨ y)`.
+-- SOLUTION (?): Does RUP imply this?
 open PropTerm in
 theorem hasUniqueExtension_of_isRIMP {X : Set ν} (F : CnfForm ν) (C : Clause ν) (l : Lit ν) :
     l ∈ C → l.var ∉ X → isRIMP F C l →

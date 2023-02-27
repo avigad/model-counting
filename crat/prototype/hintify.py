@@ -63,7 +63,7 @@ jpath = os.path.dirname(os.path.realpath(__file__))
 justify_prog = jpath + "/" + "justify.py"
 
 # Where is Cadical?
-cpath = "/Users/bryant/repos/cadical/build"
+cpath = "/home/nawrocki/cadical/"
 cadical_prog = cpath + "/" + "cadical"
 
 # Clauses requiring hint addition

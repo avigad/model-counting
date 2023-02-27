@@ -5,7 +5,7 @@ Authors: Wojciech Nawrocki
 -/
 
 import Mathlib.Data.Finset.Basic
-import ProofChecker.PropTerm
+import ProofChecker.Model.PropTerm
 
 /-! Assignments to and equivalence over subsets of variables. This usefully does respect semantic
 equivalence, even though the operation `PropForm.vars` we define later does not. 
@@ -74,8 +74,6 @@ namespace PropForm
 variable [DecidableEq ν]
 
 /-- Variables appearing in the formula. Sometimes called its "support set". -/
--- TODO: a finset or list variant may be useful; but ν can be a Fintype in which case Set ν works
-@[simp]
 def vars : PropForm ν → Finset ν
   | var y => {y}
   | tr | fls => ∅
@@ -85,13 +83,7 @@ def vars : PropForm ν → Finset ν
 theorem eval_ext {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν} : (∀ x ∈ φ.vars, σ₁ x = σ₂ x) →
     φ.eval σ₁ = φ.eval σ₂ := by
   intro h
-  induction φ with
-  | var y => apply h; simp 
-  | tr | fls => rfl
-  | neg _ ih => simp [ih h]
-  | _ _ _ ih₁ ih₂ =>
-    simp only [vars, Finset.mem_union] at h
-    simp [ih₁ fun x hMem => (h x <| .inl hMem), ih₂ fun x hMem => (h x <| .inr hMem)]
+  induction φ <;> simp_all [eval, vars]
 
 theorem eval_set_of_not_mem_vars [DecidableEq ν] {x : ν} {φ : PropForm ν} {τ : PropAssignment ν} : 
     x ∉ φ.vars → φ.eval (τ.set x b) = φ.eval τ := by
