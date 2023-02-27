@@ -7,5 +7,6 @@ c Create chain of 4 AND operations with negated inputs
 11 p 9 1 8 0
 c Assert unit clause for root
 14 a -9 0 13 12 10 9 7 6 4 3 1 0
+r -9
 c Delete input clause
 dc 1 2 5 8 11 14 0
