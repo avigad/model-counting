@@ -29,34 +29,46 @@ instance : ToString CratStep where
   
 end CratStep
 
+/-- An index into the `ClauseDb`. -/
+abbrev ClauseIdx := Nat
+
+/-- A variable. -/
+abbrev Var := Nat
+
 /-- The checker's runtime state. Contains exactly the data needed to fully check a proof. -/
 structure CheckerStateCore where
   inputCnf : ICnf
-  /-- Number of variables in the original CNF. -/
-  numOrigVars : Nat
+  /-- The variables present in the original CNF. -/
+  -- TODO: not used at the moment; its cardinality is needed to output an absolute model-count,
+  -- and also to state invariants; but for the latter, ghost state would suffice
+  origVars : HashSet Var
   /-- The clause database. -/
-  clauseDb : ClauseDb Nat := {}
-  /-- The dependency set of every variable currently present in the PDAG. Additionally, the
-  set of keys of this map is the current set of variables (both original and defined). -/
-  depVars : HashMap Nat (HashSet Nat) := {}
+  clauseDb : ClauseDb Var := {}
+  /-- Maps any variable present in `clauseDb` to the set of all *original* variables it depends on.
+  For example, an original `x` is mapped to `{x}` whereas an extension `p` with `p ↔ x ∧ y` is
+  mapped to `{x, y}`. 
+
+  Variables not present in `clauseDb` are not present in this map. Thus we maintain the invariant
+  that a variable is in the `clauseDb` iff it is in the domain of this map. -/
+  depVars : HashMap Var (HashSet Var) := {}
   -- TODO: replace with ItegCount?
   -- TODO: should the initial state include all original variables as disconnected verts?
-  scheme : PropDag Nat := .empty
+  scheme : PropDag Var := .empty
   /-- Which clauses are counting scheme definition clauses. -/
-  schemeDefs : HashSet Nat := .empty Nat
+  schemeDefs : HashSet ClauseIdx := .empty ClauseIdx
   root : Option ILit := none
 
 inductive CheckerError where
-  | graphUpdateError (err : Dag.DagException Nat)
-  | duplicateClauseIdx (idx : Nat)
-  | unknownClauseIdx (idx : Nat)
-  | hintNotUnit (idx : Nat)
+  | graphUpdateError (err : Dag.DagException Var)
+  | duplicateClauseIdx (idx : ClauseIdx)
+  | unknownClauseIdx (idx : ClauseIdx)
+  | hintNotUnit (idx : ClauseIdx)
   | upNoContradiction (τ : PartPropAssignment)
-  | duplicateExtVar (x : Nat)
-  | unknownVar (x : Nat)
-  | depsNotDisjoint (xs : List Nat)
+  | duplicateExtVar (x : Var)
+  | unknownVar (x : Var)
+  | depsNotDisjoint (xs : List Var)
   | finalRootNotSet
-  | finalClauseInvalid (idx : Nat) (C : IClause)
+  | finalClauseInvalid (idx : ClauseIdx) (C : IClause)
 
 namespace CheckerError
 
@@ -81,17 +93,19 @@ abbrev CheckerCoreM := ExceptT CheckerError <| StateM CheckerStateCore
 
 def initial (inputCnf : ICnf) : CheckerStateCore :=
   { inputCnf
-    numOrigVars := inputCnf.vars.size
+    origVars := inputCnf.vars
     clauseDb :=
       let (db, _) := inputCnf.foldl (init := (.empty, 1))
         fun (db, idx) C => (db.addClause idx C, idx + 1)
       db
-    depVars := inputCnf.vars.fold (init := .empty) fun s x => s.insert x (.empty Nat)
-    scheme := inputCnf.vars.fold (init := .empty) fun s x => s.addVar x |>.toOption.get!
+    depVars := inputCnf.vars.fold (init := .empty) fun s x =>
+      s.insert x (HashSet.empty Var |>.insert x)
+    scheme := inputCnf.vars.fold (init := .empty) fun s x =>
+      s.addVar x |>.toOption.get!
   }
 
 /-- Check if `C` is an asymmetric tautology wrt the clause database. -/
-def checkAtWithHints (C : IClause) (hints : Array Nat) : CheckerCoreM Unit := do
+def checkAtWithHints (C : IClause) (hints : Array ClauseIdx) : CheckerCoreM Unit := do
   let st ← get
   match st.clauseDb.unitPropWithHints C.toFalsifyingAssignment hints with
   | .contradiction => return ()
@@ -102,21 +116,21 @@ def checkAtWithHints (C : IClause) (hints : Array Nat) : CheckerCoreM Unit := do
 -- NOTE: I'll likely have to rewrite uses of monadic sequencing into functional code because
 -- sequencing is non-dependent.
 
-def addClause (idx : Nat) (C : IClause) : CheckerCoreM Unit := do
+def addClause (idx : ClauseIdx) (C : IClause) : CheckerCoreM Unit := do
   let st ← get
   if st.clauseDb.contains idx then
     throw <| .duplicateClauseIdx idx
   set { st with clauseDb := st.clauseDb.addClause idx C }
 
-def saveSchemeDef (idx : Nat) : CheckerCoreM Unit := do
+def saveSchemeDef (idx : ClauseIdx) : CheckerCoreM Unit := do
   let st ← get
   set { st with schemeDefs := st.schemeDefs.insert idx }
 
-def addAt (idx : Nat) (C : IClause) (hints : Array Nat) : CheckerCoreM Unit := do
+def addAt (idx : ClauseIdx) (C : IClause) (hints : Array Nat) : CheckerCoreM Unit := do
   checkAtWithHints C hints
   addClause idx C
 
-def delAt (idx : Nat) (hints : Array Nat) : CheckerCoreM Unit := do
+def delAt (idx : ClauseIdx) (hints : Array Nat) : CheckerCoreM Unit := do
   let st ← get
   let some C := st.clauseDb.getClause idx
     | throw <| .unknownClauseIdx idx
@@ -124,7 +138,7 @@ def delAt (idx : Nat) (hints : Array Nat) : CheckerCoreM Unit := do
   -- The clause is AT by everything except itself.
   checkAtWithHints C hints
 
-def addProd (idx : Nat) (x : Nat) (ls : Array ILit) : CheckerCoreM Unit := do
+def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerCoreM Unit := do
   let st ← get
 
   -- Check that added variable is fresh.
@@ -132,7 +146,6 @@ def addProd (idx : Nat) (x : Nat) (ls : Array ILit) : CheckerCoreM Unit := do
     throw <| .duplicateExtVar x
 
   -- Check that variables are known and compute their dependencies.
-  -- TODO: would this computation (and check) better fit in the PDAG?
   let Ds ← ls.mapM fun l =>
     match st.depVars.find? l.var with
     | some D => pure D
@@ -155,7 +168,8 @@ def addProd (idx : Nat) (x : Nat) (ls : Array ILit) : CheckerCoreM Unit := do
     scheme := st.scheme.addConj x (ls.toList.map fun l => (l.polarity, l.var)) |>.toOption.get!
   }
 
-def addSum (idx : Nat) (x : Nat) (l₁ l₂ : ILit) (hints : Array Nat) : CheckerCoreM Unit := do
+def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx) :
+    CheckerCoreM Unit := do
   let st ← get
 
   -- Check that added variable is fresh.
@@ -205,9 +219,9 @@ def checkProofStep (step : CratStep) : CheckerCoreM Unit :=
   | .sum idx x l₁ l₂ hints => addSum idx x l₁ l₂ hints
   | .root r => setRoot r
 
--- def count (r : Nat) : CheckerCoreM Nat := do
+-- def count (r : Var) : CheckerCoreM Nat := do
 --   let st ← get
---   st.scheme.count r st.numOrigVars
+--   st.scheme.count r st.origVars.size
 
 def checkProof (cnf : ICnf) (pf : Array CratStep) : Except CheckerError Unit := do
   let mut st : CheckerStateCore := initial cnf
@@ -219,7 +233,7 @@ def checkProof (cnf : ICnf) (pf : Array CratStep) : Except CheckerError Unit := 
   ret
 
 -- For relating the scheme defining clauses to the the actual scheme
-def schemeDefsToPropTerm : CheckerCoreM (PropTerm Nat) := do
+def schemeDefsToPropTerm : CheckerCoreM (PropTerm Var) := do
   let st ← get
   return st.schemeDefs.fold (init := .tr) (fun acc idx =>
     let C := st.clauseDb.getClause idx |>.getD #[]
@@ -227,34 +241,34 @@ def schemeDefsToPropTerm : CheckerCoreM (PropTerm Nat) := do
 
 /-- The given checker state is well-formed. -/
 structure CheckerStateWF (st : CheckerStateCore) : Prop where
-  -- The depVars field contains all variables that influence the clause database. Contrapositive:
-  -- if a variable is not in depVars then it does not influence the clause database so can be
+  -- `depVars` field contains all variables that influence the clause database. Contrapositive:
+  -- if a variable is not in `depVars` then it does not influence the clause database so can be
   -- defined as an extension variable.
-  -- ∀ x : Nat, x ∈ st.clauseDb.toPropTerm.depVars → x ∈ st.depVars.keysToFinset
-  -- Note: x ∈ st.depVars.keysToFinset ↔ st.depVars.contains x
+  -- ∀ x : Var, x ∈ st.clauseDb.toPropTerm.semVars → st.depVars.contains x
 
-  -- TODO: correct encoding of dependencies between variables.
-  -- Maybe a more natural place to put it is in the PDAG after all? We do need to know that a new
-  -- ext var does not influence clauseDb.toPropTerm, but this could follow by equivalence of the
-  -- ClauseDb and the PDAG.
-  -- On the other hand it fits okay here, just creates some long functions.
-  -- ∀ (x : Nat) (D : HashSet Nat), st.depVars.find? x = some D →
+  -- Variable dependencies are correctly stored in `depVars`.
+  -- ∀ (x : Var) (D : HashSet Var), st.depVars.find? x = some D →
   --   (st.scheme.toPropForm x).vars = D.toFinset
 
-  -- let X0 := st.inputCnf.toPropForm.vars
+  -- let X0 := st.inputCnf.toPropForm.vars = st.origVars.toFinset
 
   -- The input CNF is s-equivalent to the clause database.
   -- equivalentOver X0 st.inputCnf.toPropTerm st.clauseDb.toPropTerm
 
+  -- QUESTION: where, if at all, is this actually needed? Not for the final invariant!
   -- The clause DB uniquely extends from the original variables to its current set of variables.
   -- hasUniqueExtension X0 st.depVars.keysToFinset st.clauseDb.toPropTerm
 
   -- In the context of the PDAG defining clauses, every variable is s-equivalent to the tree it is
   -- the root of in the PDAG forest.
-  -- ∀ x : Nat, equivalentOver X0 (x ⊓ st.schemeDefsToPropTerm) ⟦st.scheme.toPropForm x⟧
+  -- TODO: need `st.depVars.contains x` as precondition?
+  -- ∀ x : Var, equivalentOver X0 (x ⊓ st.schemeDefsToPropTerm) ⟦st.scheme.toPropForm x⟧
+  
+  -- Everything in the PDAG forest interprets to a formula over the original variables.
+  -- ∀ x : Var, st.depVars.contains x → (st.scheme.toPropForm x).vars ⊆ X0
 
   -- Every formula present in the PDAG forest is decomposable.
-  -- ∀ x : Nat, st.scheme.toPropForm x |>.decomposable
+  -- ∀ x : Var, (st.scheme.toPropForm x).decomposable
 
 #exit
 

@@ -113,12 +113,12 @@ theorem agreeOn_vars {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν} :
 theorem equivalentOver_of_equivalent : equivalent φ₁ φ₂ → PropTerm.equivalentOver X ⟦φ₁⟧ ⟦φ₂⟧ :=
   fun h => Quotient.sound h ▸ PropTerm.equivalentOver_refl ⟦φ₁⟧
 
-/-- See `depVars`. -/
-def depVars' (φ : PropForm ν) : Set ν :=
+/-- See `semVars`. -/
+def semVars' (φ : PropForm ν) : Set ν :=
   { x | ∃ (τ : PropAssignment ν), τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ }
 
 set_option push_neg.use_distrib true in
-lemma depVar_inversion (φ : PropForm ν) (τ : PropAssignment ν) (x : ν) : τ ⊨ φ →
+lemma semVar_inversion (φ : PropForm ν) (τ : PropAssignment ν) (x : ν) : τ ⊨ φ →
     τ.set x (!τ x) ⊭ φ → x ∈ φ.vars := by
   intro hτ hτ'
   induction φ generalizing τ with
@@ -134,29 +134,29 @@ lemma depVar_inversion (φ : PropForm ν) (τ : PropAssignment ν) (x : ν) : τ
     push_neg at hτ'
     aesop
 
-theorem depVars'_subset_vars (φ : PropForm ν) : φ.depVars' ⊆ φ.vars :=
-  fun x ⟨τ, hτ, hτ'⟩ => depVar_inversion φ τ x hτ hτ'
+theorem semVars'_subset_vars (φ : PropForm ν) : φ.semVars' ⊆ φ.vars :=
+  fun x ⟨τ, hτ, hτ'⟩ => semVar_inversion φ τ x hτ hτ'
   
-instance depVars'_finite (φ : PropForm ν) : Set.Finite φ.depVars' :=
-  Set.Finite.subset (Finset.finite_toSet _) φ.depVars'_subset_vars
+instance semVars'_finite (φ : PropForm ν) : Set.Finite φ.semVars' :=
+  Set.Finite.subset (Finset.finite_toSet _) φ.semVars'_subset_vars
   
-/-- The subset of variables of `φ` that it is sensitive to as a Boolean function. Unlike `vars`,
-this is stable under equivalence of formulas. -/
-noncomputable def depVars (φ : PropForm ν) : Finset ν :=
-  Set.Finite.toFinset φ.depVars'_finite
+/-- The *semantic variables* of `φ` are those it is sensitive to as a Boolean function.
+Unlike `vars`, this set is stable under equivalence of formulas. -/
+noncomputable def semVars (φ : PropForm ν) : Finset ν :=
+  Set.Finite.toFinset φ.semVars'_finite
   
-theorem depVars_subset_vars (φ : PropForm ν) : φ.depVars ⊆ φ.vars := by
-  simp only [depVars, Set.Finite.toFinset_subset]
-  exact φ.depVars'_subset_vars
+theorem semVars_subset_vars (φ : PropForm ν) : φ.semVars ⊆ φ.vars := by
+  simp only [semVars, Set.Finite.toFinset_subset]
+  exact φ.semVars'_subset_vars
   
-theorem depVars_eq_of_equivalent (φ₁ φ₂ : PropForm ν) : equivalent φ₁ φ₂ →
-    φ₁.depVars = φ₂.depVars := by
-  suffices ∀ (φ₁ φ₂ : PropForm ν), equivalent φ₁ φ₂ → φ₁.depVars ⊆ φ₂.depVars from
+theorem semVars_eq_of_equivalent (φ₁ φ₂ : PropForm ν) : equivalent φ₁ φ₂ →
+    φ₁.semVars = φ₂.semVars := by
+  suffices ∀ (φ₁ φ₂ : PropForm ν), equivalent φ₁ φ₂ → φ₁.semVars ⊆ φ₂.semVars from
     fun hEquiv => Finset.ext fun _ =>
       ⟨fun h => this φ₁ φ₂ hEquiv h,
        fun h => this φ₂ φ₁ (equivalent.symm hEquiv) h⟩
   intro φ₁ φ₂ hEquiv x
-  simp only [depVars, depVars', Set.Finite.mem_toFinset, Set.mem_setOf_eq, exists_imp, and_imp]
+  simp only [semVars, semVars', Set.Finite.mem_toFinset, Set.mem_setOf_eq, exists_imp, and_imp]
   intro τ hτ hτ'
   exact ⟨τ,
     equivalent_ext.mp hEquiv _ |>.mp hτ,
@@ -166,7 +166,16 @@ end PropForm
 
 namespace PropTerm
 
-noncomputable def depVars : PropTerm ν → Finset ν :=
-  Quotient.lift PropForm.depVars PropForm.depVars_eq_of_equivalent
+/-- See `PropForm.semVars`. -/
+noncomputable def semVars : PropTerm ν → Finset ν :=
+  Quotient.lift PropForm.semVars PropForm.semVars_eq_of_equivalent
+  
+-- Now extensions. A definitional extension by a variable not in semVars
+-- preserves s-equivalence
+-- has unique extension
+-- But what *is* a definitional extension?
+-- x ∉ φ.semVars
+-- maybe needed: x ∉ X0 (why? because X0 ⊆ semVars? well, that's false.)
+-- φ ↦ φ ⊓ (-x ∨ l₁ ∨ l₂) ⊓ (x ∨ -l₁) ⊓ (x ∨ -l₂)
 
 end PropTerm
