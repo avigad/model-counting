@@ -5,6 +5,9 @@ Authors: Wojciech Nawrocki
 -/
 
 import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Set.Finite
+import Mathlib.Tactic.ByContra
+
 import ProofChecker.Model.PropTerm
 
 /-! Assignments to and equivalence over subsets of variables. This usefully does respect semantic
@@ -43,8 +46,8 @@ end PropAssignment
 
 namespace PropTerm
 
-/-- Two formulas φ₁ and φ₂ are equivalent over X when for every assignment τ, models of φ₁ extending
-τ over X are in bijection with models of φ₂ extending τ over X. -/
+/-- Two functions φ₁ and φ₂ are equivalent over X when for every assignment τ, models of φ₁ 
+extending τ over X are in bijection with models of φ₂ extending τ over X. -/
 -- This is `sequiv` here: https://github.com/ccodel/verified-encodings/blob/master/src/cnf/encoding.lean
 def equivalentOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :=
   ∀ τ, (∃ (σ₁ : PropAssignment ν), σ₁.agreeOn X τ ∧ σ₁ ⊨ φ₁) ↔
@@ -58,7 +61,7 @@ theorem equivalentOver.trans : equivalentOver X φ₁ φ₂ → equivalentOver X
     equivalentOver X φ₁ φ₃ :=
   fun e₁ e₂ τ => (e₁ τ).trans (e₂ τ)
 
-/-- A formula has the unique extension property from `X` to `Y` (both sets of variables) when any
+/-- A function has the unique extension property from `X` to `Y` (both sets of variables) when any
 satisfying assignment, if it exists, is uniquely determined on `Y` by its values on `X`. Formally,
 any two satisfying assignments which agree on `X` must also agree on `Y`. -/
 /- TODO: Model equivalence is expected to follow from this. For example: 
@@ -68,6 +71,8 @@ def hasUniqueExtension (X Y : Set ν) (φ : PropTerm ν) :=
   ∀ (σ₁ σ₂ : PropAssignment ν), σ₁ ⊨ φ → σ₂ ⊨ φ → σ₁.agreeOn X σ₂ → σ₁.agreeOn Y σ₂
 
 end PropTerm
+
+open Classical
 
 namespace PropForm
 
@@ -108,8 +113,60 @@ theorem agreeOn_vars {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν} :
 theorem equivalentOver_of_equivalent : equivalent φ₁ φ₂ → PropTerm.equivalentOver X ⟦φ₁⟧ ⟦φ₂⟧ :=
   fun h => Quotient.sound h ▸ PropTerm.equivalentOver_refl ⟦φ₁⟧
 
--- This is false because e.g. `x ∨ ¬x ≡ ⊤` but it should be true after replacing `vars`
--- with `depVars`, those being `x ∈ φ.depVars ↔ ∃ τ, τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ`.
--- `theorem eq_vars_of_equivalent {φ₁ φ₂ : PropForm ν} : φ₁ ≡ φ₂ → φ₁.vars = φ₂.vars`
+/-- See `depVars`. -/
+def depVars' (φ : PropForm ν) : Set ν :=
+  { x | ∃ (τ : PropAssignment ν), τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ }
+
+set_option push_neg.use_distrib true in
+lemma depVar_inversion (φ : PropForm ν) (τ : PropAssignment ν) (x : ν) : τ ⊨ φ →
+    τ.set x (!τ x) ⊭ φ → x ∈ φ.vars := by
+  intro hτ hτ'
+  induction φ generalizing τ with
+  | tr => exfalso; exact hτ' satisfies_tr
+  | fls => exfalso; exact not_satisfies_fls hτ
+  | var y =>
+    simp_all only [vars, satisfies_var, Finset.mem_singleton]
+    by_contra h
+    exact hτ' (hτ ▸ τ.set_get_of_ne (!τ x) h)
+  | _ =>
+    simp_all only
+      [satisfies_conj, satisfies_disj, satisfies_impl', satisfies_biImpl', vars, Finset.mem_union]
+    push_neg at hτ'
+    aesop
+
+theorem depVars'_subset_vars (φ : PropForm ν) : φ.depVars' ⊆ φ.vars :=
+  fun x ⟨τ, hτ, hτ'⟩ => depVar_inversion φ τ x hτ hτ'
+  
+instance depVars'_finite (φ : PropForm ν) : Set.Finite φ.depVars' :=
+  Set.Finite.subset (Finset.finite_toSet _) φ.depVars'_subset_vars
+  
+/-- The subset of variables of `φ` that it is sensitive to as a Boolean function. Unlike `vars`,
+this is stable under equivalence of formulas. -/
+noncomputable def depVars (φ : PropForm ν) : Finset ν :=
+  Set.Finite.toFinset φ.depVars'_finite
+  
+theorem depVars_subset_vars (φ : PropForm ν) : φ.depVars ⊆ φ.vars := by
+  simp only [depVars, Set.Finite.toFinset_subset]
+  exact φ.depVars'_subset_vars
+  
+theorem depVars_eq_of_equivalent (φ₁ φ₂ : PropForm ν) : equivalent φ₁ φ₂ →
+    φ₁.depVars = φ₂.depVars := by
+  suffices ∀ (φ₁ φ₂ : PropForm ν), equivalent φ₁ φ₂ → φ₁.depVars ⊆ φ₂.depVars from
+    fun hEquiv => Finset.ext fun _ =>
+      ⟨fun h => this φ₁ φ₂ hEquiv h,
+       fun h => this φ₂ φ₁ (equivalent.symm hEquiv) h⟩
+  intro φ₁ φ₂ hEquiv x
+  simp only [depVars, depVars', Set.Finite.mem_toFinset, Set.mem_setOf_eq, exists_imp, and_imp]
+  intro τ hτ hτ'
+  exact ⟨τ,
+    equivalent_ext.mp hEquiv _ |>.mp hτ,
+    fun h => hτ' (equivalent_ext.mp hEquiv _ |>.mpr h)⟩
 
 end PropForm
+
+namespace PropTerm
+
+noncomputable def depVars : PropTerm ν → Finset ν :=
+  Quotient.lift PropForm.depVars PropForm.depVars_eq_of_equivalent
+
+end PropTerm
