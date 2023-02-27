@@ -14,6 +14,8 @@ data:
 	$(INTERP) $(GRAB) "clause TOTAL" *.nolemma_log > clauses-total-nolemma.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.split_log > clauses-total-split.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.split_nolemma_log > clauses-total-split+nolemma.csv
+
+
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv > time+defining.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv clauses-total.csv > time+defining-success.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv failures.csv > time+defining-failure.csv
@@ -25,3 +27,14 @@ data:
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split.csv > clauses-nosplit-split.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split+nolemma.csv > clauses-optimized-unoptimized.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-nolemma.csv clauses-total-split.csv clauses-total-split+nolemma.csv > clauses-optimizations.csv
+
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.nolemma_log > seconds-gen-nolemma.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.nolemma_log > seconds-check-nolemma.csv
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.split_log > seconds-gen-split.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.split_log > seconds-check-split.csv
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.split_nolemma_log > seconds-gen-split+nolemma.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.split_nolemma_log > seconds-check-split+nolemma.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen.csv seconds-check.csv seconds-gen-split+nolemma.csv > time-verify-opt.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-nolemma.csv seconds-check-nolemma.csv > time-verify-nolemma.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-split.csv seconds-check-split.csv > time-verify-split.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-split+nolemma.csv seconds-check-split+nolemma.csv > time-verify-split+nolemma.csv
