@@ -15,7 +15,7 @@ inductive CratStep
   | /-- Declare sum operation. -/
     sum (idx : Nat) (x : Nat) (l₁ l₂ : ILit) (upHints : Array Nat)
   | /-- Declare POG root. -/
-    root (r : Nat)
+    root (r : ILit)
 
 namespace CratStep
 
@@ -45,14 +45,13 @@ structure CheckerStateCore where
   scheme : PropDag Nat := .empty
   /-- Which clauses are counting scheme definition clauses. -/
   schemeDefs : HashSet Nat := .empty Nat
-  root : Option Nat := none
+  root : Option ILit := none
 
 inductive CheckerError where
   | graphUpdateError (err : Dag.DagException Nat)
   | duplicateClauseIdx (idx : Nat)
   | unknownClauseIdx (idx : Nat)
   | hintNotUnit (idx : Nat)
-  | hintNonexistent (idx : Nat)
   | upNoContradiction (τ : PartPropAssignment)
   | duplicateExtVar (x : Nat)
   | unknownVar (x : Nat)
@@ -65,16 +64,17 @@ namespace CheckerError
 instance : ToString CheckerError where
   toString := fun
     | graphUpdateError e => s!"graph update error: {e}"
-    | duplicateClauseIdx idx => s!"duplicate clause index: {idx}"
-    | unknownClauseIdx idx => s!"unknown clause index: {idx}"
-    | hintNotUnit idx => s!"hinted clause at {idx} did not become unit"
-    | hintNonexistent idx => s!"hinted clause at {idx} does not exist"
-    | upNoContradiction τ => s!"unit propagation did not derive contradiction (final assignment {τ.toList})"
-    | duplicateExtVar x => s!"extension variable '{x}' was already introduced"
-    | unknownVar x => s!"unknown variable '{x}'"
+    | duplicateClauseIdx idx => s!"cannot add clause at index {idx}, index is already used"
+    | unknownClauseIdx idx => s!"there is no clause at index {idx}"
+    | hintNotUnit idx => s!"hinted clause at index {idx} did not become unit"
+    | upNoContradiction τ =>
+      s!"unit propagation did not derive contradiction (final assignment {τ.toList})"
+    | duplicateExtVar x => s!"extension variable {x} was already introduced"
+    | unknownVar x => s!"unknown variable {x}"
     | depsNotDisjoint xs => s!"variables {xs} have non-disjoint dependency sets"
-    | finalRootNotSet => s!"proof done but root variable was not set"
-    | finalClauseInvalid idx C => s!"proof done but clause '{C}' at {idx} is neither the root nor a PDAG definition"
+    | finalRootNotSet => s!"proof done but root literal was not asserted"
+    | finalClauseInvalid idx C =>
+      s!"proof done but clause {C} at index {idx} is neither the asserted root nor a PDAG definition"
 
 end CheckerError
 
@@ -98,7 +98,7 @@ def checkAtWithHints (C : IClause) (hints : Array Nat) : CheckerCoreM Unit := do
   | .contradiction => return ()
   | .extended τ => throw <| .upNoContradiction τ
   | .hintNotUnit hint => throw <| .hintNotUnit hint
-  | .hintNonexistent hint => throw <| .hintNotUnit hint
+  | .hintNonexistent hint => throw <| .unknownClauseIdx hint
 
 -- NOTE: I'll likely have to rewrite uses of monadic sequencing into functional code because
 -- sequencing is non-dependent.
@@ -184,7 +184,7 @@ def addSum (idx : Nat) (x : Nat) (l₁ l₂ : ILit) (hints : Array Nat) : Checke
     scheme := st.scheme.addDisj x ([(l₁.polarity, l₁.var), (l₂.polarity, l₂.var)]) |>.toOption.get!
   }
 
-def setRoot (r : Nat) : CheckerCoreM Unit := do
+def setRoot (r : ILit) : CheckerCoreM Unit := do
   modify fun st => { st with root := some r }
 
 def checkFinalState : CheckerCoreM Unit := do
@@ -194,7 +194,7 @@ def checkFinalState : CheckerCoreM Unit := do
     | throw <| .finalRootNotSet
 
   let _ ← st.clauseDb.foldM (init := ()) fun _ idx C => do
-    if C != #[.mkPos r] && !st.schemeDefs.contains idx then
+    if C != #[r] && !st.schemeDefs.contains idx then
       throw <| .finalClauseInvalid idx C
 
 def checkProofStep (step : CratStep) : CheckerCoreM Unit :=

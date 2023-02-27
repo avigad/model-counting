@@ -127,7 +127,7 @@ def CratStep.ofTokens (tks : Array Token) : Except String CratStep := do
     return .sum (← Nat.ofToken idx) (← Nat.ofToken x) (← ILit.ofToken l₁) (← ILit.ofToken l₂)
       (← toUpHints hints)
   | .str "r", r =>
-    return .root (← Nat.ofToken r)
+    return .root (← ILit.ofToken r)
   | .str "do", _ => throw s!"do command is not supported"
   | _, .str "i" => throw s!"i command is deprecated"
   | _, _ => throw s!"unexpected command"
