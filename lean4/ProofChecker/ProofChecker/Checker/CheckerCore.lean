@@ -27,8 +27,6 @@ instance : ToString CratStep where
     | sum idx x l₁ l₂ upHints => s!"{idx} s {x} {l₁} {l₂} (hints: {upHints})"
     | root x => s!"r {x}"
   
--- TODO : toDimacs
-
 end CratStep
 
 /-- The checker's runtime state. Contains exactly the data needed to fully check a proof. -/
@@ -38,7 +36,8 @@ structure CheckerStateCore where
   numOrigVars : Nat
   /-- The clause database. -/
   clauseDb : ClauseDb Nat := {}
-  /-- The dependency set of every variable currently present in the ClauseDb. -/
+  /-- The dependency set of every variable currently present in the PDAG. Additionally, the
+  set of keys of this map is the current set of variables (both original and defined). -/
   depVars : HashMap Nat (HashSet Nat) := {}
   -- TODO: replace with ItegCount?
   -- TODO: should the initial state include all original variables as disconnected verts?
@@ -133,6 +132,7 @@ def addProd (idx : Nat) (x : Nat) (ls : Array ILit) : CheckerCoreM Unit := do
     throw <| .duplicateExtVar x
 
   -- Check that variables are known and compute their dependencies.
+  -- TODO: would this computation (and check) better fit in the PDAG?
   let Ds ← ls.mapM fun l =>
     match st.depVars.find? l.var with
     | some D => pure D
@@ -227,19 +227,33 @@ def schemeDefsToPropTerm : CheckerCoreM (PropTerm Nat) := do
 
 /-- The given checker state is well-formed. -/
 structure CheckerStateWF (st : CheckerStateCore) : Prop where
-  -- fresh variables
-  -- ∀ x : Nat, x ∈ st.clauseDb.toPropTerm.depVars → st.depVars.contains x
-  -- corollary: if not in depVars then does not influence func and can be used as extension var
+  -- The depVars field contains all variables that influence the clause database. Contrapositive:
+  -- if a variable is not in depVars then it does not influence the clause database so can be
+  -- defined as an extension variable.
+  -- ∀ x : Nat, x ∈ st.clauseDb.toPropTerm.depVars → x ∈ st.depVars.keysToFinset
+  -- Note: x ∈ st.depVars.keysToFinset ↔ st.depVars.contains x
 
-  -- logical equivalence
+  -- TODO: correct encoding of dependencies between variables.
+  -- Maybe a more natural place to put it is in the PDAG after all? We do need to know that a new
+  -- ext var does not influence clauseDb.toPropTerm, but this could follow by equivalence of the
+  -- ClauseDb and the PDAG.
+  -- On the other hand it fits okay here, just creates some long functions.
+  -- ∀ (x : Nat) (D : HashSet Nat), st.depVars.find? x = some D →
+  --   (st.scheme.toPropForm x).vars = D.toFinset
+
   -- let X0 := st.inputCnf.toPropForm.vars
-  -- equivalentOver X0 st.inputCnf.toPropForm st.clauseDb.toPropForm
-  -- hasUniqueExtension X0 st.clauseDb.toPropForm.vars st.clauseDb.toPropForm
 
-  -- compatibility between clauses and schema
-  -- ∀ x : Nat, equivalentOver X0 (.conj x st.schemaToPropForm) (st.scheme.toPropForm x)
+  -- The input CNF is s-equivalent to the clause database.
+  -- equivalentOver X0 st.inputCnf.toPropTerm st.clauseDb.toPropTerm
 
-  -- decomposability
+  -- The clause DB uniquely extends from the original variables to its current set of variables.
+  -- hasUniqueExtension X0 st.depVars.keysToFinset st.clauseDb.toPropTerm
+
+  -- In the context of the PDAG defining clauses, every variable is s-equivalent to the tree it is
+  -- the root of in the PDAG forest.
+  -- ∀ x : Nat, equivalentOver X0 (x ⊓ st.schemeDefsToPropTerm) ⟦st.scheme.toPropForm x⟧
+
+  -- Every formula present in the PDAG forest is decomposable.
   -- ∀ x : Nat, st.scheme.toPropForm x |>.decomposable
 
 #exit
