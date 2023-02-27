@@ -14,6 +14,7 @@ rdata:
 	cp -p $(LDATA)/times.csv $(SRCDATA)
 	cp -p $(LDATA)/clauses-lemma-nolemma.csv $(SRCDATA)
 	cp -p $(LDATA)/clauses-nosplit-split.csv $(SRCDATA)
+	cp -p $(LDATA)/clauses-optimized-unoptimized.csv $(SRCDATA)
 
 data:
 	rm -rf data-formatted
@@ -32,3 +33,5 @@ data:
 		< $(SRCDATA)/clauses-lemma-nolemma.csv > data-formatted/clauses-lemma-nolemma.tex
 	$(DGEN) -X 2 -Y 3 -O "only marks, color=medgreen, mark=diamond*,  mark options={scale=1.1}, thick" \
 		< $(SRCDATA)/clauses-nosplit-split.csv > data-formatted/clauses-nosplit-split.tex
+	$(DGEN) -X 2 -Y 3 -O "only marks, color=darkestblue!50, mark=pentagon*,  mark options={scale=0.9}, thick" \
+		< $(SRCDATA)/clauses-optimized-unoptimized.csv > data-formatted/clauses-optimized-unoptimized.tex

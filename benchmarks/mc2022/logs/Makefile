@@ -13,6 +13,7 @@ data:
 	$(INTERP) $(GRAB) "clause TOTAL" *.log > clauses-total.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.nolemma_log > clauses-total-nolemma.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.split_log > clauses-total-split.csv
+	$(INTERP) $(GRAB) "clause TOTAL" *.split_nolemma_log > clauses-total-split+nolemma.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv > time+defining.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv clauses-total.csv > time+defining-success.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv failures.csv > time+defining-failure.csv
@@ -22,3 +23,5 @@ data:
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv seconds-check.csv seconds-count.csv > times.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-nolemma.csv > clauses-lemma-nolemma.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split.csv > clauses-nosplit-split.csv
+	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split+nolemma.csv > clauses-optimized-unoptimized.csv
+	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-nolemma.csv clauses-total-split.csv clauses-total-split+nolemma.csv > clauses-optimizations.csv
