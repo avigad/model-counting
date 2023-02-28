@@ -130,11 +130,11 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \begin{figure}
 \centering{%
 \begin{tikzpicture}[scale = 1.00]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=10000000000,
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=3000000000,
       legend style={at={(0.30,0.98)}},
       legend cell align={left},
                               x post scale=2.0, y post scale=2.0,
-                              xmode=log, xmin=001,xmax=10000,
+                              xmode=log, xmin=001,xmax=4000,
                               xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
                               ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 1e10}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$,$10^{10}$},
                               xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
@@ -204,19 +204,21 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \begin{figure}
 \centering{%
 \begin{tikzpicture}[scale = 1.00]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=100000,
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=20000,
                               x post scale=2.0, y post scale=2.2,
-                              xmode=log,xmin=0.01,xmax=10000,
+                              xmode=log,xmin=0.01,xmax=4000,
                               xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
                               ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
                               xlabel={D4 runtime (seconds)}, ylabel={CRAT generation and checking runtime (seconds)},
 %                              title={D4 Defining Clause Generation}
             ]
+    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1000,1000000)};
     \input{data-formatted/time-d4-verify}
+    \node[left] at (axis cs: 0.9,0.12) {$0{.}1\times$};
     \node[left] at (axis cs: 0.09,0.12) {$1\times$};
     \node[left] at (axis cs: 0.09,1.2) {$10\times$};
     \node[left] at (axis cs: 0.09,12.0) {$100\times$};
@@ -350,10 +352,11 @@ proof clauses when both optimizations are used.  Without lemmas, 19
 rise above that threshold.  Without literal merging, 7 due.  Without
 either, 25 rise above the threshold.  Two of the benchmarks require
 more than $10^8$ proof clauses without lemmas.
-\item Of the 80 benchmark problems evaluated, and comparing with both
-  optimizations disabled, 55 had the number of proof clauses reduced
-  by at least 10\% by using lemmas, 19 by using literal merging, and
-  69 by enabling both optimizations.
+\item
+  Of the 80 benchmark problems evaluated, and comparing with both
+  optimizations disabled, 47 had the number of proof clauses reduced
+  by a factor of 2 by using lemmas, 14 by using literal merging, and
+  60 by enabling both optimizations.
 \end{itemize}
 
 The time performance is less dramatic, but still significant.
@@ -369,8 +372,8 @@ to the one with both optimizations enabled:
 Here is another way to summarize the impact on the combined time to generate and validate the CRAT file:
 \begin{itemize}
 \item Of the 80 benchmark problems evaluated, and comparing with both
-  optimizations disabled, 50 had the time reduced by at least 10\% by
-  using lemmas, 27 by using literal merging, and 63 by enabling both
+  optimizations disabled, 40 had the time reduced by at least a factor of 2
+  using lemmas, 7 by using literal merging, and 49 by enabling both
   optimizations.
 \end{itemize}
 
