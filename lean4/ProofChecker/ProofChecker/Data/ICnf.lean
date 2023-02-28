@@ -71,8 +71,16 @@ theorem ext {l₁ l₂ : ILit} : l₁.var = l₂.var → l₁.polarity = l₂.po
     have : l₂ = 0 := Int.eq_zero_of_lt_neg_iff_lt l₂ h₂
     simp [this, h]
 
+def toPropForm (l : ILit) : PropForm Nat :=
+  if l.polarity then .var l.var else .neg (.var l.var)
+
 def toPropTerm (l : ILit) : PropTerm Nat :=
   if l.polarity then .var l.var else (.var l.var)ᶜ
+
+@[simp]
+theorem mk_toPropForm (l : ILit) : ⟦l.toPropForm⟧ = l.toPropTerm := by
+  dsimp [toPropForm, toPropTerm]
+  cases l.polarity <;> simp
 
 open PropTerm
 

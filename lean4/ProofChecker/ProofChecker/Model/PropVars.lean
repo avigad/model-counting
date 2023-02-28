@@ -68,6 +68,10 @@ theorem eval_of_agreeOn_vars {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν
   intro h
   induction φ <;> simp_all [PropAssignment.agreeOn, eval, vars]
 
+theorem eval_ext {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν} : (∀ x ∈ φ.vars, σ₁ x = σ₂ x) →
+    φ.eval σ₁ = φ.eval σ₂ :=
+  eval_of_agreeOn_vars
+
 theorem eval_set_of_not_mem_vars {x : ν} {φ : PropForm ν} {τ : PropAssignment ν} :
     x ∉ φ.vars → φ.eval (τ.set x b) = φ.eval τ := by
   intro hNMem

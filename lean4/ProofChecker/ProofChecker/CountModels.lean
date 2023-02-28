@@ -22,13 +22,13 @@ def decomposable [DecidableEq ν]: PropForm ν → Prop
   | impl _ _   => False
   | biImpl _ _ => False
 
-def countModels (s : Finset ν) : PropForm ν → Nat
-  | tr         => 2^(card s)
+def countModels (nVars : Nat) : PropForm ν → Nat
+  | tr         => 2^nVars
   | fls        => 0
-  | var _      => 2^(card s - 1)
-  | neg φ      => 2^(card s) - φ.countModels s
-  | disj φ ψ   => φ.countModels s + ψ.countModels s
-  | conj φ ψ   => φ.countModels s * ψ.countModels s / 2^(card s)
+  | var _      => 2^(nVars - 1)
+  | neg φ      => 2^nVars - φ.countModels nVars
+  | disj φ ψ   => φ.countModels nVars + ψ.countModels nVars
+  | conj φ ψ   => φ.countModels nVars * ψ.countModels nVars / 2^nVars
   | impl _ _   => 0
   | biImpl _ _ => 0
 
@@ -339,7 +339,7 @@ The main theorem.
 
 theorem countModels_eq_card_models {φ : PropForm ν} {s : Finset ν}
       (hvars : φ.vars ⊆ s) (hdec : φ.decomposable) :
-    φ.countModels s = card (φ.models s) := by
+    φ.countModels s.card = card (φ.models s) := by
   induction φ
   case var x      =>
     rw [vars, singleton_subset_iff] at hvars
