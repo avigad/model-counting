@@ -42,8 +42,10 @@ theorem agreeOn.trans : agreeOn X σ₁ σ₂ → agreeOn X σ₂ σ₃ → agre
 
 theorem agreeOn.subset : X ⊆ Y → agreeOn Y σ₁ σ₂ → agreeOn X σ₁ σ₂ :=
   fun hSub h x hX => h x (hSub hX)
+  
+variable [DecidableEq ν]
 
-theorem agreeOn_set {x : ν} {X : Set ν} [DecidableEq ν] (σ : PropAssignment ν) (v : Bool) : x ∉ X →
+theorem agreeOn_set_of_not_mem {x : ν} {X : Set ν} (σ : PropAssignment ν) (v : Bool) : x ∉ X →
     agreeOn X (σ.set x v) σ := by
   -- I ❤ A️esop
   aesop (add norm unfold agreeOn, norm unfold set)
@@ -232,14 +234,6 @@ theorem equivalentOver_semVars {X : Set ν} : φ₁.semVars ⊆ X → φ₂.semV
   have ⟨σ₁, hA, hS⟩ := (e τ).mp ⟨τ, τ.agreeOn_refl, h⟩
   have : σ₁ ⊨ φ₂ ↔ τ ⊨ φ₂ := agreeOn_semVars (hA.subset h₂)
   exact this.mp hS
-
--- TODO Now extensions. A definitional extension by a variable not in semVars
--- preserves s-equivalence
--- has unique extension
--- But what *is* a definitional extension?
--- x ∉ φ.semVars
--- maybe needed: x ∉ X0 (why? because X0 ⊆ semVars? well, that's false.)
--- φ ↦ φ ⊓ (-x ∨ l₁ ∨ l₂) ⊓ (x ∨ -l₁) ⊓ (x ∨ -l₂)
 
 /-- A function has the unique extension property from `X` to `Y` (both sets of variables) when any
 satisfying assignment, if it exists, is uniquely determined on `Y` by its values on `X`. Formally,
