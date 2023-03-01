@@ -135,14 +135,6 @@ theorem satisfies_mk {τ : PropAssignment ν} {φ : PropForm ν} : τ ⊨ ⟦φ�
 
 open SemanticEntails renaming entails → sEntails
 
-@[simp]
-theorem satisfies_var {τ : PropAssignment ν} {x : ν} : τ ⊨ var x ↔ τ x := by
-  simp [sEntails, satisfies]
-
-@[simp]
-theorem satisfies_set {τ : PropAssignment ν} [DecidableEq ν] : τ.set x ⊤ ⊨ var x := by
-  simp
-
 @[ext]
 theorem ext : (∀ (τ : PropAssignment ν), τ ⊨ φ₁ ↔ τ ⊨ φ₂) → φ₁ = φ₂ := by
   have ⟨φ₁, h₁⟩ := Quotient.exists_rep φ₁
@@ -240,6 +232,14 @@ instance : BooleanAlgebra (PropTerm ν) where
   himp_eq := impl_eq
 
 @[simp]
+theorem satisfies_var {τ : PropAssignment ν} {x : ν} : τ ⊨ var x ↔ τ x := by
+  simp [sEntails, satisfies]
+
+@[simp]
+theorem satisfies_set {τ : PropAssignment ν} [DecidableEq ν] : τ.set x ⊤ ⊨ var x := by
+  simp
+
+@[simp]
 theorem satisfies_tr {τ : PropAssignment ν} : τ ⊨ ⊤ :=
   by simp [sEntails, satisfies, Top.top]
 
@@ -275,27 +275,26 @@ theorem satisfies_biImpl {τ : PropAssignment ν} : τ ⊨ biImpl φ₁ φ₂ �
 -- TODO: custom simp set?
 
 attribute [-simp] Quotient.eq
--- #check Quotient.eq
 
 @[simp]
-theorem mk_var (x : ν) : ⟦.var x⟧ = var x := sorry
+theorem mk_var (x : ν) : ⟦.var x⟧ = var x := rfl
 
 @[simp]
-theorem mk_tr : @Eq (PropTerm ν) ⟦.tr⟧ ⊤ := sorry
+theorem mk_tr : @Eq (PropTerm ν) ⟦.tr⟧ ⊤ := rfl
 
 @[simp]
-theorem mk_fls : @Eq (PropTerm ν) ⟦.fls⟧ ⊥ := sorry
+theorem mk_fls : @Eq (PropTerm ν) ⟦.fls⟧ ⊥ := rfl
 
 @[simp]
-theorem mk_neg (φ : PropForm ν) : @Eq (PropTerm ν) ⟦.neg φ⟧ (⟦φ⟧ᶜ) := sorry
+theorem mk_neg (φ : PropForm ν) : @Eq (PropTerm ν) ⟦.neg φ⟧ (⟦φ⟧ᶜ) := rfl
 
 @[simp]
-theorem mk_conj (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.conj φ₁ φ₂⟧ (⟦φ₁⟧ ⊓ ⟦φ₂⟧) := sorry
+theorem mk_conj (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.conj φ₁ φ₂⟧ (⟦φ₁⟧ ⊓ ⟦φ₂⟧) := rfl
 
 @[simp]
-theorem mk_disj (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.disj φ₁ φ₂⟧ (⟦φ₁⟧ ⊔ ⟦φ₂⟧) := sorry
+theorem mk_disj (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.disj φ₁ φ₂⟧ (⟦φ₁⟧ ⊔ ⟦φ₂⟧) := rfl
 
 @[simp]
-theorem mk_impl (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.impl φ₁ φ₂⟧ (⟦φ₁⟧ ⇨ ⟦φ₂⟧) := sorry
+theorem mk_impl (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.impl φ₁ φ₂⟧ (⟦φ₁⟧ ⇨ ⟦φ₂⟧) := rfl
 
 end PropTerm

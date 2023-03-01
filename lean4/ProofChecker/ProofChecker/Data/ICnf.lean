@@ -22,7 +22,7 @@ def var : ILit → Nat :=
 
 def polarity (l : ILit) : Bool :=
   (0 : Int) < l
-  
+
 def negate : ILit → ILit :=
   Int.neg
 
@@ -33,6 +33,10 @@ instance : BEq ILit :=
 
 instance : ToString ILit where
   toString l := if l.polarity then s!"{l.var}" else s!"-{l.var}"
+
+instance : DecidableEq ILit := inferInstanceAs (DecidableEq Int)
+
+instance : Repr ILit := inferInstanceAs (Repr Int)
 
 /-! Theorems about `ILit` -/
 
@@ -57,7 +61,7 @@ theorem polarity_negate (l : ILit) : l ≠ (0 : Int) → (-l).polarity = !l.pola
     apply this l hNe h
   intro l hNe h
   exact hNe (Int.eq_zero_of_lt_neg_iff_lt l h)
-  
+
 @[ext]
 theorem ext {l₁ l₂ : ILit} : l₁.var = l₂.var → l₁.polarity = l₂.polarity → l₁ = l₂ := by
   /- Strip type alias. -/
@@ -71,8 +75,16 @@ theorem ext {l₁ l₂ : ILit} : l₁.var = l₂.var → l₁.polarity = l₂.po
     have : l₂ = 0 := Int.eq_zero_of_lt_neg_iff_lt l₂ h₂
     simp [this, h]
 
+def toPropForm (l : ILit) : PropForm Nat :=
+  if l.polarity then .var l.var else .neg (.var l.var)
+
 def toPropTerm (l : ILit) : PropTerm Nat :=
   if l.polarity then .var l.var else (.var l.var)ᶜ
+
+@[simp]
+theorem mk_toPropForm (l : ILit) : ⟦l.toPropForm⟧ = l.toPropTerm := by
+  dsimp [toPropForm, toPropTerm]
+  cases l.polarity <;> simp
 
 open PropTerm
 
@@ -98,7 +110,7 @@ def vars (C : IClause) : HashSet Nat :=
 
 instance : BEq IClause :=
   inferInstanceAs (BEq IClause)
-  
+
 instance : ToString IClause where
   toString C := s!"({String.intercalate " ∨ " (C.map toString).toList})"
 
@@ -106,7 +118,7 @@ instance : ToString IClause where
 
 def toPropTerm : IClause → PropTerm Nat :=
   Array.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
-  
+
 end IClause
 
 /-! CNF -/
@@ -117,7 +129,7 @@ namespace ICnf
 
 def vars (C : ICnf) : HashSet Nat :=
   C.foldl (init := .empty Nat) fun acc C => acc.union C.vars
-  
+
 instance : ToString ICnf where
   toString C := s!"{String.intercalate " ∧ " (C.map toString).toList}"
 

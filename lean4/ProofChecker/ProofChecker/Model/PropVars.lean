@@ -42,8 +42,10 @@ theorem agreeOn.trans : agreeOn X σ₁ σ₂ → agreeOn X σ₂ σ₃ → agre
 
 theorem agreeOn.subset : X ⊆ Y → agreeOn Y σ₁ σ₂ → agreeOn X σ₁ σ₂ :=
   fun hSub h x hX => h x (hSub hX)
+  
+variable [DecidableEq ν]
 
-theorem agreeOn_set {x : ν} {X : Set ν} [DecidableEq ν] (σ : PropAssignment ν) (v : Bool) : x ∉ X →
+theorem agreeOn_set_of_not_mem {x : ν} {X : Set ν} (σ : PropAssignment ν) (v : Bool) : x ∉ X →
     agreeOn X (σ.set x v) σ := by
   -- I ❤ A️esop
   aesop (add norm unfold agreeOn, norm unfold set)
@@ -66,7 +68,11 @@ theorem eval_of_agreeOn_vars {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν
   intro h
   induction φ <;> simp_all [PropAssignment.agreeOn, eval, vars]
 
-theorem eval_set_of_not_mem_vars {x : ν} {φ : PropForm ν} {τ : PropAssignment ν} : 
+theorem eval_ext {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν} : (∀ x ∈ φ.vars, σ₁ x = σ₂ x) →
+    φ.eval σ₁ = φ.eval σ₂ :=
+  eval_of_agreeOn_vars
+
+theorem eval_set_of_not_mem_vars {x : ν} {φ : PropForm ν} {τ : PropAssignment ν} :
     x ∉ φ.vars → φ.eval (τ.set x b) = φ.eval τ := by
   intro hNMem
   apply eval_of_agreeOn_vars
@@ -80,7 +86,7 @@ theorem agreeOn_vars {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν} :
   simp [SemanticEntails.entails, satisfies, eval_of_agreeOn_vars h]
 
 set_option push_neg.use_distrib true in
-lemma semVar_inversion (φ : PropForm ν) (τ : PropAssignment ν) (x : ν) : τ ⊨ φ →
+lemma mem_vars_of_flip {φ : PropForm ν} {τ : PropAssignment ν} (x : ν) : τ ⊨ φ →
     τ.set x (!τ x) ⊭ φ → x ∈ φ.vars := by
   intro hτ hτ'
   induction φ generalizing τ with
@@ -95,9 +101,56 @@ lemma semVar_inversion (φ : PropForm ν) (τ : PropAssignment ν) (x : ν) : τ
       [satisfies_conj, satisfies_disj, satisfies_impl', satisfies_biImpl', vars, Finset.mem_union]
     push_neg at hτ'
     aesop
-    
+
+theorem exists_flip {φ : PropForm ν} {σ₁ σ₂ : PropAssignment ν} : σ₁ ⊨ φ → σ₂ ⊭ φ →
+    ∃ (x : ν) (τ : PropAssignment ν), σ₁ x ≠ σ₂ x ∧ τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ :=
+  fun h₁ h₂ =>
+    let s := φ.vars.filter fun x => σ₁ x ≠ σ₂ x
+    have hS : ∀ x ∈ s, σ₁ x ≠ σ₂ x := fun _ h => Finset.mem_filter.mp h |>.right
+    have hSC : ∀ x ∈ φ.vars \ s, σ₁ x = σ₂ x := fun _ h => by simp_all
+    have ⟨x, τ, hMem, hτ, hτ'⟩ := go h₁ h₂ s hS hSC rfl
+    ⟨x, τ, hS _ hMem, hτ, hτ'⟩
+-- NOTE(Jeremy): a proof using `Finset.induction` would likely be shorter
+where go {σ₁ σ₂ : PropAssignment ν} (h₁ : σ₁ ⊨ φ) (h₂ : σ₂ ⊭ φ)
+    (s : Finset ν) (hS : ∀ x ∈ s, σ₁ x ≠ σ₂ x) (hSC : ∀ x ∈ φ.vars \ s, σ₁ x = σ₂ x) :
+    {n : Nat} → s.card = n →
+    ∃ (x : ν) (τ : PropAssignment ν), x ∈ s ∧ τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ
+  | 0,   hCard =>
+    -- In the base case, σ₁ and σ₂ agree on all φ.vars, contradiction.
+    have : s = ∅ := Finset.card_eq_zero.mp hCard
+    have : σ₁.agreeOn φ.vars σ₂ := fun _ h => by simp_all
+    have : σ₂ ⊨ φ := (agreeOn_vars this).mp h₁
+    False.elim (h₂ this)
+  | _+1, hCard => by
+    -- In the inductive case, let σ₁' := σ₁[x₀ ↦ !(σ₁ x₀)] and see if σ₁' satisfies φ or not.
+    have ⟨x₀, s', h₀, h', hCard'⟩ := Finset.card_eq_succ.mp hCard
+    have h₀S : x₀ ∈ s := h' ▸ Finset.mem_insert_self x₀ s'
+    let σ₁' := σ₁.set x₀ (!σ₁ x₀)
+    by_cases h₁' : σ₁' ⊨ φ
+    case neg =>
+      -- If σ₁' no longer satisfies φ, we're done.
+      use x₀, σ₁
+      refine ⟨h' ▸ Finset.mem_insert_self x₀ s', h₁, h₁'⟩
+    case pos =>
+      -- If σ₁' still satisfies φ, proceed by induction.
+      have hS' : ∀ x ∈ s', σ₁' x ≠ σ₂ x := fun x hMem => by
+        have hX : x₀ ≠ x := fun h => h₀ (h ▸ hMem)
+        simp only [σ₁.set_get_of_ne (!σ₁ x₀) hX]
+        exact hS _ (h' ▸ Finset.mem_insert_of_mem hMem)
+      have hSC' : ∀ x ∈ φ.vars \ s', σ₁' x = σ₂ x := fun x hMem => by
+        by_cases hX : x₀ = x
+        case pos =>
+          simp only [← hX, σ₁.set_get, Bool.bnot_eq_to_not_eq]
+          apply hS _ h₀S
+        case neg =>
+          simp only [σ₁.set_get_of_ne _ hX]
+          apply hSC
+          aesop
+      have ⟨x, τ, hMem, H⟩ := go h₁' h₂ s' hS' hSC' hCard'
+      refine ⟨x, τ, h' ▸ Finset.mem_insert_of_mem hMem, H⟩
+
 end PropForm
-    
+
 namespace PropTerm
 
 variable [DecidableEq ν]
@@ -107,28 +160,48 @@ private def semVars' (φ : PropTerm ν) : Set ν :=
   { x | ∃ (τ : PropAssignment ν), τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ }
 
 private theorem semVars'_subset_vars (φ : PropForm ν) : semVars' ⟦φ⟧ ⊆ φ.vars :=
-  fun x ⟨τ, hτ, hτ'⟩ => PropForm.semVar_inversion φ τ x hτ hτ'
-  
+  fun x ⟨_, hτ, hτ'⟩ => PropForm.mem_vars_of_flip x hτ hτ'
+
 private instance semVars'_finite (φ : PropTerm ν) : Set.Finite φ.semVars' :=
-  have ⟨φ', h⟩ := Quotient.exists_rep φ 
+  have ⟨φ', h⟩ := Quotient.exists_rep φ
   Set.Finite.subset (Finset.finite_toSet _) (h ▸ semVars'_subset_vars φ')
-  
+
 /-- The *semantic variables* of `φ` are those it is sensitive to as a Boolean function.
 Unlike `vars`, this set is stable under equivalence of formulas. -/
 noncomputable def semVars (φ : PropTerm ν) : Finset ν :=
   Set.Finite.toFinset φ.semVars'_finite
 
-theorem eval_of_agreeOn_semVars {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment ν} :
-    σ₁.agreeOn φ.semVars σ₂ → φ.eval σ₁ = φ.eval σ₂ := by
-  -- LATER: This proof is tricky and I'm not sure we need it for the invariants.
-  sorry
+/-- Any two assignments with opposing evaluations on `φ` disagree on a semantic variable of `φ`. -/
+theorem exists_semVar {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment ν} : σ₁ ⊨ φ → σ₂ ⊭ φ →
+    ∃ (x : ν), σ₁ x ≠ σ₂ x ∧ x ∈ φ.semVars := by
+  have ⟨φ', hMk⟩ := Quotient.exists_rep φ
+  dsimp
+  rw [← hMk, satisfies_mk, satisfies_mk]
+  intro h₁ h₂
+  have ⟨x, τ, hNe, hτ, hτ'⟩ := PropForm.exists_flip h₁ h₂
+  use x, hNe
+  simp only [semVars, semVars', Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  use τ
+  rw [satisfies_mk, satisfies_mk]
+  exact ⟨hτ, hτ'⟩
 
 theorem agreeOn_semVars {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment ν} :
     σ₁.agreeOn φ.semVars σ₂ → (σ₁ ⊨ φ ↔ σ₂ ⊨ φ) := by
-  intro h
-  simp [SemanticEntails.entails, satisfies, eval_of_agreeOn_semVars h]
+  suffices ∀ {σ₁ σ₂}, σ₁.agreeOn φ.semVars σ₂ → σ₁ ⊨ φ → σ₂ ⊨ φ from
+    fun h =>⟨this h, this h.symm⟩
+  intro σ₁ σ₂ h h₁
+  by_contra h₂
+  have ⟨x, hNe, hMem⟩ := exists_semVar h₁ h₂
+  exact hNe (h x hMem)
 
-/-- Two functions φ₁ and φ₂ are equivalent over X when for every assignment τ, models of φ₁ 
+theorem eval_of_agreeOn_semVars {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment ν} :
+    σ₁.agreeOn φ.semVars σ₂ → φ.eval σ₁ = φ.eval σ₂ := by
+  intro h
+  have := agreeOn_semVars h
+  dsimp only [SemanticEntails.entails, satisfies] at this
+  aesop
+
+/-- Two functions φ₁ and φ₂ are equivalent over X when for every assignment τ, models of φ₁
 extending τ over X are in bijection with models of φ₂ extending τ over X. -/
 -- This is `sequiv` here: https://github.com/ccodel/verified-encodings/blob/master/src/cnf/encoding.lean
 def equivalentOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :=
@@ -166,18 +239,10 @@ theorem equivalentOver_semVars {X : Set ν} : φ₁.semVars ⊆ X → φ₂.semV
   have : σ₁ ⊨ φ₂ ↔ τ ⊨ φ₂ := agreeOn_semVars (hA.subset h₂)
   exact this.mp hS
 
--- TODO Now extensions. A definitional extension by a variable not in semVars
--- preserves s-equivalence
--- has unique extension
--- But what *is* a definitional extension?
--- x ∉ φ.semVars
--- maybe needed: x ∉ X0 (why? because X0 ⊆ semVars? well, that's false.)
--- φ ↦ φ ⊓ (-x ∨ l₁ ∨ l₂) ⊓ (x ∨ -l₁) ⊓ (x ∨ -l₂)
-
 /-- A function has the unique extension property from `X` to `Y` (both sets of variables) when any
 satisfying assignment, if it exists, is uniquely determined on `Y` by its values on `X`. Formally,
 any two satisfying assignments which agree on `X` must also agree on `Y`. -/
-/- TODO: Model equivalence is expected to follow from this. For example: 
+/- TODO: Model equivalence is expected to follow from this. For example:
 equivalentOver φ₁.vars ⟦φ₁⟧ ⟦φ₂⟧ ∧ hasUniqueExtension ⟦φ₂⟧ φ₁.vars φ₂.vars →
 { σ : { x // x ∈ φ₁.vars} → Bool | σ ⊨ φ₁ } ≃ { σ : { x // x ∈ φ₂.vars } → Bool | σ ⊨ φ₂ } -/
 def hasUniqueExtension (X Y : Set ν) (φ : PropTerm ν) :=
@@ -193,7 +258,7 @@ theorem equivalentOver_of_equivalent : equivalent φ₁ φ₂ → PropTerm.equiv
   fun h => Quotient.sound h ▸ PropTerm.equivalentOver_refl ⟦φ₁⟧
 
 theorem semVars_eq_of_equivalent (φ₁ φ₂ : PropForm ν) : equivalent φ₁ φ₂ →
-    PropTerm.semVars ⟦φ₁⟧ = PropTerm.semVars ⟦φ₂⟧ := 
+    PropTerm.semVars ⟦φ₁⟧ = PropTerm.semVars ⟦φ₂⟧ :=
   fun h => Quotient.sound h ▸ rfl
 
 theorem semVars_subset_vars (φ : PropForm ν) : PropTerm.semVars ⟦φ⟧ ⊆ φ.vars := by

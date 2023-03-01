@@ -1,6 +1,6 @@
 import ProofChecker.Model.PropForm
 import ProofChecker.Model.PropVars
-import ProofChecker.Model.Cnf
+
 import ProofChecker.Data.HashMap.Extra
 import ProofChecker.Data.ICnf
 
