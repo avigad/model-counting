@@ -1,0 +1,486 @@
+\documentclass[letterpaper,USenglish,cleveref, autoref, thm-restate]{lipics-v2021}
+%This is a template for producing LIPIcs articles. 
+%See lipics-v2021-authors-guidelines.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling autoref support, use "autoref"
+%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
+%for enabling thm-restate support, use "thm-restate"
+%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
+%for producing a PDF according the PDF/A standard, add "pdfa"
+
+%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+
+\newcommand{\pand}{\mathbin{\land^{\sf v}}}
+\newcommand{\por}{\mathbin{\lor^{\sf a}}}
+\DeclareMathOperator*{\Pand}{\bigwedge^{\sf v}}
+\DeclareMathOperator*{\Por}{\bigvee^{\sf a}}
+\newcommand{\boolnot}{\neg}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\oneminus}{{\sim}}
+\newcommand{\lit}{\ell}
+
+\newcommand{\varset}{X}
+\newcommand{\dependencyset}{{\cal D}}
+\newcommand{\litset}{{\cal L}}
+\newcommand{\ring}{{\cal R}}
+\newcommand{\dset}{{\cal A}}
+\newcommand{\rep}{\textbf{R}}
+\newcommand{\radd}{+}
+\newcommand{\rmul}{\times}
+\newcommand{\addident}{\textbf{0}}
+\newcommand{\mulident}{\textbf{1}}
+
+\newcommand{\assign}{\alpha}
+\newcommand{\uassign}{{\cal U}}
+\newcommand{\modelset}{{\cal M}}
+
+\newcommand{\indegree}{\textrm{indegree}}
+\newcommand{\outdegree}{\textrm{outdegree}}
+
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{Certified Knowledge Compilation \\ with Application to Verified Model Counting}
+
+\titlerunning{Certified Knowledge Compilation}
+
+\author{Randal E. Bryant}{Computer Science Department, Carnegie Mellon University, Pittsburgh, PA 15213 USA}{rebryant@cmu.edu}{https://orcid.org/0000-0001-5024-6613}{Supported by NSF grant CCF-2108521}
+\author{Wojciech Nawrocki}{Department of Philosophy, Carnegie Mellon University}{wjnawrock@cmu.edu}{https://orcid.org/0000-0002-8839-0618}{}
+\author{Jeremy Avigad}{Department of Philosophy, Carnegie Mellon University}{avigad@cmu.edu}{https://orcid.org/0000-0003-1275-315X}{}
+\author{Marijn J. H. Heule}{Computer Science Department, Carnegie Mellon University}{marijn@cmu.edu}{https://orcid.org/0000-0002-5587-8801}{Supported by NSF grant CCF-2108521}
+
+%\authorrunning{R. E. Bryant, et al} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+%\Copyright{Jane Open Access and Joan R. Public} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+%\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm 
+
+%\keywords{Dummy keyword} %TODO mandatory; please add comma-separated list of keywords
+
+%\category{} %optional, e.g. invited paper
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+%\nolinenumbers %uncomment to disable line numbering
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\EventEditors{John Q. Open and Joan R. Access}
+%\EventNoEds{2}
+%\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+%\EventShortTitle{CVIT 2016}
+%\EventAcronym{CVIT}
+%\EventYear{2016}
+%\EventDate{December 24--27, 2016}
+%\EventLocation{Little Whinging, United Kingdom}
+%\EventLogo{}
+%\SeriesVolume{42}
+%\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\program}[1]{\textsc{#1}}
+\newcommand{\lean}{\program{lean4}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Knowledge compilers convert Boolean formulas into a form for which
+useful tasks, including model counting and weighted model counting,
+can easily be performed.  Existing knowledge compilers, however,
+provide no guarantee that the generated representation accurately
+describes the original formula.
+
+We present the Partitioned Operation Graph (POG) representation that
+generalizes existing knowledge compiler representations, and a proof
+framework that can prove the equivalence of a POG representation with
+a conjunctive normal form (CNF) Boolean formula.
+
+We have developed a program that can generate POG representations and
+equivalence proofs from the dDNNF graphs generated by a leading
+knowledge compiler.  It scales to all but the largest formulas from a
+recent model counting competition.  We also present two proof
+checkers---a fast checker that can handle the large proofs generated,
+and a formally verified checker written in the \lean{} proof system.
+\end{abstract}
+
+\section{Introduction}
+
+\section{Logical Foundations}
+
+  Let $\varset$ denote a set of Boolean variables, and let $\assign$
+  be an {\em assignment} of truth values to the variables, where $0$
+  denotes false and $1$ denotes true, i.e., $\assign \colon \varset
+  \rightarrow \{0,1\}$.  The set of all possible assignments over
+  $\varset$ is denoted $\uassign$.  For each variable $x \in \varset$,
+  we define {\em literals} $x$ and $\obar{x}$, where $\obar{x}$ is the
+  negation of $x$. An
+  assignment $\assign$ can be viewed as a set of literals, where
+  we write $\lit \in \assign$ when $\lit = x$ and $\assign(x) = 1$ or when
+  $\lit = \obar{x}$ and $\assign(x) = 0$.  We write the negation of literal $\lit$ as $\obar{\lit}$.  That is, $\obar{\lit} = \obar{x}$ when $\lit = x$ and
+$\obar{\lit} = x$ when $\lit = \obar{x}$.
+
+  The set of Boolean formulas is defined recursively.  Each
+  formula $\phi$ has an associated {\em dependency set}
+  $\dependencyset(\phi)  \subseteq \varset$, and a set of models $\modelset(\phi)$,
+  consisting of assignments that satisfy the formula:
+  \begin{enumerate}
+  \item Boolean constants $0$ and $1$ are Boolean formulas,
+    with $\dependencyset(0) = \dependencyset(1) = \emptyset$, with $\modelset(0) = \emptyset$, and with $\modelset(1) = \uassign$.
+  \item A variable $x$ is a Boolean formula, with $\dependencyset(x) = \{x\}$
+    and $\modelset(x) = \{\assign \in \uassign | \assign(x)=1\}$.
+  \item For formula $\phi$, its {\em negation}, written $\boolnot \phi$ is a Boolean formula,
+    with $\dependencyset(\boolnot \phi) = \dependencyset(\phi)$ and $\modelset(\boolnot \phi) = \uassign - \modelset(\phi)$.
+  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em conjunction} $\phi = \bigwedge_{i=1,k} \phi_i$ is a Boolean formula, with
+      $\dependencyset(\phi) = \bigcup_{i=1,k} \dependencyset(\phi_i)$ and
+      $\modelset(\phi) = \bigcap_{i=1,k} \modelset(\phi_i)$.
+  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em disjunction} $\phi = \bigvee_{i=1,k} \phi_i$ is a Boolean formula, with
+      $\dependencyset(\phi) = \bigcup_{i=1,k} \dependencyset(\phi_i)$ and
+      $\modelset(\phi) = \bigcup_{i=1,k} \modelset(\phi_i)$.
+  \end{enumerate}
+  
+  We highlight the following special classes of Boolean formulas:
+  \begin{itemize}
+    \item In a {\em normal form} formula, negation is 
+      applied only to variables
+    \item A normal-form formula is in {\em conjunctive normal form} (CNF) if disjunction is applied only to literals.
+    \item A {\em partitioned-operation formula} (or simply a ``partitioned formula'') satisfies the following restrictions on its conjunction and disjunction operations:
+      \begin{itemize}
+      \item The arguments to a conjunction must have disjoint dependency sets.  That is, operation
+        $\phi = \bigwedge_{i=1,k} \phi_i$ requires $\dependencyset(\phi_i) \cap \dependencyset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
+      \item The arguments to a disjunction must have disjoint models.  That is, operation
+        $\phi = \bigvee_{i=1,k} \phi_i$ requires $\modelset(\phi_i) \cap \modelset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
+      \end{itemize}
+     We let $\pand$ and $\por$ denote the conjunction and disjunction operations in a partitioned formula.
+  \end{itemize}
+  
+  \section{Ring Evaluation of a Boolean Formula}
+
+We propose a general framework for describing a variety of tasks that
+summarize some aspect of Boolean formulas.
+
+\begin{definition}[Commutative Ring]
+  A {\em commutative ring} $\ring$ is an algebraic structure
+  $\langle \dset, \radd, \rmul, \addident, \mulident \rangle$, 
+  with elements in the set $\dset$ and with commutative and
+  associative operations $\radd$ (addition) and $\rmul$ (multiplication),
+  such that multiplication distributes
+  over addition.  $\addident$ is the additive identity and $\mulident$ is
+  the multiplicative identity.  Every element $a \in \dset$ has an
+  {\em additive inverse} $-a$ such that $a + -a = \addident$.
+\label{def:ring}
+\end{definition}
+
+\begin{definition}[Ring Evaluation Problem (REP)]
+  A {\em ring labeling} associates a value $w(x) \in \dset$ with
+  every variable $x \in \varset$.  We define $w(\obar{x})$ to equal $1-w(x)$.
+
+  For Boolean formula $\phi$, the {\em ring evaluation problem} (REP) is to compute:
+  \begin{eqnarray}
+    \rep(\phi) & = & \sum_{\alpha \in \modelset(\phi)} \prod_{\lit \in \alpha} w(\ell) \label{eqn:rep}
+  \end{eqnarray}
+\label{def:labeling}
+\end{definition}
+
+A wide variety of important tasks for Boolean functions can be
+expressed as ring evaluation problems.  The 
+{\em model counting} problem can be cast as an REP by having $\radd$ and
+$\rmul$ be addition and multiplication over rational numbers and using
+label $w(x) = 1/2$ for every variable $x$.  
+Ring evaluation of formula $\phi$ will then compute the {\em density} of
+the formula, i.e., the fraction of all possible assignments that are
+models.  For $n = |\varset|$, scaling the density by $2^n$ will then
+yield the number of models.
+
+The {\em weighted model counting} (WMC) problem is also defined over
+rational numbers.  Some formulations of WMC allow independent
+assignments of weights $W$ to the variables and their negations, such
+that $W(x) + W(\obar{x}) \not = 1$.  We can convert this into a
+ring evaluation problem by letting $r(x) = W(x) + W(\obar{x})$,
+performing algebraic evaluation with label $w(x) = W(x)/r(x)$ for each
+variable $x$, and then computing the final result as $\rep(\phi)\;
+\rmul\; \prod_{x \in \varset} r(x)$.  Of course, this requires that $r(x) \not = 0$.
+
+The {\em function hashing problem} provides a test
+of inequivalence for Boolean formulas.  That is, let $\ring$ be a
+finite  field with $|\dset| \geq 2 |\varset|$.  Two formulas
+$\phi_1$ and $\phi_2$ will clearly have $\rep(\phi_1) = \rep(\phi_2)$
+if they are logically equivalent.  If they are not equivalent, then
+the probability that $\rep(\phi_1) \not = \rep(\phi_2)$ will be at
+least $\left(1-\frac{1}{z}\right)^n \geq \left(1-\frac{1}{2n}\right)^n > 1/2$.
+Therefore, ring evaluation can be used as part of a
+randomized algorithm for equivalence testing~\cite{blum:ipl:1980}.
+
+\section{Partitioned-Operation Graphs (POGs)}
+
+Performing ring evaluation on an arbitrary Boolean formula could be intractable, but it is straightforward for a partitioned formula:
+\begin{proposition}
+Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the following:
+\begin{description}
+\item[Negation] $\rep(\boolnot \phi) = \mulident - \rep(\phi)$
+\item[Partitioned Conjunction] $\rep\left(\Pand_{i=1,k} \phi_i\right) = \prod_{i=1,k} \rep(\phi_i)$
+\item[Partitioned Disjunction] $\rep\left(\Por_{i=1,k} \phi_i\right) = \sum_{i=1,k} \rep(\phi_i)$
+\end{description}
+\end{proposition}
+
+A {\em partitioned-operation graph} (POG) is a directed, acyclic graph
+with nodes $N$ and edges $E \subseteq N \times N$.  When $(u,v) \in E$,
+node $v$ is said to be a {\em child} of node $u$.
+The in- and out-degrees of node $u$ are defined as $\indegree(u) = | E \cap (N \times \{u\}) |$, and
+$\outdegree(u) = | E \cap (\{u\} \times N) |$.
+Node $u$ is said to be {\em terminal} if $\outdegree(u) = 0$.  A terminal node is labeled by a Boolean constant or variable.
+Node $u$ is said to be {\em nonterminal} if $\outdegree(u) > 0$.  A nonterminal node is labeled by one of three Boolean operations:
+$\boolnot$, $\pand$, or $\por$.  Node $u$ can be labeled with $\boolnot$ only if $\outdegree(u) = 1$.
+It can be labeled with operation $\pand$ or $\por$ only if it satisfies the partitioning restriction for that operation.
+There is a unique {\em root node} $r$ such that $\indegree(r) = 0$.
+
+As can be seen, a POG is simply a way to represent a partitioned
+formula with a sharing of common subformulas, and so we write
+$\phi(P)$ as the formula denoted by $P$.
+
+We define the {\em size} of POG $P$, written $|P|$ to be the sum of
+the number of nonterminal nodes and the number of edges.  Ring
+evaluation of $\phi(P)$ can be performed with at most $|P|$ ring
+operations by traversing the graph from the terminal nodes up to
+the root, computing a value $\rep(u)$ for each node $u$.
+
+POGs are inspired by the d-DNNF graphs devised by Darwiche for
+representing Boolean functions \cite{darwiche:jair:2002}.
+POGs generalize d-DNNF in two ways:
+\begin{itemize}
+\item They allow negation of arbitrary nodes in the graph, not just
+  variables.  As we have seen, ring evaluation can readily handle negation, and so we allow it in the interest of generality.
+  Negation could be useful in some contexts, such as when
+  converting binary decision diagrams (BDDs) having complemented
+  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
+
+\item It allows arbitrary arguments to a $\por$ operation, as long as
+  they have disjoint models.  By contrast, each
+  disjunction node in a d-DNNF can have at most two children, and there must be a variable $x$ such that
+  the satisfying assignments for one child have $x=1$ while those for the
+  other child have $x=0$.  Our generalization is provided to allow an
+  encoding of Sentential Decision Diagrams (SDDs)~\cite{darwiche:ijcai:2011} into
+  POGs.  This is discussed in Section~\ref{sect:future}, describing possible future research.
+\end{itemize}
+  Both of these generalizations allow more flexibility in the POG
+  representation while maintaining the ability to efficiently perform ring evaluation.
+
+
+\section{The CRAT Proof System}
+
+The CRAT clausal proof framework provides a means to express a
+checkable proof that a Boolean formula, given in conjunctive normal
+form, is logically equivalent to a POG\@, thus enabling certified
+knowledge compilation.  It is based on extended
+resolution~\cite{Tseitin:1983} with reverse unit propagation
+(RUP)~\cite{goldberg,vangelder08_verifying_rup_proofs} as its core method for
+determining that a clause is implication-redundant with respect to other clauses.
+
+Two programs are involved in producing a certified compilation of a formula:
+\begin{itemize}
+\item The {\em compiler} generates a CRAT file that both describes a POG and provides a proof that this POG is equivalent to the input formula.
+  This compiler might start with the output of another knowledge compiler.
+\item The {\em checker} ensures that all of the proof conditions are satisfied.  
+\end{itemize}
+
+The CRAT format draws its inspiration from the LRAT format for Boolean
+formulas~\cite{lrat} and the QRAT format for quantified Boolean
+formulas (QBF)~\cite{heule:JAR2014}.  The following are its key properties:
+\begin{itemize}
+  \item
+  In addition to explicit clause additions and deletions, the proof contains declarations of $\pand$ and $\por$ operations.
+\begin{itemize}
+\item 
+  Each such declaration implicitly adds an extension variable representing that operation and a set of {\em defining} clauses
+  encoding the conjunction or disjunction operation.
+  This is the only means for generating extension variables or adding blocked clauses to the proof.
+\item The checker must track the dependency set for every input and
+  extension variable.  When an extension variable is introduced based
+  on the $\pand$ operation, the dependency sets of its arguments must
+  be disjoint.  The resulting extension variable has a dependency set equal to the union of those of its arguments.
+\item Declaring a $\por$ operation requires a sequence of clauses
+  providing a RUP proof that the arguments are mutually exclusive.
+  Only binary $\por$ operations are allowed to avoid requiring
+  $k\,(k-1)/2$ proofs of disjointness for larger values of $k$.
+\item Boolean negation is provided implicitly by allowing the
+  arguments of the $\por$ and $\pand$ operations to be literals and not just
+  variables.
+\end{itemize}
+\item
+  Assertion clauses can can added when they satisfy the RUP
+  property, with respect to a sequence of existing clauses.  This set must be provided explicitly as the {\em hints} for the assertion.
+\item
+  Deleting clauses requires proving that the resulting formula is not weaker.
+  That is, it should not allow any additional satisfying assignment.
+  Only the input clauses and those declared by an assertion can be deleted.
+      The deletion must be accompanied by a sequence of remaining clauses
+      providing a RUP proof of the clause.  This sequence must be provided as the {\em hints} for the deletion.
+\end{itemize}
+
+\subsection{Syntax}
+
+\begin{table}
+  \caption{CRAT Step Types.  $C$: clause identifier, $L$: literal, $V$: variable}
+  \label{tab:crat:syntax}
+\centering{
+  \begin{tabular}{lllll}
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
+    \midrule
+    \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\tt a}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{$C^{+}$ {\tt 0}}  & \makebox[20mm][l]{Add RUP clause} \\
+     & {\tt dc} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause \\
+    \midrule
+    $C$    & {\tt p} & $V \; L^{*}$ {\tt 0}    &                  & Declare $\pand$ operation \\
+    $C$    & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation \\ 
+    \midrule
+     & {\tt r} & $L$             &            & Declare root literal\\
+  \end{tabular}
+  }
+\end{table}
+
+Table~\ref{tab:crat:syntax} shows the declarations that can occur in a CRAT file.
+The checker is provided with the input formula as a separate file.
+As with other clausal proof formats, a variable is
+represented by a positive integer $v$, with the first ones being input
+variables and successive ones being extension variables.  Literal $\lit$
+is represented by a signed integer, with $-v$ being the complement of
+variable $v$.  Each clause is indicated by a positive integer
+identifier $C$, with the first ones being the IDs of the input clauses and successive
+ones being the IDs of added clauses.  Clause identifiers must be totally ordered,
+such that clause $C$ can only reference clauses $C'$ such that $C' < C$.
+
+The first set of proof rules are similar to those in other clausal
+proofs.
+Clauses can be added via RUP addition
+(command {\tt a}), with a sequence of antecedent clauses (the
+``hint'').
+Similarly for clause deletion (command {\tt dc}).
+
+The declaration of a $\pand$ operation has the form:
+\begin{center}
+\begin{tabular}{ccccccccc}
+  \makebox[5mm]{$i$} & \makebox[5mm]{{\tt p}} & \makebox[5mm]{$v$} & \makebox[5mm]{$\lit_1$} & \makebox[5mm]{$\lit_2$} &
+  \makebox[5mm]{$\cdots$} & \makebox[5mm]{$\lit_k$} & \makebox[5mm]{\tt 0} \\
+\end{tabular}
+\end{center}
+where $i$ is a new clause ID, $v$ is a positive integer that does not
+correspond to any previous variable, and $\lit_1, \lit_2, \ldots, \lit_k$ is a sequence of $k$  
+integers representing literals of existing variables.  
+This declaration implicitly causes $k+1$ clauses to be added to the proof:
+\begin{center}
+\begin{tabular}{cccccc}
+\makebox[10mm]{ID} & \multicolumn{5}{c}{Clause} \\
+  $i$ & $v$ & $-\lit_1$ & $-\lit_2$ & $\cdots$ & $-\lit_k$\\
+  $i\!+\!1$ & $-v$ & $\lit_1$  \\
+  $i\!+\!2$ & $-v$ & $\lit_2$  \\
+  & $\ldots$ \\
+  $i\!+\!k$ & $-v$ & $\lit_k$  \\
+\end{tabular}
+\end{center}
+The dependency sets for the arguments represented by each pair of
+literals $\lit_i$
+and $\lit_{j}$ must
+be disjoint, for $1 \leq i < j \leq k$.  A $\pand$ operation may have no arguments,
+representing Boolean constant $1$.  The only clause added to the proof will be
+the unit literal $v$.  A reference to literal $-v$ then becomes a way
+of representing constant $0$.
+
+
+The declaration of a $\por$ operation has the form:
+\begin{center}
+\begin{tabular}{ccccccc}
+  \makebox[5mm]{$i$} & \makebox[5mm]{{\tt s}} & \makebox[5mm]{$v$} & \makebox[5mm]{$\lit_1$} & \makebox[5mm]{$\lit_2$} 
+\makebox[5mm]{$H$} & \makebox[5mm]{$\texttt{0}$} \\
+\end{tabular}
+\end{center}
+where $i$ is a new clause ID, $v$ is a positive integer that does
+not correspond to any previous variable, and $\lit_1$ and $\lit_2$ are
+signed integers representing literals of existing variables.  Hint $H$
+consists of a
+sequence of clause IDs.
+This declaration implicitly causes three clauses to be added to the proof:
+\begin{center}
+\begin{tabular}{cccc}
+\makebox[10mm]{ID} & \multicolumn{3}{c}{Clause} \\
+  $i$ & $-v$ & $\lit_1$ & $\lit_2$ \\
+  $i\!+\!1$ & $v$ & $-\lit_1$ \\
+  $i\!+\!2$ & $v$ & $-\lit_2$ \\
+\end{tabular}
+\end{center}
+The hints must provide a RUP proof of the clause $\obar{\lit}_1 \lor \obar{\lit}_2$.
+
+Finally, the literal denoting the root of the POG is declared with the
+{\tt r} command.  It can occur anywhere in the file.  Typically, it
+will be the extension variable representing the root of a graph, but in
+degenerate cases it can be the positive or negative literal of an
+input variable.
+
+\subsection{Semantics}
+
+A CRAT proof follows the same general form as a QRAT dual
+proof~\cite{bryant:cade:2021}---one that ensures that each clause
+addition and each clause deletion preserves equivalence.  With CRAT,
+however, clauses are defined both explicitly and implicitly.  Starting
+with the set of input clauses, the proof consists of a sequence of
+steps that both add and delete clauses.  Each addition must be truth
+preserving, that is, any satisfying assignment for the set of clauses
+before clause addition should still be a satisfying assignment after.
+Each deletion must be falsehood preserving.  That is, there can be no new satisfying assignments when the clause is deleted.
+
+At the completion of the proof, the following conditions must hold:
+\begin{itemize}
+\item All of the input clauses have been deleted.
+\item There should be exactly one clause left that was added via RUP
+  addition, and this should be a unit clause consisting of the root literal.
+\end{itemize}
+
+The sequence of operator declarations, asserted clauses, and deleted
+clauses represents a systematic transformation of the input formula
+into a POG\@.  Validating each of these steps serves to prove that the
+POG is logically equivalent to the input formula.
+
+\section{Generating CRAT from dDNNF}
+
+\section{A Formally Verified CRAT Checker}
+
+\section{Experimental Evaluation}
+
+\section{Future Work}
+\label{sect:future}
+
+
+Each node $u$ in an $SDD$ has children $p_1, p_2, \ldots, p_k$ and
+$s_1, s_2, \ldots p_k$, where the Boolean formula $\phi(u)$ associated
+with the node is defined recursively as $\phi(u) = \bigwedge_{i=1,k}
+[\phi(p_i) \land \phi(s_i)]$.  Moreover, each children $p_i$ and $p_j$
+such that $1 \leq i < j \leq k$ must satisfy $\modelset(\phi(p_i))
+\cap \modelset(\phi(p_j)) = \emptyset$, and for every $p_i$ and $s_j$
+such that $1 \leq i,j \leq k$, we must have $\dependencyset(\phi(p_i))
+\cap \dependencyset(\phi(s_j)) = \emptyset$.  The POG representation
+of such a node could have $k$ conjunction nodes: $t_i = p_i \pand s_i$
+for $1 \leq i \leq k$, and then $k-1$ binary disjunction nodes to form
+the disjunction of $t_1, \ldots, t_k$.
+
+\bibliography{references}
+
+
+\appendix
+
+\section{Experimental Methodology}
+
+\section{Detailed Experimental Results}
+
+
+
+\end{document}
