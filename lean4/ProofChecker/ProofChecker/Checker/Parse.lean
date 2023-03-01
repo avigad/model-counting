@@ -47,14 +47,22 @@ end Dimacs
 
 open Dimacs
 
-def ILit.ofToken : Token → Except String ILit
-  | .int i => .ok i
-  | .str s => .error s!"expected int at '{s}'"
-  
 def Nat.ofToken : Token → Except String Nat
   | .int i =>
-    if i < 0 then .error s!"expected positive int at '{i}'"
-    else .ok (Int.natAbs i)
+    if 0 ≤ i then .ok (Int.natAbs i)
+    else .error s!"expected non-negative int at '{i}'"
+  | .str s => .error s!"expected int at '{s}'"
+
+def Var.ofToken : Token → Except String Var
+  | .int i =>
+    if h : 0 < i then .ok ⟨Int.natAbs i, Int.natAbs_pos.mpr (Int.ne_of_gt h)⟩
+    else .error s!"expected positive int at '{i}'"
+  | .str s => .error s!"expected int at '{s}'"
+
+def ILit.ofToken : Token → Except String ILit
+  | .int i =>
+    if h : i ≠ 0 then .ok ⟨i, h⟩
+    else .error s!"literal can't be zero at '{i}'"
   | .str s => .error s!"expected int at '{s}'"
 
 def IClause.ofTokens (tks : Array Token) : Except String IClause := do
@@ -117,14 +125,14 @@ def CratStep.ofTokens (tks : Array Token) : Except String CratStep := do
     let some (.int 0) := tks[tks.size-1]?
       | throw s!"missing terminating 0 in hints"
     let ls : Subarray Token := tks[1:tks.size-1]
-    return .prod (← Nat.ofToken idx) (← Nat.ofToken x) (← IClause.ofTokens ls)
+    return .prod (← Nat.ofToken idx) (← Var.ofToken x) (← IClause.ofTokens ls)
   | idx, .str "s" =>
     let (some x, some l₁, some l₂) := (tks[0]?, tks[1]?, tks[2]?)
       | throw s!"missing sum parameters"
     let some (.int 0) := tks[tks.size-1]?
       | throw s!"missing terminating 0 in hints"
     let hints : Subarray Token := tks[3:tks.size-1]
-    return .sum (← Nat.ofToken idx) (← Nat.ofToken x) (← ILit.ofToken l₁) (← ILit.ofToken l₂)
+    return .sum (← Nat.ofToken idx) (← Var.ofToken x) (← ILit.ofToken l₁) (← ILit.ofToken l₂)
       (← toUpHints hints)
   | .str "r", r =>
     return .root (← ILit.ofToken r)

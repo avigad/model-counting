@@ -89,8 +89,12 @@ def unitPropWithHints (db : ClauseDb α) (τ : PartPropAssignment) (hints : Arra
   return .extended τ
   
 /-! Theorems about `ClauseDb` -/
+
+-- Idea: Express `toPropTerm` in terms of this and use reasoning about `ICnf` to lessen proof burden
+def toICnf (db : ClauseDb α) : ICnf :=
+  db.fold (init := #[]) fun acc _ C => acc.push C
   
-def toPropTerm (db : ClauseDb α) : PropTerm Nat :=
+def toPropTerm (db : ClauseDb α) : PropTerm Var :=
   db.fold (init := .tr) fun acc _ C => acc.conj C.toPropTerm
 
 theorem toPropTerm_getClause (db : ClauseDb α) (idx : α) :

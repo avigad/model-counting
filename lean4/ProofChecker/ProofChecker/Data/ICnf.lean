@@ -5,80 +5,93 @@ import ProofChecker.Data.HashSet
 import ProofChecker.Model.ToMathlib
 import ProofChecker.Model.PropTerm
 
+abbrev Var := PNat
+
+namespace Var
+
+instance : ToString Var where
+  toString x := toString x.val
+
+instance : Hashable Var where
+  hash v := hash v.val
+
+end Var
+
 /-! Literals -/
 
-def ILit := Int
+def ILit := { i : Int // i ≠ 0 }
+  deriving DecidableEq, Repr
 
 namespace ILit
 
-def mkPos (x : Nat) : ILit :=
-  Int.ofNat x
+def mkPos (x : Var) : ILit :=
+  ⟨Int.ofNat x.val, by simp⟩
 
-def mkNeg (x : Nat) : ILit :=
-  -Int.ofNat x
+def mkNeg (x : Var) : ILit :=
+  ⟨-Int.ofNat x.val, by simp⟩
 
-def var : ILit → Nat :=
-  Int.natAbs
+def var (l : ILit) : Var :=
+  ⟨Int.natAbs l.val, Int.natAbs_pos.mpr l.property⟩
 
 def polarity (l : ILit) : Bool :=
-  (0 : Int) < l
+  (0 : Int) < l.val
 
-def negate : ILit → ILit :=
-  Int.neg
+def negate (l : ILit) : ILit :=
+  ⟨-l.val, Int.neg_ne_zero.mpr l.property⟩
 
 instance : Neg ILit := ⟨negate⟩
-
-instance : BEq ILit :=
-  inferInstanceAs (BEq Int)
 
 instance : ToString ILit where
   toString l := if l.polarity then s!"{l.var}" else s!"-{l.var}"
 
-instance : DecidableEq ILit := inferInstanceAs (DecidableEq Int)
-
-instance : Repr ILit := inferInstanceAs (Repr Int)
-
 /-! Theorems about `ILit` -/
 
 @[simp]
-theorem var_mkPos (x : Nat) : var (mkPos x) = x :=
-  Int.natAbs_ofNat x
+theorem var_mkPos (x :  Var) : var (mkPos x) = x :=
+  Subtype.ext (Int.natAbs_ofNat x.val)
 
 @[simp]
-theorem var_mkNeg (x : Nat) : var (mkNeg x) = x := by
+theorem var_mkNeg (x : Var) : var (mkNeg x) = x := by
+  apply Subtype.ext
   simp [var, mkNeg]
+  rfl
 
 @[simp]
 theorem var_negate (l : ILit) : (-l).var = l.var := by
   simp only [var, Neg.neg, negate]
+  apply Subtype.ext
   apply Int.natAbs_neg
 
-theorem polarity_negate (l : ILit) : l ≠ (0 : Int) → (-l).polarity = !l.polarity := by
-  suffices ∀ (l: Int), l ≠ 0 → ¬(0 < -l ↔ 0 < l) by
-    simp only [polarity, Neg.neg, negate, Bool.eq_bnot_to_not_eq]
-    intro hNe h
-    rw [Bool.decide_eq] at h
-    apply this l hNe h
-  intro l hNe h
-  exact hNe (Int.eq_zero_of_lt_neg_iff_lt l h)
+theorem polarity_eq {l₁ l₂ : ILit} :
+    l₁.polarity = l₂.polarity ↔ ((0 : Int) < l₁.val ↔ (0 : Int) < l₂.val) := by
+  simp [polarity]
+
+theorem polarity_negate (l : ILit) : (-l).polarity = !l.polarity := by
+  rw [Bool.eq_bnot_to_not_eq, polarity_eq]
+  intro hEq
+  exact l.property (Int.eq_zero_of_lt_neg_iff_lt _ hEq)
 
 @[ext]
 theorem ext {l₁ l₂ : ILit} : l₁.var = l₂.var → l₁.polarity = l₂.polarity → l₁ = l₂ := by
   /- Strip type alias. -/
-  suffices ∀ {l₁ l₂ : Int}, var l₁ = var l₂ → polarity l₁ = polarity l₂ → l₁ = l₂ from
-    this
+  suffices ∀ {l₁ l₂ : Int}, l₁.natAbs = l₂.natAbs → (0 < l₁ ↔ 0 < l₂) → l₁ = l₂ by
+    intro h₁ h₂
+    apply Subtype.ext
+    apply this
+    . exact Subtype.mk_eq_mk.mp h₁
+    . exact polarity_eq.mp h₂
   intro l₁ l₂ h₁ h₂
   cases Int.natAbs_eq_natAbs_iff.mp h₁
   . assumption
   next h =>
-    rw [polarity, polarity, h, Bool.decide_eq] at h₂
+    rw [h] at h₂
     have : l₂ = 0 := Int.eq_zero_of_lt_neg_iff_lt l₂ h₂
     simp [this, h]
 
-def toPropForm (l : ILit) : PropForm Nat :=
+def toPropForm (l : ILit) : PropForm Var :=
   if l.polarity then .var l.var else .neg (.var l.var)
 
-def toPropTerm (l : ILit) : PropTerm Nat :=
+def toPropTerm (l : ILit) : PropTerm Var :=
   if l.polarity then .var l.var else (.var l.var)ᶜ
 
 @[simp]
@@ -88,12 +101,12 @@ theorem mk_toPropForm (l : ILit) : ⟦l.toPropForm⟧ = l.toPropTerm := by
 
 open PropTerm
 
-theorem satisfies_iff {τ : PropAssignment Nat} {l : ILit} :
+theorem satisfies_iff {τ : PropAssignment Var} {l : ILit} :
     τ ⊨ l.toPropTerm ↔ τ l.var = l.polarity := by
   dsimp [toPropTerm, var, polarity]
   aesop
 
-theorem satisfies_set [DecidableEq ν] (τ : PropAssignment Nat) (l : ILit) :
+theorem satisfies_set [DecidableEq ν] (τ : PropAssignment Var) (l : ILit) :
     τ.set l.var l.polarity ⊨ l.toPropTerm := by
   simp [satisfies_iff, τ.set_get]
 
@@ -105,8 +118,8 @@ abbrev IClause := Array ILit
 
 namespace IClause
 
-def vars (C : IClause) : HashSet Nat :=
-  C.foldl (init := .empty Nat) fun acc l => acc.insert l.var
+def vars (C : IClause) : HashSet Var :=
+  C.foldl (init := .empty Var) fun acc l => acc.insert l.var
 
 instance : BEq IClause :=
   inferInstanceAs (BEq IClause)
@@ -116,7 +129,7 @@ instance : ToString IClause where
 
 /-! Theorems about `IClause` -/
 
-def toPropTerm : IClause → PropTerm Nat :=
+def toPropTerm : IClause → PropTerm Var :=
   Array.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
 
 end IClause
@@ -127,15 +140,15 @@ abbrev ICnf := Array IClause
 
 namespace ICnf
 
-def vars (C : ICnf) : HashSet Nat :=
-  C.foldl (init := .empty Nat) fun acc C => acc.union C.vars
+def vars (C : ICnf) : HashSet Var :=
+  C.foldl (init := .empty Var) fun acc C => acc.union C.vars
 
 instance : ToString ICnf where
   toString C := s!"{String.intercalate " ∧ " (C.map toString).toList}"
 
 /-! Theorems about `ICnf` -/
 
-def toPropTerm : ICnf → PropTerm Nat :=
+def toPropTerm : ICnf → PropTerm Var :=
   Array.foldr (init := ⊤) (fun l φ => l.toPropTerm ⊓ φ)
 
 end ICnf
@@ -145,12 +158,12 @@ end ICnf
 /-- A partial assignment to propositional variables. -/
 -- TODO: Using `HashMap` for this is cache-inefficient but I don't have time to verify better
 -- structures rn
-abbrev PartPropAssignment := HashMap Nat Bool
+abbrev PartPropAssignment := HashMap Var Bool
 
 namespace PartPropAssignment
 
 /-- Interpret the assignment (x ↦ ⊤, y ↦ ⊥) as x ∧ ¬y, for example. -/
-def toPropTerm (τ : PartPropAssignment) : PropTerm Nat :=
+def toPropTerm (τ : PartPropAssignment) : PropTerm Var :=
   τ.fold (init := .tr) fun acc x v => acc.conj <| if v then .var x else .neg (.var x)
 
 end PartPropAssignment

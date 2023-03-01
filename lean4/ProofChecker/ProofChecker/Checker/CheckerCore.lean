@@ -11,9 +11,9 @@ inductive CratStep
   | /-- Delete asymmetric tautology. -/
     delAt (idx : Nat) (upHints : Array Nat)
   | /-- Declare product operation. -/
-    prod (idx : Nat) (x : Nat) (ls : Array ILit)
+    prod (idx : Nat) (x : Var) (ls : Array ILit)
   | /-- Declare sum operation. -/
-    sum (idx : Nat) (x : Nat) (l₁ l₂ : ILit) (upHints : Array Nat)
+    sum (idx : Nat) (x : Var) (l₁ l₂ : ILit) (upHints : Array Nat)
   | /-- Declare POG root. -/
     root (r : ILit)
 
@@ -32,9 +32,6 @@ end CratStep
 /-- An index into the `ClauseDb`. -/
 abbrev ClauseIdx := Nat
 
-/-- A variable. -/
-abbrev Var := Nat
-
 /-- The checker's runtime state. Contains exactly the data needed to fully check a proof. -/
 structure CheckerStateCore where
   inputCnf : ICnf
@@ -43,7 +40,7 @@ structure CheckerStateCore where
   -- and also to state invariants; but for the latter, ghost state would suffice
   origVars : HashSet Var
   /-- The clause database. -/
-  clauseDb : ClauseDb Var := {}
+  clauseDb : ClauseDb ClauseIdx := {}
   /-- Maps any variable present in `clauseDb` to the set of all *original* variables it depends on.
   For example, an original `x` is mapped to `{x}` whereas an extension `p` with `p ↔ x ∧ y` is
   mapped to `{x, y}`. 
@@ -183,7 +180,7 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
     | throw <| .unknownVar l₂.var
 
   -- Check that variables are mutually exclusive.
-  checkAtWithHints #[l₁.neg, l₂.neg] hints
+  checkAtWithHints #[-l₁, -l₂] hints
 
   -- Defining clauses for the disjunction.
   addClause idx     #[.mkNeg x, l₁, l₂]

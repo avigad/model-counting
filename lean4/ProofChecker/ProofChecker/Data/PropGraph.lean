@@ -445,7 +445,7 @@ def toPropForm (G : PropDag ν) (x : ν) : PropForm ν :=
       .disj acc φ'
   ret.getD (.var x)
   
-instance : Inhabited (PropDag Nat) := ⟨.empty⟩
+instance [BEq α] [Hashable α] : Inhabited (PropDag α) := ⟨.empty⟩
 
 end PropDag
 
