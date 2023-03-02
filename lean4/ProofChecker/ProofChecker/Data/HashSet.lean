@@ -75,7 +75,6 @@ theorem insert_comm (s : HashSet α) (a b : α) : (s.insert a).insert b = (s.ins
 @[simp]
 theorem toFinset_union (s t : HashSet α) [LawfulBEq α]
     : toFinset (s.union t) = s.toFinset ∪ t.toFinset := by
-  rw [union, HashMap.fold_eq_fold_toList _ _ _ (by simp [insert_comm])]
   sorry
 
 @[simp]

@@ -69,10 +69,16 @@ def delClause (db : ClauseDb α) (idx : α) : ClauseDb α :=
   { db with clauses := db.clauses.mapOne idx fun (C, _) => (C, true) }
 
 def getClause (db : ClauseDb α) (idx : α) : Option IClause :=
-  db.clauses.find? idx |>.bind (fun (C, deleted) => if deleted then none else C) 
+  db.clauses.find? idx |>.bind (fun (C, deleted) => if deleted then none else C)
 
 def contains (db : ClauseDb α) (idx : α) : Bool :=
   db.getClause idx |>.isSome
+
+def ofICnf (cnf : ICnf) : ClauseDb Nat :=
+  let (db, _) : ClauseDb Nat × Nat :=
+    cnf.foldl (init := (empty, 1)) fun (db, idx) C =>
+      (db.addClause idx C, idx + 1)
+  db
 
 /-- Propagates units starting from the given assignment. The clauses in `hints` are expected to become
 unit in the order provided. Returns the extended assignment, or `none` if a contradiction was found. -/
@@ -87,33 +93,157 @@ def unitPropWithHints (db : ClauseDb α) (τ : PartPropAssignment) (hints : Arra
     | some #[] => return .contradiction
     | _ => return .hintNotUnit hint
   return .extended τ
-  
+
 /-! Theorems about `ClauseDb` -/
 
--- Idea: Express `toPropTerm` in terms of this and use reasoning about `ICnf` to lessen proof burden
-def toICnf (db : ClauseDb α) : ICnf :=
-  db.fold (init := #[]) fun acc _ C => acc.push C
-  
-def toPropTerm (db : ClauseDb α) : PropTerm Var :=
-  db.fold (init := .tr) fun acc _ C => acc.conj C.toPropTerm
+variable [LawfulBEq α] [HashMap.LawfulHashable α]
 
-theorem toPropTerm_getClause (db : ClauseDb α) (idx : α) :
-    db.getClause idx = some C → db.toPropTerm.entails C.toPropTerm :=
-  sorry
+theorem getClause_eq_some (db : ClauseDb α) (idx : α) (C : IClause) :
+    db.getClause idx = some C ↔ db.clauses.find? idx = some (C, false) := by
+  simp [getClause]
 
-theorem toPropTerm_addClause (db : ClauseDb α) (idx : α) (C : IClause)
-    -- only true when idx ∉ db
-    : (db.addClause idx C).toPropTerm = db.toPropTerm.conj C.toPropTerm :=
-  sorry
+theorem contains_iff_getClause_eq_some (db : ClauseDb α) (idx : α) :
+    db.contains idx ↔ ∃ C, db.getClause idx = some C := by
+  simp [contains, Option.isSome_iff_exists, db.clauses.contains_iff_find?_eq]
 
--- Not sure if true
-theorem toPropTerm_delClause (db : ClauseDb α) (idx : α) :
+theorem getClause_addClause (db : ClauseDb α) (idx : α) (C : IClause) :
+    (db.addClause idx C).getClause idx = some C := by
+  dsimp [getClause, addClause]
+  rw [HashMap.find?_insert _ _ (LawfulBEq.rfl)]
+  simp
+
+theorem getClause_addClause_of_ne (db : ClauseDb α) (idx idx' : α) (C : IClause) :
+    idx ≠ idx' → (db.addClause idx C).getClause idx' = db.getClause idx' := by
+  intro h
+  dsimp [addClause, getClause]
+  rw [HashMap.find?_insert_of_ne _ _ (bne_iff_ne idx idx' |>.mpr h)]
+
+theorem getClause_delClause (db : ClauseDb α) (idx : α) :
+    (db.delClause idx).getClause idx = none := by
+  dsimp [getClause, delClause, HashMap.mapOne]
+  split
+  next =>
+    rw [HashMap.find?_insert _ _ (LawfulBEq.rfl)]
+    simp
+  next h =>
+    simp [h]
+
+theorem getClause_delClause_of_ne (db : ClauseDb α) (idx idx' : α) :
+    idx ≠ idx' → (db.delClause idx).getClause idx' = db.getClause idx' := by
+  intro h
+  dsimp [getClause, delClause, HashMap.mapOne]
+  split
+  next =>
+    rw [HashMap.find?_insert_of_ne _ _ (bne_iff_ne _ _ |>.mpr h)]
+  next => rfl
+
+theorem fold_of_getClause_eq_some_of_comm (db : ClauseDb α) (idx : α) (C : IClause)
+    (f : β → α → IClause → β) (init : β) :
     db.getClause idx = some C →
-    (db.delClause idx).toPropTerm.conj C.toPropTerm = db.toPropTerm :=
-  sorry
+    (∀ b a₁ C₁ a₂ C₂, f (f b a₁ C₁) a₂ C₂ = f (f b a₂ C₂) a₁ C₁) →
+    ∃ b, db.fold f init = f b idx C := by
+  intro h hComm
+  rw [getClause_eq_some] at h
+  have ⟨b, hb⟩ := db.clauses.fold_of_mapsTo_of_comm (init := init)
+    (f := fun acc idx (C, deleted) => if deleted then acc else f acc idx C)
+    h (by aesop)
+  use b
+  simp [fold, hb]
+
+def toPropTerm (db : ClauseDb α) : PropTerm Var :=
+  db.fold (init := .tr) fun acc _ C => acc ⊓ C.toPropTerm
+
+theorem toPropTerm_of_getClause_eq_some (db : ClauseDb α) (idx : α) (C : IClause)
+    : db.getClause idx = some C → ∃ φ, db.toPropTerm = φ ⊓ C.toPropTerm := by
+  intro h
+  have ⟨φ, hφ⟩ := db.fold_of_getClause_eq_some_of_comm idx C
+    (init := PropTerm.tr) (f := fun acc _ C => acc ⊓ C.toPropTerm)
+    h ?comm
+  case comm =>
+    intro φ _ C₁ _ C₂
+    dsimp
+    ac_rfl -- whoa this works?!
+  use φ
+  simp [toPropTerm, hφ]
+
+open PropTerm in
+theorem satisfies_toPropTerm (db : ClauseDb α) (σ : PropAssignment Var) :
+    σ ⊨ db.toPropTerm ↔ ∀ idx C, db.getClause idx = some C → σ ⊨ C.toPropTerm :=
+  ⟨mp, mpr⟩
+where
+  mp := fun h idx C hC => by
+    have ⟨φ, hφ⟩ := toPropTerm_of_getClause_eq_some db idx C hC
+    rw [hφ, satisfies_conj] at h
+    tauto
+
+  mpr := fun h => by
+    dsimp [toPropTerm]
+    apply HashMap.foldRecOn (hInit := satisfies_tr)
+    intro φ idx (C, deleted) hφ hIdx
+    dsimp
+    split
+    next => assumption
+    next hDel =>
+      rw [satisfies_conj]
+      refine ⟨by assumption, ?_⟩
+      apply h idx
+      rw [getClause, hIdx]
+      simp [*]
+
+theorem toPropTerm_of_getClause (db : ClauseDb α) (idx : α) (C : IClause) :
+    db.getClause idx = some C → db.toPropTerm ≤ C.toPropTerm := by
+  intro h
+  apply PropTerm.entails_ext.mpr
+  simp only [satisfies_toPropTerm]
+  tauto
+
+open PropTerm in
+theorem toPropTerm_addClause (db : ClauseDb α) (idx : α) (C : IClause) :
+    (db.toPropTerm ⊓ C.toPropTerm) ≤ (db.addClause idx C).toPropTerm := by
+  apply PropTerm.entails_ext.mpr
+  simp only [satisfies_conj, satisfies_toPropTerm]
+  intro τ h idx' C' hC'
+  by_cases hEq : idx = idx'
+  . rw [hEq, getClause_addClause] at hC'
+    cases hC'
+    tauto
+  . apply h.left idx'
+    exact getClause_addClause_of_ne _ _ _ _ hEq ▸ hC'
+
+open PropTerm in
+theorem toPropTerm_addClause_of_contains (db : ClauseDb α) (idx : α) (C : IClause) :
+    !db.contains idx →
+    (db.addClause idx C).toPropTerm = db.toPropTerm ⊓ C.toPropTerm := by
+  intro h
+  refine PropTerm.entails.antisymm ?_ (toPropTerm_addClause db idx C)
+  apply PropTerm.entails_ext.mpr
+  simp only [satisfies_conj, satisfies_toPropTerm]
+  intro τ hτ
+  refine ⟨?_, hτ idx C (getClause_addClause _ _ _)⟩
+  intro idx' C' hC'
+  apply hτ idx'
+  by_cases hEq : idx = idx'
+  . rw [hEq, (contains_iff_getClause_eq_some _ _).mpr ⟨C', hC'⟩] at h
+    contradiction
+  . rw [getClause_addClause_of_ne _ _ _ _ hEq]
+    exact hC'
+
+theorem toPropTerm_delClause (db : ClauseDb α) (idx : α) :
+    db.toPropTerm ≤ (db.delClause idx).toPropTerm := by
+  apply PropTerm.entails_ext.mpr
+  simp only [satisfies_toPropTerm]
+  intro τ h idx' C' hC'
+  by_cases hEq : idx = idx'
+  . rw [hEq, getClause_delClause] at hC'
+    contradiction
+  . rw [getClause_delClause_of_ne _ _ _ hEq] at hC'
+    exact h idx' C' hC'
+
+theorem toPropTerm_ofICnf (cnf : ICnf) : (ofICnf cnf).toPropTerm = cnf.toPropTerm := by
+  sorry -- Array.foldl_eq_foldl_data ? or Array.foldl_induction ?
 
 theorem entails_of_unitProp (db : ClauseDb α) (τ : PartPropAssignment) (hints : Array α) :
-    db.unitPropWithHints τ hints |>.isContradiction → db.toPropTerm.entails (.neg τ.toPropTerm) :=
+    db.unitPropWithHints τ hints |>.isContradiction → db.toPropTerm ≤ τ.toPropTermᶜ :=
   sorry
 
 end ClauseDb

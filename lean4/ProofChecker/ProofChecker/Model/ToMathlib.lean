@@ -51,6 +51,10 @@ theorem bne_symm [BEq α] [PartialEquivBEq α] {a b : α} : a != b → b != a :=
   fun h => Bool.not_eq_true_iff_ne_true.mpr fun h' =>
     Bool.bne_iff_not_beq.mp h (PartialEquivBEq.symm h')
 
+@[simp]
+theorem bne_iff_ne [BEq α] [LawfulBEq α] (a b : α) : a != b ↔ a ≠ b := by
+  simp [Bool.bne_iff_not_beq]
+
 /-! Maybe Std.Notation -/
 
 /-- Notation typeclass for semantic entailment `⊨`. -/

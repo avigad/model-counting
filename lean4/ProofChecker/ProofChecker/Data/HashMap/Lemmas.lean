@@ -472,24 +472,27 @@ theorem insert_comm [LawfulBEq α] (m : HashMap α β) (a₁ a₂ : α) (b : β)
   intro a
   cases Bool.beq_or_bne a₁ a <;> cases Bool.beq_or_bne a₂ a <;>
     simp_all [findEntry?_insert, findEntry?_insert_of_ne]
+    
+/-! `contains` -/
+
+def contains_iff_find?_eq (m : HashMap α β) (a : α) :
+    m.contains a ↔ ∃ b, m.find? a = some b :=
+  sorry
 
 /-! `fold` -/
 
-theorem fold_eq_fold_toList (m : HashMap α β) (f : δ → α → β → δ) (init : δ) :
-    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) →
-    m.fold f init = m.toList.foldl (init := init) (fun d p => f d p.1 p.2) :=
-  sorry
-
-theorem fold_insert_of_comm (m : HashMap α β) (a : α) (b) (f : δ → α → β → δ) (init : δ) :
-    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) → !m.contains a →
-    (m.insert a b).fold f init = f (m.fold f init) a b :=
-  sorry
-
 /-- If an entry appears in the map, it will appear "last" in a commutative `fold` over the map. -/
-theorem fold_of_mapsTo (m : HashMap α β) (f : δ → α → β → δ) (init : δ) (a : α) (b : β) :
-    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) →
+theorem fold_of_mapsTo_of_comm [LawfulBEq α] (m : HashMap α β) (f : δ → α → β → δ) (init : δ) :
     m.find? a = some b →
+    -- NOTE: This could be strengthened by assuming m.find? a₁ = some b₁
+    -- and ditto for a₂, b₂ in the ∀ hypothesis
+    (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) →
     ∃ d, m.fold f init = f d a b :=
-   sorry
+  sorry
+  
+/-- Analogous to `List.foldlRecOn`. -/
+def foldRecOn {C : δ → Sort _} (m : HashMap α β) (f : δ → α → β → δ) (init : δ) (hInit : C init)
+    (hf : ∀ d a b, C d → m.find? a = some b → C (f d a b)) : C (m.fold f init) :=
+  sorry
 
 end HashMap
