@@ -33,6 +33,7 @@
 \newcommand{\lit}{\ell}
 
 \newcommand{\varset}{X}
+\newcommand{\exvarset}{Z}
 \newcommand{\dependencyset}{{\cal D}}
 \newcommand{\litset}{{\cal L}}
 \newcommand{\ring}{{\cal R}}
@@ -280,6 +281,8 @@ POGs generalize d-DNNF in two ways:
 
 \section{The CRAT Proof System}
 
+
+
 The CRAT clausal proof framework provides a means to express a
 checkable proof that a Boolean formula, given in conjunctive normal
 form, is logically equivalent to a POG\@, thus enabling certified
@@ -428,6 +431,12 @@ input variable.
 
 \subsection{Semantics}
 
+Observe that the defining clauses for the conjunction and disjunction
+operations provide a full Tseitin encoding of the operations.  Letting
+$\exvarset$ denote the set of added extension variables,  any
+assignment $\assign\colon \varset \rightarrow \{0,1\}$ has a unique extension,
+which we also call $\assign$, with $\assign\colon (\varset \cup \exvarset) \rightarrow \{0,1\}$.
+
 A CRAT proof follows the same general form as a QRAT dual
 proof~\cite{bryant:cade:2021}---one that ensures that each clause
 addition and each clause deletion preserves equivalence.  With CRAT,
@@ -435,22 +444,212 @@ however, clauses are defined both explicitly and implicitly.  Starting
 with the set of input clauses, the proof consists of a sequence of
 steps that both add and delete clauses.  Each addition must be truth
 preserving, that is, any satisfying assignment for the set of clauses
-before clause addition should still be a satisfying assignment after.
-Each deletion must be falsehood preserving.  That is, there can be no new satisfying assignments when the clause is deleted.
+before clause addition should still be a satisfying assignment afterwards.
+Each deletion must be falsehood preserving.  That is, there can be no
+new satisfying assignments when the clause is deleted.
 
 At the completion of the proof, the following conditions must hold:
 \begin{itemize}
 \item All of the input clauses have been deleted.
 \item There should be exactly one clause left that was added via RUP
-  addition, and this should be a unit clause consisting of the root literal.
+  addition, and this should be a unit clause consisting of the root literal $r$.
 \end{itemize}
+The sequence of clause addition steps provide a proof that any
+assignment $\assign$ to the input variables that satisfies all of the
+clauses must, when extended, assign $\assign(r) = 1$.  Conversely,
+each proof step that deletes an input clause proves that any
+assignment $\alpha$ that falsifies the clause must, when extended,
+assign $\assign(r) = 0$.
 
 The sequence of operator declarations, asserted clauses, and deleted
 clauses represents a systematic transformation of the input formula
 into a POG\@.  Validating each of these steps serves to prove that the
 POG is logically equivalent to the input formula.
 
+\subsection{CRAT Example}
+
+\begin{figure}
+
+  \centering{
+\begin{minipage}{0.58\textwidth}
+(A)  Input Formula\\[1.2ex]
+\begin{tabular}{lll}
+\toprule
+\makebox[5mm]{ID} & \makebox[15mm]{Literals} & \\
+\midrule
+1 & \texttt{-1 3 -4} & \texttt{0} \\
+2 & \texttt{-1 -3 4} & \texttt{0} \\
+3 & \texttt{3 -4} & \texttt{0}\\
+4 & \texttt{1 -3 4} & \texttt{0} \\
+5 & \texttt{-1 -2} & \texttt{0} \\
+\bottomrule
+\end{tabular}
+\\[1.8ex]
+(B) CRAT Declaration of POG\\[1.2ex]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Proof line} & Explanation \\
+\midrule
+6 & \texttt{p 5 -3 -4} & \texttt{0} & $p_5 = \obar{x}_3 \pand \obar{x}_4$ \\
+9 & \texttt{p 6 3 4} & \texttt{0} & $p_6 = x_3 \pand x_4$ \\
+12 & \texttt{s 7 5 6 7 10} & \texttt{0} & $s_7 = p_5 \por p_6$ \\
+15 & \texttt{p 8 -1 7} & \texttt{0} & $p_8 = \obar{x}_1 \pand s_7$ \\ 
+18 & \texttt{p 9 1 -2 7} & \texttt{0} & $p_9 = x_1 \pand \obar{x}_2 \pand s_7$ \\
+22 & \texttt{s 10 8 9 16 19} & \texttt{0} & $s_{10} = p_8 \por p_9$ \\
+ & \texttt{r 10} && Root $r = s_{10}$\\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.40\textwidth}
+(C) POG Visualization\\
+\input{dd/eg4}
+\end{minipage}
+}
+\caption{Example CNF Formula and POG Representation}
+\label{fig:eg4:pog}
+\end{figure}
+
+Figure \ref{fig:eg4:pog} illustrates an example formula and shows how
+the CRAT file declares its POG representation.  The input formula (A)
+consists of five clauses over variables $x_1$, $x_2$, $x_3$, and
+$x_4$.  The generated POG has six nonterminal nodes representing four
+conjunctions and two disjunctions.  We name these by the node type (product or sum) and the extension variable.
+The first part of the CRAT file
+(B) declares these nodes using clause IDs that increment by three or
+four, depending on whether the node has two children or three.
+The last two nonzero values in the sum declarations are hints providing the required mutual exclusion proof.
+
+
+\begin{figure}
+\begin{minipage}{0.49\textwidth}
+(A) Implicit clauses\\[1.2ex]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Proof line} & Explanation \\
+\midrule
+\texttt{6} & \texttt{5 3 4} & \texttt{0} & Define $p_5$ \\
+\texttt{7} & \texttt{-5 -3} & \texttt{0} & \\
+\texttt{8} & \texttt{-5 -4} & \texttt{0} & \\
+\midrule
+\texttt{9} & \texttt{6 -3 -4} & \texttt{0} & Define $p_6$ \\
+\texttt{10} & \texttt{-6 3} & \texttt{0} & \\
+\texttt{11} & \texttt{-6 4} & \texttt{0} & \\
+\midrule
+\texttt{12} & \texttt{-7 5 6} & \texttt{0} & Define $s_7$ \\
+\texttt{13} & \texttt{7 -5} & \texttt{0} & \\
+\texttt{14} & \texttt{7 -6} & \texttt{0} & \\
+\midrule
+\texttt{15} & \texttt{8 1 -7} & \texttt{0} & Define $p_8$ \\
+\texttt{16} & \texttt{-8 -1} & \texttt{0} & \\
+\texttt{17} & \texttt{-8 7} & \texttt{0} & \\
+\midrule
+\texttt{18} & \texttt{9 -1 2 -7} & \texttt{0} & Define $p_9$ \\
+\texttt{19} & \texttt{-9 1} & \texttt{0} & \\
+\texttt{20} & \texttt{-9 -2} & \texttt{0} & \\
+\texttt{21} & \texttt{-9 7} & \texttt{0} & \\
+\midrule
+\texttt{22} & \texttt{-10 8 9} & \texttt{0} & Define $s_{10}$ \\
+\texttt{23} & \texttt{10 -8} & \texttt{0} & \\
+\texttt{24} & \texttt{10 -9} & \texttt{0} & \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+(B) Assertions\\[1.2ex]
+\begin{tabular}{llllll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Proof line} & \multicolumn{2}{l}{Hints} & Explanation \\
+\midrule
+\texttt{25} & \texttt{5 1 3} & \texttt{0} & \texttt{3 6} & \texttt{0} & $\obar{x}_1 \land \obar{x}_3 \rightarrow p_5$ \\
+\texttt{26} & \texttt{6 1 -3} & \texttt{0} & \texttt{4 9} & \texttt{0} & $\obar{x}_1 \land x_3 \rightarrow p_6$ \\
+\texttt{27} & \texttt{3 7 1} & \texttt{0} & \texttt{13 25} & \texttt{0} & $\obar{x}_3 \land \obar{x}_1 \rightarrow s_7$  \\
+\texttt{28} & \texttt{7 1} & \texttt{0} & \texttt{27 14 26} & \texttt{0} & $\obar{x}_1 \rightarrow s_7$  \\
+\texttt{29} & \texttt{8 1} & \texttt{0} & \texttt{28 15} & \texttt{0} & $\obar{x}_1 \rightarrow p_8$  \\
+\texttt{30} & \texttt{5 -1 3} & \texttt{0} & \texttt{1 6} & \texttt{0} & $x_1 \land \obar{x}_3 \rightarrow p_5$ \\
+\texttt{31} & \texttt{6 -1 -3} & \texttt{0} & \texttt{2 9} & \texttt{0} & $x_1 \land x_3 \rightarrow p_6$ \\
+\texttt{32} & \texttt{3 7 -1} & \texttt{0} & \texttt{13 30} & \texttt{0} & $\obar{x}_3 \land x_1 \rightarrow s_7$  \\
+\texttt{33} & \texttt{7 -1} & \texttt{0} & \texttt{32 14 31} & \texttt{0} & $x_1 \rightarrow s_7$  \\
+\texttt{34} & \texttt{9 -1} & \texttt{0} & \texttt{5 33 18} & \texttt{0} & $x_1 \rightarrow p_9$  \\
+\texttt{35} & \texttt{1 10} & \texttt{0} & \texttt{23 29} & \texttt{0} & $\obar{x}_1 \rightarrow s_{10}$  \\
+\texttt{36} & \texttt{10} & \texttt{0} & \texttt{35 24 34} & \texttt{0} & $s_{10}$ \\
+\bottomrule
+\end{tabular}
+\\[1.2ex]
+(C) Input clause deletions\\[1.2ex]
+\begin{tabular}{lllll}
+  \toprule
+ \multicolumn{3}{l}{Proof line} & Explanation\\
+\midrule
+ \texttt{dc 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
+ \texttt{dc 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
+ \texttt{dc 3} & \texttt{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
+ \texttt{dc 4} & \texttt{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
+ \texttt{dc 5} & \texttt{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
+\end{tabular}
+\end{minipage}
+\caption{Defining Clauses (A), Assertions (B), and Input Clause Deletions (C) for Example Formula}
+\label{fig:eg4:proof}
+\end{figure}
+
+We step through a detailed example to provide a better understanding of the CRAT proof framework.
+Figure
+\ref{fig:eg4:proof}(A) shows the defining clauses that are implicitly
+defined by the POG operation declarations.  These do not appear in the
+CRAT file.  Referring back to the declarations of the sum nodes in
+Figure \ref{fig:eg4:pog}, we can see that the declaration of node
+$s_7$ had clause IDs 7 and 10 as hints.  We can see in Figure
+\ref{fig:eg4:proof}(A) that these two clauses resolve to the clause
+$\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $s_7$
+have disjoint models.  Similarly, node $s_{10}$ is declared as having
+clause IDs 16 and 19 as hints.  These resolve to the clause
+$\obar{p}_8 \lor \obar{p}_9$, showing that the two children of
+$s_{10}$ have disjoint models.
+
+Figure \ref{fig:eg4:proof}(B) provides the sequence of assertions
+leading to unit clause 36, consisting of the literal $s_{10}$.  This clause indicates that $s_{10}$ is implied by the input clauses, i.e.,
+any assignment $\assign$
+satisfying the input clauses must extend to one with $\assign(s_{10}) = 1$.
+Working backward, we can see that
+clause 29 indicates that node $p_8$ will be implied by the input
+clauses when $\assign(x_1) = 0$, while clause 34 indicates that node $p_9$ will
+be implied by the input clauses when $\assign(x_1) = 1$.  These serve as the
+hints for clause 36.
+
+Figure \ref{fig:eg4:proof}(C) shows the RUP proof steps required to
+delete the input clauses.  Consider the first of these, deleting
+input clause $\obar{x}_1 \lor x_3 \lor \obar{x}_4$.  The requirement is to show
+that there is no assignment $\assign$ that falsifies this clause, but assigns $\assign(s_{10}) = 1$.
+proof proceeds by first assuming that the clause is false, requiring
+$\assign(x_1) = 1$, $\assign(x_3) = 0$, and $\assign(x_4) = 1$.  The hints then consist of unit
+clauses (e.g., clause 36 asserting that $\alpha(p_{10}) = 1$) or
+clauses that cause unit propagation.  Hint clauses 8 and 10 force the
+assignments $\assign(p_5) = \assign(p_6) = 0$.  These, plus hint clause 12 forces
+$\assign(s_7) = 0$.  This, plus hint clauses 16 and 21 force $\assign(p_8) = \assign(p_9) = 0$, leading
+via clause 22 to $\assign(s_10) = 0$.  But this contradicts clause 22,
+completing the RUP proof.  The deletion hints for the other input
+clauses follow similar patterns---they work from the bottom nodes of
+the POG upward, showing that any assignment that falsifies the clause
+must assign $s_{10} = 0$.
+
+Deleting the asserted clauses so simple that we do not show it.  It
+involves simply deleting the clauses from clause number 35 down to
+clause number 25, with each deletion using the same hints as were used
+to add that clause.  In the end, therefore, only the defining clauses
+for the POG nodes and the unit clause asserting $s_{10}$ remain,
+completing a proof that the POG is logically equivalent to the input
+formula.
+
+Observe that this proof must ``visit'' nodes
+$p_5$ and $p_6$ twice, separately considering assignments where $\assign(x_1) = 0$
+(clauses 25 and 26) and where $\assign(x_1) = 1$ (clauses 30 and 31).  In
+general, a naive proof must expand the POG into a tree.
+We address this shortcoming by introducing {\em lemmas}, as is described in Section~\ref{sect:lemma}
+
+
+
 \section{Generating CRAT from dDNNF}
+
+\label{sect:lemma}
 
 \section{A Formally Verified CRAT Checker}
 
