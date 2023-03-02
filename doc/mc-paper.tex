@@ -43,6 +43,7 @@
 \newcommand{\rmul}{\times}
 \newcommand{\addident}{\textbf{0}}
 \newcommand{\mulident}{\textbf{1}}
+\newcommand{\imply}{\Rightarrow}
 
 \newcommand{\assign}{\alpha}
 \newcommand{\uassign}{{\cal U}}
@@ -62,7 +63,7 @@
 \author{Jeremy Avigad}{Department of Philosophy, Carnegie Mellon University}{avigad@cmu.edu}{https://orcid.org/0000-0003-1275-315X}{}
 \author{Marijn J. H. Heule}{Computer Science Department, Carnegie Mellon University}{marijn@cmu.edu}{https://orcid.org/0000-0002-5587-8801}{Supported by NSF grant CCF-2108521}
 
-%\authorrunning{R. E. Bryant, et al} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+\authorrunning{R. E. Bryant, et al} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
 
 %\Copyright{Jane Open Access and Joan R. Public} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
 
@@ -469,13 +470,11 @@ POG is logically equivalent to the input formula.
 \subsection{CRAT Example}
 
 \begin{figure}
-
-  \centering{
-\begin{minipage}{0.58\textwidth}
+\begin{minipage}{0.62\textwidth}
 (A)  Input Formula\\[1.2ex]
 \begin{tabular}{lll}
 \toprule
-\makebox[5mm]{ID} & \makebox[15mm]{Literals} & \\
+\makebox[5mm]{ID} & \makebox[15mm]{Clauses} & \\
 \midrule
 1 & \texttt{-1 3 -4} & \texttt{0} \\
 2 & \texttt{-1 -3 4} & \texttt{0} \\
@@ -485,10 +484,10 @@ POG is logically equivalent to the input formula.
 \bottomrule
 \end{tabular}
 \\[1.8ex]
-(B) CRAT Declaration of POG\\[1.2ex]
+(C) POG Declaration\\[1.2ex]
 \begin{tabular}{llll}
 \toprule
-\makebox[5mm]{ID} & \multicolumn{2}{l}{Proof line} & Explanation \\
+\makebox[5mm]{ID} & \multicolumn{2}{l}{CRAT line} & Explanation \\
 \midrule
 6 & \texttt{p 5 -3 -4} & \texttt{0} & $p_5 = \obar{x}_3 \pand \obar{x}_4$ \\
 9 & \texttt{p 6 3 4} & \texttt{0} & $p_6 = x_3 \pand x_4$ \\
@@ -500,32 +499,17 @@ POG is logically equivalent to the input formula.
 \bottomrule
 \end{tabular}
 \end{minipage}
-\begin{minipage}{0.40\textwidth}
-(C) POG Visualization\\
+\begin{minipage}{0.35\textwidth}
+(B) POG Representation \\
 \input{dd/eg4}
 \end{minipage}
-}
-\caption{Example CNF Formula and POG Representation}
-\label{fig:eg4:pog}
-\end{figure}
-
-Figure \ref{fig:eg4:pog} illustrates an example formula and shows how
-the CRAT file declares its POG representation.  The input formula (A)
-consists of five clauses over variables $x_1$, $x_2$, $x_3$, and
-$x_4$.  The generated POG has six nonterminal nodes representing four
-conjunctions and two disjunctions.  We name these by the node type (product or sum) and the extension variable.
-The first part of the CRAT file
-(B) declares these nodes using clause IDs that increment by three or
-four, depending on whether the node has two children or three.
-The last two nonzero values in the sum declarations are hints providing the required mutual exclusion proof.
-
-
-\begin{figure}
-\begin{minipage}{0.49\textwidth}
-(A) Implicit clauses\\[1.2ex]
+%% Break
+\\[2.5ex]
+\begin{minipage}{0.45\textwidth}
+(D) Implicit Clauses\\[1.2ex]
 \begin{tabular}{llll}
 \toprule
-\makebox[5mm]{ID} & \multicolumn{2}{l}{Proof line} & Explanation \\
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
 \midrule
 \texttt{6} & \texttt{5 3 4} & \texttt{0} & Define $p_5$ \\
 \texttt{7} & \texttt{-5 -3} & \texttt{0} & \\
@@ -555,57 +539,68 @@ The last two nonzero values in the sum declarations are hints providing the requ
 \end{tabular}
 \end{minipage}
 \begin{minipage}{0.49\textwidth}
-(B) Assertions\\[1.2ex]
+(E) Assertions\\[1.2ex]
 \begin{tabular}{llllll}
 \toprule
-\makebox[5mm]{ID} & \multicolumn{2}{l}{Proof line} & \multicolumn{2}{l}{Hints} & Explanation \\
+\makebox[5mm]{ID} & \multicolumn{2}{l}{CRAT line} & \multicolumn{2}{l}{Hints} & Explanation \\
 \midrule
-\texttt{25} & \texttt{5 1 3} & \texttt{0} & \texttt{3 6} & \texttt{0} & $\obar{x}_1 \land \obar{x}_3 \rightarrow p_5$ \\
-\texttt{26} & \texttt{6 1 -3} & \texttt{0} & \texttt{4 9} & \texttt{0} & $\obar{x}_1 \land x_3 \rightarrow p_6$ \\
-\texttt{27} & \texttt{3 7 1} & \texttt{0} & \texttt{13 25} & \texttt{0} & $\obar{x}_3 \land \obar{x}_1 \rightarrow s_7$  \\
-\texttt{28} & \texttt{7 1} & \texttt{0} & \texttt{27 14 26} & \texttt{0} & $\obar{x}_1 \rightarrow s_7$  \\
-\texttt{29} & \texttt{8 1} & \texttt{0} & \texttt{28 15} & \texttt{0} & $\obar{x}_1 \rightarrow p_8$  \\
-\texttt{30} & \texttt{5 -1 3} & \texttt{0} & \texttt{1 6} & \texttt{0} & $x_1 \land \obar{x}_3 \rightarrow p_5$ \\
-\texttt{31} & \texttt{6 -1 -3} & \texttt{0} & \texttt{2 9} & \texttt{0} & $x_1 \land x_3 \rightarrow p_6$ \\
-\texttt{32} & \texttt{3 7 -1} & \texttt{0} & \texttt{13 30} & \texttt{0} & $\obar{x}_3 \land x_1 \rightarrow s_7$  \\
-\texttt{33} & \texttt{7 -1} & \texttt{0} & \texttt{32 14 31} & \texttt{0} & $x_1 \rightarrow s_7$  \\
-\texttt{34} & \texttt{9 -1} & \texttt{0} & \texttt{5 33 18} & \texttt{0} & $x_1 \rightarrow p_9$  \\
-\texttt{35} & \texttt{1 10} & \texttt{0} & \texttt{23 29} & \texttt{0} & $\obar{x}_1 \rightarrow s_{10}$  \\
-\texttt{36} & \texttt{10} & \texttt{0} & \texttt{35 24 34} & \texttt{0} & $s_{10}$ \\
+\texttt{25} & \texttt{a 5 1 3} & \texttt{0} & \texttt{3 6} & \texttt{0} & $\obar{x}_1 \land \obar{x}_3 \imply p_5$ \\
+\texttt{26} & \texttt{a 6 1 -3} & \texttt{0} & \texttt{4 9} & \texttt{0} & $\obar{x}_1 \land x_3 \imply p_6$ \\
+\texttt{27} & \texttt{a 3 7 1} & \texttt{0} & \texttt{13 25} & \texttt{0} & $\obar{x}_3 \land \obar{x}_1 \imply s_7$  \\
+\texttt{28} & \texttt{a 7 1} & \texttt{0} & \texttt{27 14 26} & \texttt{0} & $\obar{x}_1 \imply s_7$  \\
+\texttt{29} & \texttt{a 8 1} & \texttt{0} & \texttt{28 15} & \texttt{0} & $\obar{x}_1 \imply p_8$  \\
+\texttt{30} & \texttt{a 5 -1 3} & \texttt{0} & \texttt{1 6} & \texttt{0} & $x_1 \land \obar{x}_3 \imply p_5$ \\
+\texttt{31} & \texttt{a 6 -1 -3} & \texttt{0} & \texttt{2 9} & \texttt{0} & $x_1 \land x_3 \imply p_6$ \\
+\texttt{32} & \texttt{a 3 7 -1} & \texttt{0} & \texttt{13 30} & \texttt{0} & $\obar{x}_3 \land x_1 \imply s_7$  \\
+\texttt{33} & \texttt{a 7 -1} & \texttt{0} & \texttt{32 14 31} & \texttt{0} & $x_1 \imply s_7$  \\
+\texttt{34} & \texttt{a 9 -1} & \texttt{0} & \texttt{5 33 18} & \texttt{0} & $x_1 \imply p_9$  \\
+\texttt{35} & \texttt{a 1 10} & \texttt{0} & \texttt{23 29} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
+\texttt{36} & \texttt{a 10} & \texttt{0} & \texttt{35 24 34} & \texttt{0} & $s_{10}$ \\
 \bottomrule
 \end{tabular}
-\\[1.2ex]
-(C) Input clause deletions\\[1.2ex]
+\\[1.5ex]
+(F) Input Clause Deletions\\[1.2ex]
 \begin{tabular}{lllll}
   \toprule
- \multicolumn{3}{l}{Proof line} & Explanation\\
+ \multicolumn{3}{l}{CRAT line} & Explanation\\
 \midrule
  \texttt{dc 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
  \texttt{dc 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
  \texttt{dc 3} & \texttt{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
  \texttt{dc 4} & \texttt{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
  \texttt{dc 5} & \texttt{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
+\bottomrule
 \end{tabular}
 \end{minipage}
-\caption{Defining Clauses (A), Assertions (B), and Input Clause Deletions (C) for Example Formula}
-\label{fig:eg4:proof}
+\caption{Example formula (A), its POG representation (B), and its CRAT proof (C)--(F)}
+\label{fig:eg4:all}
 \end{figure}
+
+Figure \ref{fig:eg4:all} illustrates an example formula and shows how
+the CRAT file declares its POG representation.  The input formula (A)
+consists of five clauses over variables $x_1$, $x_2$, $x_3$, and
+$x_4$.  The generated POG (B) has six nonterminal nodes representing four
+conjunctions and two disjunctions.  We name these by the node type (product or sum) and the extension variable.
+The first part of the CRAT file
+(C) declares these nodes using clause IDs that increment by three or
+four, depending on whether the node has two children or three.
+The last two nonzero values in the sum declarations are hints providing the required mutual exclusion proof.
 
 We step through a detailed example to provide a better understanding of the CRAT proof framework.
 Figure
-\ref{fig:eg4:proof}(A) shows the defining clauses that are implicitly
+\ref{fig:eg4:all}(D) shows the defining clauses that are implicitly
 defined by the POG operation declarations.  These do not appear in the
 CRAT file.  Referring back to the declarations of the sum nodes in
-Figure \ref{fig:eg4:pog}, we can see that the declaration of node
+Figure \ref{fig:eg4:all}, we can see that the declaration of node
 $s_7$ had clause IDs 7 and 10 as hints.  We can see in Figure
-\ref{fig:eg4:proof}(A) that these two clauses resolve to the clause
+\ref{fig:eg4:all}(A) that these two clauses resolve to the clause
 $\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $s_7$
 have disjoint models.  Similarly, node $s_{10}$ is declared as having
 clause IDs 16 and 19 as hints.  These resolve to the clause
 $\obar{p}_8 \lor \obar{p}_9$, showing that the two children of
 $s_{10}$ have disjoint models.
 
-Figure \ref{fig:eg4:proof}(B) provides the sequence of assertions
+Figure \ref{fig:eg4:all}(E) provides the sequence of assertions
 leading to unit clause 36, consisting of the literal $s_{10}$.  This clause indicates that $s_{10}$ is implied by the input clauses, i.e.,
 any assignment $\assign$
 satisfying the input clauses must extend to one with $\assign(s_{10}) = 1$.
@@ -615,7 +610,7 @@ clauses when $\assign(x_1) = 0$, while clause 34 indicates that node $p_9$ will
 be implied by the input clauses when $\assign(x_1) = 1$.  These serve as the
 hints for clause 36.
 
-Figure \ref{fig:eg4:proof}(C) shows the RUP proof steps required to
+Figure \ref{fig:eg4:all}(F) shows the RUP proof steps required to
 delete the input clauses.  Consider the first of these, deleting
 input clause $\obar{x}_1 \lor x_3 \lor \obar{x}_4$.  The requirement is to show
 that there is no assignment $\assign$ that falsifies this clause, but assigns $\assign(s_{10}) = 1$.
