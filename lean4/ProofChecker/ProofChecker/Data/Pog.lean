@@ -24,6 +24,8 @@ deriving Repr, DecidableEq, Inhabited
 
 namespace PogElt
 
+/-
+-- Not sure if these are needed.
 inductive PogEqCases (pogElt : PogElt): Prop where
   | eq_var  (x : Var)                     : pogElt = var n → PogEqCases pogElt
   | eq_disj (x : Var) (left right : ILit) : pogElt = disj n left right → PogEqCases pogElt
@@ -35,6 +37,7 @@ theorem toEqCases (pogElt : PogElt) : PogEqCases pogElt := by
   . case var n => exact eq_var n rfl
   . case disj n left right => exact eq_disj n left right rfl
   . case conj n args => exact eq_conj n args rfl
+-/
 
 def varNum : PogElt → Var
   | var x      => x
@@ -171,13 +174,12 @@ where
     split <;> split <;> simp [*] at heq <;> try { injection heq }
     . rw [heq]
     . next x left right hleft hright hxeq _ _ _ =>
-      simp [heq]
+      simp only [heq]
       have _ : PNat.natPred (ILit.var left) < i := by
         rwa [←succPNat_lt_succPNat, ←hxeq, PNat.succPNat_natPred]
       have _ : PNat.natPred (ILit.var right) < i := by
         rwa [←succPNat_lt_succPNat, ←hxeq, PNat.succPNat_natPred]
       rw [aux (PNat.natPred (ILit.var left)), aux (PNat.natPred (ILit.var right))]
-      exact ⟨rfl, rfl⟩
     . next x args hargs hxeq _ _ _ =>
       sorry
 
