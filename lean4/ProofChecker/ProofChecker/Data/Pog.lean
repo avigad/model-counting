@@ -171,17 +171,16 @@ where
   | i, h, h' => by
     rw [toPropForm.aux]; conv => rhs; rw [toPropForm.aux]
     have heq := pog.get_push_elts_lt pogElt hwf hinv i h h'
-    split <;> split <;> simp [*] at heq <;> try { injection heq }
-    . rw [heq]
-    . next x left right hleft hright hxeq _ _ _ =>
+    split <;> split <;> simp [*] at heq <;> try { injection heq } <;> try { simp only [heq] }
+    . next x left right hleft hright hinv' _ _ _ =>
       simp only [heq]
-      have _ : PNat.natPred (ILit.var left) < i := by
-        rwa [←succPNat_lt_succPNat, ←hxeq, PNat.succPNat_natPred]
-      have _ : PNat.natPred (ILit.var right) < i := by
-        rwa [←succPNat_lt_succPNat, ←hxeq, PNat.succPNat_natPred]
+      have _ : left.var.natPred < i := by
+        rwa [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←hinv']
+      have _ : right.var.natPred < i := by
+        rwa [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←hinv']
       rw [aux (PNat.natPred (ILit.var left)), aux (PNat.natPred (ILit.var right))]
-    . next x args hargs hxeq _ _ _ =>
-      sorry
+    -- . next x args hargs hxeq _ _ _ =>
+    --   sorry
 
 theorem toPropForm_neg (x : Var) (p : Pog) :
     p.toPropForm (.mkNeg x) = .neg (p.toPropForm (.mkPos x)) := sorry
