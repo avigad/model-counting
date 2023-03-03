@@ -154,40 +154,32 @@ where
       newLeft.disj newRight
     | conj n args, _, _ => sorry
 
-theorem toPropFormAux_push_of_lt (pog : Pog) (pogElt : PogElt)
-      (hwf : pogElt.args_decreasing) (hinv : pogElt.varNum = succPNat pog.elts.size) :
+theorem toPropForm_push_of_lt (pog : Pog) (pogElt : PogElt)
+      (hwf : pogElt.args_decreasing) (hinv : pogElt.varNum = succPNat pog.elts.size)
+      (l : ILit) (hl : PNat.natPred l.var < pog.elts.size) :
+    (pog.push pogElt hwf hinv).toPropForm l = pog.toPropForm l := by
+  have hl' : PNat.natPred l.var < (pog.push pogElt hwf hinv).elts.size := by
+    dsimp [Pog.push]; rw [Array.size_push]; exact hl.trans (lt_succ_self _)
+  rw [toPropForm, toPropForm, dif_pos hl, dif_pos hl', aux]
+where
+  aux :
     (i : Nat) → (h : i < pog.elts.size) → (h' : i < (pog.push pogElt hwf hinv).elts.size) →
      toPropForm.aux (pog.push pogElt hwf hinv) i h' = toPropForm.aux pog i h
   | i, h, h' => by
-    rw [toPropForm.aux]
-    split
-    . next x hxeq hh f g =>
-      rw [pog.get_push_elts_lt pogElt hwf hinv i h h'] at hh
-      conv => rhs; rw [toPropForm.aux]
-      split <;> simp [*] at *
-      rw [hh]
-    . next x left right hleft hright hxeq hh f g =>
-      rw [pog.get_push_elts_lt pogElt hwf hinv i h h'] at hh
-      dsimp [varNum] at hxeq
-      conv => rhs; rw [toPropForm.aux]
-      split
-      . simp [hh] at *
-      . next x' left' right' hleft' hright' hxeq' hh' f' g' =>
-        rw [hh] at hh'
-        injection hh'
-        next heq1 heq2 heq3 =>
-        cases heq1
-        cases heq2
-        cases heq3
-        dsimp
-        have : PNat.natPred (ILit.var left) < i := by
-          rwa [←succPNat_lt_succPNat, ←hxeq, PNat.succPNat_natPred]
-        have : PNat.natPred (ILit.var right) < i := by
-          rwa [←succPNat_lt_succPNat, ←hxeq, PNat.succPNat_natPred]
-        rw [toPropFormAux_push_of_lt pog pogElt hwf hinv (PNat.natPred (ILit.var left)),
-            toPropFormAux_push_of_lt pog pogElt hwf hinv (PNat.natPred (ILit.var right))]
-      . simp [hh] at *
-    . sorry
+    rw [toPropForm.aux]; conv => rhs; rw [toPropForm.aux]
+    have heq := pog.get_push_elts_lt pogElt hwf hinv i h h'
+    split <;> split <;> simp [*] at heq <;> try { injection heq }
+    . rw [heq]
+    . next x left right hleft hright hxeq _ _ _ =>
+      simp [heq]
+      have _ : PNat.natPred (ILit.var left) < i := by
+        rwa [←succPNat_lt_succPNat, ←hxeq, PNat.succPNat_natPred]
+      have _ : PNat.natPred (ILit.var right) < i := by
+        rwa [←succPNat_lt_succPNat, ←hxeq, PNat.succPNat_natPred]
+      rw [aux (PNat.natPred (ILit.var left)), aux (PNat.natPred (ILit.var right))]
+      exact ⟨rfl, rfl⟩
+    . next x args hargs hxeq _ _ _ =>
+      sorry
 
 theorem toPropForm_neg (x : Var) (p : Pog) :
     p.toPropForm (.mkNeg x) = .neg (p.toPropForm (.mkPos x)) := sorry
