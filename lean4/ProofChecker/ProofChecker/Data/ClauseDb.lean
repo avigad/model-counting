@@ -73,11 +73,10 @@ def getClause (db : ClauseDb α) (idx : α) : Option IClause :=
 
 def contains (db : ClauseDb α) (idx : α) : Bool :=
   db.getClause idx |>.isSome
-
+  
 def ofICnf (cnf : ICnf) : ClauseDb Nat :=
-  let (db, _) : ClauseDb Nat × Nat :=
-    cnf.foldl (init := (empty, 1)) fun (db, idx) C =>
-      (db.addClause idx C, idx + 1)
+  let (db, _) := cnf.foldl (init := (empty, 1)) fun (db, idx) C =>
+    (db.addClause idx C, idx + 1)
   db
 
 /-- Propagates units starting from the given assignment. The clauses in `hints` are expected to become
@@ -98,13 +97,23 @@ def unitPropWithHints (db : ClauseDb α) (τ : PartPropAssignment) (hints : Arra
 
 variable [LawfulBEq α] [HashMap.LawfulHashable α]
 
+/-! `getClause` -/
+
 theorem getClause_eq_some (db : ClauseDb α) (idx : α) (C : IClause) :
     db.getClause idx = some C ↔ db.clauses.find? idx = some (C, false) := by
   simp [getClause]
+  
+@[simp]
+theorem getClause_empty (idx : α) : (empty : ClauseDb α).getClause idx = none := by
+  simp [getClause, empty]
 
 theorem contains_iff_getClause_eq_some (db : ClauseDb α) (idx : α) :
     db.contains idx ↔ ∃ C, db.getClause idx = some C := by
   simp [contains, Option.isSome_iff_exists, db.clauses.contains_iff_find?_eq]
+
+theorem not_contains_empty (idx : α) : ¬(empty : ClauseDb α).contains idx := by
+  rw [contains_iff_getClause_eq_some]
+  simp
 
 theorem getClause_addClause (db : ClauseDb α) (idx : α) (C : IClause) :
     (db.addClause idx C).getClause idx = some C := by
@@ -136,8 +145,10 @@ theorem getClause_delClause_of_ne (db : ClauseDb α) (idx idx' : α) :
   next =>
     rw [HashMap.find?_insert_of_ne _ _ (bne_iff_ne _ _ |>.mpr h)]
   next => rfl
+  
+/-! `fold` -/
 
-theorem fold_of_getClause_eq_some_of_comm (db : ClauseDb α) (idx : α) (C : IClause)
+theorem fold_of_getClause_eq_of_comm (db : ClauseDb α) (idx : α) (C : IClause)
     (f : β → α → IClause → β) (init : β) :
     db.getClause idx = some C →
     (∀ b a₁ C₁ a₂ C₂, f (f b a₁ C₁) a₂ C₂ = f (f b a₂ C₂) a₁ C₁) →
@@ -150,31 +161,32 @@ theorem fold_of_getClause_eq_some_of_comm (db : ClauseDb α) (idx : α) (C : ICl
   use b
   simp [fold, hb]
 
+/-! `toPropTerm` -/
+
 def toPropTerm (db : ClauseDb α) : PropTerm Var :=
   db.fold (init := .tr) fun acc _ C => acc ⊓ C.toPropTerm
-
-theorem toPropTerm_of_getClause_eq_some (db : ClauseDb α) (idx : α) (C : IClause)
-    : db.getClause idx = some C → ∃ φ, db.toPropTerm = φ ⊓ C.toPropTerm := by
+  
+theorem toPropTerm_of_getClause_eq (db : ClauseDb α) (idx : α) (C : IClause) :
+    db.getClause idx = some C → db.toPropTerm ≤ C.toPropTerm := by
   intro h
-  have ⟨φ, hφ⟩ := db.fold_of_getClause_eq_some_of_comm idx C
+  have ⟨φ, hφ⟩ := db.fold_of_getClause_eq_of_comm idx C
     (init := PropTerm.tr) (f := fun acc _ C => acc ⊓ C.toPropTerm)
     h ?comm
   case comm =>
     intro φ _ C₁ _ C₂
     dsimp
     ac_rfl -- whoa this works?!
-  use φ
-  simp [toPropTerm, hφ]
+  apply PropTerm.entails_ext.mpr
+  rw [toPropTerm, hφ]
+  simp
 
 open PropTerm in
 theorem satisfies_toPropTerm (db : ClauseDb α) (σ : PropAssignment Var) :
     σ ⊨ db.toPropTerm ↔ ∀ idx C, db.getClause idx = some C → σ ⊨ C.toPropTerm :=
   ⟨mp, mpr⟩
 where
-  mp := fun h idx C hC => by
-    have ⟨φ, hφ⟩ := toPropTerm_of_getClause_eq_some db idx C hC
-    rw [hφ, satisfies_conj] at h
-    tauto
+  mp := fun h idx C hC =>
+    entails_ext.mp (toPropTerm_of_getClause_eq db idx C hC) _ h
 
   mpr := fun h => by
     dsimp [toPropTerm]
@@ -189,18 +201,16 @@ where
       apply h idx
       rw [getClause, hIdx]
       simp [*]
-
-theorem toPropTerm_of_getClause (db : ClauseDb α) (idx : α) (C : IClause) :
-    db.getClause idx = some C → db.toPropTerm ≤ C.toPropTerm := by
-  intro h
-  apply PropTerm.entails_ext.mpr
-  simp only [satisfies_toPropTerm]
-  tauto
+      
+@[simp]
+theorem toPropTerm_empty : (empty : ClauseDb α).toPropTerm = ⊤ := by
+  ext τ
+  simp [satisfies_toPropTerm]
 
 open PropTerm in
 theorem toPropTerm_addClause (db : ClauseDb α) (idx : α) (C : IClause) :
     (db.toPropTerm ⊓ C.toPropTerm) ≤ (db.addClause idx C).toPropTerm := by
-  apply PropTerm.entails_ext.mpr
+  apply entails_ext.mpr
   simp only [satisfies_conj, satisfies_toPropTerm]
   intro τ h idx' C' hC'
   by_cases hEq : idx = idx'
@@ -212,7 +222,7 @@ theorem toPropTerm_addClause (db : ClauseDb α) (idx : α) (C : IClause) :
 
 open PropTerm in
 theorem toPropTerm_addClause_of_contains (db : ClauseDb α) (idx : α) (C : IClause) :
-    !db.contains idx →
+    ¬db.contains idx →
     (db.addClause idx C).toPropTerm = db.toPropTerm ⊓ C.toPropTerm := by
   intro h
   refine PropTerm.entails.antisymm ?_ (toPropTerm_addClause db idx C)
@@ -238,9 +248,84 @@ theorem toPropTerm_delClause (db : ClauseDb α) (idx : α) :
     contradiction
   . rw [getClause_delClause_of_ne _ _ _ hEq] at hC'
     exact h idx' C' hC'
+    
+/-! `ofICnf` -/
 
+theorem ofICnf_characterization (cnf : ICnf) :
+    ¬(ofICnf cnf).contains 0 ∧
+    (∀ i : Fin cnf.size, (ofICnf cnf).getClause (i + 1) = some cnf[i]) ∧
+    (∀ i > cnf.size, ¬(ofICnf cnf).contains i) := by
+  have := cnf.foldl_induction
+    (motive := fun (sz : Nat) (p : ClauseDb Nat × Nat) =>
+      ¬p.1.contains 0 ∧
+      (∀ i : Fin cnf.size, i < sz → p.1.getClause (i + 1) = some cnf[i]) ∧
+      (∀ i > sz, ¬p.1.contains i) ∧
+      p.2 = sz + 1)
+    (init := (empty, 1))
+    (f := fun (db, idx) C => (db.addClause idx C, idx + 1))
+    (h0 := by simp [not_contains_empty])
+    (hf := by
+      intro i (db, idx) ⟨ih₁, ih₂, ih₃, ih₄⟩
+      dsimp at ih₄ ⊢
+      simp only [ih₄, contains_iff_getClause_eq_some] at *
+      refine ⟨?step₁, ?step₂, ?step₃, True.intro⟩
+      case step₁ =>
+        have : i.val + 1 ≠ 0 := Nat.succ_ne_zero _
+        simp [getClause_addClause_of_ne _ _ _ _ this, ih₁]
+      case step₂ =>
+        intro i' hLt
+        by_cases hEq : i.val = i'.val
+        . simp [hEq, getClause_addClause]
+        . have : i.val + 1 ≠ i'.val + 1 := by simp [hEq]
+          rw [getClause_addClause_of_ne _ _ _ _ this]
+          apply ih₂
+          exact Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hLt) (Ne.symm hEq)
+      case step₃ =>
+        intro i' hGe
+        have : i.val + 1 ≠ i' := Nat.ne_of_lt hGe
+        rw [getClause_addClause_of_ne _ _ _ _ this]
+        apply ih₃
+        linarith)
+  aesop
+
+theorem ofICnf_ext (cnf : ICnf) (C : IClause) :
+    C ∈ cnf.data ↔ ∃ idx, (ofICnf cnf).getClause idx = some C := by
+  have ⟨h₁, h₂, h₃⟩ := ofICnf_characterization cnf 
+  apply Iff.intro
+  case mp =>
+    intro h
+    have ⟨i, h⟩ := Array.get_of_mem_data h
+    use (i + 1)
+    rw [← h]
+    apply h₂
+  case mpr =>
+    intro ⟨idx, h⟩
+    have hContains := contains_iff_getClause_eq_some _ _ |>.mpr ⟨C, h⟩
+    have hPos : 0 < idx := by
+      apply Nat.pos_of_ne_zero
+      intro
+      simp_all
+    have hLt : idx - 1 < cnf.size := by
+      suffices idx ≤ cnf.size by
+        apply Nat.sub_lt_left_of_lt_add
+        . apply Nat.succ_le_of_lt hPos
+        . rw [add_comm]
+          apply Nat.lt_succ_of_le this
+      by_contra
+      simp_all
+    have hPred : idx - 1 + 1 = idx := Nat.succ_pred_eq_of_pos hPos
+    have := h₂ ⟨idx - 1, hLt⟩
+    simp only [hPred, h] at this
+    cases this
+    apply Array.get_mem_data
+
+@[simp]
 theorem toPropTerm_ofICnf (cnf : ICnf) : (ofICnf cnf).toPropTerm = cnf.toPropTerm := by
-  sorry -- Array.foldl_eq_foldl_data ? or Array.foldl_induction ?
+  ext τ
+  simp only [ICnf.satisfies_iff, satisfies_toPropTerm, ofICnf_ext]
+  aesop
+  
+/-! `unitPropWithHints` -/
 
 theorem entails_of_unitProp (db : ClauseDb α) (τ : PartPropAssignment) (hints : Array α) :
     db.unitPropWithHints τ hints |>.isContradiction → db.toPropTerm ≤ τ.toPropTermᶜ :=

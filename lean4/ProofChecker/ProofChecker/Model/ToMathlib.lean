@@ -157,6 +157,9 @@ end List
 
 theorem Array.get_of_mem_data {as : Array α} {a : α} : a ∈ as.data → ∃ (i : Fin as.size), as[i] = a :=
   List.get_of_mem
+  
+theorem Array.get_mem_data (as : Array α) (i : Fin as.size) : as[i] ∈ as.data := by
+  simp [getElem_mem_data]
 
 /-! Data.List.Perm -/
 

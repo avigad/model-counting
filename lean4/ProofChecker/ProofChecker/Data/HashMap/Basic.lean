@@ -15,6 +15,9 @@ class LawfulHashable (α : Type _) [BEq α] [Hashable α] : Prop where
   /-- Two elements which compare equal under the `BEq` instance have equal hash. -/
   hash_eq {a b : α} : a == b → hash a = hash b
 
+instance [BEq α] [LawfulBEq α] [Hashable α] : LawfulHashable α where
+  hash_eq h := by rw [LawfulBEq.eq_of_beq h]
+
 namespace Imp
 
 /--

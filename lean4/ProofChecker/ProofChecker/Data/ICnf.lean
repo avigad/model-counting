@@ -119,7 +119,7 @@ abbrev IClause := Array ILit
 namespace IClause
 
 def vars (C : IClause) : HashSet Var :=
-  C.foldl (init := .empty Var) fun acc l => acc.insert l.var
+  C.foldr (init := .empty Var) fun l acc => acc.insert l.var
 
 instance : BEq IClause :=
   inferInstanceAs (BEq IClause)
@@ -131,6 +131,13 @@ instance : ToString IClause where
 
 def toPropTerm : IClause → PropTerm Var :=
   Array.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
+  
+open PropTerm
+
+theorem satisfies_iff {τ : PropAssignment Var} {C : IClause} :
+    τ ⊨ C.toPropTerm ↔ ∃ l ∈ C.data, τ ⊨ l.toPropTerm := by
+  rw [toPropTerm, Array.foldr_eq_foldr_data]
+  induction C.data <;> simp_all
 
 end IClause
 
@@ -141,7 +148,7 @@ abbrev ICnf := Array IClause
 namespace ICnf
 
 def vars (C : ICnf) : HashSet Var :=
-  C.foldl (init := .empty Var) fun acc C => acc.union C.vars
+  C.foldr (init := .empty Var) fun C acc => acc.union C.vars
 
 instance : ToString ICnf where
   toString C := s!"{String.intercalate " ∧ " (C.map toString).toList}"
@@ -150,6 +157,13 @@ instance : ToString ICnf where
 
 def toPropTerm : ICnf → PropTerm Var :=
   Array.foldr (init := ⊤) (fun l φ => l.toPropTerm ⊓ φ)
+  
+open PropTerm
+  
+theorem satisfies_iff {τ : PropAssignment Var} {φ : ICnf} :
+    τ ⊨ φ.toPropTerm ↔ ∀ C ∈ φ.data, τ ⊨ C.toPropTerm := by
+  rw [toPropTerm, Array.foldr_eq_foldr_data]
+  induction φ.data <;> simp_all
 
 end ICnf
 
@@ -164,7 +178,7 @@ namespace PartPropAssignment
 
 /-- Interpret the assignment (x ↦ ⊤, y ↦ ⊥) as x ∧ ¬y, for example. -/
 def toPropTerm (τ : PartPropAssignment) : PropTerm Var :=
-  τ.fold (init := .tr) fun acc x v => acc.conj <| if v then .var x else .neg (.var x)
+  τ.fold (init := ⊤) fun acc x v => acc ⊓ if v then .var x else (.var x)ᶜ
 
 end PartPropAssignment
 
@@ -177,14 +191,16 @@ def reduce (C : IClause) (τ : PartPropAssignment) : Option IClause :=
     match τ.find? l.var with
     | some v => if v == l.polarity then none else acc
     | none => some <| acc.push l
+    
+-- TODO: What's the `reduce` theorem?
 
 /-- When `C` is not a tautology, return the smallest assignment falsifying it. When it is, return
 an undetermined assignment. -/
 def toFalsifyingAssignment (C : IClause) : PartPropAssignment :=
   C.foldr (init := .empty) fun l acc => acc.insert l.var !l.polarity
 
--- theorem toPropTerm_negToPartPropAssignment (C : IClause) (h : ¬C.toClause.isTautology) :
---     C.toFalsifyingAssignment.toPropTerm = (C.toClause.toPropTerm)ᶜ := by
---   sorry
+theorem toPropTerm_toFalsifyingAssignment (C : IClause) :
+    C.toFalsifyingAssignment.toPropTerm = C.toPropTermᶜ := by
+  sorry
 
 end IClause
