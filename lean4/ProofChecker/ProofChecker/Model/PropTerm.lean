@@ -271,6 +271,22 @@ theorem satisfies_impl' {τ : PropAssignment ν} : τ ⊨ φ₁ ⇨ φ₂ ↔ τ
 @[simp]
 theorem satisfies_biImpl {τ : PropAssignment ν} : τ ⊨ biImpl φ₁ φ₂ ↔ (τ ⊨ φ₁ ↔ τ ⊨ φ₂) := by
   simp [sEntails, satisfies]
+  
+instance : Nontrivial (PropTerm ν) where
+  exists_pair_ne := by
+    use ⊤, ⊥
+    intro h
+    have : ∀ (τ : PropAssignment ν), τ ⊨ ⊥ ↔ τ ⊨ ⊤ := fun _ => h ▸ Iff.rfl
+    simp only [satisfies_tr, not_satisfies_fls] at this
+    apply this (fun _ => true)
+
+theorem eq_top_iff {φ : PropTerm ν} : φ = ⊤ ↔ ∀ (τ : PropAssignment ν), τ ⊨ φ :=
+  ⟨fun h => by simp [h], fun h => by ext; simp [h]⟩
+
+theorem eq_bot_iff {φ : PropTerm ν} : φ = ⊥ ↔ ∀ (τ : PropAssignment ν), τ ⊭ φ :=
+  ⟨fun h => by simp [h], fun h => by ext; simp [h]⟩
+
+/-! Quotient helpers -/
 
 -- TODO: custom simp set?
 

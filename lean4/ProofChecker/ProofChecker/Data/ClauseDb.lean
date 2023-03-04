@@ -164,16 +164,16 @@ theorem fold_of_getClause_eq_of_comm (db : ClauseDb α) (idx : α) (C : IClause)
 /-! `toPropTerm` -/
 
 def toPropTerm (db : ClauseDb α) : PropTerm Var :=
-  db.fold (init := .tr) fun acc _ C => acc ⊓ C.toPropTerm
+  db.fold (init := ⊤) fun acc _ C => acc ⊓ C.toPropTerm
   
 theorem toPropTerm_of_getClause_eq (db : ClauseDb α) (idx : α) (C : IClause) :
     db.getClause idx = some C → db.toPropTerm ≤ C.toPropTerm := by
   intro h
   have ⟨φ, hφ⟩ := db.fold_of_getClause_eq_of_comm idx C
-    (init := PropTerm.tr) (f := fun acc _ C => acc ⊓ C.toPropTerm)
+    (init := ⊤) (f := fun acc _ C => acc ⊓ C.toPropTerm)
     h ?comm
   case comm =>
-    intro φ _ C₁ _ C₂
+    intros
     dsimp
     ac_rfl -- whoa this works?!
   apply PropTerm.entails_ext.mpr
@@ -255,7 +255,7 @@ theorem ofICnf_characterization (cnf : ICnf) :
     ¬(ofICnf cnf).contains 0 ∧
     (∀ i : Fin cnf.size, (ofICnf cnf).getClause (i + 1) = some cnf[i]) ∧
     (∀ i > cnf.size, ¬(ofICnf cnf).contains i) := by
-  have := cnf.foldl_induction
+  have ⟨h₁, h₂, h₃, _⟩ := cnf.foldl_induction
     (motive := fun (sz : Nat) (p : ClauseDb Nat × Nat) =>
       ¬p.1.contains 0 ∧
       (∀ i : Fin cnf.size, i < sz → p.1.getClause (i + 1) = some cnf[i]) ∧
@@ -265,28 +265,29 @@ theorem ofICnf_characterization (cnf : ICnf) :
     (f := fun (db, idx) C => (db.addClause idx C, idx + 1))
     (h0 := by simp [not_contains_empty])
     (hf := by
-      intro i (db, idx) ⟨ih₁, ih₂, ih₃, ih₄⟩
+      intro sz (db, idx) ⟨ih₁, ih₂, ih₃, ih₄⟩
       dsimp at ih₄ ⊢
-      simp only [ih₄, contains_iff_getClause_eq_some] at *
-      refine ⟨?step₁, ?step₂, ?step₃, True.intro⟩
+      simp only [ih₄, contains_iff_getClause_eq_some, and_true] at *
+      refine ⟨?step₁, ?step₂, ?step₃⟩
       case step₁ =>
-        have : i.val + 1 ≠ 0 := Nat.succ_ne_zero _
+        have : sz.val + 1 ≠ 0 := Nat.succ_ne_zero _
         simp [getClause_addClause_of_ne _ _ _ _ this, ih₁]
       case step₂ =>
-        intro i' hLt
-        by_cases hEq : i.val = i'.val
+        intro i hLt
+        by_cases hEq : sz.val = i.val
         . simp [hEq, getClause_addClause]
-        . have : i.val + 1 ≠ i'.val + 1 := by simp [hEq]
+        . have : sz.val + 1 ≠ i.val + 1 := by simp [hEq]
           rw [getClause_addClause_of_ne _ _ _ _ this]
           apply ih₂
           exact Nat.lt_of_le_of_ne (Nat.le_of_lt_succ hLt) (Ne.symm hEq)
       case step₃ =>
-        intro i' hGe
-        have : i.val + 1 ≠ i' := Nat.ne_of_lt hGe
+        intro i hGe
+        have : sz.val + 1 ≠ i := Nat.ne_of_lt hGe
         rw [getClause_addClause_of_ne _ _ _ _ this]
         apply ih₃
         linarith)
-  aesop
+  dsimp [ofICnf]
+  exact ⟨h₁, fun i => h₂ i i.isLt, h₃⟩
 
 theorem ofICnf_ext (cnf : ICnf) (C : IClause) :
     C ∈ cnf.data ↔ ∃ idx, (ofICnf cnf).getClause idx = some C := by
