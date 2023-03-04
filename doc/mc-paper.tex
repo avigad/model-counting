@@ -52,9 +52,10 @@
 
 \newcommand{\indegree}{\textrm{indegree}}
 \newcommand{\outdegree}{\textrm{outdegree}}
+\newcommand{\validate}{\textsf{validate}}
 
 \newcommand{\simplify}[2]{#1|_{#2}}
-\newcommand{\expand}{\mathit{Expand}}
+\newcommand{\prov}{\mathit{Expand}}
 
 \newcommand{\progname}[1]{\textsc{#1}}
 \newcommand{\dfour}{\progname{d4}}
@@ -752,12 +753,21 @@ clause containing a literal $\lit$ such that $\passign(\lit) = 1$,
 2) for the remaining clauses eliminating those literals $\lit$ for
 which $\passign(\lit) = 0$, and 3) eliminating any duplicate clauses.
 In doing these simplifications, we also track the {\em provenance}
-of each simplified clause $C$, i.e., which of the original clauses simplified to become $C$.
-More formally, for $C \in \simplify{\phi}{\passign}$, we let $\expand(C)$ denote
+of each simplified clause $C$, i.e., which of the (possibly multiple) original clauses simplified to become $C$.
+More formally, for $C \in \simplify{\phi}{\passign}$, we let $\prov(C)$ denote
 those clauses $C' \in \phi$, such that
 $C' \subseteq C \cup \bigcup_{\lit \in \passign} \obar{\lit}$.
-We then extend the definition of $\expand$ to any simplified formula
-$\psi$ as $\expand(\psi) = \bigcup_{C \in \psi} \expand(C)$.
+We then extend the definition of $\prov$ to any simplified formula
+$\psi$ as $\prov(\psi) = \bigcup_{C \in \psi} \prov(C)$.
+
+In the following we define a recursive routine $\validate(u, \passign,
+\psi)$ taking as arguments 1) POG node $u$, 2) partial assignment
+$\passign$, and 3) a set of clauses $\psi \subsetq \phi$.  The outcome of its execution should be to add a number of assertions culminating with
+the addition of the {\em target clause}
+$u \lor \bigvee_{\lit \in \passign} \obar{\lit}$, indicating that any total
+assignment $\assign$ such that $\passign \subseteq \assign$
+will, when extended to extension variables, will assign $\assign(u) = 1$.
+The top-level call has $u = r$, $\passign = \emptyset$, and $\psi = \phi$.  The result will therefore be to add the unit clause $r$ to the proof.
 
 In following a path from the root node downward to a node $u$, the
 literals encountered in the conjunction nodes (and possibly a terminal
@@ -773,9 +783,8 @@ The process for generating such a proof depends on the form of node $u$:
 \begin{enumerate}
 \item if $u$ is a literal $\lit$, then the formula
   $simplify{\phi}{\passign}$ must consist of the single unit clause
-  $C = \lit$, such that $\expand{C}
-  this clause.  That means that every other literal $\lit' \in C$ must
-  have $\passign(\lit') = 0$, and therefore this input clause can
+  $C = \lit$, such that any $C' \in \prov{C}$ must have $C' \subseteq \{ \lit \} \bigcup_{\lit \in \passign} \obar{\lit}$.
+  Any of these can
   serve as the target clause.
 \item If $u$ is a disjunction node with children $u_1$ and $u_0$,
   then, since the node originated from a d-DNNF graph, there must be
@@ -783,47 +792,41 @@ The process for generating such a proof depends on the form of node $u$:
   conjunction node containing $x$ as a child.  In either case, we
   recurse to node $u_1$ with the partial assignment $\passign \cup \{ x \}$.
   This will yield a sequence of proof steps
-  $u \lor \obar{x} \lor \bigvee_{\lit \in \passign} \obar{l}$.
+  $u \lor \obar{x} \lor \bigvee_{\lit \in \passign} \obar{\lit}$.
 Similarly, either $u_0  = \obar{x}$ or $u_0$ is a conjunction node containing $\obar{x}$ as
   a child.  In either case, we recurse to node $u_0$
  with the partial assignment $\passign \cup \{ \obar{x} \}$.
   This will yield a sequence of proof steps
-  $u \lor x \lor \bigvee_{\lit \in \passign} \obar{l}$.
+  $u \lor x \lor \bigvee_{\lit \in \passign} \obar{\lit}$.
   These recursive results can be combined, via two proof steps, with second and third defining clauses for $u$
   to generate the target clause for $u$.
 \item If $u$ is a conjunction node, then we can divide its children
-  into literal nodes and nonterminal nodes.
+  into a set of literal nodes $L$ and a set of nonterminal nodes $u_1, u_2, \ldots, u_k$.
   \begin{enumerate}
-    \item For each literal child
-  $\lit$, we must prove that any total assignment $\alpha$, such that
+    \item For each literal 
+  $\lit \in L$, we must prove that any total assignment $\alpha$, such that
   $\passign \subset \alpha$ must have $\alpha(\lit) = 1$.  In some
-  cases, this can be done by simple Boolean constraint propagation.
+  cases, this can be done by simple Boolean constraint propagation (BCP).
   In other cases, we must prove that the formula
-  $\simplify{\phi}{\passign \cap \{\obar{l}\}} is unsatisfiable.  We
+  $\simplify{\phi}{\passign \cap \{\obar{\lit}\}}$ is unsatisfiable.  We
   do so by writing the formula to a file, invoking a proof-generating
   SAT solver, and then importing the generated unsatisfiability prove
   as assertions in the CRAT file.
-\item if there are multiple nonterminal children $u_1, u_2, \ldots,
-  u_k$, it must be the case that the clauses in
+\item If there is a single nonterminal child ($k = 1$), we can recurse on node $u_1$
+  with partial assignment $\passign \cup \bigcup_{\lit \in L} \lit$.
+\item If there are multiple nonterminal children ($k > 1$)
+  it must be the case that the clauses in
   $\simplify{\phi}{\passign}$ can be partitioned into $k$ subsets
   $\psi_1, \psi_2, \ldots, \psi_k$ such that $\dependencyset(\psi_i)
   \cap \dependencyset(\psi_j) = \emptyset$ for $1 \leq i < j \leq k$,
   and we can match each node $u_i$ to subset $\psi_i$ based on its
-  literals.  Moreover, each clause $C$ in each subset $\psi_i$ must be
-  the simplified version of one or more input clauses $C'$ in the
-  original formula $\phi$.  We define $\phi_i$ to consist of all such
-  clauses $C'$ for each $C \in \psi_i$.
-
-We do so using a union-find algorithm and match the variables in each partition
-    $\phi_i$ to the POG node $u_i$ containing literals of the variables in
-    $\dependencyset(\phi_i)$.
-    We then recursively generate target clauses for nodes $u_1, u_2, \ldots, u_k$ 
-
-
-
-\end{itemize}
-
-
+  literals.
+  For each $i$ such that $1 \leq i \leq k$, we can then recurse on node $u_i$
+  with partial assignment $\passign \cup \bigcup_{\lit \in L} \lit$, and based on the input clauses in $\prov(\psi_i)$.
+\end{enumerate}
+  We then combine as hints the results from the BCP and SAT calls for
+  the literals, the recursively computed target clauses, and all but
+  the first defining clause for the conjunction operation to generate the target clause for node $u$.
 \end{enumerate}
 
 
