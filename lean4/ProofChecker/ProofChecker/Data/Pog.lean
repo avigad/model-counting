@@ -351,9 +351,44 @@ theorem toPropForm_addDisj_of_ne (x y : Var) (l₁ l₂ : ILit) (p p' : Pog) :
 theorem toPropForm_addConj (x : Var) (ls : Array ILit) (p p' : Pog) :
     p.addConj x ls = .ok p' →
     p'.toPropForm (.mkPos x) =
-      -- NOTE: This could change, and the `.tr` part is awkward. Should we have one canonical way
-      -- to structurally turn a cube into a PropForm?
-      ls.foldl (init := .tr) (fun acc l => acc.conj (p.toPropForm l)) := sorry
+      .bigConj (ls.map p.toPropForm) := by
+  rw [addConj]
+  split
+  . next h =>
+    split
+    . next hargs =>
+        intro h'
+        injection h' with h'
+        rw [←h', toPropForm]
+        split
+        . next h'' =>
+          rw [toPropForm.aux]
+          have heq : ∀ h1 h2,
+              (push p (conj x ls) h1 h2).elts[PNat.natPred (ILit.var (ILit.mkPos x))] =
+                conj x ls :=
+            fun h1 h2 => get_push_elts_nat_Pred_varNum _ _ _ _ _
+          split <;> simp only [heq] at *
+          next x' ls' _ _ _ _ _ heq' =>
+            injection heq' with heq₁ heq₂
+            cases heq₁
+            cases heq₂
+            simp only [PropForm.withPolarity_mkPos, PropForm.conj.injEq]
+            congr
+            apply Array.ext
+            . rw [Array.size_map, Array.size_ofFn]
+            . intro j hj₁ hj₂
+              simp only [getElem_fin, Array.getElem_ofFn, Array.getElem_map]
+              rw [toPropForm, dif_pos, toPropForm_push_of_lt.aux]
+              rw [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←h]
+              rw [Array.size_ofFn] at hj₁
+              apply hargs ⟨j, hj₁⟩
+        . next h'' =>
+          exfalso
+          apply h''
+          rw [size_push_elts, h, ILit.var_mkPos, natPred_succPNat]
+          exact lt_succ_self _
+    . intro; contradiction
+  . intro; contradiction
 
 /-
 Need this form...
