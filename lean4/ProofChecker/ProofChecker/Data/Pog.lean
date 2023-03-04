@@ -5,6 +5,26 @@ import ProofChecker.Data.ICnf
 import ProofChecker.CountModels
 
 open Nat
+abbrev Cube := Array ILit
+
+namespace PropForm
+
+def bigConj (as : Array (PropForm Var)) : PropForm Var :=
+  match h: as.size with
+    | 0 => tr
+    | n+1 =>
+      have : as.size - 1 < as.size := by rw [h]; exact lt_succ_self _
+      as.foldr (f := PropForm.conj) (init := as[as.size - 1]) (start:= as.size - 1)
+
+def withPolarity (p : PropForm Var) (l : ILit) := cond (l.polarity) p p.neg
+
+@[simp] theorem withPolarity_mkPos (p : PropForm Var) (x : Var) :
+  withPolarity p (.mkPos x) = p := by simp [withPolarity]
+
+@[simp] theorem withPolarity_mkNeg (p : PropForm Var) (x : Var) :
+  withPolarity p (.mkNeg x) = p.neg := by simp [withPolarity]
+
+end PropForm
 
 /-
 The current implementation assumes that nodes are added consecutively, without gaps, and throws an
@@ -19,7 +39,7 @@ corresponding index.
 inductive PogElt where
   | var  : Var → PogElt
   | disj : Var → ILit → ILit → PogElt
-  | conj : Var → Array ILit → PogElt
+  | conj : Var → Cube → PogElt
 deriving Repr, DecidableEq, Inhabited
 
 namespace PogElt
@@ -106,6 +126,18 @@ theorem get_push_elts_lt (pog : Pog) (pogElt : PogElt)
     (pog.push pogElt hwf hinv).elts[i] = pog.elts[i] :=
   Array.get_push_lt _ _ _ h
 
+lemma get_push_elts_nat_Pred_varNum (pog : Pog) (pogElt : PogElt)
+      (hwf : pogElt.args_decreasing) (hinv : pogElt.varNum = succPNat pog.elts.size)
+      (h' : PNat.natPred (varNum pogElt) < Array.size (push pog pogElt hwf hinv).elts) :
+    (pog.push pogElt hwf hinv).elts[PNat.natPred pogElt.varNum] = pogElt := by
+  simp only [hinv, natPred_succPNat]
+  apply Array.get_push_eq
+
+def size_push_elts (pog : Pog) (pogElt : PogElt)
+      (hwf : pogElt.args_decreasing) (hinv : pogElt.varNum = succPNat pog.elts.size) :
+    (pog.push pogElt hwf hinv).elts.size = pog.elts.size + 1 :=
+  Array.size_push _ _
+
 def addVar (pog : Pog) (x : Var) : Except PogError Pog :=
   if h : x = succPNat pog.elts.size then
     .ok <| pog.push (var x) (by trivial) h
@@ -124,7 +156,7 @@ def addDisj (pog : Pog) (x : Var) (left right : ILit) : Except PogError Pog :=
   else
     .error "Pog disjunction {n} added, {pog.elts.size + 1} expected"
 
-def addConj (pog : Pog)(x : Var) (args : Array ILit)  : Except PogError Pog :=
+def addConj (pog : Pog)(x : Var) (args : Cube)  : Except PogError Pog :=
   if h : x = succPNat pog.elts.size then
     if hargs : ∀ i : Fin args.size, args[i].var < x then
       .ok <| pog.push (conj x args) hargs h
@@ -134,12 +166,10 @@ def addConj (pog : Pog)(x : Var) (args : Array ILit)  : Except PogError Pog :=
     .error "Pog conjunction {n} added, {pog.elts.size + 1} expected"
 
 def toPropForm (pog : Pog) (l : ILit) : PropForm Var :=
-  let i := l.var.natPred
-  if h : i < pog.elts.size then
-    let propForm := aux pog i h
-    cond l.polarity propForm propForm.neg
+  if h : l.var.natPred < pog.elts.size then
+    aux pog l.var.natPred h |>.withPolarity l
   else
-    cond l.polarity (PropForm.var l.var) (PropForm.var l.var).neg
+    l.toPropForm
 where
   aux (pog : Pog) : (i : Nat) → i < pog.elts.size → PropForm Var
   | i, h =>
@@ -150,12 +180,17 @@ where
         rwa [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←hinv]
       have h_right_lt : right.var.natPred < i := by
         rwa [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←hinv]
-      let newLeft := cond left.polarity (aux pog _ (h_left_lt.trans h))
-        (aux pog _ (h_left_lt.trans h)).neg
-      let newRight := cond right.polarity (aux pog _ (h_right_lt.trans h))
-        (aux pog _ (h_right_lt.trans h)).neg
-      newLeft.disj newRight
-    | conj n args, _, _ => sorry
+      let newLeft := aux pog _ (h_left_lt.trans h) |>.withPolarity left
+      let newRight := aux pog _ (h_right_lt.trans h) |>.withPolarity right
+      PropForm.disj newLeft newRight
+    | conj x args, hwf, hinv => by
+      let newArgs : Array (PropForm Var) :=
+        Array.ofFn fun (j : Fin args.size) =>
+          have h_lt : args[j].var.natPred < i := by
+            rw [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←hinv]
+            exact hwf j
+          aux pog args[j].var.natPred (h_lt.trans h) |>.withPolarity args[j]
+      exact PropForm.bigConj newArgs
 
 theorem toPropForm_push_of_lt (pog : Pog) (pogElt : PogElt)
       (hwf : pogElt.args_decreasing) (hinv : pogElt.varNum = succPNat pog.elts.size)
@@ -179,27 +214,139 @@ where
       have _ : right.var.natPred < i := by
         rwa [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←hinv']
       rw [aux (PNat.natPred (ILit.var left)), aux (PNat.natPred (ILit.var right))]
-    -- . next x args hargs hxeq _ _ _ =>
-    --   sorry
+    . next x args hargs hinv _ _ _ _ _ _ x' args' _ _ _ _ _ =>
+      cases heq.2
+      cases heq.1
+      apply congr_arg PropForm.bigConj
+      apply congr_arg Array.ofFn
+      ext j; dsimp
+      have _ : args[j].var.natPred < i := by
+        rw [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←hinv]
+        exact hargs j
+      rw [aux (PNat.natPred (ILit.var _))]
 
-theorem toPropForm_neg (x : Var) (p : Pog) :
-    p.toPropForm (.mkNeg x) = .neg (p.toPropForm (.mkPos x)) := sorry
+theorem toPropForm_push_of_ne (y : Var) (pog : Pog) (pogElt : PogElt)
+      (hwf : pogElt.args_decreasing) (hinv : pogElt.varNum = succPNat pog.elts.size)
+      (hne : pogElt.varNum ≠ y) :
+    (pog.push pogElt hwf hinv).toPropForm (.mkPos y) = pog.toPropForm (.mkPos y) := by
+  rw [toPropForm, toPropForm]
+  simp only [ILit.var_mkPos, PropForm.withPolarity_mkPos]
+  cases le_or_gt pogElt.varNum y
+  case inl hle =>
+    have : Array.size pog.elts ≤ PNat.natPred y :=
+      by rwa [←succPNat_le_succPNat, ←hinv, PNat.succPNat_natPred]
+    rw [dif_neg (not_lt_of_le this), dif_neg]
+    rw [not_lt, size_push_elts, succ_le_iff]
+    apply (lt_of_le_of_ne this)
+    contrapose! hne
+    rw [hinv, hne, PNat.succPNat_natPred]
+  case inr hle =>
+    have : PNat.natPred y < Array.size pog.elts :=
+      by rwa [←succPNat_lt_succPNat, ←hinv, PNat.succPNat_natPred]
+    rw [dif_pos this, dif_pos, toPropForm_push_of_lt.aux]
+    rw [size_push_elts]
+    apply lt_succ_of_lt this
 
-theorem toPropForm_addVar (x : Var) (p p' : Pog) :
+theorem toPropForm_neg (p : Pog) (x : Var) :
+    p.toPropForm (.mkNeg x) = .neg (p.toPropForm (.mkPos x)) := by
+  rw [toPropForm, toPropForm]; simp; split <;> simp [ILit.toPropForm]
+
+theorem toPropForm_addVar (p p' : Pog) (x : Var) :
     p.addVar x = .ok p' →
-    p'.toPropForm (.mkPos x) = .var x := sorry
+    p'.toPropForm (.mkPos x) = .var x := by
+  rw [addVar]
+  split
+  . next h =>
+    intro h'
+    injection h' with h'
+    rw [←h', toPropForm]
+    split
+    . next h'' =>
+      rw [toPropForm.aux]
+      have heq : ∀ h1 h2,
+          (push p (var x) h1 h2).elts[PNat.natPred (ILit.var (ILit.mkPos x))] = var x :=
+        fun h1 h2 => get_push_elts_nat_Pred_varNum _ _ _ _ _
+      split <;> simp only [heq] at *
+      next x' _ _ _ _ heq' =>
+        injection heq' with heq'
+        simp [heq']
+    . simp [ILit.toPropForm]
+  . intro; contradiction
 
 theorem toPropForm_addVar_of_ne (x y : Var) (p p' : Pog) :
     p.addVar x = .ok p' → x ≠ y →
-    p'.toPropForm (.mkPos y) = p.toPropForm (.mkPos y) := sorry
+    p'.toPropForm (.mkPos y) = p.toPropForm (.mkPos y) := by
+  rw [addVar]
+  split
+  . next h =>
+    intro h'
+    injection h' with h'
+    intro hne
+    rw [←h']
+    apply toPropForm_push_of_ne
+    exact hne
+  . intro; contradiction
 
 theorem toPropForm_addDisj (x : Var) (l₁ l₂ : ILit) (p p' : Pog) :
     p.addDisj x l₁ l₂ = .ok p' →
-    p'.toPropForm (.mkPos x) = .disj (p.toPropForm l₁) (p.toPropForm l₂) := sorry
+    p'.toPropForm (.mkPos x) = .disj (p.toPropForm l₁) (p.toPropForm l₂) := by
+  rw [addDisj]
+  split
+  . next h =>
+    split
+    . next hleft =>
+      split
+      . next hright =>
+          intro h'
+          injection h' with h'
+          rw [←h', toPropForm]
+          split
+          . next h'' =>
+            rw [toPropForm.aux]
+            have heq : ∀ h1 h2,
+                (push p (disj x l₁ l₂) h1 h2).elts[PNat.natPred (ILit.var (ILit.mkPos x))] =
+                  disj x l₁ l₂ :=
+              fun h1 h2 => get_push_elts_nat_Pred_varNum _ _ _ _ _
+            split <;> simp only [heq] at *
+            next x' left' right' _ _ _ _ _ heq' =>
+              injection heq' with heq₁ heq₂ heq₃
+              cases heq₁
+              cases heq₂
+              cases heq₃
+              simp only [PropForm.withPolarity_mkPos, PropForm.disj.injEq]
+              constructor
+              . rw [toPropForm, dif_pos, toPropForm_push_of_lt.aux]
+                rwa [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←h]
+              . rw [toPropForm, dif_pos, toPropForm_push_of_lt.aux]
+                rwa [←succPNat_lt_succPNat, PNat.succPNat_natPred, ←h]
+          . next h'' =>
+            exfalso
+            apply h''
+            rw [size_push_elts, h, ILit.var_mkPos, natPred_succPNat]
+            exact lt_succ_self _
+      . intro; contradiction
+    . intro; contradiction
+  . intro; contradiction
 
 theorem toPropForm_addDisj_of_ne (x y : Var) (l₁ l₂ : ILit) (p p' : Pog) :
     p.addDisj x l₁ l₂ = .ok p' → x ≠ y →
-    p'.toPropForm (.mkPos y) = p.toPropForm (.mkPos y) := sorry
+    p'.toPropForm (.mkPos y) = p.toPropForm (.mkPos y) := by
+  rw [addDisj]
+  split
+  . next h =>
+    split
+    . next hleft =>
+      split
+      . next hright =>
+          intro h'
+          injection h' with h'
+          intro hne
+          rw [←h']
+          apply toPropForm_push_of_ne
+          exact hne
+      . intro; contradiction
+    . intro; contradiction
+  . intro; contradiction
 
 theorem toPropForm_addConj (x : Var) (ls : Array ILit) (p p' : Pog) :
     p.addConj x ls = .ok p' →
@@ -208,9 +355,32 @@ theorem toPropForm_addConj (x : Var) (ls : Array ILit) (p p' : Pog) :
       -- to structurally turn a cube into a PropForm?
       ls.foldl (init := .tr) (fun acc l => acc.conj (p.toPropForm l)) := sorry
 
+/-
+Need this form...
+theorem toPropForm_addConj (x : Var) (ls : Array ILit) (p p' : Pog) :
+    p.addConj x ls = .ok p' →
+    p'.toPropForm (.mkPos x) =
+      -- NOTE: This could change, and the `.tr` part is awkward. Should we have one canonical way
+      -- to structurally turn a cube into a PropForm?
+      ls.foldl (init := .tr) (fun acc l => acc.conj (p.toPropForm l)) := sorry
+-/
+
 theorem toPropForm_addConj_of_ne (x y : Var) (ls : Array ILit) (p p' : Pog) :
     p.addConj x ls = .ok p' → x ≠ y →
-    p'.toPropForm (.mkPos y) = p.toPropForm (.mkPos y) := sorry
+    p'.toPropForm (.mkPos y) = p.toPropForm (.mkPos y) := by
+  rw [addConj]
+  split
+  . next h =>
+    split
+    . next args =>
+        intro h'
+        injection h' with h'
+        intro hne
+        rw [←h']
+        apply toPropForm_push_of_ne
+        exact hne
+    . intro; contradiction
+  . intro; contradiction
 
 /-
 The count function
