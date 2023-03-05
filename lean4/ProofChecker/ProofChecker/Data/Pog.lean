@@ -9,12 +9,36 @@ abbrev Cube := Array ILit
 
 namespace PropForm
 
-def bigConj (as : Array (PropForm Var)) : PropForm Var :=
-  match h: as.size with
-    | 0 => tr
-    | n+1 =>
-      have : as.size - 1 < as.size := by rw [h]; exact lt_succ_self _
-      as.foldr (f := PropForm.conj) (init := as[as.size - 1]) (start:= as.size - 1)
+def bigConj (φs : Array (PropForm Var)) : PropForm Var :=
+  φs.data.foldr (init := .tr) (f := .conj)
+
+-- Old version:
+-- def bigConj (as : Array (PropForm Var)) : PropForm Var :=
+--   match h: as.size with
+--     | 0 => tr
+--     | n+1 =>
+--       have : as.size - 1 < as.size := by rw [h]; exact lt_succ_self _
+--       as.foldr (f := PropForm.conj) (init := as[as.size - 1]) (start:= as.size - 1)
+
+theorem decomposable_bigConj (φs : Array (PropForm Var)) :
+    (bigConj φs).decomposable ↔
+      ∀ i : Fin φs.size, (φs[i]).decomposable ∧
+      ∀ j : Fin φs.size, i ≠ j → (φs[i]).vars ∩ (φs[j]).vars = ∅ := by
+  sorry
+
+def bigConjTerm (φs : Array (PropForm Var)) : PropTerm Var :=
+  φs.data.foldr (init := ⊤) (f := fun φ acc => ⟦φ⟧ ⊓ acc)
+
+@[simp]
+theorem mk_bigConj (φs : Array (PropForm Var)) : ⟦bigConj φs⟧ = bigConjTerm φs := by
+  dsimp [bigConj, bigConjTerm]
+  induction φs.data <;> simp_all
+
+open PropTerm in
+theorem satisfies_bigConjTerm (φs : Array (PropForm Var)) (τ : PropAssignment Var) :
+    τ ⊨ bigConjTerm φs ↔ ∀ φ ∈ φs.data, τ ⊨ ⟦φ⟧ := by
+  dsimp [bigConjTerm]
+  induction φs.data <;> aesop
 
 def withPolarity (p : PropForm Var) (l : ILit) := cond (l.polarity) p p.neg
 
@@ -83,6 +107,9 @@ structure Pog :=
 
 def PogError := String
 
+instance : ToString PogError where
+  toString := id
+
 namespace Pog
 open PogElt
 
@@ -150,20 +177,20 @@ def addDisj (pog : Pog) (x : Var) (left right : ILit) : Except PogError Pog :=
       if hright : right.var < x then
         .ok <| pog.push (disj x left right) ⟨hleft, hright⟩ h
       else
-        .error "Pog disjunction {n} added, right argument {right} missing"
+        .error s!"Pog disjunction {x} added, right argument {right} missing"
     else
-      .error <| "Pog disjunction {n} added, left argument {left} missing"
+      .error <| s!"Pog disjunction {x} added, left argument {left} missing"
   else
-    .error "Pog disjunction {n} added, {pog.elts.size + 1} expected"
+    .error s!"Pog disjunction {x} added, {pog.elts.size + 1} expected"
 
 def addConj (pog : Pog)(x : Var) (args : Cube)  : Except PogError Pog :=
   if h : x = succPNat pog.elts.size then
     if hargs : ∀ i : Fin args.size, args[i].var < x then
       .ok <| pog.push (conj x args) hargs h
     else
-      .error "Pog conjunction {n} added, argument missing"
+      .error s!"Pog conjunction {x} added, argument missing"
   else
-    .error "Pog conjunction {n} added, {pog.elts.size + 1} expected"
+    .error s!"Pog conjunction {x} added, {pog.elts.size + 1} expected"
 
 def toPropForm (pog : Pog) (l : ILit) : PropForm Var :=
   if h : l.var.natPred < pog.elts.size then
@@ -350,8 +377,7 @@ theorem toPropForm_addDisj_of_ne (x y : Var) (l₁ l₂ : ILit) (p p' : Pog) :
 
 theorem toPropForm_addConj (x : Var) (ls : Array ILit) (p p' : Pog) :
     p.addConj x ls = .ok p' →
-    p'.toPropForm (.mkPos x) =
-      .bigConj (ls.map p.toPropForm) := by
+    p'.toPropForm (.mkPos x) = .bigConj (ls.map p.toPropForm) := by
   rw [addConj]
   split
   . next h =>

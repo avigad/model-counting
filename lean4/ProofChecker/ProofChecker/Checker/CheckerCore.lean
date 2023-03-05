@@ -1,8 +1,8 @@
 import Std.Data.Array.Basic
 
 import ProofChecker.Data.ClauseDb
-import ProofChecker.Data.PropGraph
 import ProofChecker.Data.HashSet
+import ProofChecker.Data.Pog
 
 /-- A step in a CRAT proof. -/
 inductive CratStep
@@ -48,15 +48,13 @@ structure CheckerStateCore where
   Variables not present in `clauseDb` are not present in this map. Thus we maintain the invariant
   that a variable is in the `clauseDb` iff it is in the domain of this map. -/
   depVars : HashMap Var (HashSet Var) := {}
-  -- TODO: replace with ItegCount?
-  -- TODO: should the initial state include all original variables as disconnected verts?
-  scheme : PropDag Var := .empty
+  scheme : Pog := .empty
   /-- Which clauses are counting scheme definition clauses. -/
   schemeDefs : HashSet ClauseIdx := .empty ClauseIdx
   root : Option ILit := none
 
 inductive CheckerError where
-  | graphUpdateError (err : Dag.DagException Var)
+  | graphUpdateError (err : PogError)
   | duplicateClauseIdx (idx : ClauseIdx)
   | unknownClauseIdx (idx : ClauseIdx)
   | hintNotUnit (idx : ClauseIdx)
@@ -88,8 +86,13 @@ end CheckerError
 
 abbrev CheckerCoreM := ExceptT CheckerError <| StateM CheckerStateCore
 
-def initial (inputCnf : ICnf) : CheckerStateCore :=
-  { inputCnf
+def initial (inputCnf : ICnf) : Except CheckerError CheckerStateCore := do
+  let initPog ← inputCnf.vars.foldM (init := .empty) fun acc x =>
+      match acc.addVar x with
+      | .ok g => pure g 
+      | .error e => throw <| .graphUpdateError e
+  return {
+    inputCnf
     origVars := inputCnf.vars
     clauseDb :=
       let (db, _) := inputCnf.foldl (init := (.empty, 1))
@@ -97,8 +100,7 @@ def initial (inputCnf : ICnf) : CheckerStateCore :=
       db
     depVars := inputCnf.vars.fold (init := .empty) fun s x =>
       s.insert x (HashSet.empty Var |>.insert x)
-    scheme := inputCnf.vars.fold (init := .empty) fun s x =>
-      s.addVar x |>.toOption.get!
+    scheme := initPog
   }
 
 /-- Check if `C` is an asymmetric tautology wrt the clause database. -/
@@ -159,10 +161,14 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerCoreM Unit :=
   let _ ← ls.mapIdxM fun i l => do
     addClause (idx+1+i) #[.mkNeg x, l]
     saveSchemeDef (idx+1+i)
+    
+  let scheme' ← match st.scheme.addConj x ls with
+    | .ok s => pure s
+    | .error e => throw <| .graphUpdateError e
 
   modify fun st => { st with
     depVars := st.depVars.insert x union
-    scheme := st.scheme.addConj x (ls.toList.map fun l => (l.polarity, l.var)) |>.toOption.get!
+    scheme := scheme'
   }
 
 def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx) :
@@ -189,10 +195,14 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   saveSchemeDef (idx+1)
   addClause (idx+2) #[.mkPos x, -l₂]
   saveSchemeDef (idx+2)
+  
+  let scheme' ← match st.scheme.addDisj x l₁ l₂ with
+    | .ok s => pure s
+    | .error e => throw <| .graphUpdateError e
 
   modify fun st => { st with
     depVars := st.depVars.insert x (D₁.union D₂)
-    scheme := st.scheme.addDisj x ([(l₁.polarity, l₁.var), (l₂.polarity, l₂.var)]) |>.toOption.get!
+    scheme := scheme'
   }
 
 def setRoot (r : ILit) : CheckerCoreM Unit := do
@@ -221,7 +231,7 @@ def checkProofStep (step : CratStep) : CheckerCoreM Unit :=
 --   st.scheme.count r st.origVars.size
 
 def checkProof (cnf : ICnf) (pf : Array CratStep) : Except CheckerError Unit := do
-  let mut st : CheckerStateCore := initial cnf
+  let mut st : CheckerStateCore ← initial cnf
   let x : CheckerCoreM Unit := do
     for step in pf do
       checkProofStep step
