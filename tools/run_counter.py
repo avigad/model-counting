@@ -49,6 +49,8 @@ timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 10000, "COUNT" : 4000 }
 
 clauseLimit = (1 << 31) - 1
 
+commentChar = 'c'
+
 def waitWhileBlocked():
     first = True
     while os.path.exists(blockPath):
@@ -56,6 +58,19 @@ def waitWhileBlocked():
             print("Waiting to unblock")
         first = False
         time.sleep(sleepTime)
+
+def checkFile(prefix, fname, logFile):
+    f = open(fname, 'r')
+    bytes = 0
+    lines = 0
+    for line in f:
+        if len(line) > 0 and line[0] == commentChar:
+            continue
+        bytes += len(line)
+        lines += 1
+    print("%s: LOG: size %s %d lines %d bytes" % (prefix, fname, lines, bytes))
+    logFile.write("%s: LOG: size %s %d lines %d bytes\n" % (prefix, fname, lines, bytes))
+    f.close()
 
 def runProgram(prefix, root, commandList, logFile, extraLogName = None):
     if prefix in timeLimits:
@@ -140,6 +155,7 @@ def runGen(root, home, logFile, force):
         cmd += ['-s']
     cmd += ["-C", str(clauseLimit), "-L", extraLogName, cnfName, nnfName, cratName]
     ok = runProgram("GEN", root, cmd, logFile, extraLogName = extraLogName)
+    checkFile("GEN", cratName, logFile)
     if not ok and os.path.exists(cratName):
         os.remove(cratName)
     return ok
