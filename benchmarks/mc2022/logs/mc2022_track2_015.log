@@ -1,11 +1,11 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -C 2000000000 -L d2p.log ./mc2022_track2_015.cnf ./mc2022_track2_015.nnf ./mc2022_track2_015.crat
-GEN LOG: Time limit 9000 seconds
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -C 2147483647 -L d2p.log ./mc2022_track2_015.cnf ./mc2022_track2_015.nnf ./mc2022_track2_015.crat
+GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
 c GEN:   Use lemmas:      yes
 c GEN:   Delete files:    yes
 c GEN:   DRAT threshold:  1000
-c GEN:   Clause limit:    2000000000
+c GEN:   Clause limit:    2147483647
 c GEN:   BCP limit:       1
 c GEN: Time = 0.00.  Read input file with 70 variables and 368 clauses
 c Read D4 NNF file with 899 nodes (381 explicit) and 759 edges
@@ -46,24 +46,25 @@ c GEN: Time
 c GEN:   SAT execution  : 0.00
 c GEN:   other execution: 0.03
 c GEN:   time TOTAL     : 0.03
-GEN LOG: Elapsed time = 0.037 seconds
+GEN LOG: Elapsed time = 0.061 seconds
 GEN OUTCOME: normal
+GEN: LOG: size ./mc2022_track2_015.crat 9229 lines 727808 bytes
 FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track2_015.cnf ./mc2022_track2_015.crat
-FCHECK LOG: Time limit 9000 seconds
+FCHECK LOG: Time limit 10000 seconds
 FCHECK: Read CNF file with 70 variables and 368 clauses
 FCHECK: Read CRAT file with 1205 operations,  3828 asserted + 4023 defining = 7851 clauses
 FCHECK: Deleted 4195 input and asserted clauses
 FCHECK: Final root literal 967
 FCHECK: SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 0.024
-FCHECK LOG: Elapsed time = 0.026 seconds
+FCHECK: Elapsed seconds: 0.022
+FCHECK LOG: Elapsed time = 0.024 seconds
 FCHECK OUTCOME: normal
 COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track2_015.cnf -p ./mc2022_track2_015.crat
-COUNT LOG: Time limit 3600 seconds
+COUNT LOG: Time limit 4000 seconds
 Obtained weights from CNF file
 COUNTER: Elapsed time for count: 0.00 seconds
 COUNTER: Weighted count = 0.511663167149736033357008730977337812319522522163662372508158844676348405036508471133005535305037780398310370805087299069942017509890173859827612758400860900026710386152513660015566741282335553927375874060292545698669975567719342243476336995546000453437389911576959078532157744336899651624631788521578851528751777135857306501416136268432960548991004687489250042008330604517960607467444620021901743320100935944857608916698976740925655215142655524679098302464
-COUNT LOG: Elapsed time = 0.030 seconds
+COUNT LOG: Elapsed time = 0.027 seconds
 COUNT OUTCOME: normal
-OVERALL LOG: Elapsed time = 0.093 seconds
+OVERALL LOG: Elapsed time = 0.115 seconds
 OVERALL OUTCOME: normal
