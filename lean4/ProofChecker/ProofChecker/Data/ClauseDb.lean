@@ -328,8 +328,58 @@ theorem toPropTerm_ofICnf (cnf : ICnf) : (ofICnf cnf).toPropTerm = cnf.toPropTer
   
 /-! `unitPropWithHints` -/
 
-theorem entails_of_unitProp (db : ClauseDb α) (τ : PartPropAssignment) (hints : Array α) :
-    db.unitPropWithHints τ hints |>.isContradiction → db.toPropTerm ≤ τ.toPropTermᶜ :=
-  sorry
+inductive UnitPropResultDep {α : Type} [BEq α] [Hashable α]
+    (db : ClauseDb α) (σ : PartPropAssignment) where
+  | contradiction (h : db.toPropTerm ≤ σ.toPropTermᶜ)
+  | extended (σ' : PartPropAssignment) (h : db.toPropTerm ⊓ σ.toPropTerm ≤ σ'.toPropTerm)
+  /-- The hint did not become unit. -/
+  | hintNotUnit (hint : α)
+  /-- The hint points at a nonexistent clause. -/
+  | hintNonexistent (hint : α)
+
+open scoped PropTerm in
+def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints : Array α)
+    : UnitPropResultDep db σ₀ := Id.run do
+  let mut σ : {σ : PartPropAssignment // db.toPropTerm ⊓ σ₀.toPropTerm ≤ σ.toPropTerm } :=
+    ⟨σ₀, inf_le_right⟩
+  for hint in hints do
+    match hGet : db.getClause hint with
+    | none => return .hintNonexistent hint
+    | some C =>
+      have hDbσ₀ : db.toPropTerm ⊓ σ₀.toPropTerm ≤ C.toPropTerm ⊓ σ.val.toPropTerm :=
+        le_inf (inf_le_of_left_le (toPropTerm_of_getClause_eq _ _ _ hGet)) σ.property
+      match hRed : C.reduce σ.val with
+      | some #[u] =>
+        have : db.toPropTerm ⊓ σ₀.toPropTerm ≤
+            PartPropAssignment.toPropTerm (σ.val.insert u.var u.polarity) := by
+          have hU : db.toPropTerm ⊓ σ₀.toPropTerm ≤ u.toPropTerm := by
+            have h := IClause.reduce_eq_some _ _ _ hRed
+            conv at h => rhs; simp [IClause.toPropTerm]
+            exact le_trans hDbσ₀ h
+          refine PropTerm.entails_ext.mpr fun τ hτ => ?_
+          have hU : τ ⊨ u.toPropTerm :=
+            PropTerm.entails_ext.mp hU τ hτ
+          have hσ : τ ⊨ σ.val.toPropTerm :=
+            PropTerm.entails_ext.mp σ.property τ hτ
+          rw [PartPropAssignment.satisfies_iff] at hσ ⊢
+          intro x p hFind
+          by_cases hEq : x = u.var
+          next =>
+            rw [hEq, HashMap.find?_insert _ _ LawfulBEq.rfl] at hFind
+            rw [ILit.satisfies_iff] at hU
+            simp_all
+          next =>
+            rw [HashMap.find?_insert_of_ne _ _ (bne_iff_ne _ _ |>.mpr (Ne.symm hEq))] at hFind
+            exact hσ _ _ hFind
+        σ := ⟨σ.val.insert u.var u.polarity, this⟩
+      | some #[] =>
+        have : db.toPropTerm ≤ σ₀.toPropTermᶜ := by
+          have : C.toPropTerm ⊓ σ.val.toPropTerm ≤ ⊥ :=
+            IClause.reduce_eq_some _ _ _ hRed
+          rw [le_compl_iff_disjoint_right]
+          exact disjoint_iff_inf_le.mpr (le_trans hDbσ₀ this)
+        return .contradiction this
+      | _ => return .hintNotUnit hint
+  return .extended σ.val σ.property
 
 end ClauseDb
