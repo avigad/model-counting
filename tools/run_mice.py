@@ -37,7 +37,9 @@ tcPath = vrPath + "/sharptrace/target/release"
 tcProgram = tcPath + "/sharptrace_checker"
 
 
-timeLimits = { "D4" : 4000, "N2T" : 10000, "TC" : 10000 }
+timeLimits = { "D4" : 1000, "N2T" : 1000, "TC" : 1000 }
+
+commentChar = 'c'
 
 
 def waitWhileBlocked():
@@ -53,6 +55,8 @@ def checkFile(prefix, fname, logFile):
     bytes = 0
     lines = 0
     for line in f:
+        if len(line) > 0 and line[0] == commentChar:
+            continue
         bytes += len(line)
         lines += 1
     print("%s: LOG: size %s %d lines %d bytes" % (prefix, fname, lines, bytes))
