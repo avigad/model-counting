@@ -109,7 +109,7 @@ theorem getClause_empty (idx : α) : (empty : ClauseDb α).getClause idx = none 
 
 theorem contains_iff_getClause_eq_some (db : ClauseDb α) (idx : α) :
     db.contains idx ↔ ∃ C, db.getClause idx = some C := by
-  simp [contains, Option.isSome_iff_exists, db.clauses.contains_iff_find?_eq]
+  simp [contains, Option.isSome_iff_exists, db.clauses.contains_iff]
 
 theorem not_contains_empty (idx : α) : ¬(empty : ClauseDb α).contains idx := by
   rw [contains_iff_getClause_eq_some]

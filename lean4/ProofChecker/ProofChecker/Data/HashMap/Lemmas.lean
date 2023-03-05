@@ -475,9 +475,17 @@ theorem insert_comm [LawfulBEq α] (m : HashMap α β) (a₁ a₂ : α) (b : β)
     
 /-! `contains` -/
 
-def contains_iff_find?_eq (m : HashMap α β) (a : α) :
+def contains_iff (m : HashMap α β) (a : α) :
     m.contains a ↔ ∃ b, m.find? a = some b :=
   sorry
+
+def not_contains_iff (m : HashMap α β) (a : α) :
+    !m.contains a ↔ m.find? a = none := by
+  simp only [Bool.bnot_eq_to_not_eq, contains_iff, not_exists]
+  apply Iff.intro
+  . intro h
+    cases h' : find? m a <;> simp_all
+  . intro h; rw [h]; simp
 
 /-! `fold` -/
 
@@ -487,6 +495,7 @@ theorem fold_of_mapsTo_of_comm [LawfulBEq α] (m : HashMap α β) (f : δ → α
     -- NOTE: This could be strengthened by assuming m.find? a₁ = some b₁
     -- and ditto for a₂, b₂ in the ∀ hypothesis
     (∀ d a₁ b₁ a₂ b₂, f (f d a₁ b₁) a₂ b₂ = f (f d a₂ b₂) a₁ b₁) →
+    -- TODO: Might also have to assume assoc
     ∃ d, m.fold f init = f d a b :=
   sorry
   

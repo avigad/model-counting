@@ -58,7 +58,7 @@ theorem var_mkNeg (x : Var) : var (mkNeg x) = x := by
   apply Subtype.ext
   simp [var, mkNeg]
   rfl
-  
+
 @[simp]
 theorem var_mk (x : Var) (p : Bool) : var (mk x p) = x := by
   dsimp [mk]; split <;> simp
@@ -133,7 +133,7 @@ theorem satisfies_iff {τ : PropAssignment Var} {l : ILit} :
     τ ⊨ l.toPropTerm ↔ τ l.var = l.polarity := by
   dsimp [toPropTerm, var, polarity]
   aesop
-  
+
 theorem satisfies_neg {τ : PropAssignment Var} {l : ILit} :
     τ ⊨ (-l).toPropTerm ↔ τ ⊭ l.toPropTerm := by
   simp [satisfies_iff]
@@ -172,14 +172,14 @@ instance : ToString IClause where
 
 def toPropTerm (C : IClause) : PropTerm Var :=
   C.data.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
-  
+
 open PropTerm
 
 theorem satisfies_iff {τ : PropAssignment Var} {C : IClause} :
     τ ⊨ C.toPropTerm ↔ ∃ l ∈ C.data, τ ⊨ l.toPropTerm := by
   rw [toPropTerm]
   induction C.data <;> simp_all
-  
+
 theorem tautology_iff (C : IClause) :
     C.toPropTerm = ⊤ ↔ ∃ l₁ ∈ C.data, ∃ l₂ ∈ C.data, l₁ = -l₂ := by
   refine ⟨?mp, ?mpr⟩
@@ -244,7 +244,7 @@ def toPropTerm (φ : ICnf) : PropTerm Var :=
   φ.data.foldr (init := ⊤) (fun l φ => l.toPropTerm ⊓ φ)
 
 open PropTerm
-  
+
 theorem satisfies_iff {τ : PropAssignment Var} {φ : ICnf} :
     τ ⊨ φ.toPropTerm ↔ ∀ C ∈ φ.data, τ ⊨ C.toPropTerm := by
   rw [toPropTerm]
@@ -262,11 +262,13 @@ abbrev PartPropAssignment := HashMap Var Bool
 namespace PartPropAssignment
 
 /-- Interpret the assignment (x ↦ ⊤, y ↦ ⊥) as x ∧ ¬y, for example. -/
+-- NOTE: Partial assignments really are more like formulas than they are like assignments because
+-- there is no nice to way to extend one to a `PropAssignment` (i.e. a total assignment).
 def toPropTerm (τ : PartPropAssignment) : PropTerm Var :=
   τ.fold (init := ⊤) fun acc x v => acc ⊓ if v then .var x else (.var x)ᶜ
-  
+
 open PropTerm
-  
+
 theorem satisfies_iff (τ : PartPropAssignment) (σ : PropAssignment Var) :
     σ ⊨ τ.toPropTerm ↔ ∀ x p, τ.find? x = some p → σ x = p :=
   ⟨mp, mpr⟩
@@ -276,7 +278,7 @@ where
     have ⟨φ, hφ⟩ := τ.fold_of_mapsTo_of_comm
       (init := ⊤) (f := fun acc x v => acc ⊓ if v then PropTerm.var x else (PropTerm.var x)ᶜ)
       hFind ?comm
-    case comm => 
+    case comm =>
       intros
       dsimp
       ac_rfl
@@ -300,11 +302,71 @@ otherwise `some C'` where `C'` is the reduced clause. -/
 def reduce (C : IClause) (τ : PartPropAssignment) : Option IClause :=
   C.foldlM (init := #[]) fun acc l =>
     match τ.find? l.var with
-    | some v => if v == l.polarity then none else acc
+    | some v => if v = l.polarity then none else acc
     | none => some <| acc.push l
-    
--- theorem reduce_thm (C C' : IClause) (τ : PartPropAssignment) :
---   reduce C τ = some C' → C.toPropTerm ⊓ τ.toPropTerm ≤ C'.toPropTerm := by
+
+theorem reduce_characterization (C : IClause) (σ : PartPropAssignment) :
+    SatisfiesM (fun C' =>
+      ∀ l ∈ C.data, (!σ.contains l.var → l ∈ C'.data) ∧
+        σ.find? l.var ≠ some l.polarity) (reduce C σ) := by
+  have := C.SatisfiesM_foldlM (init := #[]) (f := fun acc l =>
+      match σ.find? l.var with
+      | some v => if v = l.polarity then none else acc
+      | none => some <| acc.push l)
+    (motive := fun sz acc =>
+      ∀ (i : Fin C.size), i < sz → (!σ.contains C[i].var → C[i] ∈ acc.data) ∧
+        σ.find? C[i].var ≠ some C[i].polarity)
+    (h0 := by simp)
+    (hf := by
+      simp only [SatisfiesM_Option_eq, getElem_fin]
+      intro sz acc ih acc'
+      split; split
+      . simp
+      next p hFind hP =>
+        intro h i hLt; injection h with h; rw [← h]
+        refine Or.elim (Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hLt)) (ih i) fun hEq => ?_
+        simp only [hEq]
+        refine ⟨?l, fun h => ?r⟩
+        case r =>
+          rw [hFind] at h
+          injection h with h
+          exact hP h
+        case l =>
+          have := HashMap.contains_iff _ _ |>.mpr ⟨_, hFind⟩
+          simp_all
+      next p hFind =>
+        intro h i hLt; injection h with h; rw [← h]
+        simp only [Array.push_data, List.mem_append, List.mem_singleton]
+        refine Or.elim (Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hLt)) (fun hLt => ?_) fun hEq => ?_
+          <;> aesop
+      )
+  dsimp [reduce]
+  apply SatisfiesM.imp this
+  intro C' hRed
+  exact fun l hL =>
+    have ⟨i, h⟩ := Array.get_of_mem_data hL
+    h ▸ hRed i i.isLt
+
+open PropTerm in
+theorem reduce_eq_some (C C' : IClause) (σ : PartPropAssignment) :
+    reduce C σ = some C' → C.toPropTerm ⊓ σ.toPropTerm ≤ C'.toPropTerm := by
+  intro hSome
+  have hRed := SatisfiesM_Option_eq.mp (reduce_characterization C σ) _ hSome
+  refine entails_ext.mpr fun τ hτ => ?_
+  rw [satisfies_conj] at hτ
+  have ⟨l, hL, hτL⟩ := IClause.satisfies_iff.mp hτ.left
+  by_cases hCont : σ.contains l.var
+  next =>
+    exfalso
+    have ⟨p, hFind⟩ := HashMap.contains_iff _ _ |>.mp hCont
+    have := PartPropAssignment.satisfies_iff _ _ |>.mp hτ.right _ _ hFind
+    have : p = l.polarity := by
+      rw [ILit.satisfies_iff, this] at hτL
+      assumption
+    exact hRed l hL |>.right (this ▸ hFind)
+  next =>
+    simp only [Bool.not_eq_true, Bool.bnot_eq_to_not_eq] at *
+    exact IClause.satisfies_iff.mpr ⟨l, (hRed l hL).left hCont, hτL⟩
 
 /-- When `C` is not a tautology, return the smallest assignment falsifying it. When it is not,
 return an undetermined assignment. -/
@@ -356,11 +418,35 @@ theorem toFalsifyingAssignment_characterization (C : IClause) : C.toPropTerm ≠
   exact ⟨fun i => this.left i i.isLt, this.right⟩
 
 theorem toFalsifyingAssignment_ext (C : IClause) : C.toPropTerm ≠ ⊤ →
-    l ∈ C.data ↔ (toFalsifyingAssignment C).find? l.var = some !l.polarity := by
-  sorry
+    (∀ l, l ∈ C.data ↔ (toFalsifyingAssignment C).find? l.var = some !l.polarity) := by
+  intro hTauto l
+  have ⟨h₁, h₂⟩ := toFalsifyingAssignment_characterization C hTauto
+  apply Iff.intro
+  . intro hL
+    have ⟨i, hI⟩ := Array.get_of_mem_data hL
+    rw [← hI]
+    exact h₁ i
+  . intro hFind
+    have := h₂ _ _ hFind
+    rw [Bool.not_not, ILit.eta] at this
+    exact this
 
 theorem toPropTerm_toFalsifyingAssignment (C : IClause) : C.toPropTerm ≠ ⊤ →
     C.toFalsifyingAssignment.toPropTerm = C.toPropTermᶜ := by
-  sorry
+  intro hTauto
+  have := toFalsifyingAssignment_ext C hTauto
+  ext τ
+  simp only [PartPropAssignment.satisfies_iff, PropTerm.satisfies_neg, IClause.satisfies_iff,
+    not_exists, not_and, ILit.satisfies_iff]
+  apply Iff.intro
+  . intro h l hL hτ
+    have := h _ _ (this l |>.mp hL)
+    simp [hτ] at this
+  . intro h x p hFind
+    have := this (ILit.mk x !p)
+    simp only [ILit.var_mk, ILit.polarity_mk, Bool.not_not] at this
+    have := h _ (this.mpr hFind)
+    simp at this
+    exact this
 
 end IClause
