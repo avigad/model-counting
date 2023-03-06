@@ -212,11 +212,10 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	// Undercount
 	return 10;
     }
-    if (!one_sided) {
-	cnf.delete_assertions();
-	elapsed = get_elapsed();
-	lprintf("%s Time = %.2f.  Deleted asserted clauses\n", prefix, elapsed);
-    }
+    // For one-sided, may need to delete clauses added by initial BCP
+    cnf.delete_assertions();
+    elapsed = get_elapsed();
+    lprintf("%s Time = %.2f.  Deleted asserted clauses\n", prefix, elapsed);
     pwriter->comment("Delete input clauses");
     std::vector<int> overcount_literals;
     bool overcount = false;
