@@ -982,6 +982,15 @@ void Cnf_reasoner::document_or(int cid, int var, ilist args) {
     ilist_free(show);
 }
 
+int Cnf_reasoner::assert_literal(int lit) {
+    pwriter->comment("Assert %d as unit literal without proof", lit);
+    Clause *clp = new Clause();
+    clp->add(lit);
+    int cid = start_assertion(clp);
+    finish_command(true);
+    return cid;
+}
+
 
 // Got a new unit literal.
 void Cnf_reasoner::new_unit(int lit, int cid, bool input) {

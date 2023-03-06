@@ -369,6 +369,9 @@ public:
     void document_and(int cid, int var, ilist args);
     void document_or(int cid, int var, ilist args);
 
+    // Assert literal as unit clause without proof
+    int assert_literal(int lit);
+
     // Support for stack-based context saving
     void new_context();
     void pop_context();
