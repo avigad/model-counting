@@ -105,21 +105,6 @@ deriving Repr, DecidableEq, Inhabited
 
 namespace PogElt
 
-/-
--- Not sure if these are needed.
-inductive PogEqCases (pogElt : PogElt): Prop where
-  | eq_var  (x : Var)                     : pogElt = var n → PogEqCases pogElt
-  | eq_disj (x : Var) (left right : ILit) : pogElt = disj n left right → PogEqCases pogElt
-  | eq_conj (x : Var) (args : Array ILit) : pogElt = conj n args → PogEqCases pogElt
-
-open PogEqCases in
-theorem toEqCases (pogElt : PogElt) : PogEqCases pogElt := by
-  cases pogElt
-  . case var n => exact eq_var n rfl
-  . case disj n left right => exact eq_disj n left right rfl
-  . case conj n args => exact eq_conj n args rfl
--/
-
 def varNum : PogElt → Var
   | var x      => x
   | disj x _ _ => x
@@ -596,7 +581,8 @@ where
           dsimp at hinv; rwa [hinv, PNat.natPred_lt_natPred]
         have hl := h' ⟨_, hleft⟩; dsimp at hl; rw [hl]
         have hr := h' ⟨_, hright⟩; dsimp at hr; rw [hr]
-        rw [toPropForm_aux_eq, heq, PropForm.countModels, PNat.succPNat_natPred, PNat.succPNat_natPred]
+        rw [toPropForm_aux_eq, heq, PropForm.countModels, PNat.succPNat_natPred,
+          PNat.succPNat_natPred]
         split
         . next hlp =>
           rw [ILit.mkPos_var_true _ hlp]
