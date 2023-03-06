@@ -11,10 +11,11 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-f] [-L] [-G] [-s n|g|c] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-f] [-L] [-G] [-s n|g|c] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -s n|g|c Stop after NNF generation, CRAT generation (g) or proof check (c)")
+    print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -L       Expand each node, rather than using lemmas");
     print("  -G       Prove each literal separately, rather than grouping into single proof");
     print("  EXT      Can be any extension for wild-card matching (e.g., cnf, nnf)")
@@ -26,6 +27,7 @@ sleepTime = 60
 # Defaults
 standardTimeLimit = 60
 
+oneSided = False
 useLemma = True
 group = True
 
@@ -149,6 +151,8 @@ def runGen(root, home, logFile, force):
     if not force and os.path.exists(cratName):
         return True
     cmd = [genProgram]
+    if oneSided:
+        cmd += ['-1']
     if not useLemma:
         cmd += ['-e']
     if not group:
@@ -163,7 +167,10 @@ def runGen(root, home, logFile, force):
 def runCheck(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
     cratName = home + "/" + root + ".crat"
-    cmd = [checkProgram, cnfName, cratName]
+    cmd = [checkProgram]
+    if oneSided:
+        cmd += ['-1']
+    cmd += [cnfName, cratName]
     ok =  runProgram("FCHECK", root, cmd, logFile)
     return ok
 
@@ -180,6 +187,8 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     prefix = "OVERALL"
     start = datetime.datetime.now()
     extension = "log"
+    if oneSided:
+        extension = "onesided_" + extension
     if not useLemma:
         extension = "nolemma_" + extension
     if not group:
@@ -237,19 +246,21 @@ def runBatch(home, fileList, stopD4, stopGen, stopCheck, force):
         runSequence(r, home, stopD4, stopGen, stopCheck, force)
 
 def run(name, args):
-    global useLemma, group
+    global useLemma, group, oneSided
     home = "."
     stopD4 = False
     stopGen = False
     stopCheck = False
     force = False
-    optList, args = getopt.getopt(args, "hfLGs:")
+    optList, args = getopt.getopt(args, "hf1LGs:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
         elif opt == '-f':
             force = True
+        elif opt == '-1':
+            oneSided = True
         elif opt == '-L':
             useLemma = False
         elif opt == '-G':
