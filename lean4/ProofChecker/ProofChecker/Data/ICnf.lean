@@ -266,6 +266,10 @@ namespace PartPropAssignment
 -- there is no nice to way to extend one to a `PropAssignment` (i.e. a total assignment).
 def toPropTerm (τ : PartPropAssignment) : PropTerm Var :=
   τ.fold (init := ⊤) fun acc x v => acc ⊓ if v then .var x else (.var x)ᶜ
+  
+instance : ToString PartPropAssignment where
+  toString τ := String.intercalate " ∧ "
+    (τ.fold (init := []) (f := fun acc x p => s!"{ILit.mk x p}" :: acc))
 
 open PropTerm
 

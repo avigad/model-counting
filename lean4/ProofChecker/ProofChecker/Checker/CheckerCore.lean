@@ -57,7 +57,7 @@ inductive CheckerError where
   | graphUpdateError (err : PogError)
   | duplicateClauseIdx (idx : ClauseIdx)
   | unknownClauseIdx (idx : ClauseIdx)
-  | hintNotUnit (idx : ClauseIdx)
+  | hintNotUnit (idx : ClauseIdx) (C : IClause) (σ : PartPropAssignment)
   | upNoContradiction (τ : PartPropAssignment)
   | duplicateExtVar (x : Var)
   | unknownVar (x : Var)
@@ -72,9 +72,10 @@ instance : ToString CheckerError where
     | graphUpdateError e => s!"graph update error: {e}"
     | duplicateClauseIdx idx => s!"cannot add clause at index {idx}, index is already used"
     | unknownClauseIdx idx => s!"there is no clause at index {idx}"
-    | hintNotUnit idx => s!"hinted clause at index {idx} did not become unit"
+    | hintNotUnit idx C σ =>
+      s!"hinted clause {C} at index {idx} did not become unit under assignment {σ}"
     | upNoContradiction τ =>
-      s!"unit propagation did not derive contradiction (final assignment {τ.toList})"
+      s!"unit propagation did not derive contradiction (final assignment {τ})"
     | duplicateExtVar x => s!"extension variable {x} was already introduced"
     | unknownVar x => s!"unknown variable {x}"
     | depsNotDisjoint xs => s!"variables {xs} have non-disjoint dependency sets"
@@ -94,10 +95,7 @@ def initial (inputCnf : ICnf) : Except CheckerError CheckerStateCore := do
   return {
     inputCnf
     origVars := inputCnf.vars
-    clauseDb :=
-      let (db, _) := inputCnf.foldl (init := (.empty, 1))
-        fun (db, idx) C => (db.addClause idx C, idx + 1)
-      db
+    clauseDb := .ofICnf inputCnf
     depVars := inputCnf.vars.fold (init := .empty) fun s x =>
       s.insert x (HashSet.empty Var |>.insert x)
     scheme := initPog
@@ -106,11 +104,11 @@ def initial (inputCnf : ICnf) : Except CheckerError CheckerStateCore := do
 /-- Check if `C` is an asymmetric tautology wrt the clause database. -/
 def checkAtWithHints (C : IClause) (hints : Array ClauseIdx) : CheckerCoreM Unit := do
   let st ← get
-  match st.clauseDb.unitPropWithHints C.toFalsifyingAssignment hints with
-  | .contradiction => return ()
-  | .extended τ => throw <| .upNoContradiction τ
-  | .hintNotUnit hint => throw <| .hintNotUnit hint
-  | .hintNonexistent hint => throw <| .unknownClauseIdx hint
+  match st.clauseDb.unitPropWithHintsDep C.toFalsifyingAssignment hints with
+  | .contradiction _ => return ()
+  | .extended τ _ => throw <| .upNoContradiction τ
+  | .hintNotUnit idx C σ => throw <| .hintNotUnit idx C σ
+  | .hintNonexistent idx => throw <| .unknownClauseIdx idx
 
 -- NOTE: I'll likely have to rewrite uses of monadic sequencing into functional code because
 -- sequencing is non-dependent.
@@ -186,6 +184,7 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
     | throw <| .unknownVar l₂.var
 
   -- Check that variables are mutually exclusive.
+  -- TODO: if l₁ = -l₂ this gives unexpected results
   checkAtWithHints #[-l₁, -l₂] hints
 
   -- Defining clauses for the disjunction.
