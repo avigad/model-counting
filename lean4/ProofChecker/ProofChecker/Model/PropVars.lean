@@ -170,6 +170,10 @@ private instance semVars'_finite (φ : PropTerm ν) : Set.Finite φ.semVars' :=
 Unlike `vars`, this set is stable under equivalence of formulas. -/
 noncomputable def semVars (φ : PropTerm ν) : Finset ν :=
   Set.Finite.toFinset φ.semVars'_finite
+  
+theorem mem_semVars (φ : PropTerm ν) (x : ν) :
+    x ∈ φ.semVars ↔ ∃ (τ : PropAssignment ν), τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ := by
+  simp [Set.Finite.mem_toFinset, semVars, semVars']
 
 /-- Any two assignments with opposing evaluations on `φ` disagree on a semantic variable of `φ`. -/
 theorem exists_semVar {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment ν} : σ₁ ⊨ φ → σ₂ ⊭ φ →
@@ -180,7 +184,7 @@ theorem exists_semVar {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment ν} : σ�
   intro h₁ h₂
   have ⟨x, τ, hNe, hτ, hτ'⟩ := PropForm.exists_flip h₁ h₂
   use x, hNe
-  simp only [semVars, semVars', Set.Finite.mem_toFinset, Set.mem_setOf_eq]
+  simp only [mem_semVars]
   use τ
   rw [satisfies_mk, satisfies_mk]
   exact ⟨hτ, hτ'⟩
@@ -188,7 +192,7 @@ theorem exists_semVar {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment ν} : σ�
 theorem agreeOn_semVars {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment ν} :
     σ₁.agreeOn φ.semVars σ₂ → (σ₁ ⊨ φ ↔ σ₂ ⊨ φ) := by
   suffices ∀ {σ₁ σ₂}, σ₁.agreeOn φ.semVars σ₂ → σ₁ ⊨ φ → σ₂ ⊨ φ from
-    fun h =>⟨this h, this h.symm⟩
+    fun h => ⟨this h, this h.symm⟩
   intro σ₁ σ₂ h h₁
   by_contra h₂
   have ⟨x, hNe, hMem⟩ := exists_semVar h₁ h₂
@@ -200,7 +204,17 @@ theorem eval_of_agreeOn_semVars {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment
   have := agreeOn_semVars h
   dsimp only [SemanticEntails.entails, satisfies] at this
   aesop
+  
+theorem semVars_disj (φ₁ φ₂ : PropTerm ν) : (φ₁ ⊔ φ₂).semVars ⊆ φ₁.semVars ∪ φ₂.semVars := by
+  intro x
+  simp only [Finset.mem_union, mem_semVars]
+  aesop
 
+theorem semVars_conj (φ₁ φ₂ : PropTerm ν) : (φ₁ ⊓ φ₂).semVars ⊆ φ₁.semVars ∪ φ₂.semVars := by
+  intro x
+  simp only [Finset.mem_union, mem_semVars, satisfies_conj, not_and_or]
+  aesop
+  
 /-- Two functions φ₁ and φ₂ are equivalent over X when for every assignment τ, models of φ₁
 extending τ over X are in bijection with models of φ₂ extending τ over X. -/
 -- This is `sequiv` here: https://github.com/ccodel/verified-encodings/blob/master/src/cnf/encoding.lean

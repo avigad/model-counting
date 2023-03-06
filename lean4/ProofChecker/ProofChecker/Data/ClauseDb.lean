@@ -332,10 +332,10 @@ inductive UnitPropResultDep {α : Type} [BEq α] [Hashable α]
     (db : ClauseDb α) (σ : PartPropAssignment) where
   | contradiction (h : db.toPropTerm ≤ σ.toPropTermᶜ)
   | extended (σ' : PartPropAssignment) (h : db.toPropTerm ⊓ σ.toPropTerm ≤ σ'.toPropTerm)
-  /-- The hint did not become unit. -/
-  | hintNotUnit (hint : α)
+  /-- The hint `C` at index `idx` did not become unit under `σ`. -/
+  | hintNotUnit (idx : α) (C : IClause) (σ : PartPropAssignment)
   /-- The hint points at a nonexistent clause. -/
-  | hintNonexistent (hint : α)
+  | hintNonexistent (idx : α)
 
 open scoped PropTerm in
 def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints : Array α)
@@ -379,7 +379,7 @@ def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints 
           rw [le_compl_iff_disjoint_right]
           exact disjoint_iff_inf_le.mpr (le_trans hDbσ₀ this)
         return .contradiction this
-      | _ => return .hintNotUnit hint
+      | _ => return .hintNotUnit hint C σ.val
   return .extended σ.val σ.property
 
 end ClauseDb
