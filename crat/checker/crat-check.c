@@ -33,9 +33,10 @@
 #include <stdarg.h>
 
 void usage(char *name) {
-    printf("Usage: %s [-h] [-v VERB] FILE.cnf [FILE.crat]\n", name);
+    printf("Usage: %s [-h] [-v VERB] [-1] FILE.cnf [FILE.crat]\n", name);
     printf(" -h VERB      Print this message\n");
     printf(" -v           Set verbosity level\n");
+    printf(" -1           Perform one-sided check (don't verify assertions)\n");
     printf("    FILE.cnf  Input CNF file\n");
     printf("    FILE.crat Input CRAT file\n");
     exit(0);
@@ -65,6 +66,8 @@ void usage(char *name) {
 
 /* Options */
 int verb_level = 3;
+
+int one_sided = false;
 
 /* Allow RUP proofs that encounter conflict before final hint */
 bool early_rup = true;
@@ -931,6 +934,20 @@ void rup_run(int tcid) {
     }
 }
 
+/* Skip over RUP hints in file.  Assume already set up  */
+void rup_skip(int tcid) {
+    while (true) {
+	token_t token = token_next();
+	if (token == TOK_STAR)
+	    continue;
+	else if (token != TOK_INT)
+	    continue;
+	else if (token_value == 0)
+	    return;
+    }
+}
+
+
 /*============================================
   Processing files
 ============================================*/
@@ -1126,7 +1143,10 @@ void crat_add_clause(int cid) {
 	    lset_add_lit(-lit);
     }
     finish_clause(cid);
-    rup_run(cid);
+    if (one_sided)
+	rup_skip(cid);
+    else
+	rup_run(cid);
     token_confirm_eol();
     crat_assertion_count ++;
     info_printf(3, "Processed clause %d addition\n", cid);
@@ -1380,7 +1400,7 @@ void crat_read(char *fname) {
 	    crat_read_root();
 	else if (strcmp(token_last, "dc") == 0)
 	    crat_delete_clause();
-	else if (strcmp(token_last, "p") == 0)
+ 	else if (strcmp(token_last, "p") == 0)
 	    crat_add_product(cid);
 	else if (strcmp(token_last, "s") == 0)
 	    crat_add_sum(cid);
@@ -1412,7 +1432,10 @@ void run(char *cnf_name, char *crat_name) {
 	}
 	int root = crat_final_root();
 	data_printf(1, "Final root literal %d\n", root);
-	data_printf(0, "SUCCESS.  CRAT representation verified\n");
+	if (one_sided)
+	    data_printf(0, "ONE-SIDED VALID.  CRAT representation partially verified\n");
+	else
+	    data_printf(0, "FULL-PROOF SUCCESS.  CRAT representation verified\n");
     }
     double secs = tod() - start;
     data_printf(1, "Elapsed seconds: %.3f\n", secs);
@@ -1434,6 +1457,9 @@ int main(int argc, char *argv[]) {
 	case 'v':
 	    istring = argv[++argi];
 	    verb_level = atoi(istring);
+	    break;
+	case '1':
+	    one_sided = true;
 	    break;
 	default:
 	    printf("Unknown command line option '%s'\n", argv[argi]);
