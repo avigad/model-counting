@@ -988,6 +988,7 @@ int Cnf_reasoner::assert_literal(int lit) {
     clp->add(lit);
     int cid = start_assertion(clp);
     finish_command(true);
+    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     return cid;
 }
 
