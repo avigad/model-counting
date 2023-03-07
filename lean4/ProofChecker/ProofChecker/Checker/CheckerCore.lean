@@ -133,7 +133,6 @@ structure CheckerStateWF (st : CheckerStateData) : Prop where
   depVars_scheme : ∀ (x : Var) (D : HashSet Var), st.depVars.find? x = some D →
     ∀ y, y ∈ (st.scheme.toPropForm (.mkPos x)).vars ↔ D.contains y
 
-
 def CheckerState := { st : CheckerStateData // CheckerStateWF st }
 
 abbrev CheckerM := ExceptT CheckerError <| StateM CheckerState
