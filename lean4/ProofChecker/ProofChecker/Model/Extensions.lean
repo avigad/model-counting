@@ -1,6 +1,4 @@
 import ProofChecker.Model.PropVars
-import ProofChecker.Data.ICnf
-import ProofChecker.CountModels
 
 /-! Reasoning about definitional extensions. -/
 
