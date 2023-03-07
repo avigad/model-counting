@@ -223,6 +223,27 @@ theorem tautology_iff (C : IClause) :
         rw [hEq, ILit.satisfies_neg]
         assumption
       tauto
+      
+/-! Tautology decision procedure -/
+
+/-- Check whether a clause is a tautology. The type is a hack for early-return. The clause is
+tautological iff `none` is returned. -/
+def checkTautoAux (C : IClause) : Option (HashMap Var Bool) :=
+  C.foldlM (init := .empty) fun acc l => do
+    match acc.find? l.var with
+    | .none => acc.insert l.var l.polarity
+    | .some p => if p ≠ l.polarity then none else acc
+
+theorem checkTautoAux_none (C : IClause) : checkTautoAux C = none → C.toPropTerm = ⊤ :=
+  sorry -- Array.SatisfiesM_foldlM, tautology_iff
+
+theorem checkTautoAux_some (C : IClause) : checkTautoAux C = some m → C.toPropTerm ≠ ⊤ :=
+  sorry
+
+instance : DecidablePred (IClause.toPropTerm · = ⊤) :=
+  fun C => match h : checkTautoAux C with
+    | .none   => .isTrue (checkTautoAux_none C h)
+    | .some _ => .isFalse (checkTautoAux_some C h)
 
 end IClause
 

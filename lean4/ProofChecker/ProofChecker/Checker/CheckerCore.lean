@@ -1,19 +1,23 @@
 import Std.Data.Array.Basic
 
 import ProofChecker.Data.ClauseDb
-import ProofChecker.Data.HashSet
 import ProofChecker.Data.Pog
+import ProofChecker.Data.HashSet
+import ProofChecker.CountModels
+
+/-- An index into the `ClauseDb`. -/
+abbrev ClauseIdx := Nat
 
 /-- A step in a CRAT proof. -/
 inductive CratStep
   | /-- Add asymmetric tautology. -/
-    addAt (idx : Nat) (C : IClause) (upHints : Array Nat)
+    addAt (idx : ClauseIdx) (C : IClause) (upHints : Array ClauseIdx)
   | /-- Delete asymmetric tautology. -/
-    delAt (idx : Nat) (upHints : Array Nat)
+    delAt (idx : ClauseIdx) (upHints : Array ClauseIdx)
   | /-- Declare product operation. -/
-    prod (idx : Nat) (x : Var) (ls : Array ILit)
+    prod (idx : ClauseIdx) (x : Var) (ls : Array ILit)
   | /-- Declare sum operation. -/
-    sum (idx : Nat) (x : Var) (l₁ l₂ : ILit) (upHints : Array Nat)
+    sum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (upHints : Array ClauseIdx)
   | /-- Declare POG root. -/
     root (r : ILit)
 
@@ -21,37 +25,13 @@ namespace CratStep
 
 instance : ToString CratStep where
   toString := fun
-    | addAt idx C upHints => s!"{idx} a {C} 0 (hints : {upHints})"
+    | addAt idx C upHints => s!"{idx} a {C} 0 (hints: {upHints})"
     | delAt idx upHints => s!"dc {idx} (hints: {upHints})"
     | prod idx x ls => s!"{idx} p {x} {ls}"
     | sum idx x l₁ l₂ upHints => s!"{idx} s {x} {l₁} {l₂} (hints: {upHints})"
     | root x => s!"r {x}"
-  
+
 end CratStep
-
-/-- An index into the `ClauseDb`. -/
-abbrev ClauseIdx := Nat
-
-/-- The checker's runtime state. Contains exactly the data needed to fully check a proof. -/
-structure CheckerStateCore where
-  inputCnf : ICnf
-  /-- The variables present in the original CNF. -/
-  -- TODO: not used at the moment; its cardinality is needed to output an absolute model-count,
-  -- and also to state invariants; but for the latter, ghost state would suffice
-  origVars : HashSet Var
-  /-- The clause database. -/
-  clauseDb : ClauseDb ClauseIdx := {}
-  /-- Maps any variable present in `clauseDb` to the set of all *original* variables it depends on.
-  For example, an original `x` is mapped to `{x}` whereas an extension `p` with `p ↔ x ∧ y` is
-  mapped to `{x, y}`. 
-
-  Variables not present in `clauseDb` are not present in this map. Thus we maintain the invariant
-  that a variable is in the `clauseDb` iff it is in the domain of this map. -/
-  depVars : HashMap Var (HashSet Var) := {}
-  scheme : Pog := .empty
-  /-- Which clauses are counting scheme definition clauses. -/
-  schemeDefs : HashSet ClauseIdx := .empty ClauseIdx
-  root : Option ILit := none
 
 inductive CheckerError where
   | graphUpdateError (err : PogError)
@@ -85,14 +65,85 @@ instance : ToString CheckerError where
 
 end CheckerError
 
-abbrev CheckerCoreM := ExceptT CheckerError <| StateM CheckerStateCore
+/-- The checker's runtime state. Contains exactly the data needed to fully check a proof. -/
+structure CheckerStateData where
+  inputCnf : ICnf
+  /-- The variables present in the original CNF. -/
+  -- TODO: not used at the moment; its cardinality is needed to output an absolute model-count,
+  -- and also to state invariants; but for the latter, ghost state would suffice
+  origVars : HashSet Var
+  /-- The clause database. -/
+  clauseDb : ClauseDb ClauseIdx
+  /-- Maps any variable present in `clauseDb` to the set of all *original* variables it depends on.
+  For example, an original `x` is mapped to `{x}` whereas an extension `p` with `p ↔ x ∧ y` is
+  mapped to `{x, y}`.
 
-def initial (inputCnf : ICnf) : Except CheckerError CheckerStateCore := do
+  Variables not present in `clauseDb` are not present in this map. Thus we maintain the invariant
+  that a variable is in the `clauseDb` iff it is in the domain of this map. -/
+  depVars : HashMap Var (HashSet Var)
+  /-- The partitioned-operation graph. -/
+  scheme : Pog
+  /-- Which clauses are counting scheme definition clauses. -/
+  schemeDefs : HashSet ClauseIdx := .empty ClauseIdx
+  /-- The POG root literal, if we already saw a `root` instruction. Otherwise `none`. -/
+  root : Option ILit := none
+
+noncomputable def CheckerStateData.schemeDefsToPropTerm (st : CheckerStateData) : PropTerm Var :=
+  st.clauseDb.toPropTermSub (st.schemeDefs.contains ·)
+
+noncomputable def CheckerStateData.origVars' (st : CheckerStateData) : Set Var :=
+  fun x => st.inputCnf.vars.contains x
+
+noncomputable def CheckerStateData.origSemVars (st : CheckerStateData) : Finset Var :=
+  st.inputCnf.toPropTerm.semVars
+
+open PropTerm in
+/-- The given checker state is well-formed. -/
+structure CheckerStateWF (st : CheckerStateData) : Prop where
+  /-- The input CNF is equivalent to the clause database over original variables. -/
+  equivalent_clauseDb : equivalentOver st.origSemVars
+    st.inputCnf.toPropTerm
+    st.clauseDb.toPropTerm
+
+  /-- In the context of the POG defining clauses, every variable is s-equivalent to the tree
+  which defines it in the POG forest. -/
+  -- TODO: need `st.depVars.contains x` as precondition?
+  equivalent_lits : ∀ l : ILit, equivalentOver st.origSemVars
+    (l.toPropTerm ⊓ st.schemeDefsToPropTerm)
+    ⟦st.scheme.toPropForm l⟧
+
+  /-- POG defining clauses extend uniquely from the original variables to their current set
+  of variables. -/
+  uep_schemeDefs : hasUniqueExtension st.origSemVars st.schemeDefsToPropTerm.semVars
+    st.schemeDefsToPropTerm
+
+  /-- `depVars` contains all variables that influence the clause database. Contrapositive:
+  if a variable is not in `depVars` then it does not influence the clause database so can be
+  defined as an extension variable. -/
+  clauseDb_depVars : ∀ x : Var, x ∈ st.clauseDb.toPropTerm.semVars → st.depVars.contains x
+
+  /-- Every formula in the POG forest (or even not in the forest, if a variable) is decomposable. -/
+  decomposable_lits : ∀ l : ILit, (st.scheme.toPropForm l).decomposable
+
+  /-- Every formula in the POG forest lives over the original variables. -/
+  vars_orig : ∀ x : Var, st.depVars.contains x →
+    ↑(st.scheme.toPropForm (.mkPos x)).vars ⊆ st.origVars'
+
+  /-- Variable dependencies are correctly stored in `depVars`. -/
+  depVars_scheme : ∀ (x : Var) (D : HashSet Var), st.depVars.find? x = some D →
+    ∀ y, y ∈ (st.scheme.toPropForm (.mkPos x)).vars ↔ D.contains y
+
+
+def CheckerState := { st : CheckerStateData // CheckerStateWF st }
+
+abbrev CheckerM := ExceptT CheckerError <| StateM CheckerState
+
+def initial (inputCnf : ICnf) : Except CheckerError CheckerState := do
   let initPog ← inputCnf.vars.foldM (init := .empty) fun acc x =>
       match acc.addVar x with
-      | .ok g => pure g 
+      | .ok g => pure g
       | .error e => throw <| .graphUpdateError e
-  return {
+  let st := {
     inputCnf
     origVars := inputCnf.vars
     clauseDb := .ofICnf inputCnf
@@ -100,43 +151,86 @@ def initial (inputCnf : ICnf) : Except CheckerError CheckerStateCore := do
       s.insert x (HashSet.empty Var |>.insert x)
     scheme := initPog
   }
+  let pfs := {
+    equivalent_clauseDb := sorry
+    equivalent_lits := sorry
+    clauseDb_depVars := sorry
+    decomposable_lits := sorry
+    vars_orig := sorry
+    depVars_scheme := sorry
+    uep_schemeDefs := sorry
+  }
+  return ⟨st, pfs⟩
 
-/-- Check if `C` is an asymmetric tautology wrt the clause database. -/
-def checkAtWithHints (C : IClause) (hints : Array ClauseIdx) : CheckerCoreM Unit := do
-  let st ← get
+/-- Check if `C` is an asymmetric tautology wrt the clause database. `C` must not already be
+a tautology. -/
+def checkAtWithHints' (st : CheckerStateData) (C : IClause) (hC : C.toPropTerm ≠ ⊤)
+    (hints : Array ClauseIdx) :
+    Except CheckerError { _u : Unit // st.clauseDb.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
+:= do
   match st.clauseDb.unitPropWithHintsDep C.toFalsifyingAssignment hints with
-  | .contradiction _ => return ()
+  | .contradiction h => return ⟨(), (by
+      rw [IClause.toPropTerm_toFalsifyingAssignment C hC, ← le_himp_iff, himp_bot, compl_compl] at h
+      assumption)⟩
   | .extended τ _ => throw <| .upNoContradiction τ
   | .hintNotUnit idx C σ => throw <| .hintNotUnit idx C σ
   | .hintNonexistent idx => throw <| .unknownClauseIdx idx
 
--- NOTE: I'll likely have to rewrite uses of monadic sequencing into functional code because
--- sequencing is non-dependent.
+/-- Check if `C` is an asymmetric tautology wrt the clause database, or simply a tautology. -/
+def checkAtWithHints (st : CheckerStateData) (C : IClause) (hints : Array ClauseIdx) :
+    Except CheckerError { _u : Unit // st.clauseDb.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
+:= do
+  -- TODO: We could maintain no-tautologies-in-clause-db as an invariant rather than dynamically
+  -- checking. Checking on every deletion could cause serious slowdown (but measure first!).
+  if hTauto : C.toPropTerm = ⊤ then
+    return ⟨(), by simp [hTauto]⟩
+  else
+    checkAtWithHints' st C hTauto hints
 
-def addClause (idx : ClauseIdx) (C : IClause) : CheckerCoreM Unit := do
-  let st ← get
-  if st.clauseDb.contains idx then
+def addClause (db₀ : ClauseDb ClauseIdx) (idx : ClauseIdx) (C : IClause) :
+    Except CheckerError { db : ClauseDb ClauseIdx // db = db₀.addClause idx C ∧ ¬db₀.contains idx }
+:= do
+  if h : db₀.contains idx then
     throw <| .duplicateClauseIdx idx
-  set { st with clauseDb := st.clauseDb.addClause idx C }
+  else
+    return ⟨db₀.addClause idx C, rfl, h⟩
 
-def saveSchemeDef (idx : ClauseIdx) : CheckerCoreM Unit := do
-  let st ← get
-  set { st with schemeDefs := st.schemeDefs.insert idx }
+def addAt (idx : ClauseIdx) (C : IClause) (hints : Array ClauseIdx) : CheckerM Unit := do
+  let ⟨st, pfs⟩ ← get
+  let ⟨_, hImp⟩ ← checkAtWithHints st C hints
+  let ⟨db', _⟩ ← addClause st.clauseDb idx C
+  let st' := { st with
+    clauseDb := db'
+  }
+  let pfs' := { pfs with
+    equivalent_clauseDb := sorry
+    equivalent_lits := sorry
+    uep_schemeDefs := sorry
+    clauseDb_depVars := sorry
+  }
+  set (σ := CheckerState) ⟨st', pfs'⟩
 
-def addAt (idx : ClauseIdx) (C : IClause) (hints : Array Nat) : CheckerCoreM Unit := do
-  checkAtWithHints C hints
-  addClause idx C
-
-def delAt (idx : ClauseIdx) (hints : Array Nat) : CheckerCoreM Unit := do
-  let st ← get
+def delAt (idx : ClauseIdx) (hints : Array ClauseIdx) : CheckerM Unit := do
+  let ⟨st, pfs⟩ ← get
   let some C := st.clauseDb.getClause idx
     | throw <| .unknownClauseIdx idx
-  set { st with clauseDb := st.clauseDb.delClause idx }
+  -- TODO: what if `idx` is a scheme def?! That's probably fine, actually. It would *not* be fine
+  -- with RAT steps. Might not want to prove it in either case however.
+  let st' := { st with
+    clauseDb := st.clauseDb.delClause idx
+  }
   -- The clause is AT by everything except itself.
-  checkAtWithHints C hints
+  let hImp ← checkAtWithHints st' C hints
+  let pfs' := { pfs with
+    equivalent_clauseDb := sorry
+    equivalent_lits := sorry
+    uep_schemeDefs := sorry
+    clauseDb_depVars := sorry
+  }
+  set (σ := CheckerState) ⟨st', pfs'⟩
 
-def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerCoreM Unit := do
-  let st ← get
+def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
+  let ⟨st, pfs⟩ ← get
 
   -- Check that added variable is fresh.
   if st.depVars.contains x then
@@ -154,24 +248,38 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerCoreM Unit :=
     throw <| .depsNotDisjoint (ls.toList.map ILit.var)
 
   -- Defining clauses for the conjunction.
-  addClause idx (ls.map (-·) |>.push (.mkPos x))
-  saveSchemeDef idx
-  let _ ← ls.mapIdxM fun i l => do
-    addClause (idx+1+i) #[.mkNeg x, l]
-    saveSchemeDef (idx+1+i)
-    
+  let ⟨db₁, _⟩ ← addClause st.clauseDb idx (ls.map (-·) |>.push (.mkPos x))
+  let mut (db, schemeDefs) := (db₁, st.schemeDefs.insert idx)
+  for h : i in [0:ls.size] do
+    let l := ls[i]'(Membership.mem.upper h)
+    let ⟨dbᵢ, _⟩ ← addClause db (idx+i+1) #[.mkNeg x, l]
+    db := dbᵢ
+    schemeDefs := schemeDefs.insert (idx+i+1)
+
   let scheme' ← match st.scheme.addConj x ls with
     | .ok s => pure s
     | .error e => throw <| .graphUpdateError e
 
-  modify fun st => { st with
+  let st' := { st with
+    clauseDb := db
     depVars := st.depVars.insert x union
     scheme := scheme'
+    schemeDefs := schemeDefs
   }
+  let pfs' := {
+    equivalent_clauseDb := sorry
+    equivalent_lits := sorry
+    uep_schemeDefs := sorry
+    clauseDb_depVars := sorry
+    decomposable_lits := sorry
+    vars_orig := sorry
+    depVars_scheme := sorry
+  }
+  set (σ := CheckerState) ⟨st', pfs'⟩
 
 def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx) :
-    CheckerCoreM Unit := do
-  let st ← get
+    CheckerM Unit := do
+  let ⟨st, pfs⟩ ← get
 
   -- Check that added variable is fresh.
   if st.depVars.contains x then
@@ -184,40 +292,52 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
     | throw <| .unknownVar l₂.var
 
   -- Check that variables are mutually exclusive.
-  -- TODO: if l₁ = -l₂ this gives unexpected results
-  checkAtWithHints #[-l₁, -l₂] hints
+  -- TODO: Check that hints are only using POG defs.
+  let _ ← checkAtWithHints st #[-l₁, -l₂] hints
 
-  -- Defining clauses for the disjunction.
-  addClause idx     #[.mkNeg x, l₁, l₂]
-  saveSchemeDef idx
-  addClause (idx+1) #[.mkPos x, -l₁]
-  saveSchemeDef (idx+1)
-  addClause (idx+2) #[.mkPos x, -l₂]
-  saveSchemeDef (idx+2)
-  
+  let ⟨db₁, _⟩ ← addClause st.clauseDb idx #[.mkNeg x, l₁, l₂]
+  let ⟨db₂, _⟩ ← addClause db₁ (idx+1) #[.mkPos x, -l₁]
+  let ⟨db₃, _⟩ ← addClause db₂ (idx+2) #[.mkPos x, -l₂]
+
   let scheme' ← match st.scheme.addDisj x l₁ l₂ with
     | .ok s => pure s
     | .error e => throw <| .graphUpdateError e
 
-  modify fun st => { st with
+  let st' := { st with
+    clauseDb := db₃
+    schemeDefs := st.schemeDefs.insert idx |>.insert (idx + 1) |>.insert (idx + 2)
     depVars := st.depVars.insert x (D₁.union D₂)
     scheme := scheme'
   }
+  let pfs' := {
+    equivalent_clauseDb := sorry
+    equivalent_lits := sorry
+    uep_schemeDefs := sorry
+    clauseDb_depVars := sorry
+    decomposable_lits := sorry
+    vars_orig := sorry
+    depVars_scheme := sorry
+  }
+  set (σ := CheckerState) ⟨st', pfs'⟩
 
-def setRoot (r : ILit) : CheckerCoreM Unit := do
-  modify fun st => { st with root := some r }
+def setRoot (r : ILit) : CheckerM Unit := do
+  modify fun ⟨st, pfs⟩ => ⟨{ st with root := some r }, { pfs with }⟩
 
-def checkFinalState : CheckerCoreM Unit := do
-  let st ← get
+-- TODO: final invariant `st.root = some r ∧ st.inputCnf.toPropTerm = ⟦st.scheme.toPropForm r⟧`
+def checkFinalState : CheckerM Unit := do
+  let ⟨st, _⟩ ← get
 
   let some r := st.root
     | throw <| .finalRootNotSet
 
+  -- NOTE: Looping over the entire clause db is not necessary. We could store the number `nClauses`
+  -- and as long as `nClauses = st.schemeDefs.size + 1` (`+ 1` for the root literal) at the end,
+  -- the conclusion follows.
   let _ ← st.clauseDb.foldM (init := ()) fun _ idx C => do
     if C != #[r] && !st.schemeDefs.contains idx then
       throw <| .finalClauseInvalid idx C
 
-def checkProofStep (step : CratStep) : CheckerCoreM Unit :=
+def checkProofStep (step : CratStep) : CheckerM Unit :=
   match step with
   | .addAt idx C hints => addAt idx C hints
   | .delAt idx hints => delAt idx hints
@@ -230,68 +350,25 @@ def checkProofStep (step : CratStep) : CheckerCoreM Unit :=
 --   st.scheme.count r st.origVars.size
 
 def checkProof (cnf : ICnf) (pf : Array CratStep) : Except CheckerError Unit := do
-  let mut st : CheckerStateCore ← initial cnf
-  let x : CheckerCoreM Unit := do
+  let mut st : CheckerState ← initial cnf
+  let x : CheckerM Unit := do
     for step in pf do
       checkProofStep step
     checkFinalState
   let (ret, _) := x.run st |>.run
   ret
 
--- For relating the scheme defining clauses to the the actual scheme
-def schemeDefsToPropTerm : CheckerCoreM (PropTerm Var) := do
-  let st ← get
-  return st.schemeDefs.fold (init := .tr) (fun acc idx =>
-    let C := st.clauseDb.getClause idx |>.getD #[]
-    acc.conj C.toPropTerm)
-
-/-- The given checker state is well-formed. -/
-structure CheckerStateWF (st : CheckerStateCore) : Prop where
-  -- `depVars` field contains all variables that influence the clause database. Contrapositive:
-  -- if a variable is not in `depVars` then it does not influence the clause database so can be
-  -- defined as an extension variable.
-  -- ∀ x : Var, x ∈ st.clauseDb.toPropTerm.semVars → st.depVars.contains x
-
-  -- Variable dependencies are correctly stored in `depVars`.
-  -- ∀ (x : Var) (D : HashSet Var), st.depVars.find? x = some D →
-  --   (st.scheme.toPropForm x).vars = D.toFinset
-
-  -- let X0 := st.inputCnf.toPropForm.vars = st.origVars.toFinset
-
-  -- The input CNF is s-equivalent to the clause database.
-  -- equivalentOver X0 st.inputCnf.toPropTerm st.clauseDb.toPropTerm
-
-  -- QUESTION: where, if at all, is this actually needed? Not for the final invariant!
-  -- The clause DB uniquely extends from the original variables to its current set of variables.
-  -- hasUniqueExtension X0 st.depVars.keysToFinset st.clauseDb.toPropTerm
-
-  -- In the context of the PDAG defining clauses, every variable is s-equivalent to the tree it is
-  -- the root of in the PDAG forest.
-  -- TODO: need `st.depVars.contains x` as precondition?
-  -- ∀ x : Var, equivalentOver X0 (x ⊓ st.schemeDefsToPropTerm) ⟦st.scheme.toPropForm x⟧
-  
-  -- Everything in the PDAG forest interprets to a formula over the original variables.
-  -- ∀ x : Var, st.depVars.contains x → (st.scheme.toPropForm x).vars ⊆ X0
-
-  -- Every formula present in the PDAG forest is decomposable.
-  -- ∀ x : Var, (st.scheme.toPropForm x).decomposable
-
 #exit
 
--- TODO: re-add tracing in a way compatible with WF-subtyping
+-- LATER: re-add tracing
 
-/-- Wraps a well-formed checker state with extra stuff for actually running and debugging it. -/
-structure CheckerState where
-  core : CheckerStateCore
-  wf : CheckerStateWF core
+/-- Wraps a well-formed checker state with extra stuff for tracing and debugging it. -/
+structure CheckerState' where
+  core : CheckerState
   verbose : Bool := false
   trace : Array String := #[]
 
 namespace CheckerState
-
--- Problem: functions like addClause temporarily break invariants, so can't live in CheckerWFM
--- Solution (?): write CheckerWFM and a lift from CheckerM that takes a proof of the invariants
--- being preserved
 
 abbrev CheckerM := ExceptT CheckerError <| StateM CheckerState
 
