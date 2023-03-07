@@ -1,20 +1,129 @@
-\documentclass{llncs}
-\usepackage{latexsym}
-\usepackage{times}
+\documentclass[letterpaper,USenglish,cleveref, autoref, thm-restate]{lipics-v2021}
+%This is a template for producing LIPIcs articles. 
+%See lipics-v2021-authors-guidelines.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling autoref support, use "autoref"
+%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
+%for enabling thm-restate support, use "thm-restate"
+%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
+%for producing a PDF according the PDF/A standard, add "pdfa"
+
+%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
 \usepackage{amsmath}
-\usepackage{graphicx}
 \usepackage{tikz}
 \usepackage{pgfplots}
-\usepackage{cite}
 \usepackage{booktabs}
-\usepackage{adjustbox}
-\usepackage{marvosym}
+
+\newcommand{\pand}{\mathbin{\land^{\sf p}}}
+\newcommand{\por}{\mathbin{\lor^{\sf p}}}
+\DeclareMathOperator*{\Pand}{\bigwedge^{\sf v}}
+\DeclareMathOperator*{\Por}{\bigvee^{\sf a}}
+\newcommand{\boolnot}{\neg}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\oneminus}{{\sim}}
+\newcommand{\lit}{\ell}
+
+\newcommand{\varset}{X}
+\newcommand{\exvarset}{Z}
+\newcommand{\dependencyset}{{\cal D}}
+\newcommand{\litset}{{\cal L}}
+\newcommand{\ring}{{\cal R}}
+\newcommand{\dset}{{\cal A}}
+\newcommand{\rep}{\textbf{R}}
+\newcommand{\radd}{+}
+\newcommand{\rmul}{\times}
+\newcommand{\addident}{\textbf{0}}
+\newcommand{\mulident}{\textbf{1}}
+\newcommand{\imply}{\Rightarrow}
+
+\newcommand{\assign}{\alpha}
+\newcommand{\passign}{\rho}
+\newcommand{\uassign}{{\cal U}}
+\newcommand{\modelset}{{\cal M}}
+
+\newcommand{\indegree}{\textrm{indegree}}
+\newcommand{\outdegree}{\textrm{outdegree}}
+\newcommand{\validate}{\textsf{validate}}
+
+\newcommand{\makenode}[1]{\mathbf{#1}}
+\newcommand{\nodeu}{\makenode{u}}
+\newcommand{\nodev}{\makenode{v}}
+\newcommand{\nodes}{\makenode{s}}
+\newcommand{\nodep}{\makenode{p}}
+\newcommand{\noder}{\makenode{r}}
+
+\newcommand{\simplify}[2]{#1|_{#2}}
+\newcommand{\prov}{\mathit{Prov}}
+
+\newcommand{\progname}[1]{\textsc{#1}}
+\newcommand{\dfour}{\progname{d4}}
+\newcommand{\Dfour}{\progname{d4}}
+\newcommand{\generator}{\progname{d2p}}
+\newcommand{\Generator}{\progname{d2p}}
+\newcommand{\checker}{\progname{crat-check}}
+\newcommand{\Checker}{\progname{Crat-check}}
+
 %% Colored hyperlink 
-\newcommand{\hcref}[1]{\texttt{\small\url{#1}}}
+%\newcommand{\cref}[2]{\href{#1}{\color{blue}#2}}
+%% Colored hyperlink showing link in TT font
+% \newcommand{\chref}[1]{\href{#1}{\small\tt \color{blue}#1}}
+\newcommand{\hcref}[1]{\cref{#1}{\small\tt #1}}
 
 
-\bibliographystyle{splncs04}
-%\bibliographystyle{abbrv}
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{Certified Knowledge Compilation \\ with Application to Verified Model Counting}
+
+\titlerunning{Certified Knowledge Compilation}
+
+\author{Randal E. Bryant}{Computer Science Department, Carnegie Mellon University, Pittsburgh, PA 15213 USA}{rebryant@cmu.edu}{https://orcid.org/0000-0001-5024-6613}{Supported by NSF grant CCF-2108521}
+\author{Wojciech Nawrocki}{Department of Philosophy, Carnegie Mellon University}{wjnawrock@cmu.edu}{https://orcid.org/0000-0002-8839-0618}{}
+\author{Jeremy Avigad}{Department of Philosophy, Carnegie Mellon University}{avigad@cmu.edu}{https://orcid.org/0000-0003-1275-315X}{}
+\author{Marijn J. H. Heule}{Computer Science Department, Carnegie Mellon University}{marijn@cmu.edu}{https://orcid.org/0000-0002-5587-8801}{Supported by NSF grant CCF-2108521}
+
+\authorrunning{R. E. Bryant, et al} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+%\Copyright{Jane Open Access and Joan R. Public} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+%\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm 
+
+%\keywords{Dummy keyword} %TODO mandatory; please add comma-separated list of keywords
+
+%\category{} %optional, e.g. invited paper
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+%\nolinenumbers %uncomment to disable line numbering
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\EventEditors{John Q. Open and Joan R. Access}
+%\EventNoEds{2}
+%\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+%\EventShortTitle{CVIT 2016}
+%\EventAcronym{CVIT}
+%\EventYear{2016}
+%\EventDate{December 24--27, 2016}
+%\EventLocation{Little Whinging, United Kingdom}
+%\EventLogo{}
+%\SeriesVolume{42}
+%\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\program}[1]{\textsc{#1}}
+\newcommand{\lean}{\program{lean4}}
+
+\begin{document}
+
+\maketitle
 
 \definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
 \definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
@@ -44,25 +153,6 @@
 
 
 
-\title{Validated Model Counting Data \\ Version of \today}
-
-\author{Randal E. Bryant}
-
-\authorrunning{R. E. Bryant}
-
-\titlerunning{Validated Model Counting}
-
-
-\institute{
-Computer Science Department \\
-Carnegie Mellon University, Pittsburgh, PA, United States
-}
-
-\begin{document}
-
-\maketitle
-
-
 \section*{Benchmark machine}
 \begin{itemize}
 \item 2021 MacBook Pro 18,4
@@ -82,7 +172,7 @@ Carnegie Mellon University, Pittsburgh, PA, United States
 \begin{enumerate}
    \item Retrieved 200 public model counting benchmarks from 2022 Model Counting Competition website
      \begin{center}
-       \hcref{https://mccompetition.org/2022/mc\_description.html}
+       \hcref{https://mccompetition.org/2022/mc-description.html}
      \end{center}
      \begin{itemize}
      \item 100 public instances from Track 1 (unweighted model counting)
@@ -376,6 +466,37 @@ Here is another way to summarize the impact on the combined time to generate and
   using lemmas, 7 by using literal merging, and 49 by enabling both
   optimizations.
 \end{itemize}
+
+\section{Comparison with MICE}
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=1000,
+                              x post scale=2.0, y post scale=2.2,
+                              xmode=log,xmin=0.01,xmax=100,
+                              xtick={0.01, 0.1,1.0,10,100}, xticklabels={0.01, 0.1, 1.0, 10, 100},
+                              ytick={0.01, 0.1,1.0,10,100,1000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
+                              xlabel={CRAT total time (seconds)}, ylabel={MICE total time (seconds)},
+            ]
+    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1000,1000000)};
+    \input{data-formatted/time-mice-compare}
+    \node[left] at (axis cs: 0.9,0.12) {$0{.}1\times$};
+    \node[left] at (axis cs: 0.09,0.12) {$1\times$};
+    \node[left] at (axis cs: 0.09,1.2) {$10\times$};
+    \node[left] at (axis cs: 0.09,12.0) {$100\times$};
+    \node[left] at (axis cs: 0.09,120.0) {$1000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Running Time for MICE versus CRAT proof chains}
+\label{fig:mice}
+\end{figure}
 
 
 \bibliography{references}

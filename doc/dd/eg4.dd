@@ -1,18 +1,18 @@
 # Representation of schema for 5-clause example
 # Nodes
 # Labeled nodes
-n t   175 425 t=r r=20 e=fillcolor f=fillcolor l=$r$
+n t   175 425 t=r r=20 e=fillcolor f=fillcolor l=$\noder$
 n x1   25 300 t=r r=20 e=fillcolor f=fillcolor l=$x_1$
 n x2   25 200 t=r r=20 e=fillcolor f=fillcolor l=$x_2$
 n x3   25 100 t=r r=20 e=fillcolor f=fillcolor l=$x_3$
 n x4   25   0 t=r r=20 e=fillcolor f=fillcolor l=$x_4$
 # Operators
-n s10 175 350 l=$\lor^{\textsf{a}}$
-n p9  125 250 l=$\land^{\textsf{a}}$
-n p8  225 250 l=$\land^{\textsf{a}}$
-n s7  175 150 l=$\lor^{\textsf{a}}$
-n p6  125  50 l=$\land^{\textsf{a}}$
-n p5  225  50 l=$\land^{\textsf{a}}$
+n s10 175 350 l=$\lor^{\textsf{p}}$
+n p9  125 250 l=$\land^{\textsf{p}}$
+n p8  225 250 l=$\land^{\textsf{p}}$
+n s7  175 150 l=$\lor^{\textsf{p}}$
+n p6  125  50 l=$\land^{\textsf{p}}$
+n p5  225  50 l=$\land^{\textsf{p}}$
 # Connectors
 n x1a  75 300 t=e
 n x1b 175 300 t=e
@@ -51,9 +51,9 @@ e x4a p6
 e x4b p5
 e x4n x4n m=b
 # Tags
-t s10 $s_{10}$ p=r off=0
-t  p9 $p_{9}$ p=r off=0
-t  p8 $p_{8}$ p=r off=0
-t  s7 $s_{7}$ p=r off=0
-t  p6 $p_{6}$ p=r off=0
-t  p5 $p_{5}$ p=r off=0
+t s10 $\nodes_{10}$ p=r off=0
+t  p9 $\nodep_{9}$ p=r off=0
+t  p8 $\nodep_{8}$ p=r off=0
+t  s7 $\nodes_{7}$ p=r off=0
+t  p6 $\nodep_{6}$ p=r off=0
+t  p5 $\nodep_{5}$ p=r off=0
