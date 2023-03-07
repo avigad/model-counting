@@ -23,15 +23,16 @@ def usage(name):
     eprint("  -l LABELS     Provide comma-separated set of heading labels")
     eprint("  FILE1.csv ... Source files")
 
-# List of keys in order first encountered
-keys = []
-# Growing list of result lines
-lines = []
-# Set of keys with missing entries
-missingKeys = set([])
+# Growing set of result lines, indexed by key
+globalEntries = {}
+# Number of columns in entries
+globalCount = 0
 
-def addData(fname, first = False):
-    global keys, lines, missingKeys
+# Process a single file, building entries
+# Return dictionary of entries + count of number of entries per line
+def processFile(fname):
+    entries = {}
+    columnCount = 0
     try:
         infile = open(fname)
         creader = csv.reader(infile)
@@ -41,74 +42,77 @@ def addData(fname, first = False):
     row = 0
     for fields in creader:
         row += 1
-        if len(fields) != 2:
-            eprint("Error in file %s, row %d.  Can only handle CSV files with two items per row" % (fname, row))
-            sys.exit(1)
         key = fields[0]
-        val = fields[1]
-        if first:
-            keys.append(key)
-            lines.append(key + "," + val)
-        else:
-            if row > len(keys):
-                eprint("File %s, row %d.  Too many entries" % (fname, row))
-                sys.exit(1)
-            while row <= len(keys) and keys[row-1] != key:
-                missingKeys.add(keys[row-1])
-                lines[row-1] += ","
-                row += 1
-            if row > len(keys):
-                eprint("File %s, row %d.  Couldn't find key '%s'" % (fname, row, key))
-                sys.exit(1)                
-            lines[row-1] += "," + val
-    row += 1
-    while row <= len(lines):
-        lines[row-1] += ","
-        missingKeys.add(keys[row-1])
-        row += 1
+        entry = fields[1:]
+        dcount = len(entry)
+        if columnCount == 0:
+            columnCount = dcount
+        elif dcount != columnCount:
+            eprintf("File %s, row %d.  Expecting %d entries.  Found %d" % (fname, row, columnCount, dcount))
+            sys.exit(1)
+        entries[key] = entry
     infile.close()
-        
-
-def filter():
-    global keys, lines
-    okeys = keys
-    olines = lines
-    keys = []
-    lines = []
-    for (key,line) in zip(okeys, olines):
-        if key not in missingKeys:
-            keys.append(key)
-            lines.append(line)
+    return (entries, columnCount)
     
-def sumLine(sumSet):
-    global lines
-    olines = lines
-    lines = []
-    for (key,line) in zip(keys, olines):
-        fields = line.split(",")
-        sfields = [fields[i] for i in range(len(fields)) if i in sumSet]
-        sval = ""
+# Merge two sets of entries.
+# When they both don't have the same keys, then either form superset or subset
+def merge(entries1, count1, entries2, count2, subset = True):
+    entries = {}
+    for k in entries1.keys():
+        entry1 = entries1[k]
+        if k in entries2:
+            entry2 = entries2[k]
+            entries[k] = entry1 + entry2
+        elif not subset:
+            entry2 = [""] * count2
+            entries[k] = entry1 + entry2
+    if not subset:
+        for k in entries2.keys():
+            if k in entries1:
+                continue
+            entry1 = [""] * count1
+            entry2 = entries2[k]
+            entries[k] = entry1 + entry2
+    return entries
+        
+def nextFile(fname, first, subset):
+    global globalEntries, globalCount
+    entries, ccount = processFile(fname)
+    if first:
+        globalEntries = entries
+        globalCount = ccount
+    else:
+        globalEntries = merge(globalEntries, globalCount, entries, ccount, subset)
+        globalCount += ccount
+#    print("globalCount = %d" % globalCount)
+#    print("globalEntries = %s" % str(globalEntries))
+
+def sumEntries(sumSet):
+    global globalEntries, globalCount
+    for k in globalEntries.keys():
+        fields = globalEntries[k]
+        sfields = [fields[i] for i in range(globalCount) if i+1 in sumSet]
         try:
             nums = [float(field) if len(field) > 0 else 0.0 for field in sfields]
-            sval = str(sum(nums))
         except:
-            eprint("key = %s.  Couldn't parse numbers in line '%s'" % (key, line))
-        lines.append(line + "," + sval)
+            print("Couldn't sum fields for line with key %s.  Summing over %s" % (k, str(sfields)))
+            sys.exit(1)
+        sval = sum(nums)
+        fields.append(sval)
+    globalCount += 1
 
 def build(lstring, flist, doFilter, sumSet):
-    global lines
     first = True
     for fname in flist:
-        addData(fname, first)
+        nextFile(fname, first, doFilter)
         first = False
-    if doFilter:
-        filter()
     if sumSet is not None:
-        sumLine(sumSet)
+        sumEntries(sumSet)
     if len(lstring) > 0:
-        lines = [lstring] + lines
-    for line in lines:
-        print(line)
+        print(lstring)
+    for k in sorted(globalEntries.keys()):
+        sfields = [k] + [str(field) for field in globalEntries[k]]
+        print(",".join(sfields))
 
 def run(name, args):
     doFilter = False
