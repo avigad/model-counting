@@ -15,6 +15,7 @@ rdata:
 	cp -p $(LDATA)/clauses-lemma-nolemma.csv $(SRCDATA)
 	cp -p $(LDATA)/clauses-nosplit-split.csv $(SRCDATA)
 	cp -p $(LDATA)/clauses-optimized-unoptimized.csv $(SRCDATA)
+	cp -p $(LDATA)/time-mice-compare.csv $(SRCDATA)
 
 data:
 	rm -rf data-formatted
@@ -35,3 +36,5 @@ data:
 		< $(SRCDATA)/clauses-nosplit-split.csv > data-formatted/clauses-nosplit-split.tex
 	$(DGEN) -X 2 -Y 3 -O "only marks, color=darkestblue, mark=pentagon*,  mark options={scale=0.9}, opacity=0.8" \
 		< $(SRCDATA)/clauses-optimized-unoptimized.csv > data-formatted/clauses-optimized-unoptimized.tex
+	$(DGEN) -X 5 -Y 8 -O "only marks, color=redorange, mark=*,  mark options={scale=0.9}, opacity=0.7" \
+		< $(SRCDATA)/time-mice-compare.csv > data-formatted/time-mice-compare.tex
