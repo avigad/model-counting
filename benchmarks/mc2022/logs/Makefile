@@ -38,3 +38,13 @@ data:
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-nolemma.csv seconds-check-nolemma.csv > time-verify-nolemma.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-split.csv seconds-check-split.csv > time-verify-split.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-split+nolemma.csv seconds-check-split+nolemma.csv > time-verify-split+nolemma.csv
+
+	$(INTERP) $(GRAB) "root model" *.mice_log > models-mice.csv
+	$(INTERP) $(GRAB) "N2T LOG: Elapsed" *.mice_log > seconds-n2t.csv
+	$(INTERP) $(GRAB) "TC LOG: Elapsed" *.mice_log > seconds-tc.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-n2t.csv seconds-tc.csv >  time-mice.csv
+	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-gen.csv seconds-check.csv seconds-count.csv > time-ours.csv
+	$(INTERP) $(MERGE) -f time-ours.csv time-mice.csv models-mice.csv > time-mice-compare.csv
+	$(INTERP) $(GRAB) -1 "GEN: LOG: size" *.log > bytes-ours.csv
+	$(INTERP) $(GRAB) -1 "N2T: LOG: size" *.mice_log > bytes-mice.csv
+	$(INTERP) $(MERGE) -f bytes-ours.csv bytes-mice.csv > bytes-mice-compare.csv
