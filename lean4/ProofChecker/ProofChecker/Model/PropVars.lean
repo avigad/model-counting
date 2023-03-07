@@ -252,7 +252,7 @@ theorem equivalentOver_semVars {X : Set ν} : φ₁.semVars ⊆ X → φ₂.semV
   have ⟨σ₁, hA, hS⟩ := (e τ).mp ⟨τ, τ.agreeOn_refl, h⟩
   have : σ₁ ⊨ φ₂ ↔ τ ⊨ φ₂ := agreeOn_semVars (hA.subset h₂)
   exact this.mp hS
-
+  
 /-- A function has the unique extension property from `X` to `Y` (both sets of variables) when any
 satisfying assignment, if it exists, is uniquely determined on `Y` by its values on `X`. Formally,
 any two satisfying assignments which agree on `X` must also agree on `Y`. -/
