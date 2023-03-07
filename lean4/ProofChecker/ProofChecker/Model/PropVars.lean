@@ -33,7 +33,7 @@ namespace PropAssignment
 def agreeOn (X : Set ν) (σ₁ σ₂ : PropAssignment ν) : Prop :=
   ∀ x ∈ X, σ₁ x = σ₂ x
 
-theorem agreeOn_refl (σ : PropAssignment ν) : agreeOn X σ σ :=
+theorem agreeOn_refl (X : Set ν) (σ : PropAssignment ν) : agreeOn X σ σ :=
   fun _ _ => rfl
 theorem agreeOn.symm : agreeOn X σ₁ σ₂ → agreeOn X σ₂ σ₁ :=
   fun h x hX => Eq.symm (h x hX)
@@ -42,7 +42,7 @@ theorem agreeOn.trans : agreeOn X σ₁ σ₂ → agreeOn X σ₂ σ₃ → agre
 
 theorem agreeOn.subset : X ⊆ Y → agreeOn Y σ₁ σ₂ → agreeOn X σ₁ σ₂ :=
   fun hSub h x hX => h x (hSub hX)
-  
+
 variable [DecidableEq ν]
 
 theorem agreeOn_set_of_not_mem {x : ν} {X : Set ν} (σ : PropAssignment ν) (v : Bool) : x ∉ X →
@@ -170,7 +170,7 @@ private instance semVars'_finite (φ : PropTerm ν) : Set.Finite φ.semVars' :=
 Unlike `vars`, this set is stable under equivalence of formulas. -/
 noncomputable def semVars (φ : PropTerm ν) : Finset ν :=
   Set.Finite.toFinset φ.semVars'_finite
-  
+
 theorem mem_semVars (φ : PropTerm ν) (x : ν) :
     x ∈ φ.semVars ↔ ∃ (τ : PropAssignment ν), τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ := by
   simp [Set.Finite.mem_toFinset, semVars, semVars']
@@ -204,7 +204,7 @@ theorem eval_of_agreeOn_semVars {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment
   have := agreeOn_semVars h
   dsimp only [SemanticEntails.entails, satisfies] at this
   aesop
-  
+
 theorem semVars_disj (φ₁ φ₂ : PropTerm ν) : (φ₁ ⊔ φ₂).semVars ⊆ φ₁.semVars ∪ φ₂.semVars := by
   intro x
   simp only [Finset.mem_union, mem_semVars]
@@ -214,13 +214,38 @@ theorem semVars_conj (φ₁ φ₂ : PropTerm ν) : (φ₁ ⊓ φ₂).semVars ⊆
   intro x
   simp only [Finset.mem_union, mem_semVars, satisfies_conj, not_and_or]
   aesop
-  
+
 /-- Two functions φ₁ and φ₂ are equivalent over X when for every assignment τ, models of φ₁
 extending τ over X are in bijection with models of φ₂ extending τ over X. -/
 -- This is `sequiv` here: https://github.com/ccodel/verified-encodings/blob/master/src/cnf/encoding.lean
 def equivalentOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :=
   ∀ τ, (∃ (σ₁ : PropAssignment ν), σ₁.agreeOn X τ ∧ σ₁ ⊨ φ₁) ↔
        (∃ (σ₂ : PropAssignment ν), σ₂.agreeOn X τ ∧ σ₂ ⊨ φ₂)
+
+-- NOTE: This is a better definition than `equivalentOver`. It would be nice to clean the proofs up
+-- to use it, but it's not essential.
+def extendsOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :=
+  ∀ (σ₁ : PropAssignment ν), σ₁ ⊨ φ₁ → ∃ (σ₂ : PropAssignment ν), σ₂.agreeOn X σ₁ ∧ σ₂ ⊨ φ₂
+  
+theorem extendsOver_iff_equivalentOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :
+    equivalentOver X φ₁ φ₂ ↔ (extendsOver X φ₁ φ₂ ∧ extendsOver X φ₂ φ₁) := by
+  constructor
+  case mp =>
+    intro h
+    exact ⟨fun σ₁ h₁ => h σ₁ |>.mp ⟨σ₁, σ₁.agreeOn_refl X, h₁⟩,
+      fun σ₂ h₂ => h σ₂ |>.mpr ⟨σ₂, σ₂.agreeOn_refl X, h₂⟩⟩
+  case mpr =>
+    intro ⟨h₁, h₂⟩
+    intro τ
+    constructor
+    case mp =>
+      intro ⟨σ₁, hAgree₁, hσ₁⟩
+      have ⟨σ₂, hAgree₂, hσ₂⟩ := h₁ σ₁ hσ₁
+      exact ⟨σ₂, hAgree₂.trans hAgree₁, hσ₂⟩
+    case mpr =>
+      intro ⟨σ₂, hAgree₂, hσ₂⟩
+      have ⟨σ₁, hAgree₁, hσ₁⟩ := h₂ σ₂ hσ₂
+      exact ⟨σ₁, hAgree₁.trans hAgree₂, hσ₁⟩
 
 theorem equivalentOver_refl (φ : PropTerm ν) : equivalentOver X φ φ :=
   fun _ => ⟨id, id⟩
@@ -238,7 +263,7 @@ theorem equivalentOver.subset {X Y : Set ν} : X ⊆ Y → equivalentOver Y φ�
       ∃ (σ₂ : PropAssignment ν), σ₂.agreeOn X τ ∧ σ₂ ⊨ φ₂ from
     fun e τ => ⟨this φ₁ φ₂ τ e, this φ₂ φ₁ τ e.symm⟩
   intro φ₁ φ₂ τ e ⟨σ₁, hA, hS⟩
-  have ⟨σ₃, hA', hS'⟩ := (e σ₁).mp ⟨σ₁, σ₁.agreeOn_refl, hS⟩
+  have ⟨σ₃, hA', hS'⟩ := (e σ₁).mp ⟨σ₁, σ₁.agreeOn_refl _, hS⟩
   exact ⟨σ₃, hA'.subset hSub |>.trans hA, hS'⟩
 
 theorem equivalentOver_semVars {X : Set ν} : φ₁.semVars ⊆ X → φ₂.semVars ⊆ X →
@@ -249,10 +274,10 @@ theorem equivalentOver_semVars {X : Set ν} : φ₁.semVars ⊆ X → φ₂.semV
     ext τ
     exact ⟨this h₂ e, this h₁ e.symm⟩
   intro φ₁ φ₂ τ h₂ e h
-  have ⟨σ₁, hA, hS⟩ := (e τ).mp ⟨τ, τ.agreeOn_refl, h⟩
+  have ⟨σ₁, hA, hS⟩ := (e τ).mp ⟨τ, τ.agreeOn_refl _, h⟩
   have : σ₁ ⊨ φ₂ ↔ τ ⊨ φ₂ := agreeOn_semVars (hA.subset h₂)
   exact this.mp hS
-  
+
 /-- A function has the unique extension property from `X` to `Y` (both sets of variables) when any
 satisfying assignment, if it exists, is uniquely determined on `Y` by its values on `X`. Formally,
 any two satisfying assignments which agree on `X` must also agree on `Y`. -/

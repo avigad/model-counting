@@ -1,4 +1,5 @@
 import ProofChecker.Data.ICnf
+import ProofChecker.Data.Pog
 import ProofChecker.Model.PropVars
 import ProofChecker.Model.Extensions
 import ProofChecker.CountModels
@@ -56,22 +57,22 @@ theorem addDisj_new_var_equiv (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
 theorem addDisj_decomposable (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropForm Var) :
     -- Note: also works with l₁.semVars ⊆ Γ.semVars
     l₂.semVars ⊆ Γ.semVars → hasUniqueExtension X Γ.semVars Γ →
-    Γ ≤ l₁ᶜ ⊔ l₂ᶜ → equivalentOver X (l₁ ⊓ Γ) ⟦φ₁⟧ → equivalentOver X (l₂ ⊓ Γ) ⟦φ₂⟧ →
+    Γ ⊓ l₁ ⊓ l₂ ≤ ⊥ → equivalentOver X (l₁ ⊓ Γ) ⟦φ₁⟧ → equivalentOver X (l₂ ⊓ Γ) ⟦φ₂⟧ →
     φ₁.decomposable → φ₂.decomposable → (φ₁.disj φ₂).decomposable := by
   intro hL₂ hUep hImp e₁ e₂ hD₁ hD₂
   refine ⟨hD₁, hD₂, fun τ ⟨h₁, h₂⟩ => ?_⟩
   have h₁ : τ ⊨ ⟦φ₁⟧ := h₁
   have h₂ : τ ⊨ ⟦φ₂⟧ := h₂
-  have ⟨σ₁, hAgree₁, hσ₁⟩ := e₁ τ |>.mpr ⟨τ, PropAssignment.agreeOn_refl _, h₁⟩
-  have ⟨σ₂, hAgree₂, hσ₂⟩ := e₂ τ |>.mpr ⟨τ, PropAssignment.agreeOn_refl _, h₂⟩
+  have ⟨σ₁, hAgree₁, hσ₁⟩ := e₁ τ |>.mpr ⟨τ, PropAssignment.agreeOn_refl _ _, h₁⟩
+  have ⟨σ₂, hAgree₂, hσ₂⟩ := e₂ τ |>.mpr ⟨τ, PropAssignment.agreeOn_refl _ _, h₂⟩
   simp at hσ₁ hσ₂
   have hσ₁Γ : σ₁ ⊨ Γ := by tauto
   have hσ₂Γ : σ₂ ⊨ Γ := by tauto
   have hAgree : σ₁.agreeOn Γ.semVars σ₂ := hUep _ _ hσ₁Γ hσ₂Γ (hAgree₁.trans hAgree₂.symm)
   have : σ₂ ⊨ l₂ := by tauto
   have : σ₁ ⊨ l₂ := agreeOn_semVars (hAgree.subset hL₂) |>.mpr this
-  have : σ₁ ⊨ l₁ᶜ ⊔ l₂ᶜ := entails_ext.mp hImp _ hσ₁Γ
-  simp_all
+  have : σ₁ ⊨ ⊥ := entails_ext.mp hImp _ (by simp; tauto)
+  simp at this
 
 -- Alternative: use disjoint variables condition on φ₁/φ₂ to put together pair of assignments?!
 theorem addConj_new_var_equiv₂ (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
@@ -107,3 +108,14 @@ theorem addConj_new_var_equiv₂ (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
     have : σ₃ ⊨ l₂ := agreeOn_semVars (σ₁.agreeOn_set_of_not_mem _ hL₂) |>.mpr (by tauto)
     have : σ₃ ⊨ Γ := agreeOn_semVars (σ₁.agreeOn_set_of_not_mem _ hΓ) |>.mpr (by tauto)
     exact ⟨σ₃, σ₁.agreeOn_set_of_not_mem _ hMem |>.trans hAgree₁, by simp; tauto⟩
+
+-- TODO: Extend to n-ary conjunctions. Possible formulation:
+theorem addConj_new_var_equiv (G : Pog) (Γ : PropTerm Var) (ls : Array ILit) : p ∉ X → p ∉ Γ.semVars →
+    hasUniqueExtension X Γ.semVars Γ →
+    (∀ l ∈ ls.data, p ≠ l.var ∧ l.var ∈ Γ.semVars ∧ PropTerm.semVars ⟦G.toPropForm l⟧ ⊆ Γ.semVars ∧
+      equivalentOver X (l.toPropTerm ⊓ Γ) ⟦G.toPropForm l⟧) →
+    equivalentOver X
+      -- TODO: Clean up `arrayConjTerm` and family
+      (.var p ⊓ (.biImpl (.var p) (PropForm.arrayConjTerm (ls.map ILit.toPropForm))) ⊓ Γ)
+      (PropForm.arrayConjTerm (ls.map G.toPropForm)) :=
+  sorry

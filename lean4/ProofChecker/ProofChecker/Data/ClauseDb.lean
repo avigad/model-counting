@@ -4,7 +4,7 @@ import ProofChecker.Model.PropVars
 import ProofChecker.Data.HashMap.Extra
 import ProofChecker.Data.ICnf
 
-/-! Clause database together with some (TBD provably correct) methods. For example, we can conclude
+/-! Clause database together with some (provably correct) methods. For example, we can conclude
 that if a clause follows from the current database by unit propagation, then it is implied by the
 database's interpretation as a propositional formula. -/
 
