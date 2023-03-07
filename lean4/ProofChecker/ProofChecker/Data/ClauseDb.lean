@@ -80,9 +80,7 @@ def ofICnf (cnf : ICnf) : ClauseDb Nat :=
     (db.addClause idx C, idx + 1)
   db
 
-/-- Propagate units starting from the given assignment. The clauses in `hints` are expected
-to become unit in the order provided. Return the extended assignment, or `none` if a contradiction
-was found. See `unitPropWithHintsDep` for a certified version. -/
+@[deprecated]
 def unitPropWithHints (db : ClauseDb α) (τ : PartPropAssignment) (hints : Array α)
     : UnitPropResult α := Id.run do
   let mut τ := τ
@@ -380,30 +378,42 @@ theorem toPropTerm_ofICnf (cnf : ICnf) : (ofICnf cnf).toPropTerm = cnf.toPropTer
 /-! `unitPropWithHints` -/
 
 inductive UnitPropResultDep {α : Type} [BEq α] [Hashable α]
-    (db : ClauseDb α) (σ : PartPropAssignment) where
-  | contradiction (h : db.toPropTerm ≤ σ.toPropTermᶜ)
-  | extended (σ' : PartPropAssignment) (h : db.toPropTerm ⊓ σ.toPropTerm ≤ σ'.toPropTerm)
+    (db : ClauseDb α) (σ : PartPropAssignment) (hints : Array α) where
+  /-- A contradiction was derived. The contradiction is implied by the subset of the database
+  used in hints as well as the initial assignment. -/
+  | contradiction (h : db.toPropTermSub (· ∈ hints.data) ⊓ σ.toPropTerm ≤ ⊥)
+  /-- The partial assignment was extended. The final assignment `σ'` is implied by the subset of
+  the database used in hints as well as the initial assignment. -/
+  | extended (σ' : PartPropAssignment)
+             (h : db.toPropTermSub (· ∈ hints.data) ⊓ σ.toPropTerm ≤ σ'.toPropTerm)
   /-- The hint `C` at index `idx` did not become unit under `σ`. -/
   | hintNotUnit (idx : α) (C : IClause) (σ : PartPropAssignment)
-  /-- The hint points at a nonexistent clause. -/
+  /-- The hint index `idx` points at a nonexistent clause. -/
   | hintNonexistent (idx : α)
 
-open scoped PropTerm in
+/-- Propagate units starting from the given assignment. The clauses in `hints` are expected
+to become unit in the order provided. Return the extended assignment, or `none` if a contradiction
+was found. See `unitPropWithHintsDep` for a certified version. -/
 def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints : Array α)
-    : UnitPropResultDep db σ₀ := Id.run do
-  let mut σ : {σ : PartPropAssignment // db.toPropTerm ⊓ σ₀.toPropTerm ≤ σ.toPropTerm } :=
+    : UnitPropResultDep db σ₀ hints := Id.run do
+  let mut σ : {σ : PartPropAssignment //
+      db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤ σ.toPropTerm } :=
     ⟨σ₀, inf_le_right⟩
-  for hint in hints do
+  for h : i in [0:hints.size] do
+    let hint := hints[i]'(Membership.mem.upper h)
+    have hMem : hint ∈ hints.data := Array.getElem_mem_data hints _
+
     match hGet : db.getClause hint with
     | none => return .hintNonexistent hint
     | some C =>
-      have hDbσ₀ : db.toPropTerm ⊓ σ₀.toPropTerm ≤ C.toPropTerm ⊓ σ.val.toPropTerm :=
-        le_inf (inf_le_of_left_le (toPropTerm_of_getClause_eq_some _ hGet)) σ.property
+      have hDbσ₀ :
+          db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤ C.toPropTerm ⊓ σ.val.toPropTerm :=
+        le_inf (inf_le_of_left_le (toPropTermSub_of_getClause_eq_some db hMem hGet)) σ.property
       match hRed : C.reduce σ.val with
       | some #[u] =>
-        have : db.toPropTerm ⊓ σ₀.toPropTerm ≤
+        have : db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤
             PartPropAssignment.toPropTerm (σ.val.insert u.var u.polarity) := by
-          have hU : db.toPropTerm ⊓ σ₀.toPropTerm ≤ u.toPropTerm := by
+          have hU : db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤ u.toPropTerm := by
             have h := IClause.reduce_eq_some _ _ _ hRed
             conv at h => rhs; simp [IClause.toPropTerm]
             exact le_trans hDbσ₀ h
@@ -424,11 +434,10 @@ def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints 
             exact hσ _ _ hFind
         σ := ⟨σ.val.insert u.var u.polarity, this⟩
       | some #[] =>
-        have : db.toPropTerm ≤ σ₀.toPropTermᶜ := by
+        have : db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤ ⊥ := by
           have : C.toPropTerm ⊓ σ.val.toPropTerm ≤ ⊥ :=
             IClause.reduce_eq_some _ _ _ hRed
-          rw [le_compl_iff_disjoint_right]
-          exact disjoint_iff_inf_le.mpr (le_trans hDbσ₀ this)
+          exact le_trans hDbσ₀ this
         return .contradiction this
       | _ => return .hintNotUnit hint C σ.val
   return .extended σ.val σ.property
