@@ -119,3 +119,9 @@ theorem addConj_new_var_equiv (G : Pog) (Γ : PropTerm Var) (ls : Array ILit) : 
       (.var p ⊓ (.biImpl (.var p) (PropForm.arrayConjTerm (ls.map ILit.toPropForm))) ⊓ Γ)
       (PropForm.arrayConjTerm (ls.map G.toPropForm)) :=
   sorry
+
+/-! Other stuff that doesn't fit anywhere. -/
+
+theorem decomposable_lit (l : ILit) : l.toPropForm.decomposable := by
+  dsimp [ILit.toPropForm]
+  cases l.polarity <;> simp [PropForm.decomposable]

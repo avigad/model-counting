@@ -480,19 +480,45 @@ theorem contains_iff (m : HashMap α β) (a : α) :
   sorry
 
 theorem not_contains_iff (m : HashMap α β) (a : α) :
-    !m.contains a ↔ m.find? a = none := by
-  simp only [Bool.bnot_eq_to_not_eq, contains_iff, not_exists]
+    m.contains a = false ↔ m.find? a = none := by
+  have := contains_iff m a
   apply Iff.intro
-  . intro h
-    cases h' : find? m a <;> simp_all
-  . intro h; rw [h]; simp
+  . intro h; cases h' : find? m a <;> simp_all
+  . intro h; simp_all
   
-theorem not_contains_of_isEmpty (m : HashMap α β) (a : α) : m.isEmpty → !m.contains a :=
+theorem not_contains_of_isEmpty (m : HashMap α β) (a : α) : m.isEmpty → m.contains a = false :=
   fun h => not_contains_iff _ _ |>.mpr (find?_of_isEmpty m a h)
 
-theorem not_contains_empty (β) (a : α) : !(empty : HashMap α β).contains a :=
+@[simp]
+theorem not_contains_empty (β) (a : α) : (empty : HashMap α β).contains a = false :=
   not_contains_of_isEmpty _ a isEmpty_empty
 
+theorem contains_insert (m : HashMap α β) (a a' : α) (b : β) :
+    (m.insert a b).contains a' ↔ (m.contains a' ∨ a == a') := by
+  simp only [contains_iff]
+  refine ⟨?mp, fun h => h.elim ?mpr₁ ?mpr₂⟩
+  case mp =>
+    intro ⟨b, hFind⟩
+    cases Bool.beq_or_bne a a'
+    case inl h =>
+      exact Or.inr h
+    case inr h =>
+      rw [find?_insert_of_ne _ _ h] at hFind
+      exact Or.inl ⟨b, hFind⟩
+  case mpr₁ =>
+    intro ⟨b, hFind⟩
+    cases Bool.beq_or_bne a a'
+    case inl h =>
+      rw [find?_insert _ _ h]
+      exact ⟨_, rfl⟩
+    case inr h =>
+      rw [find?_insert_of_ne _ _ h]
+      exact ⟨_, hFind⟩
+  case mpr₂ =>
+    intro hEq
+    rw [find?_insert _ _ hEq]
+    exact ⟨_, rfl⟩
+  
 /-! `fold` -/
 
 /-- If an entry appears in the map, it will appear "last" in a commutative `fold` over the map. -/

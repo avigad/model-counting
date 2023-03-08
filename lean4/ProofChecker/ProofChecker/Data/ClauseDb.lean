@@ -107,14 +107,6 @@ theorem getClause_eq_some (db : ClauseDb α) (idx : α) (C : IClause) :
 theorem getClause_empty (idx : α) : (empty : ClauseDb α).getClause idx = none := by
   simp [getClause, empty]
 
-theorem contains_iff_getClause_eq_some (db : ClauseDb α) (idx : α) :
-    db.contains idx ↔ ∃ C, db.getClause idx = some C := by
-  simp [contains, Option.isSome_iff_exists, db.clauses.contains_iff]
-
-theorem not_contains_empty (idx : α) : ¬(empty : ClauseDb α).contains idx := by
-  rw [contains_iff_getClause_eq_some]
-  simp
-
 theorem getClause_addClause (db : ClauseDb α) (idx : α) (C : IClause) :
     (db.addClause idx C).getClause idx = some C := by
   dsimp [getClause, addClause]
@@ -145,6 +137,54 @@ theorem getClause_delClause_of_ne (db : ClauseDb α) (idx idx' : α) :
   next =>
     rw [HashMap.find?_insert_of_ne _ _ (bne_iff_ne _ _ |>.mpr h)]
   next => rfl
+  
+/-! `contains` -/
+
+theorem contains_iff_getClause_eq_some (db : ClauseDb α) (idx : α) :
+    db.contains idx ↔ ∃ C, db.getClause idx = some C := by
+  simp [contains, Option.isSome_iff_exists, db.clauses.contains_iff]
+  
+@[simp]
+theorem not_contains_empty (idx : α) : (empty : ClauseDb α).contains idx = false := by
+  have := contains_iff_getClause_eq_some empty idx
+  simp_all
+  
+theorem contains_addClause (db : ClauseDb α) (idx idx' : α) (C : IClause) :
+    (db.addClause idx C).contains idx' ↔ (db.contains idx' ∨ idx = idx') := by
+  simp only [contains_iff_getClause_eq_some]
+  refine ⟨?mp, fun h => h.elim ?mpr₁ ?mpr₂⟩
+  case mp =>
+    intro ⟨C, hGet⟩
+    by_cases hEq : idx = idx'
+    . exact Or.inr hEq
+    . rw [getClause_addClause_of_ne _ _ _ _ hEq] at hGet
+      exact Or.inl ⟨C, hGet⟩
+  case mpr₁ =>
+    intro ⟨C, hGet⟩
+    by_cases hEq : idx = idx'
+    . rw [hEq, getClause_addClause]
+      exact ⟨_, rfl⟩
+    . rw [getClause_addClause_of_ne _ _ _ _ hEq]
+      exact ⟨_, hGet⟩
+  case mpr₂ =>
+    intro hEq
+    rw [hEq, getClause_addClause]
+    exact ⟨C, rfl⟩
+  
+theorem contains_delClause (db : ClauseDb α) (idx idx' : α) :
+    (db.delClause idx).contains idx' ↔ (db.contains idx' ∧ idx ≠ idx') := by
+  simp only [contains_iff_getClause_eq_some]
+  refine ⟨?mp, ?mpr⟩
+  case mp =>
+    intro ⟨C, hGet⟩
+    have hEq : idx ≠ idx' := fun h => by
+      rw [h, getClause_delClause] at hGet
+      cases hGet
+    rw [getClause_delClause_of_ne _ _ _ hEq] at hGet
+    simp [hGet, hEq]
+  case mpr =>
+    intro ⟨⟨C, hGet⟩, hEq⟩
+    exact ⟨C, hGet ▸ getClause_delClause_of_ne _ _ _ hEq⟩
 
 /-! `fold` -/
 
