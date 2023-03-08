@@ -475,17 +475,23 @@ theorem insert_comm [LawfulBEq α] (m : HashMap α β) (a₁ a₂ : α) (b : β)
     
 /-! `contains` -/
 
-def contains_iff (m : HashMap α β) (a : α) :
+theorem contains_iff (m : HashMap α β) (a : α) :
     m.contains a ↔ ∃ b, m.find? a = some b :=
   sorry
 
-def not_contains_iff (m : HashMap α β) (a : α) :
+theorem not_contains_iff (m : HashMap α β) (a : α) :
     !m.contains a ↔ m.find? a = none := by
   simp only [Bool.bnot_eq_to_not_eq, contains_iff, not_exists]
   apply Iff.intro
   . intro h
     cases h' : find? m a <;> simp_all
   . intro h; rw [h]; simp
+  
+theorem not_contains_of_isEmpty (m : HashMap α β) (a : α) : m.isEmpty → !m.contains a :=
+  fun h => not_contains_iff _ _ |>.mpr (find?_of_isEmpty m a h)
+
+theorem not_contains_empty (β) (a : α) : !(empty : HashMap α β).contains a :=
+  not_contains_of_isEmpty _ a isEmpty_empty
 
 /-! `fold` -/
 

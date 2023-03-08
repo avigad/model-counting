@@ -251,6 +251,19 @@ theorem toPropTermSub_addClause' (db : ClauseDb α) (C : IClause) :
     . rw [getClause_addClause_of_ne _ _ _ _ hEq]
       exact hGet'
 
+theorem toPropTermSub_addClause_of_not_mem (db : ClauseDb α) (C : IClause) :
+    idx ∉ idxs →
+    (db.addClause idx C).toPropTermSub idxs = db.toPropTermSub idxs := by
+  intro hMem
+  ext τ
+  simp only [satisfies_toPropTermSub]
+  refine ⟨?mp, ?mpr⟩ <;> {
+    intro h idx' hMem'
+    have : idx ≠ idx' := fun h =>
+      False.elim <| hMem <| h ▸ hMem'
+    aesop (add norm getClause_addClause_of_ne)
+  }
+
 theorem toPropTermSub_delClause (db : ClauseDb α) (idxs : Set α) (idx : α) :
     db.toPropTermSub idxs ≤ (db.delClause idx).toPropTermSub idxs := by
   apply PropTerm.entails_ext.mpr
@@ -280,6 +293,10 @@ theorem satisfies_toPropTerm (db : ClauseDb α) (σ : PropAssignment Var) :
   have ⟨mp, mpr⟩ := satisfies_toPropTermSub db Set.univ σ
   ⟨fun h idx C hGet => mp h idx (Set.mem_univ idx) C hGet,
    fun h => mpr (fun idx _ C hGet => h idx C hGet)⟩
+
+theorem toPropTerm_subset (db : ClauseDb α) (idxs : Set α) :
+    db.toPropTerm ≤ db.toPropTermSub idxs :=
+  toPropTermSub_subset db (Set.subset_univ idxs)
 
 @[simp]
 theorem toPropTerm_empty : (empty : ClauseDb α).toPropTerm = ⊤ :=

@@ -43,6 +43,9 @@ theorem agreeOn.trans : agreeOn X σ₁ σ₂ → agreeOn X σ₂ σ₃ → agre
 theorem agreeOn.subset : X ⊆ Y → agreeOn Y σ₁ σ₂ → agreeOn X σ₁ σ₂ :=
   fun hSub h x hX => h x (hSub hX)
 
+theorem agreeOn_empty (σ₁ σ₂ : PropAssignment ν) : agreeOn ∅ σ₁ σ₂ :=
+  fun _ h => False.elim (Set.not_mem_empty _ h)
+
 variable [DecidableEq ν]
 
 theorem agreeOn_set_of_not_mem {x : ν} {X : Set ν} (σ : PropAssignment ν) (v : Bool) : x ∉ X →
@@ -205,15 +208,61 @@ theorem eval_of_agreeOn_semVars {φ : PropTerm ν} {σ₁ σ₂ : PropAssignment
   dsimp only [SemanticEntails.entails, satisfies] at this
   aesop
 
-theorem semVars_disj (φ₁ φ₂ : PropTerm ν) : (φ₁ ⊔ φ₂).semVars ⊆ φ₁.semVars ∪ φ₂.semVars := by
-  intro x
-  simp only [Finset.mem_union, mem_semVars]
-  aesop
+@[simp]
+theorem semVars_var (x : ν) : (var x).semVars = {x} := by
+  ext y
+  simp only [Finset.mem_singleton, mem_semVars, satisfies_var]
+  refine ⟨?mp, ?mpr⟩
+  case mp =>
+    intro ⟨τ, hτ, hτ'⟩
+    by_contra h
+    have := τ.set_get_of_ne (!τ y) h
+    exact hτ' (hτ ▸ this)
+  case mpr =>
+    intro h; cases h
+    use (fun _ => true)
+    simp
+
+@[simp]
+theorem semVars_tr (ν) [DecidableEq ν] : (⊤ : PropTerm ν).semVars = ∅ := by
+  ext
+  simp [mem_semVars]
+
+@[simp]
+theorem semVars_fls (ν) [DecidableEq ν] : (⊥ : PropTerm ν).semVars = ∅ := by
+  ext
+  simp [mem_semVars]
+
+@[simp]
+theorem semVars_neg (φ : PropTerm ν) : φᶜ.semVars = φ.semVars := by
+  ext x
+  simp only [mem_semVars]
+  constructor <;> {
+    intro ⟨τ, hτ, hτ'⟩
+    simp only [satisfies_neg, not_not] at hτ hτ' ⊢
+    let τ' := τ.set x (!τ x)
+    have : (!τ' x) = τ x := by
+      simp only [τ.set_get x, Bool.not_not]
+    refine ⟨τ', hτ', ?_⟩
+    rw [τ.set_set, this, τ.set_same]
+    exact hτ
+  }
 
 theorem semVars_conj (φ₁ φ₂ : PropTerm ν) : (φ₁ ⊓ φ₂).semVars ⊆ φ₁.semVars ∪ φ₂.semVars := by
   intro x
   simp only [Finset.mem_union, mem_semVars, satisfies_conj, not_and_or]
   aesop
+
+theorem semVars_disj (φ₁ φ₂ : PropTerm ν) : (φ₁ ⊔ φ₂).semVars ⊆ φ₁.semVars ∪ φ₂.semVars := by
+  intro x
+  simp only [Finset.mem_union, mem_semVars]
+  aesop
+
+theorem semVars_impl (φ₁ φ₂ : PropTerm ν) : (φ₁ ⇨ φ₂).semVars ⊆ φ₁.semVars ∪ φ₂.semVars := by
+  rw [himp_eq]
+  have := semVars_disj (φ₁ᶜ) φ₂
+  rw [sup_comm, semVars_neg] at this
+  exact this
 
 /-- Two functions φ₁ and φ₂ are equivalent over X when for every assignment τ, models of φ₁
 extending τ over X are in bijection with models of φ₂ extending τ over X. -/
@@ -226,7 +275,7 @@ def equivalentOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :=
 -- to use it, but it's not essential.
 def extendsOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :=
   ∀ (σ₁ : PropAssignment ν), σ₁ ⊨ φ₁ → ∃ (σ₂ : PropAssignment ν), σ₂.agreeOn X σ₁ ∧ σ₂ ⊨ φ₂
-  
+
 theorem extendsOver_iff_equivalentOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :
     equivalentOver X φ₁ φ₂ ↔ (extendsOver X φ₁ φ₂ ∧ extendsOver X φ₂ φ₁) := by
   constructor
@@ -286,6 +335,9 @@ equivalentOver φ₁.vars ⟦φ₁⟧ ⟦φ₂⟧ ∧ hasUniqueExtension ⟦φ�
 { σ : { x // x ∈ φ₁.vars} → Bool | σ ⊨ φ₁ } ≃ { σ : { x // x ∈ φ₂.vars } → Bool | σ ⊨ φ₂ } -/
 def hasUniqueExtension (X Y : Set ν) (φ : PropTerm ν) :=
   ∀ (σ₁ σ₂ : PropAssignment ν), σ₁ ⊨ φ → σ₂ ⊨ φ → σ₁.agreeOn X σ₂ → σ₁.agreeOn Y σ₂
+
+theorem hasUniqueExtension_to_empty (X : Set ν) (φ : PropTerm ν) : hasUniqueExtension X ∅ φ := by
+  simp [hasUniqueExtension, PropAssignment.agreeOn_empty]
 
 end PropTerm
 
