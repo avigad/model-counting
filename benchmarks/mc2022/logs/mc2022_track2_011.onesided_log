@@ -1,0 +1,70 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -1 -C 2147483647 -L d2p.log ./mc2022_track2_011.cnf ./mc2022_track2_011.nnf ./mc2022_track2_011.crat
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN: Time = 0.00.  Read input file with 200 variables and 523 clauses
+c Read D4 NNF file with 4192306 nodes (2289869 explicit) and 5178620 edges
+c Compressed POG has 4192177 nodes, root literal 4192377, and 15561156 defining clauses
+c GEN: Time = 10.21.  Generated POG representation
+c GEN: Time = 10.22.  Deleted asserted clauses
+c GEN: Time = 81.62.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 200
+c GEN:    input clauses  : 523
+c GEN: POG nodes
+c GEN:    product   : 3240958
+c GEN:    sum       : 951218
+c GEN:    node TOTAL: 4192176
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 0
+c GEN:    product/SAT: 0
+c GEN:    sum        : 0
+c GEN:    visit TOTAL: 0
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 15561156
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 0
+c GEN:    sum justification    : 0
+c GEN:    literal justification: 31
+c GEN:    lemma application    : 0
+c GEN:    clause TOTAL         : 15561187
+c GEN: Time
+c GEN:   SAT execution  : 0.00
+c GEN:   other execution: 81.76
+c GEN:   time TOTAL     : 81.76
+GEN LOG: Elapsed time = 81.846 seconds
+GEN OUTCOME: normal
+GEN: LOG: size ./mc2022_track2_011.crat 4192762 lines 2303883601 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check -1 ./mc2022_track2_011.cnf ./mc2022_track2_011.crat
+FCHECK LOG: Time limit 10000 seconds
+FCHECK: Read CNF file with 200 variables and 523 clauses
+FCHECK: Read CRAT file with 4192177 operations,  31 asserted + 15561156 defining = 15561187 clauses
+FCHECK: Deleted 553 input and asserted clauses
+FCHECK: Final root literal 4192377
+FCHECK: ONE-SIDED VALID.  CRAT representation partially verified
+FCHECK: Elapsed seconds: 61.471
+FCHECK LOG: Elapsed time = 61.520 seconds
+FCHECK OUTCOME: normal
+COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track2_011.cnf -p ./mc2022_track2_011.crat
+COUNT LOG: Time limit 4000 seconds
+Obtained weights from CNF file
+COUNTER: Elapsed time for count: 7.88 seconds
+COUNTER: Weighted count = 0.0000471521458461987003932733293790210275618040677808389901187314915604050374947208929661312177748880653379164485569480797075079229345618480165040909699806424248052340276708358629467111620854115254989628438168638247412474656848857086643453708141267050047718842355821969907331679369419929547252630491915888902863138066705311924503787457827032874539595040046787743117832549111711532025927012118644221286291882716246755736676096019950514179507626111539551825811216733564546665188943908981233667225891448336131304703524749103594697644623349940451965759779049496233324298125882008816986907472058247240582130168641862272749205029073490559885100990252254913011840370788511835700368284636498727695974339780910219819883053788678765970764461948355140711806645784421150594377302915371706452481436532384321399450285634529827496937916053272926588928177410035192538189413751325064910294622542819714240824911499661646244367025205134198987734034577785928615653711294166200095079932536630074072500559607193096649845398510204466909719403878438547734106987915110709641444101124803700904115817693367266270745127396085544728148142099137776741249787277246380705152057560527259547234541901979629926729291757477990939259568128
+COUNT LOG: Elapsed time = 23.398 seconds
+COUNT OUTCOME: normal
+OVERALL LOG: Elapsed time = 168.518 seconds
+OVERALL OUTCOME: normal
