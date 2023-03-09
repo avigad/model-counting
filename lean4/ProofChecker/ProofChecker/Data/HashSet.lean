@@ -67,6 +67,9 @@ theorem toFinset_singleton (a : α) : toFinset (singleton a) = {a} := by
 
 theorem contains_iff (s : HashSet α) (a : α) : s.contains a ↔ a ∈ s.toFinset := by
   sorry
+  
+theorem not_contains_empty (a : α) : (empty α).contains a = false :=
+  HashMap.not_contains_empty _ a
 
 theorem insert_comm (s : HashSet α) (a b : α) : (s.insert a).insert b = (s.insert b).insert a := by
   dsimp [insert]

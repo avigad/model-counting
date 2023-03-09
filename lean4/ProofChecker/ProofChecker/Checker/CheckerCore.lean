@@ -37,6 +37,7 @@ inductive CheckerError where
   | graphUpdateError (err : PogError)
   | duplicateClauseIdx (idx : ClauseIdx)
   | unknownClauseIdx (idx : ClauseIdx)
+  | pogDefClause (idx : ClauseIdx)
   | hintNotUnit (idx : ClauseIdx) (C : IClause) (σ : PartPropAssignment)
   | upNoContradiction (τ : PartPropAssignment)
   | duplicateExtVar (x : Var)
@@ -52,6 +53,7 @@ instance : ToString CheckerError where
     | graphUpdateError e => s!"graph update error: {e}"
     | duplicateClauseIdx idx => s!"cannot add clause at index {idx}, index is already used"
     | unknownClauseIdx idx => s!"there is no clause at index {idx}"
+    | pogDefClause idx => s!"clause at index {idx} cannot be deleted because it is a POG definition"
     | hintNotUnit idx C σ =>
       s!"hinted clause {C} at index {idx} did not become unit under assignment {σ}"
     | upNoContradiction τ =>
@@ -61,7 +63,7 @@ instance : ToString CheckerError where
     | depsNotDisjoint xs => s!"variables {xs} have non-disjoint dependency sets"
     | finalRootNotSet => s!"proof done but root literal was not asserted"
     | finalClauseInvalid idx C =>
-      s!"proof done but clause {C} at index {idx} is neither the asserted root nor a PDAG definition"
+      s!"proof done but clause {C} at index {idx} is neither the asserted root nor a POG definition"
 
 end CheckerError
 
@@ -241,15 +243,13 @@ def addAt (idx : ClauseIdx) (C : IClause) (hints : Array ClauseIdx) : CheckerM U
     clauseDb := db'
   }
   have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm := by
-    simp [hAdd, st.clauseDb.toPropTerm_addClause' _ _ hContains,
-      st.clauseDb.toPropTerm_subset _ |>.trans hImp]
+    simp only [hAdd, st.clauseDb.toPropTerm_addClause_eq _ _ hContains]
+    simp [st.clauseDb.toPropTerm_subset _ |>.trans hImp]
   have hPogDefs' : db'.toPropTermSub st.pogDefs' = st.pogDefsTerm := by
     have : ¬idx ∈ st.pogDefs' := fun h =>
       hContains (pfs.contains_pogDefs _ h)
     rw [CheckerStateData.pogDefsTerm, hAdd, st.clauseDb.toPropTermSub_addClause_of_not_mem C this]
-  have hPogDefs : st'.pogDefsTerm = st.pogDefsTerm := by
-    rw [CheckerStateData.pogDefsTerm]
-    exact hPogDefs'
+  have hPogDefs : st'.pogDefsTerm = st.pogDefsTerm := hPogDefs'
   let pfs' := { pfs with
     equivalent_clauseDb := hDb ▸ pfs.equivalent_clauseDb
     contains_pogDefs := fun idx h => by
@@ -257,35 +257,50 @@ def addAt (idx : ClauseIdx) (C : IClause) (hints : Array ClauseIdx) : CheckerM U
       simp only [hAdd]
       exact st.clauseDb.contains_addClause _ _ _ |>.mpr (Or.inl this)
     uep_pogDefs := hPogDefs ▸ pfs.uep_pogDefs
-    equivalent_lits := hPogDefs ▸ pfs.equivalent_lits
     clauseDb_depVars := hDb ▸ pfs.clauseDb_depVars
+    equivalent_lits := hPogDefs ▸ pfs.equivalent_lits
   }
   set (σ := CheckerState) ⟨st', pfs'⟩
-
+  
+def getClause (db : ClauseDb ClauseIdx) (idx : ClauseIdx) :
+    Except CheckerError { C : IClause // db.getClause idx = some C } :=
+  match db.getClause idx with
+  | some C => return ⟨C, rfl⟩
+  | none => throw <| .unknownClauseIdx idx
+  
 def delAt (idx : ClauseIdx) (hints : Array ClauseIdx) : CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
-  let some C := st.clauseDb.getClause idx
-    | throw <| .unknownClauseIdx idx
-  -- TODO: need additional check that `idx` is not a scheme def
+  let ⟨C, hGet⟩ ← getClause st.clauseDb idx
+  -- NOTE: We could investigate whether the check is really necessary.
+  let ⟨_, hMem⟩ ← (if h : st.pogDefs.contains idx then
+      throw <| .pogDefClause idx
+    else
+      pure ⟨(), h⟩
+    : Except CheckerError { _u : Unit // idx ∉ st.pogDefs' })
   let db' := st.clauseDb.delClause idx
   -- The clause is AT by everything except itself.
-  let hImp ← checkAtWithHints db' C hints
+  let ⟨_, hImp⟩ ← checkAtWithHints db' C hints
   let st' := { st with
     clauseDb := db'
   }
   have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm := by
-    sorry
-  have hPogDefs' : db'.toPropTermSub st.pogDefs' = st.pogDefsTerm := by
-    sorry
-  have hPogDefs : st'.pogDefsTerm = st.pogDefsTerm := by
-    sorry
+    have : st'.clauseDb.toPropTerm = st'.clauseDb.toPropTerm ⊓ C.toPropTerm := by
+      have := st'.clauseDb.toPropTerm_subset _ |>.trans hImp
+      exact left_eq_inf.mpr this
+    rw [this]
+    simp [st.clauseDb.toPropTerm_delClause_eq _ _ hGet]
+  have hPogDefs' : db'.toPropTermSub st.pogDefs' = st.pogDefsTerm :=
+    st.clauseDb.toPropTermSub_delClause_of_not_mem hMem
+  have hPogDefs : st'.pogDefsTerm = st.pogDefsTerm := hPogDefs'
   let pfs' := { pfs with
     equivalent_clauseDb := hDb ▸ pfs.equivalent_clauseDb
-    contains_pogDefs := fun idx h =>
-      sorry
+    contains_pogDefs := fun idx h => by
+      refine st.clauseDb.contains_delClause _ _ |>.mpr ⟨pfs.contains_pogDefs idx h, ?_⟩
+      intro hEq
+      exact hMem (hEq.symm ▸ h)
     uep_pogDefs := hPogDefs ▸ pfs.uep_pogDefs
-    equivalent_lits := hPogDefs ▸ pfs.equivalent_lits
     clauseDb_depVars := hDb ▸ pfs.clauseDb_depVars
+    equivalent_lits := hPogDefs ▸ pfs.equivalent_lits
   }
   set (σ := CheckerState) ⟨st', pfs'⟩
 
@@ -328,13 +343,13 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   }
   let pfs' := {
     equivalent_clauseDb := sorry
-    equivalent_lits := sorry
     contains_pogDefs := sorry
     uep_pogDefs := sorry
     clauseDb_depVars := sorry
-    decomposable_lits := sorry
-    vars_orig := sorry
     depVars_pog := sorry
+    vars_orig := sorry
+    decomposable_lits := sorry
+    equivalent_lits := sorry
   }
   set (σ := CheckerState) ⟨st', pfs'⟩
 
@@ -372,13 +387,13 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   }
   let pfs' := {
     equivalent_clauseDb := sorry
-    equivalent_lits := sorry
     contains_pogDefs := sorry
     uep_pogDefs := sorry
     clauseDb_depVars := sorry
-    decomposable_lits := sorry
-    vars_orig := sorry
     depVars_pog := sorry
+    vars_orig := sorry
+    decomposable_lits := sorry
+    equivalent_lits := sorry
   }
   set (σ := CheckerState) ⟨st', pfs'⟩
 
