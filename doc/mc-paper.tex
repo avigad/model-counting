@@ -23,8 +23,8 @@
 
 \newcommand{\pand}{\mathbin{\land^{\sf p}}}
 \newcommand{\por}{\mathbin{\lor^{\sf p}}}
-\DeclareMathOperator*{\Pand}{\bigwedge^{\sf v}}
-\DeclareMathOperator*{\Por}{\bigvee^{\sf a}}
+\DeclareMathOperator*{\Pand}{\bigwedge^{\sf p}}
+\DeclareMathOperator*{\Por}{\bigvee^{\sf p}}
 \newcommand{\boolnot}{\neg}
 \newcommand{\tautology}{\top}
 \newcommand{\nil}{\bot}
@@ -47,12 +47,14 @@
 
 \newcommand{\assign}{\alpha}
 \newcommand{\passign}{\rho}
+\newcommand{\lassign}{\beta}
 \newcommand{\uassign}{{\cal U}}
 \newcommand{\modelset}{{\cal M}}
 
 \newcommand{\indegree}{\textrm{indegree}}
 \newcommand{\outdegree}{\textrm{outdegree}}
 \newcommand{\validate}{\textsf{validate}}
+\newcommand{\prov}{\textrm{Prov}}
 
 \newcommand{\makenode}[1]{\mathbf{#1}}
 \newcommand{\nodeu}{\makenode{u}}
@@ -62,7 +64,6 @@
 \newcommand{\noder}{\makenode{r}}
 
 \newcommand{\simplify}[2]{#1|_{#2}}
-\newcommand{\prov}{\mathit{Prov}}
 
 \newcommand{\progname}[1]{\textsc{#1}}
 \newcommand{\dfour}{\progname{d4}}
@@ -71,6 +72,7 @@
 \newcommand{\Generator}{\progname{d2p}}
 \newcommand{\checker}{\progname{crat-check}}
 \newcommand{\Checker}{\progname{Crat-check}}
+
 
 
 \bibliographystyle{plainurl}% the mandatory bibstyle
@@ -178,37 +180,43 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
     and $\modelset(x) = \{\assign \in \uassign | \assign(x)=1\}$.
   \item For formula $\phi$, its {\em negation}, written $\boolnot \phi$ is a Boolean formula,
     with $\dependencyset(\boolnot \phi) = \dependencyset(\phi)$ and $\modelset(\boolnot \phi) = \uassign - \modelset(\phi)$.
-  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em conjunction} $\phi = \bigwedge_{i=1,k} \phi_i$ is a Boolean formula, with
+  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em product} $\phi = \bigwedge_{i=1,k} \phi_i$ is a Boolean formula, with
       $\dependencyset(\phi) = \bigcup_{i=1,k} \dependencyset(\phi_i)$ and
       $\modelset(\phi) = \bigcap_{i=1,k} \modelset(\phi_i)$.
-  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em disjunction} $\phi = \bigvee_{i=1,k} \phi_i$ is a Boolean formula, with
+  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em sum} $\phi = \bigvee_{i=1,k} \phi_i$ is a Boolean formula, with
       $\dependencyset(\phi) = \bigcup_{i=1,k} \dependencyset(\phi_i)$ and
       $\modelset(\phi) = \bigcup_{i=1,k} \modelset(\phi_i)$.
   \end{enumerate}
 \label{def:boolean}
 \end{definition}
+
   
-  We highlight the following special classes of Boolean formulas:
-  \begin{description}
-    \item[Normal form:] A formula where negation is applied only to variables.
-    \item[Conjunctive Normal Form (CNF):] A normal form formula where  disjunction is applied only to literals.
-    \item[Partitioned-Operation:] A formula satisfying the following for all conjunction and disjunction operations: 
+  We highlight two special classes of Boolean formulas.  A formula is
+  in {\em normal form} when negation is applied only to variables.  A
+  formula is in {\em conjunctive normal form} (CNF) when 1) it is in
+  normal form, and 2) sum is applied only to literals.  A CNF
+  formula can be represented as a set of {\em clauses}, each of which is a
+  set of literals.  Each clause represents the sum of the
+  literals, and the formula is the product of its clauses.  We use
+  set notation to reference the clauses in a formula and the
+  literals in a clause.  A clause consisting of a single literal is referred to as a {\em unit} clause.
+This literal must be assigned value $1$ by any satisfying assignment of the formula.
+
+  A {\em partitioned-operation formula} 
+ satisfies the following for all product and sum operations: 
       \begin{itemize}
-      \item The arguments to a conjunction must have disjoint dependency sets.  That is, operation
+      \item The arguments to a product must have disjoint dependency sets.  That is, operation
         $\bigwedge_{i=1,k} \phi_i$ requires $\dependencyset(\phi_i) \cap \dependencyset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
-      \item The arguments to a disjunction must have disjoint models.  That is, operation
+      \item The arguments to a sum must have disjoint models.  That is, operation
         $\bigvee_{i=1,k} \phi_i$ requires $\modelset(\phi_i) \cap \modelset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
       \end{itemize}
-  \end{description}
-     We let $\pand$ and $\por$ denote the conjunction and disjunction operations in a partitioned-operation formula.
-     A formula in conjunctive normal form can be represented by a set
-     of {\em clauses}, each of which is a set of literals.  Each
-     clause represents the disjunction of the literals, and the formula is the conjunction of its clauses.
+     We let $\pand$ and $\por$ denote the product and sum operations in a partitioned-operation formula.
   
   \section{Ring Evaluation of a Boolean Formula}
 
-We propose a general framework for 
-summarizing properties of Boolean formulas.
+We propose a general framework for summarizing properties of Boolean
+formulas inspired by the formulation of {\em algebraic model counting}
+by Kimmig, et al.~\cite{kimmig:jal:2017}.
 
 \begin{definition}[Commutative Ring]
   A {\em commutative ring} $\ring$ is an algebraic structure
@@ -231,11 +239,11 @@ We write $a - b$ as a shorthand for $a + -b$.
   \begin{eqnarray}
     \rep(\phi, w) & = & \sum_{\alpha \in \modelset(\phi)} \;\; \prod_{\lit \in \alpha} w(\ell) \label{eqn:rep}
   \end{eqnarray}
-  In this equation, the summation $\sum$ is computed using operation $\radd$, and the product $\prod$ is computed using operation $\rmul$.
+  In this equation, the summation $\sum$ is computed using addition operation $\radd$, and the product $\prod$ is computed using multiplication operation $\rmul$.
 \label{def:labeling}
 \end{definition}
 
-A wide variety of important tasks for Boolean functions can be
+Many important queries about Boolean formulas can be
 expressed as ring evaluation problems.  The 
 {\em model counting} problem for formula $\phi$ requires determining $|\modelset(\phi)|$.
 It can be cast as a REP by having $\radd$ and
@@ -275,8 +283,8 @@ Performing ring evaluation on an arbitrary Boolean formula could be intractable,
 Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the following for any labeling $w$:
 \begin{description}
 \item[Negation] $\rep(\boolnot \phi, w) = \mulident - \rep(\phi, w)$
-\item[Partitioned Conjunction] $\rep\left(\Pand_{i=1,k} \phi_i, w \right) = \prod_{i=1,k} \rep(\phi_i, w)$
-\item[Partitioned Disjunction] $\rep\left(\Por_{i=1,k} \phi_i, w\right) = \sum_{i=1,k} \rep(\phi_i, w)$
+\item[Partitioned Product] $\rep\left(\Pand_{i=1,k} \phi_i, w \right) = \prod_{i=1,k} \rep(\phi_i, w)$
+\item[Partitioned Sum] $\rep\left(\Por_{i=1,k} \phi_i, w\right) = \sum_{i=1,k} \rep(\phi_i, w)$
 \end{description}
 \end{proposition}
 
@@ -310,14 +318,14 @@ POGs generalize d-DNNF in two ways:
 \begin{itemize}
 \item They allow negation of arbitrary nodes in the graph, not just
   variables.  As we have seen, ring evaluation can readily handle negation, and so we allow it in the interest of generality.
-  Negation could be useful in some contexts, such as when
-  converting binary decision diagrams (BDDs) having complemented
-  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
+%%  Negation could be useful in some contexts, such as when
+%%  converting binary decision diagrams (BDDs) having complemented
+%%  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
 
 \item They allow arbitrary arguments to a $\por$ operation, as long as
   they have disjoint models.  By contrast, each
-  disjunction node $\nodev$ in a d-DNNF can have at most two children $\nodeu_1$ and $\nodeu_0$ for which there must be a {\em decision variable} $x$ such that
-  any total assignment $\assign \in  \modelset(u_b)$ has $\assign(x)=b$, for $b \in \{0,1\}$.
+  sum node $\nodeu$ in a d-DNNF can have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a {\em decision variable} $x$ such that
+  any total assignment $\assign \in  \modelset(\nodeu_b)$ has $\assign(x)=b$, for $b \in \{0,1\}$.
 Our generalization is provided to allow an
   encoding of Sentential Decision Diagrams (SDDs)~\cite{darwiche:ijcai:2011} into
   POGs.  This is discussed in Section~\ref{sect:future}, describing possible future research.
@@ -358,7 +366,7 @@ Our generalization is provided to allow an
 
   %% NNF
   \draw[thick] (20,12) [-latex] -- (28,12);
-  \node [above] at (24,12) {\texttt{.nnf}};
+  \node [above] at (24,12) {\texttt{.ddnnf}};
 
   %% CRAT
   \draw[thick] (40,12) [-latex] -- (48,12);
@@ -378,7 +386,7 @@ Our generalization is provided to allow an
 \label{fig:chain}
 \end{figure}
 
-A CRAT file provides both a declaration of a POG, as well as a checkable, clausal
+A CRAT file provides both a declaration of a POG, as well as an easily checkable
 proof that a Boolean formula, given in conjunctive normal
 form, is logically equivalent to the POG, thus enabling certified
 knowledge compilation.  The proof system is based on extended
@@ -400,8 +408,9 @@ formulas (QBF)~\cite{heule:JAR2014}.  The following are its key properties:
 \begin{itemize}
   \item
   The file contains declarations of $\pand$ and $\por$ operations to describe the POG.
-  Each such declaration implicitly adds an extension variable $u$ representing each  POG node $\nodeu$ and a set of {\em defining} clauses
-  encoding the conjunction or disjunction operation.
+  Declaring a node $\nodeu$ 
+implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clauses
+  encoding the product or sum operation.
   This is the only means for adding extension variables to the proof.
 \item Boolean negation is supported implicitly by allowing the
   arguments of the $\por$ and $\pand$ operations to be literals and not just
@@ -419,8 +428,8 @@ formulas (QBF)~\cite{heule:JAR2014}.  The following are its key properties:
   The associated extension variable has a dependency set equal to the union of those of its arguments.
 \item Declaring a $\por$ operation requires a sequence of clauses
   providing a RUP proof that the arguments are mutually exclusive.
-  Only binary $\por$ operations are allowed to avoid requiring
-  $k\,(k-1)/2$ proofs of disjointness for larger values of $k$.
+  Only binary $\por$ operations are allowed.  Generalizing to $k$ arguments would require
+  $k\,(k-1)/2$ proofs of disjointness.
 \end{itemize}
 
 \subsection{Syntax}
@@ -430,15 +439,17 @@ formulas (QBF)~\cite{heule:JAR2014}.  The following are its key properties:
   \label{tab:crat:syntax}
 \centering{
   \begin{tabular}{lllll}
+    \toprule
     \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
     \midrule
     \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\tt a}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{$C^{+}$ {\tt 0}}  & \makebox[20mm][l]{Add RUP clause} \\
-     & {\tt dc} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause \\
+     & {\tt d} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause \\
     \midrule
     $C$    & {\tt p} & $V \; L^{*}$ {\tt 0}    &                  & Declare $\pand$ operation \\
     $C$    & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation \\ 
     \midrule
      & {\tt r} & $L$             &            & Declare root literal\\
+    \bottomrule
   \end{tabular}
   }
 \end{table}
@@ -459,62 +470,82 @@ proofs.
 Clauses can be added via RUP addition
 (command {\tt a}), with a sequence of antecedent clauses (the
 ``hints'').
-Similarly for clause deletion (command {\tt dc}).
+Similarly for clause deletion (command {\tt d}).
 
-The declaration of a $\pand$ operation has the form:
+\begin{table}
+\caption{Defining Clauses for Product (A) and Sum (B) Operations}
+\begin{minipage}{0.54\textwidth} 
+\begin{center}
+\begin{tabular}{cccccc}
+\multicolumn{6}{c}{(A).  Product Operation $\pand$}\\
+\toprule
+\makebox[10mm]{ID} & \multicolumn{5}{c}{Clause} \\
+\midrule
+  $i$ & $v$ & $-\lit_1$ & $-\lit_2$ & $\cdots$ & $-\lit_k$\\
+  $i\!+\!1$ & $-v$ & $\lit_1$  \\
+  $i\!+\!2$ & $-v$ & $\lit_2$  \\
+  & $\ldots$ \\
+  $i\!+\!k$ & $-v$ & $\lit_k$  \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{minipage}
+\begin{minipage}{0.44\textwidth}
+\begin{center}
+\begin{tabular}{cccc}
+\multicolumn{4}{c}{(B).  Sum Operation $\por$}\\
+\toprule
+\makebox[10mm]{ID} & \multicolumn{3}{c}{Clause} \\
+\midrule
+  $i$ & $-v$ & $\lit_1$ & $\lit_2$ \\
+  $i\!+\!1$ & $v$ & $-\lit_1$ \\
+  $i\!+\!2$ & $v$ & $-\lit_2$ \\
+\bottomrule
+$\;$ \\
+$\;$ \\
+\end{tabular}
+\end{center}
+\end{minipage}
+\label{tab:defining}
+\end{table}
+
+The declaration of a {\em product} operation, creating a node with operation $\pand$,
+ has the form:
 \begin{center}
 \begin{tabular}{ccccccccc}
   \makebox[5mm]{$i$} & \makebox[5mm]{{\tt p}} & \makebox[5mm]{$v$} & \makebox[5mm]{$\lit_1$} & \makebox[5mm]{$\lit_2$} &
   \makebox[5mm]{$\cdots$} & \makebox[5mm]{$\lit_k$} & \makebox[5mm]{\tt 0} \\
 \end{tabular}
 \end{center}
-Symbol `{\tt p}' refers to ``product.''
 Integer $i$ is a new clause ID, $v$ is a positive integer that does not
 correspond to any previous variable, and $\lit_1, \lit_2, \ldots, \lit_k$ is a sequence of $k$  
 integers representing literals of existing variables.  
-This declaration implicitly causes $k+1$ clauses to be added to the proof, defining extension variable $v$ to be the conjunction of its arguments:
-\begin{center}
-\begin{tabular}{cccccc}
-\makebox[10mm]{ID} & \multicolumn{5}{c}{Clause} \\
-  $i$ & $v$ & $-\lit_1$ & $-\lit_2$ & $\cdots$ & $-\lit_k$\\
-  $i\!+\!1$ & $-v$ & $\lit_1$  \\
-  $i\!+\!2$ & $-v$ & $\lit_2$  \\
-  & $\ldots$ \\
-  $i\!+\!k$ & $-v$ & $\lit_k$  \\
-\end{tabular}
-\end{center}
+As Table~\ref{tab:defining}(A) shows,
+this declaration implicitly causes $k+1$ clauses to be added to the proof, defining extension variable $v$ to be the product of its arguments.
+
 The dependency sets for the arguments represented by each pair of
 literals $\lit_i$
 and $\lit_{j}$ must
-be disjoint, for $1 \leq i < j \leq k$.  A $\pand$ operation may have no arguments,
+be disjoint, for $1 \leq i < j \leq k$.  A product operation may have no arguments,
 representing Boolean constant $1$.  The only clause added to the proof will be
 the unit literal $v$.  A reference to literal $-v$ then becomes a way
 of representing constant $0$.
 
-
-The declaration of a $\por$ operation has the form:
+The declaration of a {\em sum} operation, creating a node with operation $\por$, has the form:
 \begin{center}
 \begin{tabular}{ccccccc}
   \makebox[5mm]{$i$} & \makebox[5mm]{{\tt s}} & \makebox[5mm]{$v$} & \makebox[5mm]{$\lit_1$} & \makebox[5mm]{$\lit_2$} 
 \makebox[5mm]{$H$} & \makebox[5mm]{$\texttt{0}$} \\
 \end{tabular}
 \end{center}
-Symbol `{\tt s}' refers to ``sum.''
 Integer $i$ is a new clause ID, $v$ is a positive integer that does
 not correspond to any previous variable, and $\lit_1$ and $\lit_2$ are
 signed integers representing literals of existing variables.  Hint $H$
 consists of a
-sequence of clause IDs.
-This declaration implicitly causes three clauses to be added to the proof, defining extension variable $v$ to be the disjunction of its arguments:
-\begin{center}
-\begin{tabular}{cccc}
-\makebox[10mm]{ID} & \multicolumn{3}{c}{Clause} \\
-  $i$ & $-v$ & $\lit_1$ & $\lit_2$ \\
-  $i\!+\!1$ & $v$ & $-\lit_1$ \\
-  $i\!+\!2$ & $v$ & $-\lit_2$ \\
-\end{tabular}
-\end{center}
-The hints must provide a RUP proof of the clause $\obar{\lit}_1 \lor \obar{\lit}_2$.
+sequence of clause IDs, all of which must be defining clauses for other POG operations.
+As Table~\ref{tab:defining}(B) shows,
+this declaration implicitly causes three clauses to be added to the proof, defining extension variable $v$ to be the sum of its arguments.
+The hints must provide a RUP proof of the clause $\obar{\lit}_1 \lor \obar{\lit}_2$, showing that the two children of this node have disjoint models.
 
 Finally, the literal denoting the root of the POG is declared with the
 {\tt r} command.  It can occur anywhere in the file.  Typically, it
@@ -524,43 +555,47 @@ input variable.
 
 \subsection{Semantics}
 
-The sequence of operator declarations, asserted clause, and
+The defining clauses for a product or sum
+operation uniquely define the value of its extension variable for any assignment of values to the argument variables.
+For the
+extension variable $u$ associated with any POG node $\nodeu$, we can therefore
+assume that any total assignment $\assign$ to the input variables will
+also assign a value to $u$ such that $\assign(u) =
+1$ if and only if $\assign \in \modelset(\nodeu)$.  For a POG with
+root literal $r$, we can define its set of models $\modelset(P)$ as
+the set of all total assignments $\assign$ such that $\assign(r) = 1$.
+
+%% A CRAT proof follows the same general form as a QRAT dual
+%% proof~\cite{bryant:cade:2021}---one that ensures that each clause
+%% addition and each clause deletion preserves equivalence.  With CRAT,
+%% however, clauses are defined both explicitly and implicitly.  Starting
+%% with the set of input clauses, the proof consists of a sequence of
+%% steps that both add and delete clauses.  Each addition must be truth
+%% preserving, that is, any satisfying total assignment for the set of clauses
+%% before clause addition should still be a satisfying assignment afterwards.
+%% Each deletion must be falsehood preserving.  That is, there can be no
+%% new satisfying assignments when the clause is deleted.
+
+The sequence of operator declarations, asserted clauses, and
 clause deletions represents a systematic transformation of the input formula
-into a POG\@.  Validating each of these steps serves to prove that the
+into a POG\@.  Validating all of these steps serves to prove that the
 POG is logically equivalent to the input formula.
-
-Observe that the defining clauses for the conjunction and disjunction
-operations provide a full Tseitin encoding of the operations.  For any node $\nodeu$ and associated extension variable $u$,
-we can therefore assume that any total assignment $\assign$ to the input variables will also assign
-a value to the extension variables such that $\assign(u) = 1$ if and
-only if $\assign \in \modelset(\nodeu)$.
-
-A CRAT proof follows the same general form as a QRAT dual
-proof~\cite{bryant:cade:2021}---one that ensures that each clause
-addition and each clause deletion preserves equivalence.  With CRAT,
-however, clauses are defined both explicitly and implicitly.  Starting
-with the set of input clauses, the proof consists of a sequence of
-steps that both add and delete clauses.  Each addition must be truth
-preserving, that is, any satisfying total assignment for the set of clauses
-before clause addition should still be a satisfying assignment afterwards.
-Each deletion must be falsehood preserving.  That is, there can be no
-new satisfying assignments when the clause is deleted.
-
 At the completion of the proof, the following conditions must hold:
 \begin{itemize}
-\item All of the input clauses have been deleted.
-\item There should be exactly one clause left that was added via RUP
+\item There should exactly one remaining clause that was added via RUP
   addition, and this should be a unit clause consisting of the root literal $r$.
+\item All of the input clauses have been deleted.
 \end{itemize}
-The sequence of clause addition steps provide a proof that
-$\modelset(\phi) \subseteq \modelset(\noder)$.  That is, any total
+The sequence of clause addition steps provide a {\em forward implication} proof that
+$\modelset(\phi) \subseteq \modelset(P)$.  That is, any total
 assignment $\assign$ satisfying the input formula must also satisfy
 the formula represented by the POG\@.
 Conversely,
 each proof step that deletes an input clause proves that any
 total assignment $\alpha$ that falsifies the clause must
-assign $\assign(r) = 0$, and therefore 
-$\modelset(\noder) \subseteq \modelset(\phi)$.
+assign $\assign(r) = 0$.  Deleting all but the final asserted clause and all input clauses provides a {\em reverse implication} proof
+that
+$\modelset(P) \subseteq \modelset(\phi)$.
 
 \subsection{CRAT Example}
 
@@ -659,11 +694,11 @@ $\modelset(\noder) \subseteq \modelset(\phi)$.
   \toprule
  \multicolumn{3}{l}{CRAT line} & Explanation\\
 \midrule
- \texttt{dc 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
- \texttt{dc 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
- \texttt{dc 3} & \texttt{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
- \texttt{dc 4} & \texttt{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
- \texttt{dc 5} & \texttt{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
+ \texttt{d 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
+ \texttt{d 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
+ \texttt{d 3} & \texttt{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
+ \texttt{d 4} & \texttt{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
+ \texttt{d 5} & \texttt{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
 \bottomrule
 \end{tabular}
 \end{minipage}
@@ -675,9 +710,10 @@ Figure \ref{fig:eg4:all} illustrates an example formula and shows how
 the CRAT file declares its POG representation.  The input formula (A)
 consists of five clauses over variables $x_1$, $x_2$, $x_3$, and
 $x_4$.  The generated POG (B) has six nonterminal nodes representing
-four conjunctions and two disjunctions.  We name these by the node
+four products and two sums.  We name these by the node
 type (product $\nodep$ or sum $\nodes$), subscripted by the ID of the
-extension variable.  We denote the extension variable for nodes $\nodep_i$ and $\nodes_j$ as $p_i$ and $s_j$, respectively.
+extension variable.
+% We denote the extension variable for nodes $\nodep_i$ and $\nodes_j$ as $p_i$ and $s_j$, respectively.
   The first part of the CRAT file (C) declares
 these nodes using clause IDs that increment by three or four,
 depending on whether the node has two children or three.  The last two
@@ -689,7 +725,7 @@ Figure
 \ref{fig:eg4:all}(D) shows the defining clauses that are implicitly
 defined by the POG operation declarations.  These do not appear in the
 CRAT file.  Referring back to the declarations of the sum nodes in
-Figure \ref{fig:eg4:all}, we can see that the declaration of node
+Figure \ref{fig:eg4:all}(C), we can see that the declaration of node
 $\nodes_7$ had clause IDs 7 and 10 as hints.  We can see in Figure
 \ref{fig:eg4:all}(A) that these two clauses resolve to the clause
 $\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $\nodes_7$
@@ -716,7 +752,7 @@ The proof proceeds by first assuming that the clause is false, requiring
 $\assign(x_1) = 1$, $\assign(x_3) = 0$, and $\assign(x_4) = 1$.  The hints then consist of unit
 clauses (e.g., clause 36 asserting that $\alpha(p_{10}) = 1$) or
 clauses that cause unit propagation.  Hint clauses 8 and 10 force the
-assignments $\assign(p_5) = \assign(p_6) = 0$.  These, plus hint clause 12 forces
+assignments $\assign(p_5) = \assign(p_6) = 0$.  These, plus hint clause 12 force
 $\assign(s_7) = 0$.  This, plus hint clauses 16 and 21 force $\assign(p_8) = \assign(p_9) = 0$, leading
 via clause 22 to $\assign(s_{10}) = 0$.  But this contradicts clause 36,
 completing the RUP proof.  The deletion hints for the other input
@@ -733,7 +769,7 @@ completing a proof that the POG is logically equivalent to the input
 formula.
 
 Observe that this proof must ``visit'' nodes
-$\nodep_5$ and $\nodep_6$ twice, separately considering total assignments where $\assign(x_1) = 1$
+$\nodep_5$ and $\nodep_6$ twice, separately considering  assignments where $\assign(x_1) = 1$
 (clauses 25 and 26) and where $\assign(x_1) = 1$ (clauses 30 and 31).  In
 general, a naive proof must expand the POG into a tree.
 We address this shortcoming by introducing {\em lemmas}, as is described in Section~\ref{sect:lemma}
@@ -745,27 +781,28 @@ Figure~\ref{fig:chain} illustrates one method of generating a CRAT
 file from an input formula in conjunctive normal form.  Our tool chain
 is based on the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017},
 but it would also work for other tools that use a top-down search
-strategy to generate a d-DDNNF representation.  Converting a d-DNNF
+strategy to generate a d-DNNF representation.  Converting a d-DNNF
 graph into a POG is straightforward---each node in a d-DNNF graph can
 be directly represented as a POG node.  Rather than representing every d-DNNF node explicitly,
-our progrma perform simplifications on
-to eliminate any Boolean constants.  Except for the degenerate cases where the formula is unsatisfiable or a tautology, we can
-ssume that the POG contains only conjunction, disjunction,
+our program performs simplifications
+to eliminate Boolean constants.  Except for the degenerate cases where the formula is unsatisfiable or a tautology, we can
+therefore assume that the POG contains only product, sum,
 and literal nodes.
 
-\section{Forward implication}
+\subsection{Forward implication proof}
 
-For input formula $\phi$ and its translation into a POG with root
-$\noder$, the most challenging part of the proof is to show that
-$\modelset(\phi) \subseteq \modelset(\noder)$, i.e., that any total
+For input formula $\phi$ and its translation into a POG with root literal
+$r$, the most challenging part of the proof is to show that
+$\modelset(\phi) \subseteq \modelset(P)$, i.e., that any total
 assignment $\alpha$ that is a model of $\phi$ will yield $\assign(r) =
-1$, where $r$ is the extension variable associated with root node
-$\noder$.  This part of the proof consists of a series of assertion
-steps leading to one adding $r$ as a unit clause.
+1$, for root literal $r$.
+This part of the proof consists of a series of clause assertions
+leading to one adding $r$ as a unit clause.
 
 We describe this part of the proof generation as a recursive procedure
-$\validate(u, \passign, \psi)$ taking as arguments 1) POG node $\nodeu$, 2) partial assignment
-$\passign$, and 3) a set of clauses $\psi \subseteq \phi$.
+$\validate(\nodeu, \passign, \psi)$ taking as arguments POG
+node $\nodeu$, partial assignment
+$\passign$, and a set of clauses $\psi \subseteq \phi$.
 The procedure adds a number of clauses to the proof, culminating with 
 the addition of the {\em target clause}
 $u \lor \bigvee_{\lit \in \passign} \obar{\lit}$, indicating that any total
@@ -774,56 +811,57 @@ will assign $\assign(u) = 1$.
 The top-level call has $\nodeu = \noder$, $\passign = \emptyset$, and $\psi = \phi$.
 The result will therefore be to add the unit clause $r$ to the proof.
 Here we present a correct, but somewhat inefficient formulation of
-$\validate$.  We then later refine it with some optimizations.
+$\validate$.  We then refine it with some optimizations.
 
 Assume that formulas $\psi$ and $\phi$ are
 represented as sets of clauses, with $\psi \subseteq \phi$.
 For partial assignment
-$\passign$, the expression  $\simplify{\psi}{\passign}$ denotes the
-reduced and simplified set of clauses obtained by 1) eliminating any
+$\passign$, the expression  $\simplify{\psi}{\passign}$ denotes the set of clauses $\gamma$
+obtained from $\psi$ by: 1) eliminating any
 clause containing a literal $\lit$ such that $\passign(\lit) = 1$,
 2) for the remaining clauses eliminating those literals $\lit$ for
 which $\passign(\lit) = 0$, and 3) eliminating any duplicate clauses.
 In doing these simplifications, we also track the {\em provenance}
-of each simplified clause $C$, i.e., which of the (possibly multiple) original clauses simplified to become $C$.
+of each simplified clause $C$, i.e., which of the (possibly multiple) input clauses simplified to become $C$.
 More formally, for $C \in \simplify{\psi}{\passign}$, we let $\prov(C, \psi)$ denote
 those clauses $C' \in \psi$, such that
 $C' \subseteq C \cup \bigcup_{\lit \in \passign} \obar{\lit}$.
 We then extend the definition of $\prov$ to any simplified formula
-$\psi'$ as $\prov(\psi', \psi) = \bigcup_{C \in \psi'} \prov(C, \psi)$.
+$\gamma$ as $\prov(\gamma, \psi) = \bigcup_{C \in \gamma} \prov(C, \psi)$.
 
 The recursive call $\validate(u, \passign, \psi)$ assumes that we have
 traversed a path from the root node down to node $\nodeu$, with the
-literals encountered in the conjunction nodes forming the partial
+literals encountered in the product nodes forming the partial
 assignment $\passign$.  The set of clauses $\psi$ can be a proper
-subset of the input clauses $\phi$ when a conjunction node has caused
+subset of the input clauses $\phi$ when a product node has caused
 a splitting into clauses containing disjoint variables.
 The subgraph with root node $\nodeu$ should be a POG representation of the formula
 $\simplify{\psi}{\passign}$.  Having the
-routine add target clause indicates that any total assignment 
+routine add its target clause indicates that any total assignment 
 $\assign$ such that $\passign \subseteq \assign$ will yield $\alpha(u) = 1$.
 
 The process for generating such a proof depends on the form of node $\nodeu$:
 \begin{enumerate}
-\item If $\nodeu$ is a literal $\lit$, then the formula
+\item If $\nodeu$ is a literal $\lit'$, then the formula
   $\simplify{\psi}{\passign}$ must consist of the single unit clause
-  $C = \lit$, such that any $C' \in \prov(C, \psi)$ must have $C' \subseteq \{ \lit \} \bigcup_{\lit \in \passign} \obar{\lit}$.
+  $C = \lit'$, such that any $C' \in \prov(C, \psi)$ must have $C' \subseteq \{ \lit' \} \bigcup_{\lit \in \passign} \obar{\lit}$.
   Any of these can
   serve as the target clause.
-\item If $\nodeu$ is a disjunction node with children $\nodeu_1$ and $\nodeu_0$,
+\item If $\nodeu$ is a sum node with children $\nodeu_1$ and $\nodeu_0$,
   then, since the node originated from a d-DNNF graph, there must be
   some variable $x$ such that either $\nodeu_1$ is a terminal node with literal $x$ or $\nodeu_1$ is a
-  conjunction node containing $x$ as a child.  In either case, we
+  product node containing $x$ as a child.  In either case, we
   recursively call $\validate(\nodeu_1, \passign \cup \{ x \}, \psi)$.
   This will cause the addition of the target clause
   $u_1 \lor \obar{x} \lor \bigvee_{\lit \in \passign} \obar{\lit}$.
-Similarly, either $\nodeu_0$ is a terminal node with literal $\obar{x}$ or $\nodeu_0$ is a conjunction node containing $\obar{x}$ as
+Similarly, either $\nodeu_0$ is a terminal node with literal $\obar{x}$ or $\nodeu_0$ is a product node containing $\obar{x}$ as
   a child.  In either case, we recursively call $\validate(\nodeu_0, \passign \cup \{ \obar{x} \}, \psi)$,
   causing the addition of the target clause
   $u_0 \lor x \lor \bigvee_{\lit \in \passign} \obar{\lit}$.
   These recursive results can be combined, via two proof steps, with the second and third defining clauses for $\nodeu$
+(see Table~\ref{tab:defining}(B))
   to generate the target clause for $\nodeu$.
-\item If $\nodeu$ is a conjunction node, then we can divide its children
+\item If $\nodeu$ is a product node, then we can divide its children
   into a set of literal nodes $L$ and a set of nonterminal nodes $\nodeu_1, \nodeu_2, \ldots, \nodeu_k$.
   \begin{enumerate}
     \item For each literal 
@@ -837,35 +875,172 @@ Similarly, either $\nodeu_0$ is a terminal node with literal $\obar{x}$ or $\nod
   as assertions in the CRAT file.
 \item If there is a single nonterminal child ($k = 1$), we recursively call
   $\validate \left(\nodeu_1, \passign \cup \bigcup_{\lit \in L} \lit, \psi\right)$, 
-\item If there are multiple nonterminal children ($k > 1$)
+\item If there are multiple nonterminal children ($k > 1$),
   it must be the case that the clauses in
-  $\simplify{\psi}{\passign}$ can be partitioned into $k$ subsets
-  $\psi_1, \psi_2, \ldots, \psi_k$ such that $\dependencyset(\psi_i)
-  \cap \dependencyset(\psi_j) = \emptyset$ for $1 \leq i < j \leq k$,
-  and we can match each node $\nodeu_i$ to subset $\psi_i$ based on its
+  $\gamma = \simplify{\psi}{\passign}$ can be partitioned into $k$ subsets
+  $\gamma_1, \gamma_2, \ldots, \gamma_k$ such that $\dependencyset(\gamma_i)
+  \cap \dependencyset(\gamma_j) = \emptyset$ for $1 \leq i < j \leq k$,
+  and we can match each node $\nodeu_i$ to subset $\gamma_i$ based on its
   literals.
-  For each $i$ such that $1 \leq i \leq k$, we then recursively call
-  $\validate \left(\nodeu_i, \passign \cup \bigcup_{\lit \in L} \lit, \prov(\psi_i, \psi)\right)$
+  For each $i$ such that $1 \leq i \leq k$, let $\psi_i = \prov(\gamma_i, \psi)$, i.e., those input clauses in $\psi$ that, when simplified, became clause partition $\gamma_i$.
+  We recursively call
+  $\validate \left(\nodeu_i, \passign \cup \bigcup_{\lit \in L} \lit, \psi_i\right)$.
 \end{enumerate}
   We then combine as hints the results from the BCP and SAT calls for
   the literals, the recursively computed target clauses, and all but
-  the first defining clause for the conjunction operation to generate the target clause for node $\nodeu$.
+  the first defining clause for node $\nodeu$
+(see Table~\ref{tab:defining}(A))
+to generate the target clause for node $\nodeu$.
 \end{enumerate}
 Observe that most of these steps involve a polynomial number of
 operations per recursive call.  The only potential source of
 exponential growth is when a SAT solver must be invoked to validate a
-literal.
-
-\section{Reverse Implication}
+literal.  
 
 
+\subsection{Reverse implication proof}
+
+Completing the equivalence proof of input formula $\phi$ and its POG
+representation with root literal $r$ requires showing that
+$\modelset(P) \subseteq \modelset(\phi)$.  This is done in the
+CRAT framework by first deleting all asserted clauses, except for the
+final unit clause for root literal $r$ and then deleting all of the
+input clauses.  Suppose at some point in this process that we want to
+delete clause $C$ such that the remaining set of clauses will form the
+CNF formula $\psi$.  Deleting $C$ requires proving that
+$\modelset(\psi) = \modelset(\psi \lor C)$, i.e., that deleting $C$
+does not make the formula easier to satisfy.
+
+The asserted clauses can be deleted in reverse order, using the same
+hints that were used in their original assertions.  By reversing the
+order, those clauses that were used as hints when a clause was
+added will still remain when it is deleted.
+
+Each input clause deletion can be done as a single RUP step.  The
+proof generator builds a sequence of hints from among the defining
+clauses of the POG nodes via a single, bottom-up pass through the
+graph.  A RUP proof for input clause $C$ effectively proves that any
+total assignment $\assign$ that does not satisfy $C$ will yield
+$\assign(r) = 0$.  It starts with the set of literals
+$\{ \obar{\lit} | \lit \in C\}$, describing the required condition for
+assignment $\assign$ to falsify clause $C$.
+It then
+adds literals via unit propagation until a
+conflict arises.    Unit literal $r$ gets
+added right away, setting up a potential conflict.
+
+Working upward through the graph, each node $\nodeu$ is {\em marked} when
+the collected set of literals force $u$ to evaluate to $0$.  The
+program adds $\obar{u}$ to the RUP literals and adds the appropriate
+defining clause to the list of hints.  A terminal node with literal
+$\lit$ will be marked if $\lit \in C$, with no hint required.  If
+product node $\nodeu$ has some child $\nodeu_i$ that is marked, then
+$\nodeu$ is marked and clause $i+1$ from among its defining clauses (see Table~\ref{tab:defining}(A)) is
+added to the hints.  Marking sum node $\nodeu$ requires that both of
+is children $\nodeu_1$ and $\nodeu_2$ be marked.  The first defining
+clause for this node (see Table~\ref{tab:defining}(B)) will then be added.  At the very end, the program
+(assuming the reverse implication holds) will attempt to mark root
+node $\noder$, which would require $\assign(r) = 0$, yielding a
+conflict.
+
+It can be seen that the reverse implication proof will be polynomial in the size of the POG\@, because
+each clause deletion requires a single RUP step, where 
+the number of hints will be less than the number of
+nodes in the POG\@.  
 
 \section{Optimizations}
 
+The performance of forward implication, both in its execution time and
+the size of the proof generated by two optimizations described here.
+A key feature of both is that they do not require any changes to the
+proof framework---they build on the power of extended resolution to
+create new logical structures within the proof.
+
 \subsection{Literal Grouping}
+
+A single recursive step of $\validate$ can encounter product nodes
+having many---tens or even hundreds---of literal as children.  As described
+earlier, the standard approach for each child literal $\lit \in \L$ is to first attempt BCP, but calling a SAT solver
+on the formula  $\simplify{\psi}{\passign \cup \{\obar{\lit}\}}$.
+
+An alternative approach is to collect those literals $\lit_1, \lit_2,
+\ldots, \lit_m$ that cannot be validated by BCP and then define a
+product node $\nodev$ having these literals as children.  The goal
+then becomes to prove that this product must yield 1 for extension
+variable $v$.  This can be done by contradiction using a SAT solver.
+In particular, looking at the defining clauses for $\nodev$ (Table
+\ref{tab:defining}(A)), we can see that assigning 0 to $v$ will cause
+  the first defining clause to simplify to $C_p = \obar{lit}_1 \lor
+  \obar{\lit}_2 \lor \cdots \lor \obar{\lit}_m$, and for the remaining
+  clauses to become tautologies.  The formula
+  $\simplify{\psi}{\passign} \cup \{ C_p \}$ should therefore be
+  unsatisfiable.  The proof steps and hints generated by the SAT
+  solver can mapped back to the input clauses, plus the defining
+  clauses for $\nodev$.
+
 
 \subsection{Lemmas}
 \label{sect:lemma}
+
+As we have noted, the recursive calling of $\validate$ starting at
+root $\noder$ effectively expands the POG into a tree, and this can
+lead to an exponential number of calls.  We can exploit the property
+that a shared subgraph in the graph generated by a top-down d-DNNF
+compiler arises when the program detects that the simplified set of
+clauses arising from a partial assignment to the literals matches that
+of a previous traversal.  When this d-DNNF node is translated into POG
+node $\nodeu$, the proof generator can assume (and later check), that
+there is a simplified set of clauses $\gamma_{\nodeu}$
+for which the subgraph with root $\nodeu$ is its POG representation.
+
+The forward implication proof can exploit this property of shared
+subgraphs by constructing and proving a {\em lemma} for each node
+$\nodeu$ having $\indegree(\nodeu) > 1$.  This proof shows that any
+total assignment $\assign$ that satisfies formula $\gamma$ must yield
+$\assign(u) = 1$.  This lemma is then invoked for every node having
+$\nodeu$ as a child.  The net effect is to allow $\validate$ to
+maintain the graph structure of the POG, invoking $\validate$ on each
+node at most once.
+
+The challenge for implementing this strategy is to find a way to
+represent the clauses in a simplified formula $\gamma$.  Some may be
+unalterered input clauses, and these can be used directly.  Others,
+however will be clauses that do not appear in the input formula.  We
+implement these by adding POG product nodes to the CRAT file to create
+the appropriate clauses.  Imagine that there is an {\em argument} clause
+$C \in \gamma$ with $C = \lit_1 \lor \lit_2 \lor \cdots \lit_k$.  If we
+define product node $\nodev$ with arguments
+$\obar{\lit}_1, \obar{\lit}_2, \ldots, \obar{\lit}_k$, then by
+Table~\ref{tab:defining}(A), we will introduce a defining clause
+$v \lor \lit_1 \lor \lit_2 \lor \cdots \lit_k$.  We call this a {\em
+  synthetic} clause having $\obar{v}$ as the {\em guard literal}.
+That is, a partial assignment $\passign$ such that $\passign(v) = 0$ will {\em
+  activate} the clause, causing it to represent argument clause $C$.  On the other
+hand, a partial assignment with $\passign(v) = 1$ will
+cause the clause to become a tautology and therefore have no effect.
+
+Suppose for every clause $C_j \in \gamma$ that does not correspond to
+an input clause, we generate a synthetic clause $C'_j$ with guard literal
+$\obar{v}_j$, for $1 \leq j \leq m$.  Let $\gamma$ be the formula where each clause $C_j$ is replaced by synthetic clause $C'_j$,
+and
+let $\lassign = \{ \obar{v}_1, \obar{v}_2, \ldots, \obar{v}_m \}$.
+Invoking $\validate(\nodeu, \lassign, \gamma)$
+ will then prove a lemma, given by the target clause
+ $u \lor v_1 \lor v_2 \lor \cdots \lor v_m$,
+ showing that any total assignment $\assign$ that activates the synthetic clauses will have $\assign(u)$.
+
+Later, when node $\nodeu$ is encountered by a call to $\validate(\nodeu, \passign, \psi)$, we invoke the lemma
+by showing that each synthetic clause
+$C_j$ matches some simplified clause in $\simplify{\psi}{\passign}$.  More precisely,
+we assert the clause
+$\obar{v}_j \lor \bigvee_{\lit \in \passign} \obar{\lit}$
+to show that synthetic clause $C_j$ will be activated for $1 \leq j \leq m$.
+
+Observe that the lemma structure can be hierarchical, since a shared
+subgraph may contain nodes that are themselves roots of shared
+subgraphs.  Nonetheless, the principles described allow the
+definition, proof, and applications of a lemma for each shared node in
+the graph.
 
 
 \section{A Formally Verified CRAT Checker}
@@ -884,9 +1059,9 @@ such that $1 \leq i < j \leq k$ must satisfy $\modelset(\phi(p_i))
 \cap \modelset(\phi(p_j)) = \emptyset$, and for every $p_i$ and $s_j$
 such that $1 \leq i,j \leq k$, we must have $\dependencyset(\phi(p_i))
 \cap \dependencyset(\phi(s_j)) = \emptyset$.  The POG representation
-of such a node could have $k$ conjunction nodes: $t_i = p_i \pand s_i$
-for $1 \leq i \leq k$, and then $k-1$ binary disjunction nodes to form
-the disjunction of $t_1, \ldots, t_k$.
+of such a node could have $k$ product nodes: $t_i = p_i \pand s_i$
+for $1 \leq i \leq k$, and then $k-1$ binary sum nodes to form
+the sum of $t_1, \ldots, t_k$.
 
 \bibliography{references}
 
