@@ -1,0 +1,21 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -1 -C 2147483647 -L d2p.log ./mc2022_track2_169.cnf ./mc2022_track2_169.nnf ./mc2022_track2_169.crat
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN: Time = 0.00.  Read input file with 264 variables and 1474 clauses
+c Read D4 NNF file with 149740422 nodes (69934019 explicit) and 185221521 edges
+c Compressed POG has 134557467 nodes, root literal 134557731, and 1030698214 defining clauses
+c GEN: Time = 602.10.  Generated POG representation
+c GEN: Time = 602.10.  Deleted asserted clauses
+GEN ERROR: Timeout after 10000 seconds
+GEN LOG: Elapsed time = 10003.597 seconds
+GEN OUTCOME: Timeout
+GEN: LOG: size ./mc2022_track2_169.crat 134558727 lines 165613027328 bytes
+OVERALL LOG: Elapsed time = 14360.118 seconds
+OVERALL OUTCOME: failed
