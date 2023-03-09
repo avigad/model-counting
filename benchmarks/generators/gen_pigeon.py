@@ -46,7 +46,7 @@ def pij(i, j):
     return (i-1)*pigeonCount + j
 
 def generate(froot):
-    cwriter = writer.LazyCnfWriter(froot, verbLevel = 3 if verbose else 1)
+    cwriter = writer.LazyCnfWriter(froot, verbLevel = 2 if verbose else 1)
     if verbose:
         cwriter.doComment("Encoding of pigeonhole problem for %d holes and %d pigeons" % (holeCount, pigeonCount))
         if linear:

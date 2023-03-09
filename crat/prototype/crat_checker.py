@@ -27,12 +27,22 @@ import getopt
 import datetime
 
 def usage(name):
-    print("Usage: %s [-v] [-L] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn] [-o FILE.crat]" % name)
+    print("Usage: %s [-v] [-L] [-C] [-H] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn] [-o FILE.crat]" % name)
     print("   -v VLEVEL    Set verbosity level (0-3)")
     print("   -L           Lax mode: Don't attempt validation of *'ed hints")
+    print("   -C           Count-only mode.  Don't check logial operations")
+    print("   -H           Hints-required mode: Don't allow *'ed hints")
     print("   -w WEIGHTS   Provide colon-separated set of input weights.")
     print("                Each should be between 0 and 100 (will be scaled by 1/100)")
     print("   -o FILE.crat Produce CRAT output file with all hints present")
+
+
+######################################################################################
+# Design options
+######################################################################################
+
+## Allow RUP proofs to encounter conflict before last clause
+earlyRup = True
 
 
 ######################################################################################
@@ -46,10 +56,10 @@ def usage(name):
 # Lit*: Clause consisting of specified literals
 # HINT: Either Id+ or *
 
-# Id  i [Lit*] 0             -- Input clause
+#     r Lit                  -- Declare root literal
 # Id  a [Lit*] 0    HINT 0   -- RUP clause addition
 #    dc Id          HINT 0   -- RUP clause deletion
-# Id  p Var Lit Lit+     0   -- And operation
+# Id  p Var Lit*         0   -- And operation
 # Id  a Var Lit Lit HINT 0   -- Or operation
 #    do Var                  -- Operation deletion
 
@@ -148,12 +158,14 @@ class P52:
     def __str__(self):
         return "%d*2^(%d)5^(%d)" % (self.a, self.m2, self.m5)
 
+    def __eq__(self, other):
+        return self.a == other.a and self.m2 == other.m2 and self.m5 == other.m5
+
     def num(self):
         p2 = 2**self.m2
         p5 = 5**self.m5
         val = self.a * p2 * p5
         return val
-
 
     def neg(self):
         result = P52(-self.a, self.m2, self.m5)
@@ -261,6 +273,7 @@ class P52:
 # Save list of clauses, each is a list of literals (zero at end removed)
 class CnfReader():
     file = None
+    weights = None
     clauses = []
     # List of input variables.
     nvar = 0
@@ -270,6 +283,7 @@ class CnfReader():
     def __init__(self, fname):
         self.failed = False
         self.errorMessage = ""
+        self.weights = None
         try:
             self.file = open(fname, 'r')
         except Exception:
@@ -283,6 +297,31 @@ class CnfReader():
         self.failed = True
         self.errorMessage = msg
 
+    # See if there's anything interesting in the comment
+    def processComment(self, line):
+        if self.weights is None:
+            if self.nvar > 0:
+                # Already past point where weight header will show up
+                return
+            fields = line.split()
+            if len(fields) == 3 and fields[1] == 't' and fields[2] == 'wmc':
+                self.weights = {}
+        else:
+            fields = line.split()
+            if len(fields) == 6 and fields[1] == 'p' and fields[2] == 'weight':
+                lit = int(fields[3])
+                wt = P52().parse(fields[4])
+                if lit > 0:
+                    self.weights[lit] = wt
+                elif -lit in self.weights:
+                    pwt = self.weights[-lit]
+                    if wt.add(pwt) != P52(1):
+                        msg = "Noncomplementary weights: w(%d) = %s, w(%d) = %s" % (-lit, pwt.render(), lit, wt.render())
+                        self.fail(msg)
+                        return
+                
+
+
     def readCnf(self):
         self.nvar = 0
         lineNumber = 0
@@ -294,7 +333,7 @@ class CnfReader():
             if len(line) == 0:
                 continue
             elif line[0] == 'c':
-                pass
+                self.processComment(line)
             elif line[0] == 'p':
                 fields = line[1:].split()
                 if fields[0] != 'cnf':
@@ -502,15 +541,21 @@ class ClauseManager:
     liveClauseSet = set([])
     # Final root 
     root = None
+    # Literal declared in file
+    declaredRoot = None
     verbose = False
     laxMode = False
+    requireHintsMode = False
+    countMode = False
     uncheckedCount = 0
 
-    def __init__(self, clauseCount, verbose, laxMode):
+    def __init__(self, clauseCount, verbose, laxMode, requireHintsMode, countMode):
         self.inputClauseCount = clauseCount
         self.verbose = verbose
         self.laxMode = laxMode
+        self.requireHintsMode = requireHintsMode
         self.uncheckedCount = 0
+        self.countMode = countMode
         self.clauseDict = {}
         self.definingClauseSet = set([])
         self.unitClauseSet = set([])
@@ -603,6 +648,8 @@ class ClauseManager:
 
     # Try to derive RUP clause chain. Return list of hints
     def findRup(self, tclause):
+        if self.countMode:
+            return []
         # List of clause Ids that have been used in unit propagation
         propClauses = []
         # Set of clause Ids that have been used in unit propagation
@@ -664,8 +711,12 @@ class ClauseManager:
     # Assumes clause has been processed by cleanClause
     # Return (T/F, Reason, hints)
     def checkRup(self, clause, hints):
+        if self.countMode:
+            return (True, "", [])
         self.totalHintCount += 1
         if len(hints) == 1 and hints[0] == '*':
+            if self.requireHintsMode:
+                return (False, "RUP failed for clause %s: No hints provided" % (showClause(clause)), hints)
             self.addedHintCount += 1
             if self.laxMode:
                 self.uncheckedCount += 1
@@ -674,17 +725,24 @@ class ClauseManager:
             if hints is None:
                 return (False, "RUP failed for clause %s: Couldn't generate hints" % (showClause(clause)), hints)
         unitSet = set([-lit for lit in clause])
-        for id in hints:
+        for idx in range(len(hints)):
+            id = hints[idx]
             rclause, msg = self.findClause(id)
             if rclause is None:
                 return (False, "RUP failed: %s" % msg, hints)
             uresult, ulit = self.unitProp(rclause, unitSet)
             if uresult == "none":
-                return (False, "RUP failed for clause %s: No unit literal found in clause #%d %s" % (showClause(clause) ,id, showClause(rclause)), hints)
+                print ("WARNING.  RUP failed for clause %s: No unit literal found in clause #%d (= %s)" % (showClause(clause) ,id, showClause(rclause)))
+                unitList = sorted(list(unitSet), key = lambda lit : abs(lit))
+                print ("Learned unit literals = %s" % unitList)
+                return (False, "RUP failed for clause %s: No unit literal found in clause #%d (= %s)" % (showClause(clause) ,id, showClause(rclause)), hints)
             elif uresult == "satisfied":
                 return (False, "RUP failed for clause %s: Satisfied literal %s in clause #%d. RUP clause:%s" % (showClause(clause), ulit, id, showClause(rclause)), hints)
             elif uresult == "conflict":
-                return (True, "", hints)
+                if idx != len(hints)-1 and not earlyRup:
+                    return (False, "RUP failed for clause %s: Hit conflict with hint clause #%d." % (showClause(clause), id), hints)
+                else:
+                    return (True, "", hints)
         return (False, "RUP failed: No conflict found", hints)
 
     def checkFinal(self):
@@ -707,13 +765,13 @@ class ClauseManager:
             else:
                 notDeleted.append(id)
 
-        if len(notDeleted) > 0:
+        if not self.countMode and len(notDeleted) > 0:
             return (False, "Clauses %s not deleted" % str(notDeleted))
-                
-
                 
         if self.root is None:
             return (False, "No root found")
+        if self.declaredRoot is not None and self.declaredRoot != self.root:
+            return (False, "Declared root %d does not match literal %d in final unit clause" % (self.declaredRoot, self.root))
         return (True, "")
 
 class OperationManager:
@@ -741,9 +799,10 @@ class OperationManager:
         if op == self.disjunction:
             if len(inLits) != 2:
                 return (False, "Cannot have %d arguments for disjunction" % len(inLits))
-        elif op == self.conjunction:
-            if len(inLits) < 2:
-                return (False, "Cannot have %d arguments for conjunction" % len(inLits))
+# REVISED
+#        elif op == self.conjunction:
+#            if len(inLits) < 2:
+#                return (False, "Cannot have %d arguments for conjunction" % len(inLits))
         if outVar in self.dependencySetDict:
             return (False, "Operator output variable %d already in use" % outVar)
         dset = set([])
@@ -858,19 +917,21 @@ class Prover:
     # Operation Manager
     omgr = None
     failed = False
+    countMode = False
     # Make copy of CRAT file with hints
     cratWriter = None
 
 
-    def __init__(self, creader, verbose = False, laxMode = False, cratWriter=None):
+    def __init__(self, creader, verbose = False, laxMode = False, requireHintsMode=False, countMode=False, cratWriter=None):
         self.verbose = verbose
         self.lineNumber = 0
-        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode)
+        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode, requireHintsMode, countMode)
         self.omgr = OperationManager(self.cmgr, creader.nvar)
+        self.countMode = countMode
         self.cratWriter = cratWriter
         self.failed = False
         self.subsetOK = False
-        self.ruleCounters = { 'i' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0 }
+        self.ruleCounters = { 'i' : 0, 'r' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0 }
 
         id = 0
         for clause in creader.clauses:
@@ -927,7 +988,7 @@ class Prover:
             if len(fields) == 0 or fields[0][0] == 'c':
                 continue
             id = None
-            if fields[0] not in ['dc', 'do']:
+            if fields[0] not in ['dc', 'do', 'r']:
                 try:
                     id = int(fields[0])
                 except:
@@ -944,6 +1005,8 @@ class Prover:
                 self.doAddRup(id, rest)
             elif cmd == 'dc':
                 self.doDeleteRup(id, rest)
+            elif cmd == 'r':
+                self.doDeclareRoot(id, rest)
             elif cmd == 'p':
                 self.doProduct(id, rest)
             elif cmd == 's':
@@ -1040,10 +1103,22 @@ class Prover:
         if self.cratWriter is not None:
             self.cratWriter.doDeleteClause(id, hints)
         
-    def doProduct(self, id, rest):
-        if len(rest) < 4:
-            self.flagError("Couldn't add product operation with clause #%d: Invalid number of operands" % (id))
+    def doDeclareRoot(self, id, rest):
+        if len(rest) != 1:
+            self.flagError("Root declaration should consist just of root literal")
             return
+        try:
+            rlit = int(rest[0])
+        except:
+            self.flagError("Invalid root literal '%s'", rest[0])
+            return
+        self.cmgr.declaredRoot = rlit
+
+    def doProduct(self, id, rest):
+# REVISED
+#        if len(rest) < 2:
+#            self.flagError("Couldn't add product operation with clause #%d: Invalid number of operands" % (id))
+#            return
         try:
             args = [int(field) for field in rest]
         except:
@@ -1111,7 +1186,10 @@ class Prover:
             self.failProof("")
         else:
             if self.cmgr.uncheckedCount == 0:
-                print("CHECKER: PROOF SUCCESSFUL")
+                if self.countMode:
+                    print("CHECKER: PROOF NOT CHECKED")
+                else:
+                    print("CHECKER: PROOF SUCCESSFUL")
             else:
                 print("CHECKER: PROOF UNVERIFIED (%d unchecked hints)" % self.cmgr.uncheckedCount)
         self.summarize()
@@ -1138,8 +1216,10 @@ def run(name, args):
     cratName = None
     verbLevel = 1
     laxMode = False
+    requireHintsMode = False
+    countMode = False
     weights = None
-    optList, args = getopt.getopt(args, "hv:Li:p:w:o:")
+    optList, args = getopt.getopt(args, "hv:LCHi:p:w:o:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -1148,6 +1228,10 @@ def run(name, args):
             verbLevel = int(val)
         elif opt == '-L':
             laxMode = True
+        elif opt == '-C':
+            countMode = True
+        elif opt == '-H':
+            requireHintsMode = True
         elif opt == '-i':
             cnfName = val
         elif opt == '-p':
@@ -1177,6 +1261,10 @@ def run(name, args):
         print("Error reading CNF file: %s" % creader.errorMessage)
         print("PROOF FAILED")
         return
+    if weights is None:
+        if creader.weights is not None:
+            print("Obtained weights from CNF file")
+            weights = creader.weights
     if weights is not None and len(weights) != creader.nvar:
         print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
         return
@@ -1184,7 +1272,7 @@ def run(name, args):
     cratWriter = None
     if cratName is not None:
         cratWriter = CratWriter(creader.nvar, creader.clauses, cratName, verbLevel)
-    prover = Prover(creader, verbose, laxMode, cratWriter)
+    prover = Prover(creader, verbose, laxMode, requireHintsMode, countMode, cratWriter)
     prover.prove(proofName)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds

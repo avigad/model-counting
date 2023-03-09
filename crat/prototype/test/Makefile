@@ -1,5 +1,6 @@
 INTERP = python3
 DSHARP = ~/repos/dsharp/dsharp
+TBSAT = ~/repos/tbuddy/tbsat/src/tbsat
 D4 = ~/repos/d4/d4
 VLEVEL = 2
 VCLEVEL = 1
@@ -9,19 +10,20 @@ LHEIGHT = 2
 DDNNF = ../ddnnf.py
 CHECK = ../crat_checker.py
 HINTIFY = ../hintify.py
-
+B2P = ../btrace2pog.py
+D2P = ../../ddnnf2pog/d2p
 
 .SUFFIXES: .cnf .nnf .crat .check_data .hinted_crat .hinted_check_data .scrat .hcrat .hcheck_data \
-	      .d4nnf .d4crat .d4check_data .d4hinted_crat .d4hinted_check_data
-
+	      .d4nnf .d4crat .d4check_data .d4hinted_crat .d4hinted_check_data \
+		.btrace .bcrat .bcheck_data .pog .pog_count
 .cnf.nnf:
 	$(DSHARP) -Fnnf $@ $< | tee $*.nnf_data
 
 .nnf.crat:
-	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s $(SLEVEL) | tee $*.crat_data
+	$(INTERP) $(DDNNF) -D -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s $(SLEVEL) | tee $*.crat_data
 
 .nnf.scrat:
-	$(INTERP) $(DDNNF) -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H 2 -L $(LHEIGHT) -s 1 | tee $*.scrat_data
+	$(INTERP) $(DDNNF) -D -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H 2 -L $(LHEIGHT) -s 1 | tee $*.scrat_data
 
 .crat.check_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@
@@ -39,10 +41,25 @@ HINTIFY = ../hintify.py
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
 
 .d4nnf.d4crat:
-	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s $(SLEVEL) | tee $*.d4crat_data
+	$(INTERP) $(DDNNF) -D -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s $(SLEVEL) | tee $*.d4crat_data
 
 .d4crat.d4check_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.d4hinted_crat | tee $@
 
 .d4hinted_crat.d4hinted_check_data:
 	$(INTERP) $(CHECK) -v $(VLEVEL) -i $*.cnf -p $<  | tee $@
+
+.cnf.btrace:
+	$(TBSAT) -v $(VLEVEL) -m 0 -i $< -o $*.lrat -T $@
+
+.btrace.bcrat:
+	$(INTERP) $(B2P) -v $(VLEVEL) -i $*.cnf -b $< -c $@
+
+.bcrat.bcheck_data:
+	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< | tee $@
+
+.d4nnf.pog:
+	$(D2P) $(VLEVEL) $*.cnf $< $@
+
+.pog.pog_count:
+	$(INTERP) $(CHECK) -v $(VLEVEL) -C -i $*.cnf -p $< | tee $@

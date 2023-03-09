@@ -40,8 +40,6 @@ class ProtoNode:
         return self.isOne() or self.isZero()
 
 class Node(ProtoNode):
-    # For traversals
-    mark = False 
 
     xlit = None
     # Track original variable of ITE operation
@@ -58,7 +56,9 @@ class Node(ProtoNode):
         self.iteVar = None
         self.definingClauseId = None
         self.unitClauseId = None
-        self.mark = False
+
+    def name(self):
+        return str(self)
 
     def __hash__(self):
         return self.xlit
@@ -76,7 +76,9 @@ class Variable(Node):
 
     def __init__(self, id):
         Node.__init__(self, id, NodeType.variable, [])
-        self.dependencySet.add(id)
+
+    def __str__(self):
+        return "X" + str(self.xlit)
 
     def key(self):
         return (self.ntype, self.xlit)
@@ -89,7 +91,7 @@ class One(Node):
         Node.__init__(self, readwrite.tautologyId, NodeType.tautology, [])
 
     def __str__(self):
-        return "TAUT"
+        return "T"
 
 class Negation(Node):
     
@@ -97,7 +99,7 @@ class Negation(Node):
         Node.__init__(self, -child.xlit, NodeType.negation, [child])
 
     def __str__(self):
-        return "-" + str(self.children[0])
+        return "!" + str(self.children[0])
 
     def getLit(self):
         clit = self.children[0].getLit()
@@ -149,7 +151,7 @@ class Pog:
     # Asserted unit clauses
     unitClauseCount = 0
 
-    def __init__(self, variableCount, inputClauseList, fname, verbLevel, hintLevel, lemmaHeight):
+    def __init__(self, variableCount, inputClauseList, fname, verbLevel):
         self.verbLevel = verbLevel
         self.uniqueTable = {}
         self.inputClauseList = readwrite.cleanClauses(inputClauseList)
@@ -186,6 +188,11 @@ class Pog:
         self.uniqueTable[key] = node
         self.nodeMap[node.xlit] = node
 
+    def remove(self, node):
+        key = node.key()
+        del self.uniqueTable[key]
+        del self.nodeMap[node.xlit]
+
     def addNegation(self, child):
         if child.ntype == NodeType.negation:
             return child.children[0]
@@ -199,10 +206,10 @@ class Pog:
     # For all nodes to be combined via conjunction
     # Returns leaf0 or list of arguments
     def mergeConjunction(self, root, sofar = []):
-        if type(sofar) == type(self.leaf0) and sofar == self.leaf0:
+        if len(sofar) >= 1 and sofar[0] == self.leaf0:
             return sofar
         if root.isZero():
-            return self.leaf0
+            return [root]
         elif root.isOne():
             return sofar
         elif root.ntype == NodeType.conjunction:
@@ -213,13 +220,32 @@ class Pog:
             sofar.append(root)
             return sofar
 
-    def addConjunction(self, children):
+    def simplifyConjunction(self, children):
         nchildren = []
         for child in children:
-            nchildren = self.mergeConjunction(child, nchildren)
-        if type(nchildren) == type(self.leaf0) and nchildren == self.leaf0:
-            return nchildren
-        children = nchildren
+            if child.isZero():
+                return [child]
+            if not child.isOne():
+                nchildren.append(child)
+        return nchildren
+
+
+    def addConjunction(self, children):
+        # Aggressive merging
+        if False:
+            nchildren = []
+            for child in children:
+                nchildren = self.mergeConjunction(child, nchildren)
+            if len(nchildren) >= 1 and nchildren[0] == self.leaf0:
+                return nchildren[0]
+            children = nchildren
+        # Less aggressive:
+        else: 
+            children = self.simplifyConjunction(children)
+        if len(children) == 0:
+            return self.leaf1
+        if len(children) == 1:
+            return children[0]
         n = self.lookup(NodeType.conjunction, children)
         if n is None:
             xlit = self.cwriter.newXvar()
@@ -228,8 +254,8 @@ class Pog:
             if self.verbLevel >= 2:
                 slist = [str(child) for child in n.children]
                 self.addComment("Node %s = AND(%s)" % (str(n), ", ".join(slist)))
-            n.definingClauseId = self.cwriter.finalizeAnd(node.ilist, node.xlit)
-            self.definingClauseCounts += 1 + len(node.children)
+            ilist = [child.xlit for child in children]
+            n.definingClauseId = self.cwriter.finalizeAnd(ilist, xlit)
         return n
 
     def addDisjunction(self, child1, child2, hintPairs = None):
@@ -250,8 +276,8 @@ class Pog:
             hints = None
             if hintPairs is not None:
                 hints = [node.definingClauseId+offset for node,offset in hintPairs]
-            n.definingClauseId = self.cwriter.finalizeOr(node.ilist, node.xlit, hints)
-            self.definingClauseCounts += 1 + len(node.children)
+            ilist = [child.xlit for child in n.children]
+            n.definingClauseId = self.cwriter.finalizeOr(ilist, xlit, hints)
         return n
 
     # Find information to generate hint for mutual exclusion proof
@@ -277,14 +303,15 @@ class Pog:
             result = nif
         elif nthen.isZero() and nelse.isOne():
             result = self.addNegation(nif)
-        elif nthen.isOne():
-            result = self.addNegation(self.addConjunction([self.addNegation(nif), self.addNegation(nelse)]))
-        elif nthen.isZero():
-            result = self.addConjunction(self.addNegation(nif), nelse)
-        elif nelse.isOne():
-            result = self.addNegation(self.addConjunction([nif, self.addNegation(nthen)]))
-        elif nelse.isZero():
-            result = self.addConjunction([nif, nthen])
+# Can't handle these optimizations
+#        elif nthen.isOne():
+#            result = self.addNegation(self.addConjunction([self.addNegation(nif), self.addNegation(nelse)]))
+#        elif nthen.isZero():
+#            result = self.addConjunction([self.addNegation(nif), nelse])
+#        elif nelse.isOne():
+#            result = self.addNegation(self.addConjunction([nif, self.addNegation(nthen)]))
+#        elif nelse.isZero():
+#            result = self.addConjunction([nif, nthen])
         else:
             ntrue = self.addConjunction([nif, nthen])
             nfalse = self.addConjunction([self.addNegation(nif), nelse])
@@ -303,12 +330,6 @@ class Pog:
 
     def addComment(self, s, lowerSplit = False):
         self.cwriter.doComment(s, lowerSplit)
-
-    def deleteClause(self, id, hlist = None):
-        self.cwriter.doDeleteClause(id, hlist)
-
-    def deleteOperation(self, node):
-        self.cwriter.doDeleteOperation(node.xlit, node.definingClauseId, 1+len(node.children))
         
             
     def finish(self):
@@ -332,18 +353,6 @@ class Pog:
             print("c Asserted unit clauses: %d" % nuclause)
             print("Total clauses: %d input + %d defining + %d asserted + %d unit = %d" % (niclause, ndclause, naclause, nuclause, nclause))
 
-    def doMark(self, root):
-        if root.mark:
-            return
-        root.mark = True
-        for c in root.children:
-            self.doMark(c)
-        
-    # Perform mark & sweep to remove any nodes not reachable from root
-    # Generate node declarations
-    # Construct context sets
-    def finalize(self):
-        pass
 
     def showNode(self, node):
         outs = str(node)

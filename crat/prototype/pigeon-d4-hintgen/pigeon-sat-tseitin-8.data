@@ -61,66 +61,75 @@ c Number of nodes: 68680
 c Number of edges: 73862
 c 
 c [1m[34mCache Information[0m
-c Memory used: 550 MB
+c Memory used: 551 MB
 c
 c Number of positive hit: 2723
 c Number of negative hit: 4147
 c Number of reduceCall: 0
 c
-c Final time: 0.096025
+c Final time: 0.102956
 c 
 s 0.000000
 GEN: Input NNF DAG has 112 inputs, 11038 nodes
 GEN: NNF DAG with ITEs has 10799 nodes
-GEN: Generated POG has 8445 And/Or nodes
-GEN: File 'pigeon-sat-tseitin-8.crat' has 16573 variables (8860 used) and 142220 steps
+GEN: Generated POG has 11168 And/Or nodes
+GEN: File 'pigeon-sat-tseitin-8.crat' has 19294 variables (11583 used) and 124324 steps
 GEN: Nodes by type
 GEN:    var: 112
 GEN:    neg: 112
-GEN:    conjunct: 5630
+GEN:    conjunct: 8353
 GEN:    disjunct: 2815
-GEN:    TOTAL: 8669
-GEN: Total defining clauses: 81916
+GEN:   POG TOTAL: 11392
+GEN: Total defining clauses: 76867
 GEN: Node visits during proof generation (by node type)
-GEN:    conjunct: 5630
+GEN:    conjunct: 9828
 GEN:    disjunct: 2815
-GEN:    TOTAL: 8445
+GEN:   VIS TOTAL: 12643
 GEN: Lemmas:  460 definitions.  3259 shadow nodes (11925 defining clauses), 3189 applications
+GEN: Calls to SAT Solver: 1569
 GEN: Literal justification clause counts (by number of clauses in justification:
-GEN:    1 : 27996
-GEN:    3 : 405
-GEN:    4 : 186
-GEN:    5 : 95
-GEN:    6 : 32
-GEN:    7 : 22
-GEN:    8 : 16
-GEN:    9 : 5
-GEN:    10 : 4
-GEN:    11 : 6
-GEN:    12 : 4
-GEN:    14 : 6
-GEN:    15 : 3
-GEN:    16 : 3
-GEN:    31 : 2
-GEN:    1 each for counts 18, 19, 20, 21, 23, 24, 26, 45, 47, 54, 56, 58, 61, 62, 64, 74, 86, 122, 127, 164, 186, 535
-GEN:    TOTAL: 33234
+GEN:    1 : 7694
+GEN:    2 : 117
+GEN:    3 : 570
+GEN:    4 : 320
+GEN:    5 : 169
+GEN:    6 : 107
+GEN:    7 : 57
+GEN:    8 : 45
+GEN:    9 : 32
+GEN:    10 : 29
+GEN:    11 : 20
+GEN:    12 : 18
+GEN:    13 : 16
+GEN:    14 : 10
+GEN:    15 : 8
+GEN:    16 : 2
+GEN:    18 : 5
+GEN:    19 : 6
+GEN:    20 : 5
+GEN:    30 : 2
+GEN:    48 : 2
+GEN:    56 : 2
+GEN:    60 : 2
+GEN:    1 each for counts 17, 24, 26, 27, 31, 32, 33, 35, 37, 39, 40, 44, 46, 50, 51, 58, 61, 62, 80, 81, 143, 148, 164, 197, 334
+GEN:   LIT TOTAL: 17230
 GEN: RUP clauses for node justification (by node type):
-GEN:    conjunct: 1041
+GEN:    conjunct: 4198
 GEN:    disjunct: 5630
-GEN:    TOTAL: 6671
-GEN: Total clauses: 208 input + 81916 defining + 11925 lemma defining + 19102 lemma application + 33234 literal justification + 6671 node justifications = 153056
-GEN: Elapsed time for generation: 194.10 seconds
+GEN:   RUP TOTAL: 9828
+GEN: Total clauses: 208 input + 76867 defining + 11925 lemma defining + 19102 lemma application + 17230 literal justification + 9828 node justifications = 135160
+GEN: Elapsed time for generation: 217.20 seconds
 CHECKER: Read 208 clauses from file pigeon-sat-tseitin-8.cnf
 CHECKER: PROOF SUCCESSFUL
-CHECKER: 142220 total clauses
-CHECKER: 142220 maximum live clauses
-CHECKER: 121036 total hints
+CHECKER: 124324 total clauses
+CHECKER: 124324 maximum live clauses
+CHECKER: 95342 total hints
 CHECKER: 0 added hints
 CHECKER: Command occurences:
-CHECKER:      a   : 59007
-CHECKER:     dc   : 59214
-CHECKER:      p   : 5933
+CHECKER:      a   : 46160
+CHECKER:     dc   : 46367
+CHECKER:      p   : 8656
 CHECKER:      s   : 2815
-CHECKER:     TOTAL: 126969
-CHECKER: Elapsed time for check: 5.65 seconds
+CHECKER:     TOTAL: 103998
+CHECKER: Elapsed time for check: 5.83 seconds
 CHECKER: Unweighted count = 40320

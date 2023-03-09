@@ -1,0 +1,118 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -e -s -C 2147483647 -L d2p.log ./mc2022_track2_015.cnf ./mc2022_track2_015.nnf ./mc2022_track2_015.crat
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   no
+c GEN:   Use lemmas:      no
+c GEN:   Delete files:    yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN: Time = 0.00.  Read input file with 70 variables and 368 clauses
+c Read D4 NNF file with 899 nodes (381 explicit) and 759 edges
+c Compressed POG has 897 nodes, root literal 967, and 2851 defining clauses
+c GEN: Time = 0.00.  Generated POG representation
+c Time = 0.01.  Justifications of 1000 nodes completed.  4179 total clauses
+c Time = 0.01.  Justifications of 2000 nodes completed.  5507 total clauses
+c Time = 0.01.  Justifications of 3000 nodes completed.  6829 total clauses
+c Time = 0.02.  Justifications of 4000 nodes completed.  8146 total clauses
+c Time = 0.02.  Justifications of 5000 nodes completed.  9464 total clauses
+c Time = 0.02.  Justifications of 6000 nodes completed.  10784 total clauses
+c Time = 0.03.  Justifications of 7000 nodes completed.  12111 total clauses
+c Time = 0.03.  Justifications of 8000 nodes completed.  13441 total clauses
+c Time = 0.03.  Justifications of 9000 nodes completed.  14765 total clauses
+c Time = 0.03.  Justifications of 10000 nodes completed.  16081 total clauses
+c Time = 0.04.  Justifications of 11000 nodes completed.  17398 total clauses
+c Time = 0.04.  Justifications of 12000 nodes completed.  18716 total clauses
+c Time = 0.04.  Justifications of 13000 nodes completed.  20045 total clauses
+c Time = 0.05.  Justifications of 14000 nodes completed.  21375 total clauses
+c Time = 0.05.  Justifications of 15000 nodes completed.  22701 total clauses
+c Time = 0.05.  Justifications of 16000 nodes completed.  24017 total clauses
+c Time = 0.06.  Justifications of 17000 nodes completed.  25334 total clauses
+c Time = 0.06.  Justifications of 18000 nodes completed.  26650 total clauses
+c Time = 0.06.  Justifications of 19000 nodes completed.  27979 total clauses
+c Time = 0.07.  Justifications of 20000 nodes completed.  29307 total clauses
+c Time = 0.07.  Justifications of 21000 nodes completed.  30637 total clauses
+c Time = 0.07.  Justifications of 22000 nodes completed.  31953 total clauses
+c Time = 0.08.  Justifications of 23000 nodes completed.  33270 total clauses
+c Time = 0.08.  Justifications of 24000 nodes completed.  34586 total clauses
+c Time = 0.08.  Justifications of 25000 nodes completed.  35913 total clauses
+c Time = 0.09.  Justifications of 26000 nodes completed.  37241 total clauses
+c Time = 0.09.  Justifications of 27000 nodes completed.  38570 total clauses
+c Time = 0.09.  Justifications of 28000 nodes completed.  39890 total clauses
+c Time = 0.10.  Justifications of 29000 nodes completed.  41206 total clauses
+c Time = 0.10.  Justifications of 30000 nodes completed.  42522 total clauses
+c Time = 0.10.  Justifications of 31000 nodes completed.  43847 total clauses
+c Time = 0.11.  Justifications of 32000 nodes completed.  45175 total clauses
+c Time = 0.11.  Justifications of 33000 nodes completed.  46504 total clauses
+c Time = 0.11.  Justifications of 34000 nodes completed.  47823 total clauses
+c Time = 0.12.  Justifications of 35000 nodes completed.  49142 total clauses
+c Time = 0.12.  Justifications of 36000 nodes completed.  50458 total clauses
+c Time = 0.12.  Justifications of 37000 nodes completed.  51780 total clauses
+c Time = 0.13.  Justifications of 38000 nodes completed.  53108 total clauses
+c Time = 0.13.  Justifications of 39000 nodes completed.  54436 total clauses
+c Time = 0.13.  Justifications of 40000 nodes completed.  55756 total clauses
+c Time = 0.14.  Justifications of 41000 nodes completed.  57075 total clauses
+c Time = 0.14.  Justifications of 42000 nodes completed.  58394 total clauses
+c Time = 0.14.  Justifications of 43000 nodes completed.  59713 total clauses
+c Time = 0.15.  Justifications of 44000 nodes completed.  61042 total clauses
+c Time = 0.15.  Justifications of 45000 nodes completed.  62370 total clauses
+c Time = 0.15.  Justifications of 46000 nodes completed.  63690 total clauses
+c Time = 0.16.  Justifications of 47000 nodes completed.  65008 total clauses
+c Time = 0.16.  Justifications of 48000 nodes completed.  66328 total clauses
+c Time = 0.16.  Justifications of 49000 nodes completed.  67647 total clauses
+c Time = 0.16.  Justifications of 49005 nodes, including root, completed.  67655 total clauses
+c GEN: Time = 0.19.  Deleted asserted clauses
+c GEN: Time = 0.20.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 70
+c GEN:    input clauses  : 368
+c GEN: POG nodes
+c GEN:    product   : 637
+c GEN:    sum       : 259
+c GEN:    node TOTAL: 896
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 33206
+c GEN:    product/SAT: 0
+c GEN:    sum        : 15799
+c GEN:    visit TOTAL: 49005
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 2851
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 33206
+c GEN:    sum justification    : 31598
+c GEN:    literal justification: 0
+c GEN:    lemma application    : 0
+c GEN:    clause TOTAL         : 67655
+c GEN: Time
+c GEN:   SAT execution  : 0.00
+c GEN:   other execution: 0.20
+c GEN:   time TOTAL     : 0.20
+GEN LOG: Elapsed time = 0.211 seconds
+GEN OUTCOME: normal
+FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track2_015.cnf ./mc2022_track2_015.crat
+FCHECK LOG: Time limit 10000 seconds
+FCHECK: Read CNF file with 70 variables and 368 clauses
+FCHECK: Read CRAT file with 897 operations,  64804 asserted + 2851 defining = 67655 clauses
+FCHECK: Deleted 65171 input and asserted clauses
+FCHECK: Final root literal 967
+FCHECK: SUCCESS.  CRAT representation verified
+FCHECK: Elapsed seconds: 0.195
+FCHECK LOG: Elapsed time = 0.197 seconds
+FCHECK OUTCOME: normal
+COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track2_015.cnf -p ./mc2022_track2_015.crat
+COUNT LOG: Time limit 4000 seconds
+Obtained weights from CNF file
+COUNTER: Elapsed time for count: 0.00 seconds
+COUNTER: Weighted count = 0.511663167149736033357008730977337812319522522163662372508158844676348405036508471133005535305037780398310370805087299069942017509890173859827612758400860900026710386152513660015566741282335553927375874060292545698669975567719342243476336995546000453437389911576959078532157744336899651624631788521578851528751777135857306501416136268432960548991004687489250042008330604517960607467444620021901743320100935944857608916698976740925655215142655524679098302464
+COUNT LOG: Elapsed time = 0.027 seconds
+COUNT OUTCOME: normal
+OVERALL LOG: Elapsed time = 0.436 seconds
+OVERALL OUTCOME: normal

@@ -1,0 +1,1032 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_027.cnf -dDNNF -out=./mc2022_track2_027.nnf
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 1225
+c Number of clauses: 3020
+c Number of literals: 6561
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -1045 
+c top 5: -1045 -565 
+c top 5: -1045 -565 -1107 
+c top 5: -1045 -565 -1107 -332 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -1045 -565 -1107 332 
+c top 5: -1045 -565 1107 
+c top 5: -1045 -565 1107 -332 
+c top 5: -1045 -565 1107 332 
+c top 5: -1045 -565 1107 332 
+c top 5: -1045 -565 
+c top 5: -1045 565 
+c top 5: -1045 565 -1107 
+c top 5: -1045 565 -1107 -332 
+c top 5: -1045 565 -1107 332 
+c top 5: -1045 565 1107 
+c top 5: -1045 565 1107 -332 
+c top 5: -1045 565 1107 332 
+c top 5: -1045 565 1107 
+c top 5: -1045 565 
+c top 5: -1045 565 
+c top 5: -1045 565 
+c top 5: -1045 565 
+c top 5: -1045 
+c top 5: 1045 
+c top 5: 1045 -565 
+c top 5: 1045 -565 -332 
+c top 5: 1045 -565 -332 -1107 
+c top 5: 1045 -565 -332 1107 
+c top 5: 1045 -565 332 
+c top 5: 1045 -565 332 -1107 
+c top 5: 1045 -565 332 -1107 
+c top 5: 1045 -565 332 1107 
+c top 5: 1045 565 
+c top 5: 1045 565 -332 
+c top 5: 1045 565 -332 -1107 
+c      16384 |       1.03 |      44851 |       8195 |      49675 |        572 |     377108 |     422763 |          0 |       8195 |        3163 |          0 | 
+c top 5: 1045 565 -332 1107 
+c top 5: 1045 565 332 
+c top 5: 1045 565 332 -1107 
+c top 5: 1045 565 332 1107 
+c top 5: 1045 
+c top 5: 1045 1220 
+c top 5: 1045 1220 
+c top 5: 1045 1220 
+c top 5: 1045 
+c top 5: 1045 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 29971
+c Number of split formula: 100934
+c Number of decision node: 14985
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 23621
+c Number of backbone calls: 0
+c Number of partitioner calls: 5626
+c Average number of assigned literal to obtain decomposable AND nodes: 584.53/1225
+c Minimum number of assigned variable where a decomposable AND appeared: 189
+c 
+c [33mGraph Information[0m
+c Number of nodes: 716082
+c Number of edges: 808380
+c 
+c [1m[34mCache Information[0m
+c Memory used: 573 MB
+c
+c Number of positive hit: 91395
+c Number of negative hit: 14985
+c Number of reduceCall: 0
+c
+c Final time: 1.999220
+c 
+s 0.000000
+D4 LOG: Elapsed time = 2.412 seconds
+D4 OUTCOME: normal
+N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track2_027.cnf ./mc2022_track2_027.nnf
+N2T LOG: Time limit 1000 seconds
+annotating...
+cloning 63 to 68582
+cloning 820 to 68585
+cloning 820 to 68591
+cloning 2916 to 68597
+cloning 6328 to 68607
+cloning 6328 to 68610
+cloning 6399 to 68613
+cloning 6403 to 68632
+cloning 6411 to 68753
+cloning 6328 to 68762
+cloning 6411 to 68765
+cloning 6411 to 68774
+cloning 6411 to 68783
+cloning 6411 to 68792
+cloning 6328 to 68801
+cloning 6328 to 68804
+cloning 6328 to 68807
+cloning 6328 to 68810
+cloning 6328 to 68813
+cloning 6328 to 68816
+cloning 6411 to 68819
+cloning 6411 to 68828
+cloning 6411 to 68837
+cloning 6411 to 68846
+cloning 6411 to 68855
+cloning 6615 to 68864
+cloning 6615 to 68870
+cloning 6615 to 68876
+cloning 6615 to 68882
+cloning 6615 to 68888
+cloning 6615 to 68894
+cloning 6328 to 68900
+cloning 6328 to 68903
+cloning 6328 to 68906
+cloning 6328 to 68909
+cloning 6328 to 68912
+cloning 6328 to 68915
+cloning 6328 to 68918
+cloning 6328 to 68921
+cloning 6328 to 68924
+cloning 6797 to 68927
+cloning 6806 to 69149
+cloning 6400 to 69389
+cloning 6400 to 69402
+cloning 6406 to 69415
+cloning 6858 to 69434
+cloning 6406 to 69472
+cloning 6858 to 69491
+cloning 6399 to 69529
+cloning 7022 to 69548
+cloning 7037 to 69777
+cloning 6399 to 70021
+cloning 7068 to 70040
+cloning 7084 to 70399
+cloning 6411 to 70682
+cloning 6411 to 70691
+cloning 6411 to 70700
+cloning 6411 to 70709
+cloning 7043 to 70718
+cloning 7043 to 70737
+cloning 6615 to 70756
+cloning 6399 to 70762
+cloning 7301 to 70781
+cloning 7305 to 71169
+cloning 6411 to 71735
+cloning 6411 to 71744
+cloning 6411 to 71753
+cloning 6615 to 71762
+cloning 6328 to 71768
+cloning 6411 to 71771
+cloning 7032 to 71780
+cloning 6328 to 71789
+cloning 7032 to 71792
+cloning 6328 to 71801
+cloning 6411 to 71804
+cloning 6399 to 71813
+cloning 7866 to 71832
+cloning 7873 to 72068
+cloning 6399 to 72331
+cloning 7903 to 72350
+cloning 7924 to 72689
+cloning 7940 to 73042
+cloning 7947 to 73458
+cloning 6399 to 73967
+cloning 6411 to 73986
+cloning 6328 to 73995
+cloning 6399 to 73998
+cloning 6411 to 74017
+cloning 6328 to 74026
+cloning 8401 to 74029
+cloning 8430 to 74844
+cloning 6615 to 75704
+cloning 6615 to 75710
+cloning 6411 to 75716
+cloning 6411 to 75725
+cloning 6411 to 75734
+cloning 6411 to 75743
+cloning 8644 to 75752
+cloning 8824 to 75983
+cloning 8850 to 76002
+cloning 6399 to 76021
+cloning 6411 to 76040
+cloning 6328 to 76049
+cloning 6399 to 76052
+cloning 6411 to 76071
+cloning 6328 to 76080
+cloning 6399 to 76083
+cloning 6399 to 76102
+cloning 9021 to 76121
+cloning 6399 to 76184
+cloning 9059 to 76203
+cloning 9080 to 76653
+cloning 6411 to 77108
+cloning 6328 to 77117
+cloning 6328 to 77120
+cloning 7483 to 77123
+cloning 7032 to 77219
+cloning 7032 to 77228
+cloning 7032 to 77237
+cloning 7032 to 77246
+cloning 6399 to 77255
+cloning 9517 to 77274
+cloning 6399 to 77637
+cloning 6399 to 77656
+cloning 6399 to 77675
+cloning 6399 to 77694
+cloning 6411 to 77713
+cloning 6615 to 77722
+cloning 7032 to 77728
+cloning 6399 to 77737
+cloning 9769 to 77756
+cloning 9785 to 78316
+cloning 6411 to 78885
+cloning 7032 to 78894
+cloning 6411 to 78903
+cloning 7032 to 78912
+cloning 8644 to 78921
+cloning 8644 to 79152
+cloning 6411 to 79383
+cloning 6411 to 79392
+cloning 6411 to 79401
+cloning 6411 to 79410
+cloning 6411 to 79419
+cloning 6328 to 79428
+cloning 6328 to 79431
+cloning 6328 to 79434
+cloning 6328 to 79437
+cloning 6328 to 79440
+cloning 6399 to 79443
+cloning 6399 to 79462
+cloning 8886 to 79481
+cloning 9989 to 79659
+cloning 8893 to 79913
+cloning 9995 to 80184
+cloning 6411 to 80534
+cloning 6328 to 80543
+cloning 7032 to 80546
+cloning 6411 to 80555
+cloning 6411 to 80564
+cloning 6411 to 80573
+cloning 7032 to 80582
+cloning 7032 to 80591
+cloning 6411 to 80600
+cloning 7032 to 80609
+cloning 7032 to 80618
+cloning 7032 to 80627
+cloning 7032 to 80636
+cloning 7032 to 80645
+cloning 7032 to 80654
+cloning 8366 to 80663
+cloning 6399 to 81351
+cloning 6399 to 81370
+cloning 6399 to 81389
+cloning 7039 to 81408
+cloning 6328 to 81501
+cloning 7918 to 81504
+cloning 7032 to 81542
+cloning 6328 to 81551
+cloning 7039 to 81554
+cloning 7032 to 81647
+cloning 6409 to 81656
+cloning 7032 to 81698
+cloning 6328 to 81707
+cloning 7032 to 81710
+cloning 7032 to 81719
+cloning 6409 to 81728
+cloning 7075 to 81770
+cloning 8411 to 81817
+cloning 8426 to 81901
+cloning 6399 to 82042
+cloning 6399 to 82061
+cloning 6405 to 82080
+cloning 7042 to 82108
+cloning 6328 to 82136
+cloning 6328 to 82139
+cloning 6328 to 82142
+cloning 6411 to 82145
+cloning 7032 to 82154
+cloning 7032 to 82163
+cloning 7032 to 82172
+cloning 6405 to 82181
+cloning 6411 to 82209
+cloning 7032 to 82218
+cloning 7032 to 82227
+cloning 7032 to 82236
+cloning 6400 to 82245
+cloning 6399 to 82258
+cloning 6406 to 82277
+cloning 10964 to 82296
+cloning 6411 to 82329
+cloning 6328 to 82338
+cloning 6411 to 82341
+cloning 6328 to 82350
+cloning 7039 to 82353
+cloning 7039 to 82446
+cloning 7032 to 82539
+cloning 7047 to 82548
+cloning 7047 to 82640
+cloning 7032 to 82732
+cloning 6399 to 82741
+cloning 6399 to 82760
+cloning 7032 to 82779
+cloning 6399 to 82788
+cloning 11434 to 82807
+cloning 7022 to 82820
+cloning 7032 to 83049
+cloning 7037 to 83058
+cloning 7032 to 83302
+cloning 6411 to 83311
+cloning 7032 to 83320
+cloning 6411 to 83329
+cloning 6411 to 83338
+cloning 6411 to 83347
+cloning 6399 to 83356
+cloning 6399 to 83375
+cloning 11820 to 83394
+cloning 11844 to 83724
+cloning 11860 to 84028
+cloning 6399 to 84444
+cloning 11844 to 84463
+cloning 9063 to 84767
+cloning 11824 to 84853
+cloning 9777 to 84963
+cloning 6411 to 85050
+cloning 7032 to 85059
+cloning 6411 to 85068
+cloning 6328 to 85077
+cloning 6328 to 85080
+cloning 10238 to 85083
+cloning 11198 to 85399
+cloning 11198 to 85535
+cloning 12162 to 85671
+cloning 12177 to 86638
+cloning 12209 to 87679
+cloning 12309 to 89238
+cloning 11327 to 89469
+cloning 6399 to 90076
+cloning 6399 to 90095
+cloning 6399 to 90114
+cloning 6399 to 90133
+cloning 7039 to 90152
+cloning 6399 to 90245
+cloning 11826 to 90264
+cloning 12522 to 90304
+cloning 6399 to 90371
+cloning 7047 to 90390
+cloning 6399 to 90482
+cloning 6399 to 90501
+cloning 7039 to 90520
+cloning 6399 to 90613
+cloning 6399 to 90632
+cloning 7047 to 90651
+cloning 6399 to 90743
+cloning 6411 to 90762
+cloning 6411 to 90771
+cloning 6411 to 90780
+cloning 8886 to 90789
+cloning 11335 to 90967
+cloning 8886 to 91200
+cloning 11335 to 91378
+cloning 12921 to 91611
+cloning 12930 to 92236
+cloning 6399 to 92879
+cloning 6411 to 92898
+cloning 6328 to 92907
+cloning 6411 to 92910
+cloning 6328 to 92919
+cloning 6399 to 92922
+cloning 6399 to 92941
+cloning 9021 to 92960
+cloning 6399 to 93023
+cloning 11826 to 93042
+cloning 12522 to 93082
+cloning 13098 to 93149
+cloning 13111 to 93710
+cloning 7483 to 94567
+cloning 13292 to 94663
+cloning 6411 to 95052
+cloning 7032 to 95061
+cloning 11434 to 95070
+cloning 6411 to 95083
+cloning 7032 to 95092
+cloning 12309 to 95101
+cloning 12309 to 95332
+cloning 6399 to 95563
+cloning 7022 to 95582
+cloning 13112 to 95811
+cloning 6399 to 96208
+cloning 6411 to 96227
+cloning 7032 to 96236
+cloning 13116 to 96245
+cloning 7032 to 96676
+cloning 7032 to 96685
+cloning 7032 to 96694
+cloning 6399 to 96703
+cloning 8419 to 96722
+cloning 6399 to 96824
+cloning 12173 to 96843
+cloning 6411 to 97029
+cloning 6411 to 97038
+cloning 6411 to 97047
+cloning 6399 to 97056
+cloning 7022 to 97075
+cloning 7037 to 97304
+cloning 6399 to 97548
+cloning 7068 to 97567
+cloning 7084 to 97926
+cloning 7032 to 98209
+cloning 7032 to 98218
+cloning 10238 to 98227
+cloning 10269 to 98543
+cloning 6399 to 98873
+cloning 10295 to 98892
+cloning 10358 to 99259
+cloning 6399 to 99540
+cloning 7032 to 99559
+cloning 6399 to 99568
+cloning 7301 to 99587
+cloning 7305 to 99975
+cloning 6409 to 100541
+cloning 6411 to 100583
+cloning 6328 to 100592
+cloning 6399 to 100595
+cloning 7032 to 100614
+cloning 7039 to 100623
+cloning 8411 to 100716
+cloning 8419 to 100800
+cloning 8426 to 100902
+cloning 6411 to 101043
+cloning 7032 to 101052
+cloning 6411 to 101061
+cloning 7032 to 101070
+cloning 15910 to 101079
+cloning 15923 to 101175
+cloning 6411 to 101317
+cloning 6411 to 101326
+cloning 6399 to 101335
+cloning 16046 to 101354
+cloning 15910 to 101373
+cloning 15923 to 101469
+cloning 6399 to 101611
+cloning 6399 to 101630
+cloning 6399 to 101649
+cloning 16465 to 101668
+cloning 16465 to 101708
+cloning 16482 to 101748
+cloning 6399 to 101788
+cloning 6399 to 101807
+cloning 11198 to 101826
+cloning 11221 to 101962
+cloning 6399 to 102090
+cloning 16603 to 102109
+cloning 6399 to 102498
+cloning 16619 to 102517
+cloning 11456 to 102883
+cloning 11198 to 103295
+cloning 11221 to 103431
+cloning 6399 to 103559
+cloning 16671 to 103578
+cloning 7032 to 104130
+cloning 16927 to 104139
+cloning 16927 to 104281
+cloning 16927 to 104423
+cloning 2916 to 104565
+cloning 6399 to 104575
+cloning 27134 to 104594
+cloning 6399 to 104779
+cloning 27134 to 104798
+cloning 6399 to 104983
+cloning 27169 to 105002
+cloning 6399 to 105240
+cloning 27169 to 105259
+cloning 27191 to 105497
+cloning 27198 to 105779
+cloning 6399 to 106117
+cloning 27277 to 106136
+cloning 27287 to 106566
+cloning 6399 to 107050
+cloning 6411 to 107069
+cloning 7032 to 107078
+cloning 7032 to 107087
+cloning 6399 to 107096
+cloning 6409 to 107115
+cloning 6411 to 107157
+cloning 6328 to 107166
+cloning 6411 to 107169
+cloning 6328 to 107178
+cloning 6399 to 107181
+cloning 7032 to 107200
+cloning 6399 to 107209
+cloning 27281 to 107228
+cloning 8419 to 107327
+cloning 6405 to 107429
+cloning 6411 to 107457
+cloning 6328 to 107466
+cloning 6411 to 107469
+cloning 6328 to 107478
+cloning 6409 to 107481
+cloning 7075 to 107523
+cloning 7913 to 107570
+cloning 7916 to 107622
+cloning 7032 to 107680
+cloning 7032 to 107689
+cloning 28076 to 107698
+cloning 28076 to 107738
+cloning 28171 to 107778
+cloning 6409 to 107806
+cloning 7075 to 107848
+cloning 6409 to 107895
+cloning 7075 to 107937
+cloning 6399 to 107984
+cloning 6399 to 108003
+cloning 6399 to 108022
+cloning 6399 to 108041
+cloning 6399 to 108060
+cloning 28512 to 108079
+cloning 6399 to 109025
+cloning 28512 to 109044
+cloning 6399 to 109990
+cloning 28514 to 110009
+cloning 28517 to 110642
+cloning 6399 to 110899
+cloning 28514 to 110918
+cloning 28517 to 111551
+cloning 7043 to 111808
+cloning 27134 to 111827
+cloning 27169 to 112012
+cloning 28519 to 112250
+cloning 28524 to 112343
+cloning 6399 to 112468
+cloning 6399 to 112487
+cloning 7305 to 112506
+cloning 6411 to 113072
+cloning 15693 to 113081
+cloning 15693 to 113171
+cloning 6328 to 113261
+cloning 6406 to 113264
+cloning 29364 to 113283
+cloning 29364 to 113349
+cloning 7032 to 113415
+cloning 6411 to 113424
+cloning 7032 to 113433
+cloning 7032 to 113442
+cloning 6411 to 113451
+cloning 7032 to 113460
+cloning 7032 to 113469
+cloning 8366 to 113478
+cloning 29498 to 114166
+cloning 27519 to 114250
+cloning 6399 to 114398
+cloning 29565 to 114417
+cloning 7032 to 114700
+cloning 7032 to 114709
+cloning 29654 to 114718
+cloning 29654 to 114825
+cloning 6328 to 114932
+cloning 6328 to 114935
+cloning 29498 to 114938
+cloning 27666 to 115022
+cloning 27670 to 115193
+cloning 6399 to 115465
+cloning 29800 to 115484
+cloning 29815 to 115913
+cloning 6399 to 116477
+cloning 29837 to 116496
+cloning 29853 to 117036
+cloning 29889 to 117566
+cloning 29897 to 118292
+cloning 29915 to 119029
+cloning 29921 to 119724
+cloning 29962 to 120523
+cloning 27648 to 120556
+cloning 27700 to 120807
+cloning 27661 to 121179
+cloning 27722 to 121700
+cloning 27670 to 122086
+cloning 6399 to 122358
+cloning 30055 to 122377
+cloning 30073 to 123486
+cloning 30077 to 124432
+cloning 27648 to 124987
+cloning 27661 to 125238
+cloning 27670 to 125759
+cloning 6399 to 126031
+cloning 30112 to 126050
+cloning 30124 to 126946
+cloning 30128 to 127671
+cloning 10245 to 128238
+cloning 8644 to 128302
+cloning 30151 to 128533
+cloning 30158 to 129065
+cloning 30158 to 129135
+cloning 6411 to 129205
+cloning 28829 to 129214
+cloning 28855 to 129688
+cloning 28829 to 129957
+cloning 28855 to 130431
+cloning 28829 to 130700
+cloning 28855 to 131174
+cloning 6399 to 131443
+cloning 30313 to 131462
+cloning 6399 to 132249
+cloning 30313 to 132268
+cloning 6411 to 133055
+cloning 6411 to 133064
+cloning 29363 to 133073
+cloning 29363 to 133174
+cloning 6399 to 133275
+cloning 30438 to 133294
+cloning 30451 to 134084
+cloning 6399 to 135135
+cloning 27287 to 135154
+cloning 30454 to 135638
+cloning 6405 to 136161
+cloning 29363 to 136189
+cloning 7032 to 136290
+cloning 16046 to 136299
+cloning 6405 to 136318
+cloning 7042 to 136346
+cloning 7032 to 136374
+cloning 7032 to 136383
+cloning 7032 to 136392
+cloning 29654 to 136401
+cloning 29654 to 136508
+cloning 29654 to 136615
+cloning 29654 to 136722
+cloning 6328 to 136829
+cloning 30459 to 136832
+cloning 10245 to 136865
+cloning 30859 to 136929
+cloning 30158 to 137162
+cloning 2996 to 137232
+cloning 2996 to 137238
+cloning 7913 to 137244
+cloning 7916 to 137296
+cloning 2916 to 137354
+cloning 30158 to 137364
+cloning 6411 to 137434
+cloning 7032 to 137443
+cloning 7032 to 137452
+cloning 27289 to 137461
+cloning 6411 to 137741
+cloning 6328 to 137750
+cloning 7032 to 137753
+cloning 7032 to 137762
+cloning 7032 to 137771
+cloning 7032 to 137780
+cloning 6399 to 137789
+cloning 7032 to 137808
+cloning 6399 to 137817
+cloning 6399 to 137836
+cloning 6411 to 137855
+cloning 6328 to 137864
+cloning 6411 to 137867
+cloning 6399 to 137876
+cloning 6399 to 137895
+cloning 7032 to 137914
+cloning 32019 to 137923
+cloning 32028 to 138155
+cloning 32037 to 138405
+cloning 32028 to 138674
+cloning 32037 to 138924
+cloning 6411 to 139193
+cloning 7032 to 139202
+cloning 6411 to 139211
+cloning 6399 to 139220
+cloning 32252 to 139239
+cloning 32259 to 139553
+cloning 32269 to 139792
+cloning 6399 to 140319
+cloning 32252 to 140338
+cloning 32259 to 140652
+cloning 32269 to 140891
+cloning 32359 to 141418
+cloning 32372 to 141887
+cloning 32394 to 142254
+cloning 32359 to 142974
+cloning 32372 to 143443
+cloning 32394 to 143810
+cloning 11434 to 144530
+cloning 10964 to 144543
+cloning 32568 to 144576
+cloning 12522 to 144612
+cloning 32568 to 144679
+cloning 12522 to 144715
+cloning 6399 to 144782
+cloning 31234 to 144801
+cloning 32635 to 145154
+cloning 32656 to 145566
+cloning 32669 to 145928
+cloning 31253 to 146239
+cloning 32689 to 146981
+cloning 32706 to 147661
+cloning 6411 to 148091
+cloning 7032 to 148100
+cloning 6411 to 148109
+cloning 7032 to 148118
+cloning 6399 to 148127
+cloning 6411 to 148146
+cloning 6328 to 148155
+cloning 6399 to 148158
+cloning 6411 to 148177
+cloning 6328 to 148186
+cloning 6411 to 148189
+cloning 6328 to 148198
+cloning 6411 to 148201
+cloning 7032 to 148210
+cloning 7032 to 148219
+cloning 6399 to 148228
+cloning 6399 to 148247
+cloning 27500 to 148266
+cloning 32966 to 148456
+cloning 33124 to 148676
+cloning 32966 to 149254
+cloning 33126 to 149474
+cloning 10246 to 149788
+cloning 27670 to 149831
+cloning 33316 to 150103
+cloning 2916 to 150345
+cloning 12309 to 150355
+cloning 33600 to 150586
+cloning 6411 to 150766
+cloning 7032 to 150775
+cloning 11826 to 150784
+cloning 11830 to 150824
+cloning 11826 to 150864
+cloning 11830 to 150904
+cloning 6405 to 150944
+cloning 2996 to 150972
+cloning 2916 to 150978
+cloning 34442 to 150988
+cloning 34453 to 151539
+cloning 34479 to 152035
+cloning 34487 to 152697
+cloning 28304 to 153289
+cloning 6399 to 153558
+cloning 28352 to 153577
+cloning 6399 to 153980
+cloning 34982 to 153999
+cloning 34991 to 154421
+cloning 35001 to 154849
+cloning 35007 to 155339
+cloning 6399 to 155835
+cloning 6858 to 155854
+cloning 6399 to 155892
+cloning 6405 to 155911
+cloning 6399 to 155939
+cloning 6409 to 155958
+cloning 28519 to 156000
+cloning 15834 to 156093
+cloning 6399 to 156309
+cloning 35394 to 156328
+cloning 35409 to 156693
+cloning 35416 to 156952
+cloning 6399 to 157335
+cloning 7022 to 157354
+cloning 16673 to 157583
+cloning 30443 to 157794
+cloning 32265 to 157928
+cloning 6399 to 158012
+cloning 7068 to 158031
+cloning 35496 to 158390
+cloning 30447 to 158628
+cloning 35503 to 158759
+cloning 29962 to 158960
+cloning 35669 to 158993
+cloning 35669 to 159046
+cloning 15693 to 159099
+cloning 15693 to 159189
+cloning 35708 to 159279
+cloning 35710 to 159614
+cloning 35714 to 159723
+cloning 6409 to 159862
+cloning 7032 to 159904
+cloning 7032 to 159913
+cloning 30158 to 159922
+cloning 30158 to 159992
+cloning 6411 to 160062
+cloning 7032 to 160071
+cloning 6399 to 160080
+cloning 7042 to 160099
+cloning 9989 to 160127
+cloning 9995 to 160381
+cloning 28519 to 160731
+cloning 30085 to 160824
+cloning 15693 to 160876
+cloning 29565 to 160966
+cloning 7032 to 161249
+cloning 15910 to 161258
+cloning 15923 to 161354
+cloning 36383 to 161496
+cloning 36821 to 161688
+cloning 36856 to 161977
+cloning 27281 to 162286
+cloning 6411 to 162385
+cloning 7032 to 162394
+cloning 36966 to 162403
+cloning 6399 to 162641
+cloning 37103 to 162660
+cloning 36966 to 162999
+cloning 11218 to 163237
+cloning 6399 to 163508
+cloning 6399 to 163527
+cloning 37352 to 163546
+cloning 32037 to 164176
+cloning 13101 to 164445
+cloning 37386 to 164855
+cloning 32656 to 165200
+cloning 32669 to 165562
+cloning 37580 to 165873
+cloning 32665 to 165926
+cloning 32665 to 166021
+cloning 32797 to 166116
+cloning 37670 to 166449
+cloning 7032 to 166556
+cloning 7032 to 166565
+cloning 6405 to 166574
+cloning 6405 to 166602
+cloning 29363 to 166630
+cloning 7032 to 166731
+cloning 6399 to 166740
+cloning 6399 to 166759
+cloning 11836 to 166778
+cloning 32028 to 166830
+cloning 6399 to 167080
+cloning 6399 to 167099
+cloning 11836 to 167118
+cloning 30459 to 167170
+cloning 32661 to 167203
+cloning 30158 to 167253
+cloning 33603 to 167323
+cloning 15910 to 167394
+cloning 38156 to 167490
+cloning 38191 to 167682
+cloning 32661 to 167971
+cloning 32661 to 168021
+cloning 32665 to 168071
+cloning 32665 to 168166
+cloning 6405 to 168261
+cloning 6405 to 168289
+cloning 29363 to 168317
+cloning 10245 to 168418
+cloning 11836 to 168482
+smoothing...
+tracing...
+N2T LOG: Elapsed time = 323.167 seconds
+N2T OUTCOME: normal
+N2T: LOG: size ./mc2022_track2_027.trace 1402839 lines 200953331 bytes
+TC LOG: Running /Users/bryant/repos/vroland/sharptrace/target/release/sharptrace_checker ./mc2022_track2_027.trace
+TC LOG: Time limit 1000 seconds
+reading from "./mc2022_track2_027.trace"...done.
+parsing...done.
+clauses: 3020
+variables: 1225
+components: 169747
+proofs: 124086 with 124107 steps in total
+claims: 311819
+
+verifying claims... 0%
+verifying claims... 0%
+verifying claims... 1%
+verifying claims... 2%
+verifying claims... 3%
+verifying claims... 4%
+verifying claims... 5%
+verifying claims... 6%
+verifying claims... 7%
+verifying claims... 8%
+verifying claims... 9%
+verifying claims... 10%
+verifying claims... 11%
+verifying claims... 12%
+verifying claims... 13%
+verifying claims... 14%
+verifying claims... 15%
+verifying claims... 16%
+verifying claims... 17%
+verifying claims... 18%
+verifying claims... 19%
+verifying claims... 20%
+verifying claims... 21%
+verifying claims... 22%
+verifying claims... 23%
+verifying claims... 24%
+verifying claims... 25%
+verifying claims... 26%
+verifying claims... 27%
+verifying claims... 28%
+verifying claims... 29%
+verifying claims... 30%
+verifying claims... 31%
+verifying claims... 32%
+verifying claims... 33%
+verifying claims... 34%
+verifying claims... 35%
+verifying claims... 36%
+verifying claims... 37%
+verifying claims... 38%
+verifying claims... 39%
+verifying claims... 40%
+verifying claims... 41%
+verifying claims... 42%
+verifying claims... 43%
+verifying claims... 44%
+verifying claims... 45%
+verifying claims... 46%
+verifying claims... 47%
+verifying claims... 48%
+verifying claims... 49%
+verifying claims... 50%
+verifying claims... 51%
+verifying claims... 52%
+verifying claims... 53%
+verifying claims... 54%
+verifying claims... 55%
+verifying claims... 56%
+verifying claims... 57%
+verifying claims... 58%
+verifying claims... 59%
+verifying claims... 60%
+verifying claims... 61%
+verifying claims... 62%
+verifying claims... 63%
+verifying claims... 64%
+verifying claims... 65%
+verifying claims... 66%
+verifying claims... 67%
+verifying claims... 68%
+verifying claims... 69%
+verifying claims... 70%
+verifying claims... 71%
+verifying claims... 72%
+verifying claims... 73%
+verifying claims... 74%
+verifying claims... 75%
+verifying claims... 76%
+verifying claims... 77%
+verifying claims... 78%
+verifying claims... 79%
+verifying claims... 80%
+verifying claims... 81%
+verifying claims... 82%
+verifying claims... 83%
+verifying claims... 84%
+verifying claims... 85%
+verifying claims... 86%
+verifying claims... 87%
+verifying claims... 88%
+verifying claims... 89%
+verifying claims... 90%
+verifying claims... 91%
+verifying claims... 92%
+verifying claims... 93%
+verifying claims... 94%
+verifying claims... 95%
+verifying claims... 96%
+verifying claims... 97%
+verifying claims... 98%
+verifying claims... 99%
+claims verified.          
+
+verifying proofs... 0%
+verifying proofs... 0%
+verifying proofs... 1%
+verifying proofs... 2%
+verifying proofs... 3%
+verifying proofs... 4%
+verifying proofs... 5%
+verifying proofs... 6%
+verifying proofs... 7%
+verifying proofs... 8%
+verifying proofs... 9%
+verifying proofs... 10%
+verifying proofs... 11%
+verifying proofs... 12%
+verifying proofs... 13%
+verifying proofs... 14%
+verifying proofs... 15%
+verifying proofs... 16%
+verifying proofs... 17%
+verifying proofs... 18%
+verifying proofs... 19%
+verifying proofs... 20%
+verifying proofs... 21%
+verifying proofs... 22%
+verifying proofs... 23%
+verifying proofs... 24%
+verifying proofs... 25%
+verifying proofs... 26%
+verifying proofs... 27%
+verifying proofs... 28%
+verifying proofs... 29%
+verifying proofs... 30%
+verifying proofs... 31%
+verifying proofs... 32%
+verifying proofs... 33%
+verifying proofs... 34%
+verifying proofs... 35%
+verifying proofs... 36%
+verifying proofs... 37%
+verifying proofs... 38%
+proofs verified.          
+thread 'main' panicked at 'coult not find root claim!: IntegrityError(NoRootClaim)', src/main.rs:109:10
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+TC ERROR: Return code = 101
+TC LOG: Elapsed time = 6.272 seconds
+TC OUTCOME: failed
+OVERALL LOG: Elapsed time = 332.087 seconds
+OVERALL OUTCOME: failed

@@ -5,6 +5,14 @@ import sys
 from pysat.solvers import Solver
 import readwrite
 
+# Global options
+# Should input clauses be stored in dictionary?
+mapInputClauseSetting = True
+# What categories of clauses should be checked?
+maxCategorySetting = 0
+# Should conjunctions of literals be separate?
+conjunctLiterals = True
+
 # Use glucose4 as solver
 solverId = 'g4'
 
@@ -16,6 +24,14 @@ class PogException(Exception):
     def __str__(self):
         return "Pog Exception: " + str(self.value)
 
+
+###
+# DEBUGGING support
+enableTrace = False
+traceIds = []
+traceXlits = []
+# DEBUGGING support
+####
 
 # Integration of SAT solver + RUP proof generator
 class Reasoner:
@@ -31,29 +47,35 @@ class Reasoner:
     stepMap = {}
     # For each category, highest numbered step
     stepMax = {}
-    # Create dictionary of input clauses mapping tuple of literals to clause Id
+    # (Optionally) create dictionary of input clauses mapping tuple of literals to clause Id
     inputClauseMap = {}
-
     ## Options
     # Saturate for each category before attempting next during unit propagation
     layered = False
+    ## Statistics
+    satCalls = 0
 
     def __init__(self, inputClauseList, noSolver = False):
         if noSolver:
             self.solver = None
         else:
             self.solver = Solver(solverId, with_proof = True)
-        clauseList = [tuple(clause) for clause in inputClauseList]
+        if mapInputClauseSetting:
+            clauseList = [tuple(readwrite.cleanClause(clause)) for clause in inputClauseList]
+        else:
+            clauseList = inputClauseList
         self.stepList = []
         self.addSolverClauses(clauseList)
         self.stepList = []
         self.stepMap = {}
         self.stepMax = {}
         self.inputClauseMap = {}
+        self.satCalls = 0
         cid = 1
         for clause in clauseList:
             self.addStep(0, cid, clause)
-            self.inputClauseMap[clause] = cid
+            if mapInputClauseSetting:
+                self.inputClauseMap[clause] = cid
             cid += 1
 
     # Add proof step.  Assuming step numbers are always increasing
@@ -64,8 +86,8 @@ class Reasoner:
         self.recordCategory(cat, cid)
         return idx
 
-    # Add pseudo-input clause
-    def addPseudoInput(self, cid, clause):
+    # Add lemma argument clause
+    def addClause(self, cid, clause):
         idx = self.addStep(1, cid, clause)
         self.addSolverClauses([clause])
 
@@ -83,12 +105,13 @@ class Reasoner:
         return cid
 
     # Find clause that is subset of target
-    def findClauseId(self, tclause, maxCategory, inputOnly = False):
-        tclause = readwrite.cleanClause(tclause)
-        if tclause in self.inputClauseMap:
-            return self.inputClauseMap[tclause]
-        if inputOnly:
-            return -1
+    def findClauseId(self, tclause, maxCategory, equal = True):
+        if mapInputClauseSetting:
+            tclause = readwrite.cleanClause(tclause)
+            if tclause in self.inputClauseMap:
+                return self.inputClauseMap[tclause]
+            if maxCategory == 0 and equal:
+                return -1
         maxCid = self.getMaxStep(maxCategory)
         for (cat,cid,clause) in self.stepList:
             if cid > maxCid:
@@ -160,6 +183,7 @@ class Reasoner:
             self.addSolverClauses([pclause])
             return clauses
         # Bring out the big guns!
+        self.satCalls += 1
         sstate = self.solver.solve(assumptions=context + [-lit])
         if sstate == True:
             print("WARNING. Proof failure. Couldn't justify literal %d with context  %s" % (lit, str(context)))
@@ -289,9 +313,10 @@ class Reasoner:
 # Used to generate and to apply lemma
 class Lemma:
     ### Tracking information generated while traversing graph
-    # Each entry is tuple (provenance,isOriginalclause)
+    # Each entry is tuple (provenance,isOriginal,clause)
     # Provenance is set indicate possible origin clause id's
     # isOriginal indicates whether clause still matches original input clause
+    # Clause is input clause that has been simplified by omitting falsified literals
     argList = []
     # Map from clause to position in list
     clauseMap = {}
@@ -343,47 +368,34 @@ class Lemma:
             ncm.argList.append((set(provenance), isOriginal, clause))
             ncm.clauseMap[clause] = idx
             idx += 1
+        ncm.assignedLiteralSet = set(self.assignedLiteralSet)
         return ncm
+
+    def incompatible(self, olemma, reason):
+        print("Failing lemma merge.  Lemma=")
+        self.show()
+        print("Other Lemma=")
+        olemma.show()
+        raise PogException("Lemma merge failure: %s" % reason)
 
     # Merge information from another lemma.  Assume have identical clauses (with different provenance)
     # Only accept assigned literals that are common to both
     def merge(self, olemma):
-        self.assignedLiteralSet &= olemma.assignedLiteralSet
+        if len(self.argList) != len(olemma.argList):
+            self.incompatible(olemma, "Lemma has %d entries in argList.  Other lemma has %d" % (len(self.argList), len(olemma.argList)))
         # Merge provenances:
         nargList = []
         for provenance,isOriginal,clause in self.argList:
             if clause not in olemma.clauseMap:
-                raise PogException("Lemma merge failure.  Clause %s (Provenance = %s) in original lemma, not in other" %
-                                   str(clause), str(provenance))
+                self.incompatible(olemma, "Clause %s in lemma not present in other lemma" % str(clause))
             oidx = olemma.clauseMap[clause]
             oprovenance,oisOriginal,oclause = olemma.argList[oidx]
-            provenance |= oprovenance
-            isOriginal = isOriginal and oisOriginal
-            nargList.append((provenance,isOriginal,clause))
+            nprovenance = provenance | oprovenance
+            nisOriginal = isOriginal and oisOriginal
+            nargList.append((nprovenance,nisOriginal,clause))
         self.argList = nargList
+        self.assignedLiteralSet &= olemma.assignedLiteralSet            
         return
-        # Double check
-        sxo = []
-        oxs = []
-        for provenance,isOriginal,clause in self.argList:
-             if clause not in olemma.clauseMap:
-                 sxo.append(clause)
-        for provenance,isOriginal,clause in olemma.argList:
-             if clause not in self.clauseMap:
-                 oxs.append(clause)
-        if len(sxo) > 0 or len(oxs) > 0:
-            print("Lemma merge failure.  In own but not other:")
-            print("Own status:")
-            self.show()
-            print("Other status:")
-            olemma.show()
-            print("In own but not other:")
-            for clause in sxo:
-                print("  %s" % str(clause))
-            print("Lemma merge failure.  In other but not own:")
-            for clause in oxs:
-                print("  %s" % str(clause))
-            raise PogException("Lemma merge failure")
 
     # Assign value to literal
     # Eliminate satisfied clauses
@@ -402,6 +414,7 @@ class Lemma:
             nargList.append((provenance,isOriginal,clause))
             idx += 1
         self.argList = nargList
+
 
     # Consider only clauses with variables in vset
     # Assume given clause either fully in or fully excluded from vset
@@ -428,7 +441,7 @@ class Lemma:
             # Find what literals get used
             if not isOriginal:
                 for icid in provenance:
-                    iclause = pog.inputClauseList[icid]
+                    iclause = pog.inputClauseList[icid-1]
                     for lit in iclause:
                         if lit in self.assignedLiteralSet:
                             externalLiteralSet.add(lit)
@@ -450,9 +463,9 @@ class Lemma:
                     cid = pog.cwriter.finalizeAnd(node.ilist, node.xlit)
                     node.definingClauseId = cid
                     shadowClause = readwrite.cleanClause(readwrite.invertClause(node.ilist) + [node.xlit])
-                    pog.reasoner.addPseudoInput(cid, shadowClause)
+                    pog.reasoner.addClause(cid, shadowClause)
                 lit = -node.xlit
-                pog.addComment("Lemma %s, argument #%d: shadow clause #%d" % (str(root), idx+1, node.definingClauseId))
+                pog.addComment("Lemma %s, argument #%d: shadow clause #%d, possible input clauses: %s" % (str(root), idx+1, node.definingClauseId, str(provenance)))
             self.shadowLiterals.append(lit)
         self.assignedLiteralSet = externalLiteralSet
 
@@ -472,22 +485,24 @@ class Lemma:
     def findInputClause(self, clause):
         idx = self.getIdx(clause)
         provenance,isOriginal,xclause = self.argList[idx]
-        if len(provenance) != 1:
-            raise PogException("Finding input clause matching argument clause %s. Provenance is %s" %
-                               str(clause), str(provenance))
+        # Matching input clause need not be unique
         icid = list(provenance)[0]
         return icid
     
     def show(self):
         print("Assigned literals: %s" % str(sorted(self.assignedLiteralSet)))
         for provenance,isOriginal,clause in self.argList:
-            print("Clause %s.  From input clause #%d.  Original? %s" % (str(clause), provenance, str(isOriginal)))
+            print("Clause %s.  From input clause(s) #%s.  Original? %s" % (str(clause), str(provenance), str(isOriginal)))
 
 
 class NodeType:
     tcount = 5
     tautology, variable, negation, conjunction, disjunction = range(5)
     typeName = ["taut", "var", "neg", "conjunct", "disjunct"]
+
+class DeletionMarkType:
+    markNew, markFound, markNone = range(3)
+
 
 # Prototype node.  Used for unique table lookup
 class ProtoNode:
@@ -509,6 +524,9 @@ class ProtoNode:
 
     def isConstant(self):
         return self.isOne() or self.isZero()
+
+
+  
 
 class Node(ProtoNode):
     # For traversals
@@ -615,9 +633,12 @@ class Negation(Node):
 
 class Conjunction(Node):
 
+    literalGroup = False
+
     def __init__(self, children, xlit):
         Node.__init__(self, xlit, NodeType.conjunction, children)
         self.ilist = [child.xlit for child in children]
+        self.literalGroup = False
 
     def __str__(self):
         return "P%d" % self.xlit
@@ -638,8 +659,9 @@ class Pog:
     # Constant Nodes
     leaf1 = None
     leaf0 = None
-    # Mapping (ntype, arg1, ..., argk) to nodes
+    # Mappings (ntype, arg1, ..., argk) to nodes
     uniqueTable = {}
+    uniqueArgTable = {}
     # All Nodes
     nodes = []
     # Mapping from xlit to node
@@ -677,6 +699,7 @@ class Pog:
         self.hintLevel = hintLevel
         self.lemmaHeight = lemmaHeight
         self.uniqueTable = {}
+        self.uniqueArgTable = {}
         self.inputClauseList = readwrite.cleanClauses(inputClauseList)
         self.cwriter = readwrite.CratWriter(variableCount, inputClauseList, fname, verbLevel)
         self.reasoner = Reasoner(inputClauseList, noSolver = splitMode >= 2)
@@ -700,11 +723,16 @@ class Pog:
             self.store(v)
             self.addNegation(v)
         
-    def lookup(self, ntype, children):
+    def lookup(self, ntype, children, forLemma = False):
         n = ProtoNode(ntype, children)
         key = n.key()
-        if key in self.uniqueTable:
-            return self.uniqueTable[key]
+        if forLemma:
+            if key in self.uniqueArgTable:
+                return self.uniqueArgTable[key]
+        else:
+            return None
+            if key in self.uniqueTable:
+                return self.uniqueTable[key]
         return None
 
     # Return node with associated xlit
@@ -715,8 +743,10 @@ class Pog:
 
     def store(self, node, forLemma=False):
         key = node.key()
-        self.uniqueTable[key] = node
-        if not forLemma:
+        if forLemma:
+            self.uniqueArgTable[key] = node
+        else:
+            self.uniqueTable[key] = node
             self.nodes.append(node)
         self.nodeMap[node.xlit] = node
 
@@ -746,14 +776,27 @@ class Pog:
             sofar.append(root)
             return sofar
 
-    def addConjunction(self, children, forLemma = False):
+    def addConjunction(self, children, forLemma = False, fromIte = False):
         nchildren = []
         for child in children:
             nchildren = self.mergeConjunction(child, nchildren)
         if type(nchildren) == type(self.leaf0) and nchildren == self.leaf0:
             return nchildren
-        children = nchildren
-        n = self.lookup(NodeType.conjunction, children)
+        # Make sure nonterminal children follow literals
+        lchildren = []
+        ntchildren = []
+        for c in nchildren:
+            if c.getLit() is None:
+                ntchildren.append(c)
+            else:
+                lchildren.append(c)
+        children = lchildren + ntchildren
+        if conjunctLiterals and fromIte and len(lchildren) > 2 and len(ntchildren) > 0:
+            # Create special conjunction for all but first literal
+            ln = self.addConjunction(lchildren[1:])
+            ln.literalGroup = True
+            children =  [lchildren[0], ln] + ntchildren
+        n = self.lookup(NodeType.conjunction, children, forLemma=forLemma)
         if n is None:
             xlit = self.cwriter.newXvar()
             n = Conjunction(children, xlit)
@@ -803,14 +846,14 @@ class Pog:
         elif nthen.isOne():
             result = self.addNegation(self.addConjunction([self.addNegation(nif), self.addNegation(nelse)]))
         elif nthen.isZero():
-            result = self.addConjunction(self.addNegation(nif), nelse)
+            result = self.addConjunction([self.addNegation(nif), nelse])
         elif nelse.isOne():
             result = self.addNegation(self.addConjunction([nif, self.addNegation(nthen)]))
         elif nelse.isZero():
             result = self.addConjunction([nif, nthen])
         else:
-            ntrue = self.addConjunction([nif, nthen])
-            nfalse = self.addConjunction([self.addNegation(nif), nelse])
+            ntrue = self.addConjunction([nif, nthen], fromIte = True)
+            nfalse = self.addConjunction([self.addNegation(nif), nelse], fromIte = True)
             hint1 = self.findHintPair(ntrue, nif.xlit)
             hint2 = self.findHintPair(nfalse, nif.xlit)
             if hint1 is None or hint2 is None:
@@ -875,7 +918,7 @@ class Pog:
         if self.hintLevel >= 2:
             # See if can find matching input clause
             tclause = [lit] + readwrite.invertClause(context)
-            cid = self.reasoner.findClauseId(tclause, 0, inputOnly = True)
+            cid = self.reasoner.findClauseId(tclause, maxCategorySetting, equal = True)
             if cid > 0:
                 if self.verbLevel >= 3:
                     print("Found input/argument clause #%d=%s justifying unit literal %d in context %s.  Adding as hint" % (cid, self.reasoner.getClause(cid), lit, str(context)))
@@ -948,8 +991,18 @@ class Pog:
         hints = []
         vcount = 0
         ncontext = list(context)
+       
+        if root.literalGroup:
+            if self.verbLevel >= 3:
+                print("Validating literal conjunction node %s in context %s" % (str(root), str(context)))
+            # Validate entire conjunction
+            hints = self.validateUnit(root.xlit, ncontext)
+            hints += [root.definingClauseId+1+i for i in range(len(root.children))]
+            return hints
+
         if self.verbLevel >= 3:
             print("Validating conjunction node %s in context %s" % (str(root), str(context)))
+
         for c in root.children:
             clit = c.getLit()
             if clit is None:
@@ -958,6 +1011,15 @@ class Pog:
                 vcount += 1
                 if self.verbLevel >= 3:
                     print("Got hints %s from child %s" % (str(chints), str(c)))
+                if c.ntype == NodeType.conjunction:
+                    # Can add literals to context
+                    for gc in c.children:
+                        glit = gc.getLit()
+                        if glit is not None:
+                            if glit not in ncontext:
+                                ncontext.append(glit)
+                            if root.lemma is not None:
+                                root.lemma.assignLiteral(glit)
             else:
                 if root.lemma is not None:
                     root.lemma.assignLiteral(clit)
@@ -1007,9 +1069,9 @@ class Pog:
         if self.hintLevel >= 2:
             if ntchild is None:
                 tclause = readwrite.invertClause(lits + context)
-                lcid = self.reasoner.findClauseId(tclause, 0)
+                lcid = self.reasoner.findClauseId(tclause, maxCategorySetting, equal = False)
                 if lcid <= 0:
-                    raise PogException("Couldn't find input clause represented by negated disjunction %s" % (str(root)))
+                    raise PogException("Couldn't find input clause %s represented by negated conjunction %s" % (str(tclause), str(root)))
             else:
                 # Nonterminal child must be negated
                 if ntchild.ntype == NodeType.negation:
@@ -1059,22 +1121,23 @@ class Pog:
         self.addComment("Apply Lemma %s.  Context = %s" % (str(root), str(context)))
         # Show that each shadow literal activated
         idx = 0
-        lcontext = []
+        lcontext = context
         lhints = []
         for lit in root.lemma.assignedLiteralSet:
-            if lit not in context:
-                self.addComment("Lemma %s.  Justify assigned literal %d in context %s" % (str(root), lit, str(context)))
-                chints = self.validateUnit(lit, context)
+            if lit not in lcontext:
+                self.addComment("Lemma %s.  Justify assigned literal %d in context %s" % (str(root), lit, str(lcontext)))
+                chints = self.validateUnit(lit, lcontext)
                 lhints += chints
+                lcontext.append(lit)
         for provenance,isOriginal,clause in root.lemma.argList:
             idx += 1
             if isOriginal:
                 continue
             lit = root.lemma.findShadowLiteral(clause)
-            if lit in context:
+            if lit in lcontext:
                 self.addComment("Lemma argument #%d (clause %s) already activated by literal %d" % (idx, str(clause), lit))
                 continue
-            aclause = readwrite.invertClause(context) + [lit]
+            aclause = readwrite.invertClause(lcontext) + [lit]
             icid = callingLemma.findInputClause(clause)
             iclause = self.inputClauseList[icid-1]
             self.addComment("Lemma argument #%d (clause %s) from input clause #%d:%s" % (idx, str(clause), icid, str(iclause)))
@@ -1091,14 +1154,19 @@ class Pog:
                             alits.append(alit)
                         pos += 1
                 # See if there are other literals that must be justified
-                ncontext = context + alits
+                ncontext = lcontext + alits
+                conflict = False
                 for lit in iclause:
-                    if -lit not in context and lit not in clause and -lit not in alits and -lit not in root.lemma.assignedLiteralSet:
-                        self.addComment("Lemma %s.  Justify additional literal %d in context %s" % (str(root), -lit, str(ncontext)))
+                    if -lit not in ncontext and lit not in clause and -lit not in alits and -lit not in root.lemma.assignedLiteralSet:
+                        self.addComment("Lemma %s.  Justify additional literal %d from input clause %d in context %s" % (str(root), -lit, icid, str(ncontext)))
                         chints = self.validateUnit(-lit, ncontext)
+                        if len(chints) == 1 and chints[0] == ahints[-1]:
+                            conflict = True
+                            break
                         ahints += chints
                         ncontext.append(-lit)
-                ahints += [icid]
+                if not conflict:
+                    ahints += [icid]
                 lhints.append(self.cwriter.doClause(aclause, ahints))
             else:
                 self.cwriter.doClause(aclause)
@@ -1151,25 +1219,38 @@ class Pog:
         return hints
 
     def deletionHintsConjunction(self, root, clause):
+        trace = enableTrace and root.xlit in traceXlits
+        if trace:
+            print("Tracing deletion hints for conjunction %s" % str(root))
         for idx in range(len(root.children)):
             child = root.children[idx]
             lit = child.getLit()
             if lit is None:
                 vset = set([abs(lit) for lit in clause])
                 if len(vset & child.dependencySet) > 0:
-                    hints = self.deletionHints(child, clause)
+                    hints = self.deletionHints(child, clause, noneOk = True)
+                    if hints is None:
+                        continue
                     hints.append(root.definingClauseId+1+idx)
+                    if trace:
+                        print("    Got hints %s from nonliteral child %s" % (str(hints), str(child)))
                     return hints
                 else:
                     continue
             else:
                 if lit in clause:
                     hints = [root.definingClauseId+1+idx]
+                    if trace:
+                        print("    Got hints %s from literal child %s" % (str(hints), str(child)))
                     return hints
                 else:
                     continue
-        # Shouldn't get here
-        raise PogException("Couldn't justify deletion of clause %s.  Reached compatible conjunction %s" % (str(clause), str(root)))
+        # May reach here when have literals combined into conjunction
+        # Otherwise, will flag error when return
+        if trace:
+            print("    Got None")
+        return None
+
 
     # Want conjunction to yield true, so that its negation is false
     def deletionHintsNegatedConjunction(self, root, clause):
@@ -1195,34 +1276,48 @@ class Pog:
     def deletionHintsDisjunction(self, root, clause):
         hlist = []
         for child in root.children:
-            hlist += self.deletionHints(child, clause)
+            chints = self.deletionHints(child, clause)
+            if chints is None:
+                print("Uh-oh.  Calling deletion hints from %s gave child call on %s, which returned None" % (str(root), str(child)))
+                raise PogException("Couldn't justify deletion of clause %s." % (str(clause)))
+            else:
+                hlist += chints
+
         hlist.append(root.definingClauseId)
         return hlist
 
     # Generate list of hints to justify deletion of clause
     # Make sure all paths compatible with negating assignment lead to false
     # Raise error if cannot justify
-    def deletionHints(self, root, clause):
+    def deletionHints(self, root, clause, noneOk = False):
+        hints = []
         # Only need result from single visit to node
-        if root.mark:
+        if root.mark == DeletionMarkType.markFound:
             return []
-        root.mark = True
+        if root.mark == DeletionMarkType.markNone:        
+            return None
+        root.mark = DeletionMarkType.markFound
         if root.ntype == NodeType.conjunction:
-            return self.deletionHintsConjunction(root, clause)
+            hints = self.deletionHintsConjunction(root, clause)
+            if hints is None:
+                if noneOk:
+                    root.mark = DeletionMarkType.markNone
+                else:
+                    raise PogException("Couldn't justify deletion of clause %s.  Reached compatible conjunction %s" % (str(clause), str(root)))
         elif root.ntype == NodeType.disjunction:
-            return self.deletionHintsDisjunction(root, clause)
+            hints = self.deletionHintsDisjunction(root, clause)
         elif root.isZero():
-            return []
+            pass
         elif root.isOne():
             raise PogException("Couldn't justify deletion of clause %s.  Reached terminal constant 1" % str(clause))
         elif root.ntype == NodeType.negation:
             nchild = root.children[0]
             if nchild.ntype == NodeType.conjunction:
-                return self.deletionHintsNegatedConjunction(root, clause)
+                hints = self.deletionHintsNegatedConjunction(root, clause)
             elif nchild.ntype == NodeType.variable:
                 lit = root.getLit()
                 if lit in clause:
-                    return []
+                    pass
                 else:
                     raise PogException("Couldn't justify deletion of clause %s.  Reached terminal literal %s" % (str(clause), str(root))) 
             else:
@@ -1232,12 +1327,15 @@ class Pog:
             if lit is None:
                 raise PogException("Couldn't justify deletion of clause %s.  Reached node with unknown type %s" % (str(clause), str(root))) 
             if lit in clause:
-                return []
+                pass
             else:
                 raise PogException("Couldn't justify deletion of clause %s.  Reached terminal literal %s" % (str(clause), str(root))) 
-
+        if enableTrace:
+            print("deletionHints(%s,%s) --> %s" % (str(root), str(clause), str(hints)))
+        return hints
 
     def doValidate(self):
+        global enableTrace
         root = self.nodes[-1]
         hints = self.validateUp(root, [], parent = None)
         topUnitId = root.unitClauseId
@@ -1247,8 +1345,9 @@ class Pog:
         if self.verbLevel >= 2:
             self.addComment("Delete input clauses")
         for cid in range(1, len(self.inputClauseList)+1):
+            enableTrace = cid in traceIds
             for node in self.nodes:
-                node.mark = False
+                node.mark = DeletionMarkType.markNew
             if self.hintLevel >= 1:
                 hints = self.deletionHints(root, self.inputClauseList[cid-1])
                 hints.append(topUnitId)
@@ -1267,7 +1366,7 @@ class Pog:
                     continue
                 print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeCounts[t]))
                 nnode += self.nodeCounts[t]
-            print("GEN:    TOTAL: %d" % nnode)
+            print("GEN:   POG TOTAL: %d" % nnode)
             print("GEN: Total defining clauses: %d" % ndclause)
             nvnode = 0
             print("GEN: Node visits during proof generation (by node type)")
@@ -1276,13 +1375,14 @@ class Pog:
                     continue
                 print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeVisits[t]))
                 nvnode += self.nodeVisits[t]
-            print("GEN:    TOTAL: %d" % nvnode)
+            print("GEN:   VIS TOTAL: %d" % nvnode)
             nldclause = self.lemmaShadowNodeClauseCount
             nlaclause = self.lemmaApplicationClauseCount
             if self.lemmaCount > 0:
                 print("GEN: Lemmas:  %d definitions.  %d shadow nodes (%d defining clauses), %d applications" % 
                       (self.lemmaCount, self.lemmaShadowNodeCount, nldclause, self.lemmaApplicationCount))
             nlclause = 0
+            print("GEN: Calls to SAT Solver: %d" % self.reasoner.satCalls)
             print("GEN: Literal justification clause counts (by number of clauses in justification:")
             singletons = []
             for count in sorted(self.literalClauseCounts.keys()):
@@ -1294,7 +1394,7 @@ class Pog:
                     print("GEN:    %d : %d" % (count, nc))
             if len(singletons) > 1:
                 print("GEN:    1 each for counts %s" % ", ".join(singletons))
-            print("GEN:    TOTAL: %d" % nlclause)
+            print("GEN:   LIT TOTAL: %d" % nlclause)
             nnclause = 0
             print("GEN: RUP clauses for node justification (by node type):")
             for t in range(NodeType.tcount):
@@ -1302,7 +1402,7 @@ class Pog:
                     continue
                 print("GEN:    %s: %d" % (NodeType.typeName[t], self.nodeClauseCounts[t]))
                 nnclause += self.nodeClauseCounts[t]
-            print("GEN:    TOTAL: %d" % nnclause)
+            print("GEN:   RUP TOTAL: %d" % nnclause)
             niclause = len(self.inputClauseList)
             nclause = niclause + ndclause + nldclause + nlaclause + nlclause + nnclause
             print("GEN: Total clauses: %d input + %d defining + %d lemma defining + %d lemma application + %d literal justification + %d node justifications = %d" % (niclause, ndclause, nldclause, nlaclause, nlclause, nnclause, nclause))
@@ -1336,16 +1436,30 @@ class Pog:
         if self.lemmaHeight is not None:
             self.addLemmas()
 
-        if splitMode > 0:
-            self.cwriter.split()
-
         # Generate node declarations
+        # Must do in two passes, with conjunction nodes coming earlier
         for node in self.nodes:
-            if node.ntype == NodeType.conjunction:
+            if node.ntype == NodeType.conjunction and node.literalGroup:
                 if self.verbLevel >= 2:
                     slist = [str(child) for child in node.children]
                     self.addComment("%s = AND(%s)" % (str(node), ", ".join(slist)))
-                node.definingClauseId = self.cwriter.finalizeAnd(node.ilist, node.xlit)
+                cid = self.cwriter.finalizeAnd(node.ilist, node.xlit)
+                node.definingClauseId = cid
+                self.definingClauseCounts += 1 + len(node.children)
+                pclause = readwrite.cleanClause(readwrite.invertClause(node.ilist) + [node.xlit])
+                self.reasoner.addClause(cid, pclause)
+
+        if splitMode > 0:
+            self.cwriter.split()
+
+
+        for node in self.nodes:
+            if node.ntype == NodeType.conjunction and not node.literalGroup:
+                if self.verbLevel >= 2:
+                    slist = [str(child) for child in node.children]
+                    self.addComment("%s = AND(%s)" % (str(node), ", ".join(slist)))
+                cid = self.cwriter.finalizeAnd(node.ilist, node.xlit)
+                node.definingClauseId = cid
                 self.definingClauseCounts += 1 + len(node.children)
             elif node.ntype == NodeType.disjunction:
                 if self.verbLevel >= 2:
@@ -1357,7 +1471,7 @@ class Pog:
                 self.definingClauseCounts += 1 + len(node.children)
             elif node.ntype == NodeType.negation:
                 node.definingClauseId = node.children[0].definingClauseId
-
+                
 
 
     def addLemmas(self):
@@ -1379,6 +1493,11 @@ class Pog:
                     if clit is None:
                         if child.ntype in [NodeType.conjunction, NodeType.disjunction]:
                             ntchildren.append(child)
+                        if child.ntype == NodeType.conjunction:
+                            for gchild in child.children:
+                                glit = gchild.getLit()
+                                if glit is not None:
+                                    nlemma.assignLiteral(glit)
                     else:
                         nlemma.assignLiteral(clit)
             else:

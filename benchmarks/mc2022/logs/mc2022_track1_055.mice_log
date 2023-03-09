@@ -1,0 +1,12 @@
+N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track1_055.cnf ./mc2022_track1_055.nnf
+N2T LOG: Time limit 1000 seconds
+annotating...
+smoothing...
+thread 'main' panicked at 'a decision node must have exactly two children!', src/main.rs:324:21
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+N2T ERROR: Return code = 101
+N2T LOG: Elapsed time = 36.056 seconds
+N2T OUTCOME: failed
+N2T: LOG: size ./mc2022_track1_055.trace 2771 lines 54677 bytes
+OVERALL LOG: Elapsed time = 36.056 seconds
+OVERALL OUTCOME: failed

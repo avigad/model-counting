@@ -37,13 +37,13 @@ pigeon-sat-tseitin-$(N).cnf:
 .SUFFIXES: .cnf .nnf .crat .hcrat .check_data
 
 .cnf.nnf:
-	$(D4) $< -dDNNF -out=$@ | tee $*.nnf_data
+	$(D4) $< -no-rnd-init -dDNNF -out=$@ | tee $*.nnf_data
 
 .nnf.crat:
 	$(INTERP) $(DDNNF) -d -i $*.cnf -n $< -p $@ -v $(VLEVEL) -H $(HLEVEL) -L $(LHEIGHT) -s 2 | tee $*.crat_data
 
 .crat.hcrat:
-	$(INTERP) $(HINTIFY) -s 2 -i $*.cnf -p $< -o $@ | tee $*.hint_data
+	$(INTERP) $(HINTIFY) -d -s 2 -i $*.cnf -p $< -o $@ | tee $*.hint_data
 
 .hcrat.check_data:
 	$(INTERP) $(CHECK) -v $(VCLEVEL) -i $*.cnf -p $< -o $*.hinted_crat | tee $@

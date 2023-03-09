@@ -18,6 +18,7 @@
 ########################################################################################
 
 import os
+import sys
 
 class ReadWriteException(Exception):
 
@@ -27,14 +28,17 @@ class ReadWriteException(Exception):
     def __str__(self):
         return "ReadWrite Exception: " + str(self.value)
 
-
-
 # Code for reading and generating CNF, order, schedule, and crat proof files
 
 def trim(s):
     while len(s) > 0 and s[-1] in '\r\n':
         s = s[:-1]
     return s
+
+def addPrefix(path, prefix):
+    pfields = path.split("/")
+    pfields[-1] = prefix + pfields[-1]
+    return "/".join(pfields)
 
 tautologyId = 1000 * 1000 * 1000
 
@@ -43,9 +47,9 @@ tautologyId = 1000 * 1000 * 1000
 # Sort in reverse order of variable number
 # Don't allow clause to have opposite literals (returns tautologyId)
 def cleanClause(literalList):
-    slist = sorted(literalList, key = lambda v: abs(v))
+    slist = sorted(literalList, key = lambda v: -abs(v))
     if len(slist) == 0:
-        return slist
+        return tuple(slist)
     if slist[0] == tautologyId:
         return tautologyId
     if slist[0] == -tautologyId:
@@ -53,7 +57,7 @@ def cleanClause(literalList):
         if slist[0] == tautologyId:
             return tautologyId
     if len(slist) == 1:
-        return slist
+        return tuple(slist)
     nlist = [slist[0]]
     for i in range(1, len(slist)):
         if slist[i-1] == slist[i]:
@@ -76,8 +80,67 @@ def cleanClauses(clist):
         nlist.append(nclause)
     return nlist
 
+## Clause for supporting clause testing
+class ClauseChecker:
+    # Generation counter
+    generation = 1
+    maxVariable = 0
+    # Arrays, indexed by variable
+    # Indicate last generation for which literal occurred positively & negatively
+    occurPos = [0]
+    occurNeg = [0]
+
+    def __init__(self, maxVariable = 1):
+        self.maxVariable = 0
+        self.getReady(maxVariable)
+
+    def getReady(self, maxVariable):
+        if maxVariable <= self.maxVariable:
+            self.generation += 1
+            return
+        self.generation = 1
+        self.occurPos = [0] * (maxVariable + 1)
+        self.occurNeg = [0] * (maxVariable + 1)
+        self.maxVariable = maxVariable
+
+    def mark(self, lit):
+        if lit > 0:
+            self.occurPos[lit] = self.generation
+        else:
+            self.occurNeg[-lit] = self.generation
+
+    def checkMark(self, lit):
+        if lit > 0:
+            return self.occurPos[lit] == self.generation
+        else:
+            return self.occurNeg[-lit] == self.generation
+        
+
+    def subsetTest(self, clause1, clause2):
+        if len(clause1) > len(clause2):
+            return False
+        m1 = max([abs(lit) for lit in clause1])
+        m2 = max([abs(lit) for lit in clause2])
+        self.getReady(max(m1, m2))
+        for lit in clause2:
+            self.mark(lit)
+        ok = True
+        for lit in clause1:
+            if not self.checkMark(lit):
+                ok = False
+                break
+        return ok
+            
+    def equalityTest(self, clause1, clause2):
+        if len(clause1) != len(clause2):
+            return False
+        return self.subsetTest(clause1, clause2)
+        
+checker = None        
+        
+        
 # Test two clauses for equality.  Assumes syntactically equivalent
-def testClauseEquality(clause1, clause2, quick = False):
+def oldTestClauseEquality(clause1, clause2, quick = False):
        
     if clause1 is None or clause2 is None:
         return False
@@ -94,7 +157,7 @@ def testClauseEquality(clause1, clause2, quick = False):
     return True
 
 # Clause comparison.  Assumes both have been processed by cleanClause
-def testClauseSubset(clause1, clause2):
+def oldTestClauseSubset(clause1, clause2):
     if clause1 is None or clause2 is None:
         return False
     if clause2 == tautologyId:
@@ -119,6 +182,35 @@ def testClauseSubset(clause1, clause2):
             return False
     return True
 
+
+# Test two clauses for equality.  
+def testClauseEquality(clause1, clause2):
+    global checker
+    if checker is None:
+        checker = ClauseChecker()
+    rnew = checker.equalityTest(clause1, clause2)
+    return rnew
+#    rold = oldTestEquality(clause1, clause2)
+#    if rnew != rold:
+#        print("Mismatch testing equality of clauses %s and %s.  Old = %s, New = %s" % (str(clause1), str(clause2), str(rold), str(rnew)))
+#    return rold
+
+            
+
+# Clause comparison.  
+def testClauseSubset(clause1, clause2):
+    global checker
+    if checker is None:
+        checker = ClauseChecker()
+    rnew = checker.subsetTest(clause1, clause2)
+    return rnew
+#    rold = oldTestSubset(clause1, clause2)
+#    return rold
+#    if rnew != rold:
+#        print("Mismatch testing clause %s subset of %s.  Old = %s, New = %s" % (str(clause1), str(clause2), str(rold), str(rnew)))
+#    return rold
+
+
 def regularClause(clause):
     return clause is not None
 
@@ -137,7 +229,6 @@ def invertClause(literalList):
 
 # Eliminate any falsified literals
 # If some literal satisfied, return tautology
-# Assumes clause processed by cleanClause
 def unitReduce(clause, unitSet):
     if clause == tautologyId:
         return clause
@@ -391,7 +482,7 @@ class LratReader():
             self.lineNumber += 1
             line = trim(line)
             fields = line.split()
-            if len(fields) > 0 and fields[0] != 'c':
+            if len(fields) > 0 and fields[0] != 'c' and fields[0] != 's':
                 break
         if len(fields) == 0 or fields[0] == 'c':
             return (key, id, clause, hints)
@@ -500,7 +591,6 @@ class DratWriter(Writer):
         self.show(line)
         self.deletions += 1
 
-
 # Creating CNF
 class CnfWriter(Writer):
     clauseCount = 0
@@ -534,12 +624,15 @@ class CnfWriter(Writer):
     def variableCount(self):
         return len(self.vset)
 
-    def finish(self):
+    def finish(self, incremental = False):
         if self.isNull:
             return
         if self.outfile is None:
             return
-        self.show("p cnf %d %d" % (self.expectedVariableCount, self.clauseCount))
+        if incremental:
+            self.show("p inccnf")
+        else:
+            self.show("p cnf %d %d" % (self.expectedVariableCount, self.clauseCount))
         for line in self.outputList:
             self.show(line)
         self.outfile.close()
@@ -549,17 +642,38 @@ class CnfWriter(Writer):
 # Version that allows adding clauses for product operators
 class AugmentedCnfWriter(CnfWriter):
     
+    cubeCount = 0
+    tautologyCount = 0
+
+    def __init__(self, count, fname, verbLevel = 1):
+        CnfWriter.__init__(self, count, fname, verbLevel)
+        self.cubeCount = 0
+        self.tautologyCount = 0
+
+
     # Optionally have the DRAT file delete all but the first clause
-    def doProduct(self, var, args, dwriter = None):
+    def doProduct(self, var, args, dwriter = None, firstClauseOnly = False):
         self.expectedVariableCount = max(self.expectedVariableCount, var)
         lits = [var] + [-arg for arg in args]
         id = self.doClause(lits)
         for arg in args:
-            lits = [-var, arg]
+            if firstClauseOnly:
+                # Insert tautology as placeholder
+                lits = [-var, var]
+                self.tautologyCount += 1
+            else:
+                lits = [-var, arg]
             self.doClause(lits)
             if dwriter is not None:
                 dwriter.doDelete(lits)
         return id
+
+    def doCube(self, lits):
+        slits = [str(-lit) for lit in lits] + ['0']
+        line = "a " + " ".join(slits)
+        self.outputList.append(line)
+        self.cubeCount += 1
+
 
 # Enable permuting of variables before emitting CNF
 class Permuter:
@@ -800,11 +914,11 @@ class SplitWriter(Writer):
         self.ufname = ""
 
     def split(self):
-        self.ufname = "upper_" + self.fname
+        self.ufname = addPrefix(self.fname, "upper_")
         try:
             self.upperOutfile = open(self.ufname, 'w')
         except:
-            raise ReadWriteException("Couldn't open supplementary file '%s' when splitting" % ufname)
+            raise ReadWriteException("Couldn't open supplementary file '%s' when splitting" % self.ufname)
         self.isSplit = True
 
     def show(self, line, splitLower = False):
@@ -893,7 +1007,6 @@ class CratWriter(SplitWriter):
         return v
 
     def finalizeAnd(self, ilist, xvar):
-        # Never add operations to lower after split
         step = self.incrStep()
         self.doLine([step, 'p', xvar] + ilist + [0])
         cpos = [xvar] + [-i for i in ilist]
@@ -903,7 +1016,7 @@ class CratWriter(SplitWriter):
             slist = [str(lit) for lit in cpos]
             self.doComment("%d a %s 0" % (step, " ".join(slist)))
         for idx in range(len(ilist)):
-            self.addClause(step+idx, [-xvar, ilist[idx]])
+            self.addClause(step+idx+1, [-xvar, ilist[idx]])
             if self.verbLevel >= 2:
                 self.doComment("%d a %d %d 0" % (step+1+idx, -xvar, ilist[idx]))
         self.incrStep(len(ilist))
@@ -928,8 +1041,10 @@ class CratWriter(SplitWriter):
         return step
         
     def doClause(self, lits, hints = ['*'], splitLower = False):
+        if hints is None:
+            hints = ['*']
         s = self.incrStep(1, splitLower)
-        self.doLine([s, 'a'] + lits + [0] + hints + [0], splitLower)
+        self.doLine([s, 'a'] + list(lits) + [0] + hints + [0], splitLower)
         self.addClause(s, lits)
         shints = None if len(hints) == 1 and hints[0] == '*' else tuple(hints)
         if s >= upperStepStart:

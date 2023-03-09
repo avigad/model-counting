@@ -1,0 +1,561 @@
+\documentclass[letterpaper,USenglish,cleveref, autoref, thm-restate]{lipics-v2021}
+%This is a template for producing LIPIcs articles. 
+%See lipics-v2021-authors-guidelines.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling autoref support, use "autoref"
+%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
+%for enabling thm-restate support, use "thm-restate"
+%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
+%for producing a PDF according the PDF/A standard, add "pdfa"
+
+%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+
+\newcommand{\pand}{\mathbin{\land^{\sf p}}}
+\newcommand{\por}{\mathbin{\lor^{\sf p}}}
+\DeclareMathOperator*{\Pand}{\bigwedge^{\sf v}}
+\DeclareMathOperator*{\Por}{\bigvee^{\sf a}}
+\newcommand{\boolnot}{\neg}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\oneminus}{{\sim}}
+\newcommand{\lit}{\ell}
+
+\newcommand{\varset}{X}
+\newcommand{\exvarset}{Z}
+\newcommand{\dependencyset}{{\cal D}}
+\newcommand{\litset}{{\cal L}}
+\newcommand{\ring}{{\cal R}}
+\newcommand{\dset}{{\cal A}}
+\newcommand{\rep}{\textbf{R}}
+\newcommand{\radd}{+}
+\newcommand{\rmul}{\times}
+\newcommand{\addident}{\textbf{0}}
+\newcommand{\mulident}{\textbf{1}}
+\newcommand{\imply}{\Rightarrow}
+
+\newcommand{\assign}{\alpha}
+\newcommand{\passign}{\rho}
+\newcommand{\uassign}{{\cal U}}
+\newcommand{\modelset}{{\cal M}}
+
+\newcommand{\indegree}{\textrm{indegree}}
+\newcommand{\outdegree}{\textrm{outdegree}}
+\newcommand{\validate}{\textsf{validate}}
+
+\newcommand{\makenode}[1]{\mathbf{#1}}
+\newcommand{\nodeu}{\makenode{u}}
+\newcommand{\nodev}{\makenode{v}}
+\newcommand{\nodes}{\makenode{s}}
+\newcommand{\nodep}{\makenode{p}}
+\newcommand{\noder}{\makenode{r}}
+
+\newcommand{\simplify}[2]{#1|_{#2}}
+\newcommand{\prov}{\mathit{Prov}}
+
+\newcommand{\progname}[1]{\textsc{#1}}
+\newcommand{\dfour}{\progname{d4}}
+\newcommand{\Dfour}{\progname{d4}}
+\newcommand{\generator}{\progname{d2p}}
+\newcommand{\Generator}{\progname{d2p}}
+\newcommand{\checker}{\progname{crat-check}}
+\newcommand{\Checker}{\progname{Crat-check}}
+
+%% Colored hyperlink 
+%\newcommand{\cref}[2]{\href{#1}{\color{blue}#2}}
+%% Colored hyperlink showing link in TT font
+% \newcommand{\chref}[1]{\href{#1}{\small\tt \color{blue}#1}}
+\newcommand{\hcref}[1]{\cref{#1}{\small\tt #1}}
+
+
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{Certified Knowledge Compilation \\ with Application to Verified Model Counting}
+
+\titlerunning{Certified Knowledge Compilation}
+
+\author{Randal E. Bryant}{Computer Science Department, Carnegie Mellon University, Pittsburgh, PA 15213 USA}{rebryant@cmu.edu}{https://orcid.org/0000-0001-5024-6613}{Supported by NSF grant CCF-2108521}
+\author{Wojciech Nawrocki}{Department of Philosophy, Carnegie Mellon University}{wjnawrock@cmu.edu}{https://orcid.org/0000-0002-8839-0618}{}
+\author{Jeremy Avigad}{Department of Philosophy, Carnegie Mellon University}{avigad@cmu.edu}{https://orcid.org/0000-0003-1275-315X}{}
+\author{Marijn J. H. Heule}{Computer Science Department, Carnegie Mellon University}{marijn@cmu.edu}{https://orcid.org/0000-0002-5587-8801}{Supported by NSF grant CCF-2108521}
+
+\authorrunning{R. E. Bryant, et al} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+%\Copyright{Jane Open Access and Joan R. Public} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+%\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm 
+
+%\keywords{Dummy keyword} %TODO mandatory; please add comma-separated list of keywords
+
+%\category{} %optional, e.g. invited paper
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+%\nolinenumbers %uncomment to disable line numbering
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\EventEditors{John Q. Open and Joan R. Access}
+%\EventNoEds{2}
+%\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+%\EventShortTitle{CVIT 2016}
+%\EventAcronym{CVIT}
+%\EventYear{2016}
+%\EventDate{December 24--27, 2016}
+%\EventLocation{Little Whinging, United Kingdom}
+%\EventLogo{}
+%\SeriesVolume{42}
+%\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\program}[1]{\textsc{#1}}
+\newcommand{\lean}{\program{lean4}}
+
+\begin{document}
+
+\maketitle
+
+\definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
+\definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
+\definecolor{clearyellow}{rgb}{0.964706, 0.745098, 0}
+\definecolor{clearorange}{rgb}{0.917647, 0.462745, 0}
+\definecolor{mildgray}{rgb}{0.54902, 0.509804, 0.47451}
+\definecolor{softblue}{rgb}{0.643137, 0.858824, 0.909804}
+\definecolor{bluegray}{rgb}{0.141176, 0.313725, 0.603922}
+\definecolor{lightgreen}{rgb}{0.709804, 0.741176, 0}
+\definecolor{darkgreen}{rgb}{0.152941, 0.776471, 0.172549}
+\definecolor{redpurple}{rgb}{0.835294, 0, 0.196078}
+\definecolor{midblue}{rgb}{0, 0.592157, 0.662745}
+\definecolor{clearpurple}{rgb}{0.67451, 0.0784314, 0.352941}
+\definecolor{browngreen}{rgb}{0.333333, 0.313725, 0.145098}
+\definecolor{darkestpurple}{rgb}{0.396078, 0.113725, 0.196078}
+\definecolor{greypurple}{rgb}{0.294118, 0.219608, 0.298039}
+\definecolor{darkturquoise}{rgb}{0, 0.239216, 0.298039}
+\definecolor{darkbrown}{rgb}{0.305882, 0.211765, 0.160784}
+\definecolor{midgreen}{rgb}{0.560784, 0.6, 0.243137}
+\definecolor{darkred}{rgb}{0.576471, 0.152941, 0.172549}
+\definecolor{darkpurple}{rgb}{0.313725, 0.027451, 0.470588}
+\definecolor{darkestblue}{rgb}{0, 0.156863, 0.333333}
+\definecolor{lightpurple}{rgb}{0.776471, 0.690196, 0.737255}
+\definecolor{softgreen}{rgb}{0.733333, 0.772549, 0.572549}
+\definecolor{offwhite}{rgb}{0.839216, 0.823529, 0.768627}
+\definecolor{medgreen}{rgb}{0.15, 0.6, 0.15}
+
+
+
+\section*{Benchmark machine}
+\begin{itemize}
+\item 2021 MacBook Pro 18,4
+  \begin{itemize}
+  \item 3.2 Ghz Apple M1 processor
+  \item 64 GB Ram
+  \end{itemize}
+\item  Samsung T7 solid-state disk
+  \begin{itemize}
+  \item 2TB capacity
+  \item Up to 1 GB/s R/W
+  \item Critical for performance.  Wrote and read files of over 162 GB.
+  \end{itemize}
+\end{itemize}
+
+\section*{Methodology}
+\begin{enumerate}
+   \item Retrieved 200 public model counting benchmarks from 2022 Model Counting Competition website
+     \begin{center}
+       \hcref{https://mccompetition.org/2022/mc-description.html}
+     \end{center}
+     \begin{itemize}
+     \item 100 public instances from Track 1 (unweighted model counting)
+     \item 100 public instances from Track 2 (weighted model counting)
+     \end{itemize}
+   \item Removed duplicates
+     \begin{itemize}
+    \item  20 instances were duplicated in the two tracks
+     \item Reduces set of benchmarks to 180
+     \end{itemize}
+   \item Ran D4 on 180 instances with time limit of 4000 seconds
+     \begin{itemize}
+     \item Completed for 124 instances
+     \end{itemize}
+   \item Generated POG representations from dDNNF graphs
+     \begin{itemize}
+     \item Simplifications via constant propagation
+       \begin{itemize}
+       \item Number of POG nodes around $0{.}90\times$ number of dDNNF nodes
+       \end{itemize}
+     \item Used heuristics to identify root node, and then put in topological order with root node at end.
+     \item Measure complexity by number of defining clauses $D$
+       \begin{itemize}
+       \item Product or sum node with degree $k$ requires $k+1$ clauses
+       \item $D$ also equals sum of number of edges and number of nodes
+       \item For 124 instances, Min = 304, Median = 848,784, Mean = 93,107,937, Max = 2,761,457,765
+       \end{itemize}
+     \end{itemize}
+   \item Ran program {\sc d2p} to generate CRAT file for maximum of 10,000 seconds
+     \begin{itemize}
+     \item Completed for 108 instances
+     \item Exceeded clause limit for 1 instance (Our programs represent a clause ID as a 32-bit signed value)
+     \item Ran out of memory for 1 instance
+     \item Timed out for 14 instances
+     \end{itemize}
+   \item For completed CRAT files, ran {\sc crat-check} CRAT checker
+     \begin{itemize}
+     \item Tests all conditions for correct CRAT
+     \item Most time spent performing RUP checks for clause addition and deletion
+     \item Completed successfully for all 108 instances
+     \item Time generally faster than {\sc d2p}. (min = 0.005, max = 1.4, harmonic mean = 0.10)
+     \end{itemize}
+\end{enumerate}
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=3000000000,
+      legend style={at={(0.30,0.98)}},
+      legend cell align={left},
+                              x post scale=2.0, y post scale=2.0,
+                              xmode=log, xmin=0.01,xmax=4000,
+                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 1e10}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$,$10^{10}$},
+                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \input{data-formatted/time+defining-failure}
+    \input{data-formatted/time+defining-success}
+    \legend{
+      \scriptsize \textsf{Limit exceeded},
+      \scriptsize \textsf{Validated},
+    }
+ \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Number of defining clauses in generated POG as function of D4 runtime}
+\label{fig:generate:d4:log}
+\end{figure}
+
+\section*{Generated CRAT Files}
+
+\begin{itemize}
+\item Proof Clauses: Min 554, Median 1,719,245, Average 45,001,945, Max 770,382,773
+\item Ratio to number of defining clauses: Min 1.54, Harmonic Mean 3.13, Max 6072.96
+\end{itemize}
+
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000, 
+                              x post scale=2.0, y post scale=2.0,
+                              xmode=log,xmin=100,xmax=1000000000, 
+                              xtick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, xticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              xlabel={Defining Clauses}, ylabel={Proof Clauses},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,1000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,10000) (1e7,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,100000) (1e6,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,1000000) (1e5,1e9)};
+    \input{data-formatted/defining+total}
+    \node[left] at (axis cs: 900,1200) {$1\times$};
+    \node[left] at (axis cs: 900,12000) {$10\times$};
+    \node[left] at (axis cs: 900,120000) {$100\times$};
+    \node[left] at (axis cs: 900,1200000) {$1{,}000\times$};
+    \node[left] at (axis cs: 900,12000000) {$10{,}000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Total number of clauses in CRAT file as function of number of defining clauses}
+\label{fig:defining:total}
+
+\end{figure}
+
+\section*{Time to Generate and Validate CRAT}
+
+\begin{itemize}
+\item Min 0.01, Average 1318.3, Max 13,144.8, Median 71.64
+\item Ratio to time for D4: Min 0.50, Harmonic Mean 5.50, Max 457.69
+\end{itemize}
+
+
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=20000,
+                              x post scale=2.0, y post scale=2.2,
+                              xmode=log,xmin=0.01,xmax=4000,
+                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
+                              ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
+                              xlabel={D4 runtime (seconds)}, ylabel={CRAT generation and checking runtime (seconds)},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1000,1000000)};
+    \input{data-formatted/time-d4-verify}
+    \node[left] at (axis cs: 0.9,0.12) {$0{.}1\times$};
+    \node[left] at (axis cs: 0.09,0.12) {$1\times$};
+    \node[left] at (axis cs: 0.09,1.2) {$10\times$};
+    \node[left] at (axis cs: 0.09,12.0) {$100\times$};
+    \node[left] at (axis cs: 0.09,120.0) {$1000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Combined runtime for CRAT proof generation and checking  as function of D4 runtime}
+\label{fig:d4:crat}
+
+\end{figure}
+
+
+
+\section*{Computing Counts and Weighted Counts}
+
+\begin{itemize}
+\item Implemented package to represent numbers of form $a \cdot 2^b \cdot 5^c$.
+  \begin{itemize}
+  \item For unweighted counts, first compute density and then scale by $2^n$
+  \item For unweighted counts, perform exact decimal arithmetic
+  \item The set of numbers of this form is not closed under a reciprocal operation, but the weights in the competion are either of the form
+    $w(x) + w(\overline{x}) = 1.0$ or $w(x) = w(\overline{x}) = 1$.  The latter case sums to 2, with reciprocal $1/2$.
+  \end{itemize}
+\item Can implement having $a$ be integer of arbitrary size and $b$ and $c$ being 32-bit integers.
+\item Weighted counts ranged up to 260,909 digits.
+\end{itemize}
+
+\section*{Benefits of Optimizations}
+
+Two optimizations were implemented within the CRAT framework:
+\begin{description}
+\item[Lemmas:] Nodes with indegree greater than one were validated with separate lemmas, avoiding the possibly exponential expansion of the POG into a tree during the proof construction.
+
+\item[Literal grouping:] For a product node with multiple literal
+  arguments, those that cannot be validated by BCP are combined as
+  arguments to a newly defined product node.  The extension variable
+  associated with this node is validated, and the proof is then used
+  to validate the literals.  This reduces the number of
+  calls to the SAT solver to at most one per product node.
+\end{description}
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=1000, ymax=1e9, 
+      legend style={at={(0.40,0.98)}},
+      legend cell align={left},
+                              x post scale=2.0, y post scale=2.3,
+                              xmode=log,xmin=1000,xmax=1e7, 
+                              xtick={1000, 10000, 100000, 1000000, 10000000}, xticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$},
+                              ytick={1000, 10000, 100000, 1000000, 10000000, 100000000, 1e9}, yticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$, $10^9$},
+                              xlabel={Proof Clauses using Lemmas and Literal Grouping}, ylabel={Proof Clauses},
+            ]
+    \input{data-formatted/clauses-lemma-nolemma}
+    \input{data-formatted/clauses-nosplit-split}
+    \legend{
+      \scriptsize \textsf{Without lemmas},
+      \scriptsize \textsf{Without literal grouping},
+    }
+    \addplot[mark=none, color=lightblue] coordinates{(1000,1000) (1e8,1e8)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,10000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,100000) (1e7,1e9)};
+
+    \node[left] at (axis cs: 5000,7000) {$1\times$};
+    \node[left] at (axis cs: 5000,70000) {$10\times$};
+    \node[left] at (axis cs: 5000,700000) {$100\times$};
+
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Proof Clauses when Single Optimization Disabled}
+\label{fig:optimized:partially-optimized}
+\end{figure}
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=1000, ymax=1e9, 
+      legend style={at={(0.40,0.98)}},
+      legend cell align={left},
+                              x post scale=2.0, y post scale=2.3,
+                              xmode=log,xmin=1000,xmax=1e7, 
+                              xtick={1000, 10000, 100000, 1000000, 10000000}, xticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$},
+                              ytick={1000, 10000, 100000, 1000000, 10000000, 100000000, 1e9}, yticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$, $10^9$},
+                              xlabel={Proof Clauses using Lemmas and Literal Grouping}, ylabel={Proof Clauses},
+            ]
+    \input{data-formatted/clauses-optimized-unoptimized}    
+    \legend{
+      \scriptsize \textsf{Without either optimization},
+    }
+    \addplot[mark=none, color=lightblue] coordinates{(1000,1000) (1e8,1e8)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,10000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,100000) (1e7,1e9)};
+
+    \node[left] at (axis cs: 5000,7000) {$1\times$};
+    \node[left] at (axis cs: 5000,70000) {$10\times$};
+    \node[left] at (axis cs: 5000,700000) {$100\times$};
+
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Proof Clauses Both Optimizations are Disabled}
+\label{fig:optimized:unoptimized}
+\end{figure}
+
+We conducted a set of experiments using the 80 benchmark instances for
+which the total number of proof clauses when both optimizations are
+performed was limited to $10^7$.  We then made three additional runs
+of the CRAT generator and checker, with each of the two optimizations
+disabled individually and in combination.  Figures
+\ref{fig:optimized:partially-optimized}--\ref{fig:optimized:unoptimized} illustrates the effect of the two
+optimizations.  Each set of points shows the number of clauses when
+both optimizations are performed for the $X$ value and the number with
+one or both of these optimizations disabled as the $Y$ value.
+
+The ratios between the number of clauses when either or both optimizations is disabled versus when both are enabled can be summarized as:
+\begin{description}
+\item[Without lemmas:] Min 1.00, Max 52.54, Harmonic mean 2.11
+\item[Without literal grouping:] Min 0.84, Max 39.60, Harmonic mean 1.18
+\item[Without either optimization:] Min 0.99, Max 52.54, Harmonic mean 2.95
+\end{description}
+
+Here are other ways to summarize the impact on proof length:
+\begin{itemize}
+\item None of the 80 benchmarks require more than $10^7$
+proof clauses when both optimizations are used.  Without lemmas, 19
+rise above that threshold.  Without literal merging, 7 due.  Without
+either, 25 rise above the threshold.  Two of the benchmarks require
+more than $10^8$ proof clauses without lemmas.
+\item
+  Of the 80 benchmark problems evaluated, and comparing with both
+  optimizations disabled, 47 had the number of proof clauses reduced
+  by a factor of 2 by using lemmas, 14 by using literal merging, and
+  60 by enabling both optimizations.
+\end{itemize}
+
+The time performance is less dramatic, but still significant.
+Comparing the sum of CRAT generation and checking times for each of
+the four combinations of options, we get the following times relative
+to the one with both optimizations enabled:
+\begin{description}
+\item[Without lemmas:] Min 0.85, Max 37.98, Harmonic mean 1.80
+\item[Without literal grouping:] Min 0.83, Max 3.92, Harmonic mean 1.12
+\item[Without either optimization:] Min 0.91, Max 41.97, Harmonic mean 2.19
+\end{description}
+
+Here is another way to summarize the impact on the combined time to generate and validate the CRAT file:
+\begin{itemize}
+\item Of the 80 benchmark problems evaluated, and comparing with both
+  optimizations disabled, 40 had the time reduced by at least a factor of 2
+  using lemmas, 7 by using literal merging, and 49 by enabling both
+  optimizations.
+\end{itemize}
+
+\section{Comparison with MICE}
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=1000,
+                              x post scale=2.0, y post scale=2.2,
+                              xmode=log,xmin=0.01,xmax=100,
+                              xtick={0.01, 0.1,1.0,10,100}, xticklabels={0.01, 0.1, 1.0, 10, 100},
+                              ytick={0.01, 0.1,1.0,10,100,1000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
+                              xlabel={CRAT total time (seconds)}, ylabel={MICE total time (seconds)},
+            ]
+    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1000,1000000)};
+    \input{data-formatted/time-mice-compare}
+    \node[left] at (axis cs: 0.9,0.12) {$0{.}1\times$};
+    \node[left] at (axis cs: 0.09,0.12) {$1\times$};
+    \node[left] at (axis cs: 0.09,1.2) {$10\times$};
+    \node[left] at (axis cs: 0.09,12.0) {$100\times$};
+    \node[left] at (axis cs: 0.09,120.0) {$1000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Running Time for MICE versus CRAT proof chains}
+\label{fig:mice}
+\end{figure}
+
+
+\bibliography{references}
+
+
+\end{document}
+
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 1.00]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000, 
+                              x post scale=2.0, y post scale=2.0,
+                              xmin=0,xmax=1000,
+                              xtick = {0,100,200,300,400,500,600,700,800,900,1000},
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \input{data-formatted/time+defining-success}
+    \input{data-formatted/time+defining-failure}
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Number of defining clauses in generated POG as function of D4 runtime (X linear scale)}
+\label{fig:generate:d4}
+\end{figure}
+
+\begin{description}
+\item[Lemmas:] The justification proof must show that the conjunction
+  of the input clauses implies the extension variable associated with
+  the root node.  It does so by showing that this property holds for
+  every node and for every path from the root that node, relative to
+  the partial assignment given by that path.  This could potentially
+  require enumerating exponential numbers of paths to some nodes,
+  effectively converting the graph into a tree.  Instead, the proof
+  can contain a {\em lemma} for each node having indegree greater than
+  one, showing that the root node is implied by a set of clauses.
+  Some of these are the original input clauses, while some are {\em
+    synthetic clauses} representing input clauses that have been
+  reduced by eliminating false literals.  Given such a proof, the
+  lemma can be instantiated for each parent node.  Proofs with lemmas
+  incur some overhead---the synthetic clauses are declared as POG
+  product nodes, and additional clauses must be added to show that,
+  under a given context, the synthetic clauses are implied by some
+  input or containing synthetic clause.  On the other hand, they
+  guarantee that no node in the graph is the root of more than one
+  justication proof.
+\item[Literal grouping:] The generated POG representation will
+  typically have a number of product nodes forming the conjunction of
+  tens, or even hundreds, of literals.  These literals represent ones
+  that we either implied by unit propagation or were added when
+  assigning the complement to the corresponding variable led to a
+  conflict.  Justifying this product node requires showing that each
+  of these literals must hold under the given context.  When this
+  cannot be done by unit propagation, the program must invoke a SAT
+  solver to prove that the complemented value yields a conflict.
+  Rather than doing so for each literal individually, the prover can
+  create a new product node consisting of the literals that have not
+  yet been validated and then prove that falsifying the extension
+  variable associated with the product node yields a conflict.  
+\end{description}

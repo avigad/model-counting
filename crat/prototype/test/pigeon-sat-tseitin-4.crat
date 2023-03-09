@@ -968,6 +968,7 @@ c Assert ITE at node S117
 c Assert ITE at node S121 (root)
 597 a -17 121 0 11 446 9 517 432 444 0
 598 a 121 0 597 5 6 596 438 445 0
+r 121
 c Delete all but final asserted clauses
 dc 597 11 446 9 517 432 444 0
 dc 596 595 14 15 569 570 571 27 594 420 431 0
