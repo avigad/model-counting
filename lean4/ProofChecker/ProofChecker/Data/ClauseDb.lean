@@ -137,40 +137,33 @@ theorem getClause_delClause_of_ne (db : ClauseDb α) (idx idx' : α) :
   next =>
     rw [HashMap.find?_insert_of_ne _ _ (bne_iff_ne _ _ |>.mpr h)]
   next => rfl
-  
+
 /-! `contains` -/
 
 theorem contains_iff_getClause_eq_some (db : ClauseDb α) (idx : α) :
     db.contains idx ↔ ∃ C, db.getClause idx = some C := by
   simp [contains, Option.isSome_iff_exists, db.clauses.contains_iff]
-  
+
 @[simp]
 theorem not_contains_empty (idx : α) : (empty : ClauseDb α).contains idx = false := by
   have := contains_iff_getClause_eq_some empty idx
   simp_all
-  
+
 theorem contains_addClause (db : ClauseDb α) (idx idx' : α) (C : IClause) :
     (db.addClause idx C).contains idx' ↔ (db.contains idx' ∨ idx = idx') := by
   simp only [contains_iff_getClause_eq_some]
   refine ⟨?mp, fun h => h.elim ?mpr₁ ?mpr₂⟩
   case mp =>
     intro ⟨C, hGet⟩
-    by_cases hEq : idx = idx'
-    . exact Or.inr hEq
-    . rw [getClause_addClause_of_ne _ _ _ _ hEq] at hGet
-      exact Or.inl ⟨C, hGet⟩
+    by_cases hEq : idx = idx' <;>
+      aesop (add norm getClause_addClause_of_ne)
   case mpr₁ =>
     intro ⟨C, hGet⟩
-    by_cases hEq : idx = idx'
-    . rw [hEq, getClause_addClause]
-      exact ⟨_, rfl⟩
-    . rw [getClause_addClause_of_ne _ _ _ _ hEq]
-      exact ⟨_, hGet⟩
+    by_cases hEq : idx = idx' <;>
+      aesop (add norm getClause_addClause, norm getClause_addClause_of_ne)
   case mpr₂ =>
-    intro hEq
-    rw [hEq, getClause_addClause]
-    exact ⟨C, rfl⟩
-  
+    aesop (add norm getClause_addClause)
+
 theorem contains_delClause (db : ClauseDb α) (idx idx' : α) :
     (db.delClause idx).contains idx' ↔ (db.contains idx' ∧ idx ≠ idx') := by
   simp only [contains_iff_getClause_eq_some]
@@ -263,44 +256,36 @@ theorem toPropTermSub_addClause (db : ClauseDb α) (idxs : Set α) (idx : α) (C
   apply entails_ext.mpr
   simp only [satisfies_conj, satisfies_toPropTermSub]
   intro τ h idx' C' hMem' hGet'
-  by_cases hEq : idx = idx'
-  . rw [hEq, getClause_addClause] at hGet'
-    cases hGet'
-    tauto
-  . apply h.left idx' C' hMem'
-    exact getClause_addClause_of_ne _ _ _ _ hEq ▸ hGet'
+  by_cases hEq : idx = idx' <;>
+    aesop (add norm getClause_addClause, norm getClause_addClause_of_ne)
 
-theorem toPropTermSub_addClause' (db : ClauseDb α) (C : IClause) :
+theorem toPropTermSub_addClause_of_not_contains (db : ClauseDb α) (C : IClause) :
+    ¬db.contains idx → (db.addClause idx C).toPropTermSub idxs ≤ db.toPropTermSub idxs := by
+  intro hContains
+  apply entails_ext.mpr
+  simp only [satisfies_toPropTermSub]
+  intro _ _ idx'
+  by_cases hEq : idx = idx' <;>
+    aesop (add norm contains_iff_getClause_eq_some, norm getClause_addClause_of_ne)
+
+theorem toPropTermSub_addClause_eq (db : ClauseDb α) (C : IClause) :
     idx ∈ idxs → ¬db.contains idx →
     (db.addClause idx C).toPropTermSub idxs = db.toPropTermSub idxs ⊓ C.toPropTerm := by
   intro hMem hContains
-  refine entails.antisymm ?_ (toPropTermSub_addClause db idxs idx C)
-  refine entails_ext.mpr fun τ h => ?_
-  simp only [satisfies_conj, satisfies_toPropTermSub] at h ⊢
-  constructor
-  case right =>
-    apply h idx hMem
-    apply getClause_addClause
-  case left =>
-    intro idx' hMem' C' hGet'
-    apply h idx' hMem' C'
-    by_cases hEq : idx = idx'
-    . rw [hEq] at hContains
-      have := contains_iff_getClause_eq_some _ _ |>.mpr ⟨C', hGet'⟩
-      contradiction
-    . rw [getClause_addClause_of_ne _ _ _ _ hEq]
-      exact hGet'
+  refine le_antisymm ?_ (toPropTermSub_addClause db idxs idx C)
+  apply le_inf (toPropTermSub_addClause_of_not_contains db C hContains)
+  apply toPropTermSub_of_getClause_eq_some _ hMem
+  apply getClause_addClause
 
 theorem toPropTermSub_addClause_of_not_mem (db : ClauseDb α) (C : IClause) :
-    idx ∉ idxs →
-    (db.addClause idx C).toPropTermSub idxs = db.toPropTermSub idxs := by
+    idx ∉ idxs → (db.addClause idx C).toPropTermSub idxs = db.toPropTermSub idxs := by
   intro hMem
   ext τ
   simp only [satisfies_toPropTermSub]
-  refine ⟨?mp, ?mpr⟩ <;> {
+  constructor <;> {
     intro h idx' hMem'
     have : idx ≠ idx' := fun h =>
-      False.elim <| hMem <| h ▸ hMem'
+      hMem <| h ▸ hMem'
     aesop (add norm getClause_addClause_of_ne)
   }
 
@@ -308,14 +293,39 @@ theorem toPropTermSub_delClause (db : ClauseDb α) (idxs : Set α) (idx : α) :
     db.toPropTermSub idxs ≤ (db.delClause idx).toPropTermSub idxs := by
   apply PropTerm.entails_ext.mpr
   simp only [satisfies_toPropTermSub]
-  intro τ h idx' hMem' C' hGet'
-  by_cases hEq : idx = idx'
-  . rw [hEq, getClause_delClause] at hGet'
-    contradiction
-  . rw [getClause_delClause_of_ne _ _ _ hEq] at hGet'
-    exact h idx' hMem' C' hGet'
+  intro _ _ idx'
+  by_cases hEq : idx = idx' <;>
+    aesop (add norm getClause_delClause_of_ne, norm getClause_delClause)
 
--- LATER(if needed): when idx ∉ idxs, (db.delClause idx).toPropTermSub idxs = db.toPropTermSub idxs
+theorem toPropTermSub_delClause_of_getClause_eq_some (db : ClauseDb α) :
+    db.getClause idx = some C →
+    (db.delClause idx).toPropTermSub idxs ⊓ C.toPropTerm ≤ db.toPropTermSub idxs := by
+  intro hGet
+  apply entails_ext.mpr
+  simp only [satisfies_conj, satisfies_toPropTermSub]
+  intro _ _ idx'
+  by_cases hEq : idx = idx' <;>
+    aesop (add norm getClause_delClause_of_ne)
+
+theorem toPropTermSub_delClause_eq (db : ClauseDb α) :
+    idx ∈ idxs → db.getClause idx = some C →
+    (db.delClause idx).toPropTermSub idxs ⊓ C.toPropTerm = db.toPropTermSub idxs := by
+  intro hMem hGet
+  apply le_antisymm (toPropTermSub_delClause_of_getClause_eq_some db hGet)
+  apply le_inf (toPropTermSub_delClause db idxs idx)
+  apply toPropTermSub_of_getClause_eq_some _ hMem hGet
+
+theorem toPropTermSub_delClause_of_not_mem (db : ClauseDb α) :
+    idx ∉ idxs → (db.delClause idx).toPropTermSub idxs = db.toPropTermSub idxs := by
+  intro hMem
+  ext τ
+  simp only [satisfies_toPropTermSub]
+  constructor <;> {
+    intro h idx' hMem'
+    have : idx ≠ idx' := fun h =>
+      hMem <| h ▸ hMem'
+    aesop (add norm getClause_delClause_of_ne)
+  }
 
 /-! `toPropTerm` -/
 
@@ -346,14 +356,19 @@ theorem toPropTerm_addClause (db : ClauseDb α) (idx : α) (C : IClause) :
     db.toPropTerm ⊓ C.toPropTerm ≤ (db.addClause idx C).toPropTerm :=
   toPropTermSub_addClause db Set.univ idx C
 
-theorem toPropTerm_addClause' (db : ClauseDb α) (idx : α) (C : IClause) :
+theorem toPropTerm_addClause_eq (db : ClauseDb α) (idx : α) (C : IClause) :
     ¬db.contains idx →
     (db.addClause idx C).toPropTerm = db.toPropTerm ⊓ C.toPropTerm :=
-  toPropTermSub_addClause' db C (Set.mem_univ idx)
+  toPropTermSub_addClause_eq db C (Set.mem_univ idx)
 
 theorem toPropTerm_delClause (db : ClauseDb α) (idx : α) :
     db.toPropTerm ≤ (db.delClause idx).toPropTerm :=
   toPropTermSub_delClause db Set.univ idx
+
+theorem toPropTerm_delClause_eq (db : ClauseDb α) (idx : α) (C : IClause) :
+    db.getClause idx = some C →
+    (db.delClause idx).toPropTerm ⊓ C.toPropTerm = db.toPropTerm :=
+  toPropTermSub_delClause_eq db (Set.mem_univ idx)
 
 /-! `ofICnf` -/
 
