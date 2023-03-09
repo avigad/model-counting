@@ -115,9 +115,25 @@ theorem eta (l : ILit) : mk l.var l.polarity = l := by
 @[simp]
 theorem eta_neg (l : ILit) : mk l.var (!l.polarity) = -l := by
   apply ext <;> simp
+  
+theorem mkPos_or_mkNeg (l : ILit) : l = .mkPos l.var ∨ l = .mkNeg l.var := by
+  rw [← eta l]
+  cases l.polarity
+  . apply Or.inr
+    simp [mk]
+  . apply Or.inl
+    simp [mk]
 
 def toPropForm (l : ILit) : PropForm Var :=
   if l.polarity then .var l.var else .neg (.var l.var)
+    
+@[simp]
+theorem toPropForm_mkPos (x : Var) : (mkPos x).toPropForm = .var x := by
+  simp [toPropForm]
+
+@[simp]
+theorem toPropForm_mkNeg (x : Var) : (mkNeg x).toPropForm = .neg (.var x) := by
+  simp [toPropForm]
 
 def toPropTerm (l : ILit) : PropTerm Var :=
   if l.polarity then .var l.var else (.var l.var)ᶜ

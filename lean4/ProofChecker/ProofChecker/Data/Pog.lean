@@ -320,6 +320,14 @@ theorem toPropForm_push_of_ne (y : Var) (pog : Pog) (pogElt : PogElt)
     rw [dif_pos this, dif_pos, toPropForm_push_of_lt.aux]
     rw [size_push_elts]
     apply lt_succ_of_lt this
+    
+theorem toPropForm_empty (l : ILit) : empty.toPropForm l = l.toPropForm := by
+  dsimp [toPropForm]
+  split
+  next h =>
+    simp [empty] at h
+  next =>
+    rfl
 
 theorem toPropForm_neg (p : Pog) (x : Var) :
     p.toPropForm (.mkNeg x) = .neg (p.toPropForm (.mkPos x)) := by
@@ -346,6 +354,16 @@ theorem toPropForm_addVar (p p' : Pog) (x : Var) :
         simp [heq']
     . simp [ILit.toPropForm]
   . intro; contradiction
+  
+theorem toPropForm_addVar_lit (p p' : Pog) (l : ILit) :
+    p.addVar l.var = .ok p' →
+    p'.toPropForm l = l.toPropForm := by
+  cases l.mkPos_or_mkNeg <;>
+    next hMk =>
+      intro h
+      rw [hMk]
+      have := toPropForm_addVar _ _ _ h
+      simp [toPropForm_neg, this]
 
 theorem toPropForm_addVar_of_ne (x y : Var) (p p' : Pog) :
     p.addVar x = .ok p' → x ≠ y →
@@ -360,6 +378,16 @@ theorem toPropForm_addVar_of_ne (x y : Var) (p p' : Pog) :
     apply toPropForm_push_of_ne
     exact hne
   . intro; contradiction
+  
+theorem toPropForm_addVar_lit_of_ne (x : Var) (l : ILit) (p p' : Pog) :
+    p.addVar x = .ok p' → x ≠ l.var →
+    p'.toPropForm l = p.toPropForm l := by
+  cases l.mkPos_or_mkNeg <;>
+    next hMk =>
+      intro h hNe
+      rw [hMk]
+      have := toPropForm_addVar_of_ne _ _ _ _ h hNe
+      simp [toPropForm_neg, this]
 
 theorem toPropForm_addDisj (x : Var) (l₁ l₂ : ILit) (p p' : Pog) :
     p.addDisj x l₁ l₂ = .ok p' →
