@@ -4,6 +4,7 @@ import ProofChecker.Data.HashMap.Lemmas
 import ProofChecker.Data.HashSet
 import ProofChecker.Model.ToMathlib
 import ProofChecker.Model.PropTerm
+import ProofChecker.Model.PropVars
 
 abbrev Var := PNat
 
@@ -177,9 +178,20 @@ theorem eq_of_flip {τ : PropAssignment Var} {l : ILit} {x : Var} {p : Bool} :
   intro h hSet
   by_cases hEq : x = var l
   . rw [hEq, τ.set_get] at hSet
-    simp [*]
+    simp [hSet, hEq]
   . exfalso; exact h (τ.set_get_of_ne p hEq ▸ hSet)
 
+theorem eq_of_flip' {τ : PropAssignment Var} {l : ILit} {x : Var} {p : Bool} :
+    τ ⊨ l.toPropTerm → τ.set x p ⊭ l.toPropTerm → l = mk x !p := by
+  simp only [satisfies_iff]
+  intro h hSet
+  by_cases hEq : x = var l
+  . rw [hEq, τ.set_get] at hSet
+    have : (!p) = l.polarity := by
+      simp [hSet]
+    simp [hEq, this]
+  . exfalso; exact hSet (τ.set_get_of_ne p hEq ▸ h)
+  
 end ILit
 
 /-! Clauses -/
@@ -199,15 +211,30 @@ instance : ToString IClause where
 
 /-! Theorems about `IClause` -/
 
+theorem mem_vars (C : IClause) (x : Var) : x ∈ C.vars.toFinset ↔ ∃ l ∈ C.data, x = l.var := by
+  rw [vars, Array.foldr_eq_foldr_data]
+  induction C.data <;> aesop
+
 def toPropTerm (C : IClause) : PropTerm Var :=
   C.data.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
-
+  
 open PropTerm
 
 theorem satisfies_iff {τ : PropAssignment Var} {C : IClause} :
     τ ⊨ C.toPropTerm ↔ ∃ l ∈ C.data, τ ⊨ l.toPropTerm := by
   rw [toPropTerm]
   induction C.data <;> simp_all
+
+theorem semVars_sub (C : IClause) : C.toPropTerm.semVars ⊆ C.vars.toFinset := by
+  intro x
+  simp only [mem_semVars, mem_vars, satisfies_iff, not_exists, not_and]
+  intro ⟨τ, ⟨l, hL, hτ⟩, h⟩
+  have := ILit.eq_of_flip' hτ (h l hL)
+  exact ⟨l, hL, by simp [this]⟩
+  
+theorem mem_vars_of_flip {τ : PropAssignment Var} {C : IClause} {x : Var} {p : Bool} :
+    τ ⊨ C.toPropTerm → τ.set x p ⊭ C.toPropTerm → x ∈ C.vars.toFinset := by
+  sorry
 
 theorem tautology_iff (C : IClause) :
     C.toPropTerm = ⊤ ↔ ∃ l₁ ∈ C.data, ∃ l₂ ∈ C.data, l₁ = -l₂ := by
@@ -255,29 +282,9 @@ theorem tautology_iff (C : IClause) :
 
 /-! Tautology decision procedure -/
 
-/-- Check whether a clause is a tautology. The type is a hack for early-return. The clause is
-tautological iff `none` is returned. -/
-def checkTautoAux (C : IClause) : Option (HashMap Var Bool) :=
-  C.foldlM (init := .empty) fun acc l => do
-    match acc.find? l.var with
-    | .none => acc.insert l.var l.polarity
-    | .some p => if p ≠ l.polarity then none else acc
-
-theorem checkTautoAux_none (C : IClause) : checkTautoAux C = none → C.toPropTerm = ⊤ := by
-  sorry
-
-theorem checkTautoAux_some (C : IClause) : checkTautoAux C = some m → C.toPropTerm ≠ ⊤ :=
-  sorry
-
-instance : DecidablePred (IClause.toPropTerm · = ⊤) :=
-  fun C => match h : checkTautoAux C with
-    | .none   => .isTrue (checkTautoAux_none C h)
-    | .some _ => .isFalse (checkTautoAux_some C h)
-
 /-- `encodes enc C` says that the hashmap `enc` encodes the (non-tautological) clause `C`.
 More generally, `encodes enc C i` says that `enc` encodes the disjunction of all but the
 first `i` literals of `C`. -/
-
 def encodes (enc : HashMap Var Bool) (C : IClause) (start : Nat := 0) : Prop :=
   (∀ j : Fin C.size, start ≤ j → enc.find? C[j].var = .some C[j].polarity) ∧
     ∀ x : Var, enc.contains x ↔ ∃ j : Fin C.size, start ≤ j ∧ C[j].var = x
@@ -377,7 +384,7 @@ theorem encode_of_encodes_of_find?_eq_some
         use j', hj'
         rw [h'']; cases h'; simp
 
-def checkTautoAux' (C : IClause) : { b : Bool // b ↔ toPropTerm C = ⊤ } :=
+def checkTautoAux (C : IClause) : { b : Bool // b ↔ toPropTerm C = ⊤ } :=
   go C.size (le_refl _) .empty C.encodes_empty
 where
   go : (i : Nat) → i ≤ C.size → (acc : HashMap Var Bool) → encodes acc C i →
@@ -392,6 +399,20 @@ where
                 go i (le_of_lt ilt) _ (encode_of_encodes_of_find?_eq_some ilt hinv h hp)
               else
                 ⟨true, by simp [tautology_of_encodes_of_find?_eq_some ilt hinv h hp]⟩
+
+instance : DecidablePred (IClause.toPropTerm · = ⊤) :=
+  fun C => match checkTautoAux C with
+    | ⟨true, h⟩  => .isTrue (h.mp rfl)
+    | ⟨false, h⟩ => .isFalse fun hC => nomatch h.mpr hC
+
+/-- Check whether a clause is a tautology. The type is a hack for early-return. The clause is
+tautological iff `none` is returned. -/
+@[deprecated checkTautoAux]
+def checkTautoAux' (C : IClause) : Option (HashMap Var Bool) :=
+  C.foldlM (init := .empty) fun acc l => do
+    match acc.find? l.var with
+    | .none => acc.insert l.var l.polarity
+    | .some p => if p ≠ l.polarity then none else acc
 
 end IClause
 
@@ -409,6 +430,11 @@ instance : ToString ICnf where
 
 /-! Theorems about `ICnf` -/
 
+theorem mem_vars (φ : ICnf) (x : Var) : x ∈ φ.vars.toFinset ↔ ∃ C ∈ φ.data, x ∈ C.vars.toFinset :=
+by
+  simp only [vars, Array.foldr_eq_foldr_data]
+  induction φ.data <;> aesop
+
 def toPropTerm (φ : ICnf) : PropTerm Var :=
   φ.data.foldr (init := ⊤) (fun l φ => l.toPropTerm ⊓ φ)
 
@@ -418,6 +444,12 @@ theorem satisfies_iff {τ : PropAssignment Var} {φ : ICnf} :
     τ ⊨ φ.toPropTerm ↔ ∀ C ∈ φ.data, τ ⊨ C.toPropTerm := by
   rw [toPropTerm]
   induction φ.data <;> simp_all
+
+theorem semVars_sub (φ : ICnf) : φ.toPropTerm.semVars ⊆ φ.vars.toFinset := by
+  intro x
+  simp only [mem_semVars, mem_vars, satisfies_iff, not_forall]
+  intro ⟨τ, h, ⟨C, hMem, hC⟩⟩
+  exact ⟨C, hMem, sorry⟩
 
 end ICnf
 

@@ -55,8 +55,8 @@ theorem addDisj_new_var_equiv (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
       exact ⟨σ₁', by assumption, by simp; tauto⟩
 
 theorem addDisj_decomposable (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropForm Var) :
-    -- Note: also works with l₁.semVars ⊆ Γ.semVars
-    l₂.semVars ⊆ Γ.semVars → hasUniqueExtension X Γ.semVars Γ →
+    -- Note: also works with l₁.semVars ⊆ A
+    l₂.semVars ⊆ A → hasUniqueExtension X A Γ →
     Γ ⊓ l₁ ⊓ l₂ ≤ ⊥ → equivalentOver X (l₁ ⊓ Γ) ⟦φ₁⟧ → equivalentOver X (l₂ ⊓ Γ) ⟦φ₂⟧ →
     φ₁.decomposable → φ₂.decomposable → (φ₁.disj φ₂).decomposable := by
   intro hL₂ hUep hImp e₁ e₂ hD₁ hD₂
@@ -68,7 +68,7 @@ theorem addDisj_decomposable (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropFo
   simp at hσ₁ hσ₂
   have hσ₁Γ : σ₁ ⊨ Γ := by tauto
   have hσ₂Γ : σ₂ ⊨ Γ := by tauto
-  have hAgree : σ₁.agreeOn Γ.semVars σ₂ := hUep _ _ hσ₁Γ hσ₂Γ (hAgree₁.trans hAgree₂.symm)
+  have hAgree : σ₁.agreeOn A σ₂ := hUep hσ₁Γ hσ₂Γ (hAgree₁.trans hAgree₂.symm)
   have : σ₂ ⊨ l₂ := by tauto
   have : σ₁ ⊨ l₂ := agreeOn_semVars (hAgree.subset hL₂) |>.mpr this
   have : σ₁ ⊨ ⊥ := entails_ext.mp hImp _ (by simp; tauto)
@@ -78,8 +78,8 @@ theorem addDisj_decomposable (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropFo
 theorem addConj_new_var_equiv₂ (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
     -- Note: also works with φ₁.semVars ⊆ X
     p ∉ X → p ∉ Γ.semVars → p ∉ l₁.semVars → p ∉ l₂.semVars → φ₂.semVars ⊆ X →
-    -- Note: also works with l₁.semVars ⊆ Γ.semVars
-    l₂.semVars ⊆ Γ.semVars → hasUniqueExtension X Γ.semVars Γ →
+    -- Note: also works with l₁.semVars ⊆ A
+    l₂.semVars ⊆ A → hasUniqueExtension X A Γ →
     equivalentOver X (l₁ ⊓ Γ) φ₁ → equivalentOver X (l₂ ⊓ Γ) φ₂ →
     equivalentOver X (.var p ⊓ (.biImpl (.var p) (l₁ ⊓ l₂)) ⊓ Γ) (φ₁ ⊓ φ₂) := by
   intro hMem hΓ hL₁ hL₂ hφ₂ hL₂Γ hUep e₁ e₂ τ
@@ -100,7 +100,7 @@ theorem addConj_new_var_equiv₂ (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
     simp at h₁ h₁'
     have hσ₁Γ : σ₁ ⊨ Γ := by tauto
     have hσ₁'Γ : σ₁' ⊨ Γ := by tauto
-    have hAgree₁₁' : σ₁.agreeOn Γ.semVars σ₁' := hUep _ _ hσ₁Γ hσ₁'Γ (hAgree₁.trans hAgree₁'.symm)
+    have hAgree₁₁' : σ₁.agreeOn A σ₁' := hUep hσ₁Γ hσ₁'Γ (hAgree₁.trans hAgree₁'.symm)
     have : σ₁ ⊨ l₂ := agreeOn_semVars (hAgree₁₁'.subset hL₂Γ) |>.mpr (by tauto)
     let σ₃ := σ₁.set p true
     have : σ₃ ⊨ .var p := by simp

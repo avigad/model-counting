@@ -96,13 +96,13 @@ structure PreState where
 
   /-- The POG root literal, if we already saw a `root` instruction. Otherwise `none`. -/
   root : Option ILit
-  
+
 def PreState.pogDefs' (st : PreState) : Finset ClauseIdx :=
   st.pogDefs.toFinset
 
 noncomputable def PreState.pogDefsTerm (st : PreState) : PropTerm Var :=
   st.clauseDb.toPropTermSub st.pogDefs'
-  
+
 def PreState.allVars (st : PreState) : Set Var :=
   { x | st.depVars.contains x }
 
@@ -116,7 +116,7 @@ structure PreState.WF (st : PreState) : Prop where
     ∀ y, y ∈ (st.pog.toPropForm l).vars → D.contains y
 
   /-- Every formula in the POG forest is decomposable.
-  
+
   For literals not defining anything in the forest this still holds by fiat because
   `st.pog.toPropForm l = l.toPropForm`. -/
   decomposable : ∀ l : ILit, (st.pog.toPropForm l).decomposable
@@ -125,6 +125,10 @@ structure PreState.WF (st : PreState) : Prop where
   if a variable is not in `depVars` then it does not influence the clause database so can be
   defined as an extension variable. -/
   clauseDb_semVars_sub : ↑st.clauseDb.toPropTerm.semVars ⊆ st.allVars
+
+  pogDefsTerm_semVars_sub : ↑st.pogDefsTerm.semVars ⊆ st.allVars
+
+  inputCnf_semVars_sub : ↑st.inputCnf.toPropTerm.semVars ⊆ st.allVars
 
   /-- The clause database is equivalent to the original formula over original variables. -/
   equivalent_clauseDb : PropTerm.equivalentOver st.inputCnf.toPropTerm.semVars
@@ -193,6 +197,11 @@ def initial (inputCnf : ICnf) : Except CheckerError State := do
       simp [hInitPog, decomposable_lit]
     -- LATER: Prove these when we are sure they imply the result.
     clauseDb_semVars_sub := sorry
+    pogDefsTerm_semVars_sub :=
+      sorry
+    inputCnf_semVars_sub := by
+      rw [allVars_eq]
+      sorry
     equivalent_clauseDb := by
       rw [ClauseDb.toPropTerm_ofICnf]
       apply PropTerm.equivalentOver_refl
@@ -261,6 +270,7 @@ def addAt (idx : ClauseIdx) (C : IClause) (hints : Array ClauseIdx) : CheckerM U
       exact st.clauseDb.contains_addClause _ _ _ |>.mpr (Or.inl this)
     equivalent_clauseDb := hDb ▸ pfs.equivalent_clauseDb
     clauseDb_semVars_sub := hDb ▸ pfs.clauseDb_semVars_sub
+    pogDefsTerm_semVars_sub := hPogDefs ▸ pfs.pogDefsTerm_semVars_sub
     equivalent_lits := hPogDefs ▸ pfs.equivalent_lits
     uep_pogDefsTerm := hPogDefs ▸ pfs.uep_pogDefsTerm
   }
@@ -300,6 +310,7 @@ def delAt (idx : ClauseIdx) (hints : Array ClauseIdx) : CheckerM Unit := do
       exact hMem (hEq.symm ▸ h)
     equivalent_clauseDb := hDb ▸ pfs.equivalent_clauseDb
     clauseDb_semVars_sub := hDb ▸ pfs.clauseDb_semVars_sub
+    pogDefsTerm_semVars_sub := hPogDefs ▸ pfs.pogDefsTerm_semVars_sub
     equivalent_lits := hPogDefs ▸ pfs.equivalent_lits
     uep_pogDefsTerm := hPogDefs ▸ pfs.uep_pogDefsTerm
   }
@@ -383,7 +394,7 @@ def addPogDefClause (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     | inr h => exact h ▸ hContains
 
   return ⟨(db, pd), hDb, hPd, hPdDb⟩
-  
+
 def addSumClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
     Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx //
@@ -402,7 +413,7 @@ def addSumClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     rw [hPd₃, hPd₂, hPd₁]
     simp [IClause.toPropTerm, inf_assoc, PropTerm.disj_def_eq]
   return ⟨(db₃, pd₃), hDb, hPd, h⟩
-  
+
 def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx) :
     CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
@@ -427,6 +438,9 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   -- NOTE: Important that this be done before adding clauses, for linearity.
   let _ ← checkImpliedWithHints st.clauseDb #[-l₁, -l₂] hints
 
+  -- UP stuff
+  have : st.pogDefsTerm ⊓ l₁.toPropTerm ⊓ l₂.toPropTerm ≤ ⊥ := sorry
+
   let ⟨(db', pd'), hDb, hPd, pogDefs_in_clauseDb⟩ ←
     addSumClauses st.clauseDb st.pogDefs idx x l₁ l₂ pfs.pogDefs_in_clauseDb
 
@@ -436,22 +450,32 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
     pog := pog'
     depVars := st.depVars.insert x (D₁.union D₂)
   }
-  have hVars : st'.allVars = st.allVars.insert x := by
+
+  -- Variable stuff
+  have : l₁.var ∈ st.allVars := sorry
+  have : l₂.var ∈ st.allVars := sorry
+  have : x ∉ st.allVars := sorry
+  have : db'.toPropTerm.semVars = st.clauseDb.toPropTerm.semVars ∪ {x} := sorry
+  have : st'.allVars = st.allVars.insert x := by
     sorry
+
   have pfs' := {
     pogDefs_in_clauseDb
     depVars_pog := sorry
     decomposable := sorry
     clauseDb_semVars_sub := sorry
+    pogDefsTerm_semVars_sub := sorry
+    inputCnf_semVars_sub := sorry
     equivalent_clauseDb := by
       apply pfs.equivalent_clauseDb.trans
       rw [hDb]
       -- strategy:
       apply PropTerm.equivalentOver_def_ext <;> sorry
-      -- with X := st.graph.allVars
+      -- with X := st.allVars
       -- use clauseDb_semVars_sub for first obligation
       -- use l₁,l₂ ∈ allVars for the second
       -- use freshness check for the third
+      -- reduce to inputVars using subset proof (argh)
     pog_vars := sorry
     uep_pogDefsTerm := sorry
     equivalent_lits := sorry
