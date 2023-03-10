@@ -40,7 +40,7 @@ theorem equivalentOver_def_self {x : ν} {X : Set ν} (φ : PropTerm ν) :
     exact ⟨σ₁, by assumption, satisfies_conj.mpr (by simp (config := {zeta := false}) [this])⟩
 
 theorem disj_def_eq (x : ν) (φ₁ φ₂ : PropTerm ν) :
-    ((.var x)ᶜ ⊔ φ₁ ⊔ φ₂) ⊓ (.var x ⊔ φ₁ᶜ) ⊓ (.var x ⊔ φ₂ᶜ) = .biImpl (.var x) (φ₁ ⊔ φ₂) := by
+    ((.var x)ᶜ ⊔ (φ₁ ⊔ φ₂)) ⊓ ((.var x ⊔ φ₁ᶜ) ⊓ (.var x ⊔ φ₂ᶜ)) = .biImpl (.var x) (φ₁ ⊔ φ₂) := by
   ext τ
   cases h : τ x <;> simp [not_or, h]
 
@@ -48,7 +48,7 @@ theorem equivalentOver_disj_def_ext {x : ν} {X : Set ν} (φ φ₁ φ₂ : Prop
     ↑φ.semVars ⊆ X → ↑φ₁.semVars ⊆ X → ↑φ₂.semVars ⊆ X → x ∉ X →
     equivalentOver X φ (φ ⊓ ((.var x)ᶜ ⊔ φ₁ ⊔ φ₂) ⊓ (.var x ⊔ φ₁ᶜ) ⊓ (.var x ⊔ φ₂ᶜ)) := by
   intro hφ h₁ h₂ hMem
-  rw [inf_assoc, inf_assoc, ← inf_assoc (a := (.var x)ᶜ ⊔ φ₁ ⊔ φ₂), disj_def_eq x φ₁ φ₂]
+  simp [sup_assoc, inf_assoc, disj_def_eq]
   have := Finset.coe_subset.mpr (semVars_disj φ₁ φ₂)
   apply equivalentOver_def_ext _ _ hφ (subset_trans this (by simp [*])) hMem
   
