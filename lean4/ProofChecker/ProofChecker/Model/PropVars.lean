@@ -334,10 +334,21 @@ any two satisfying assignments which agree on `X` must also agree on `Y`. -/
 equivalentOver φ₁.vars ⟦φ₁⟧ ⟦φ₂⟧ ∧ hasUniqueExtension ⟦φ₂⟧ φ₁.vars φ₂.vars →
 { σ : { x // x ∈ φ₁.vars} → Bool | σ ⊨ φ₁ } ≃ { σ : { x // x ∈ φ₂.vars } → Bool | σ ⊨ φ₂ } -/
 def hasUniqueExtension (X Y : Set ν) (φ : PropTerm ν) :=
-  ∀ (σ₁ σ₂ : PropAssignment ν), σ₁ ⊨ φ → σ₂ ⊨ φ → σ₁.agreeOn X σ₂ → σ₁.agreeOn Y σ₂
+  ∀ ⦃σ₁ σ₂ : PropAssignment ν⦄, σ₁ ⊨ φ → σ₂ ⊨ φ → σ₁.agreeOn X σ₂ → σ₁.agreeOn Y σ₂
 
-theorem hasUniqueExtension_to_empty (X : Set ν) (φ : PropTerm ν) : hasUniqueExtension X ∅ φ := by
-  simp [hasUniqueExtension, PropAssignment.agreeOn_empty]
+theorem hasUniqueExtension_refl (X : Set ν) (φ : PropTerm ν) : hasUniqueExtension X X φ :=
+  by simp [hasUniqueExtension]
+  
+theorem hasUniqueExtension.subset_left : X ⊆ X' → hasUniqueExtension X Y φ →
+    hasUniqueExtension X' Y φ :=
+  fun hSub h _ _ h₁ h₂ hAgree => h h₁ h₂ (hAgree.subset hSub)
+
+theorem hasUniqueExtension.subset_right : Y' ⊆ Y → hasUniqueExtension X Y φ →
+    hasUniqueExtension X Y' φ :=
+  fun hSub h _ _ h₁ h₂ hAgree => (h h₁ h₂ hAgree).subset hSub
+  
+theorem hasUniqueExtension_to_empty (X : Set ν) (φ : PropTerm ν) : hasUniqueExtension X ∅ φ :=
+  hasUniqueExtension_refl X φ |>.subset_right (Set.empty_subset X)
 
 end PropTerm
 

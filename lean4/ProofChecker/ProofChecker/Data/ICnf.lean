@@ -142,6 +142,19 @@ def toPropTerm (l : ILit) : PropTerm Var :=
 theorem mk_toPropForm (l : ILit) : ⟦l.toPropForm⟧ = l.toPropTerm := by
   dsimp [toPropForm, toPropTerm]
   cases l.polarity <;> simp
+  
+@[simp]
+theorem toPropTerm_mkPos (x : Var) : (mkPos x).toPropTerm = .var x := by
+  simp [toPropTerm]
+
+@[simp]
+theorem toPropTerm_mkNeg (x : Var) : (mkNeg x).toPropTerm = (.var x)ᶜ := by
+  simp [toPropTerm]
+  
+@[simp]
+theorem toPropTerm_neg (l : ILit) : (-l).toPropTerm = l.toPropTermᶜ := by
+  dsimp [toPropTerm]
+  aesop
 
 open PropTerm
 
