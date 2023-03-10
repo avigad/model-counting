@@ -1,7 +1,6 @@
 import Mathlib.Data.Finset.Powerset
 import Mathlib.Data.Finset.Card
-
-import ProofChecker.Model.PropVars
+import ProofChecker.Data.Pog
 
 open Finset
 
@@ -11,16 +10,6 @@ to be proved below, is that this really does count the number of models.
 -/
 
 namespace PropForm
-
-def decomposable [DecidableEq ν]: PropForm ν → Prop
-  | tr         => True
-  | fls        => True
-  | var _      => True
-  | neg φ      => φ.decomposable
-  | disj φ ψ   => φ.decomposable ∧ ψ.decomposable ∧ ∀ v, ¬ (φ.eval v ∧ ψ.eval v)
-  | conj φ ψ   => φ.decomposable ∧ ψ.decomposable ∧ (φ.vars ∩ ψ.vars = ∅)
-  | impl _ _   => False
-  | biImpl _ _ => False
 
 def countModels (nVars : Nat) : PropForm ν → Nat
   | tr         => 2^nVars

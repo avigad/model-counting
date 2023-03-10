@@ -2,7 +2,7 @@ import ProofChecker.Data.ICnf
 import ProofChecker.Data.Pog
 import ProofChecker.Model.PropVars
 import ProofChecker.Model.Extensions
-import ProofChecker.CountModels
+import ProofChecker.Count.PropForm
 
 /-! Justifications of CRAT steps. -/
 

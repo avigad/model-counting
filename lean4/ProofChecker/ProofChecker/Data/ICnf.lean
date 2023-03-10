@@ -142,7 +142,7 @@ def toPropTerm (l : ILit) : PropTerm Var :=
 theorem mk_toPropForm (l : ILit) : ⟦l.toPropForm⟧ = l.toPropTerm := by
   dsimp [toPropForm, toPropTerm]
   cases l.polarity <;> simp
-  
+
 @[simp]
 theorem toPropTerm_mkPos (x : Var) : (mkPos x).toPropTerm = .var x := by
   simp [toPropTerm]
@@ -150,7 +150,7 @@ theorem toPropTerm_mkPos (x : Var) : (mkPos x).toPropTerm = .var x := by
 @[simp]
 theorem toPropTerm_mkNeg (x : Var) : (mkNeg x).toPropTerm = (.var x)ᶜ := by
   simp [toPropTerm]
-  
+
 @[simp]
 theorem toPropTerm_neg (l : ILit) : (-l).toPropTerm = l.toPropTermᶜ := by
   dsimp [toPropTerm]
@@ -353,7 +353,7 @@ theorem encode_of_encodes_of_find?_eq_some
       (ilt: i < C.size)
       (henc : encodes enc C (i + 1))
       (h : HashMap.find? enc C[i].var = some p)
-      (hpeq : p = ILit.polarity C[i]) :
+      (hpeq : p = C[i].polarity) :
     encodes enc C i := by
   constructor
   . intro j hile
