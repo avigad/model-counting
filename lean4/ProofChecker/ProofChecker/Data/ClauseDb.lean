@@ -251,6 +251,16 @@ theorem toPropTermSub_subset (db : ClauseDb α) :
   apply entails_ext.mpr
   aesop (add norm satisfies_toPropTermSub)
 
+theorem toPropTermSub_subset_eq (db : ClauseDb α) :
+    idxs ⊆ idxs' → (∀ idx ∈ idxs', db.contains idx → idx ∈ idxs) →
+    db.toPropTermSub idxs' = db.toPropTermSub idxs := by
+  intro hSub h
+  apply le_antisymm (toPropTermSub_subset db hSub)
+  apply entails_ext.mpr
+  simp only [satisfies_toPropTermSub]
+  intro τ hτ _ hMem' _ hGet'
+  exact hτ _ (h _ hMem' (contains_iff_getClause_eq_some _ _ |>.mpr ⟨_, hGet'⟩)) _ hGet'
+
 theorem toPropTermSub_addClause (db : ClauseDb α) (idxs : Set α) (idx : α) (C : IClause) :
     db.toPropTermSub idxs ⊓ C.toPropTerm ≤ (db.addClause idx C).toPropTermSub idxs := by
   apply entails_ext.mpr

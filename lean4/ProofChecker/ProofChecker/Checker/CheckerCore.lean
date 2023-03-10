@@ -97,8 +97,8 @@ structure PreState where
   /-- The POG root literal, if we already saw a `root` instruction. Otherwise `none`. -/
   root : Option ILit
   
-def PreState.pogDefs' (st : PreState) : Set ClauseIdx :=
-  { idx | st.pogDefs.contains idx }
+def PreState.pogDefs' (st : PreState) : Finset ClauseIdx :=
+  st.pogDefs.toFinset
 
 noncomputable def PreState.pogDefsTerm (st : PreState) : PropTerm Var :=
   st.clauseDb.toPropTermSub st.pogDefs'
@@ -179,7 +179,7 @@ def initial (inputCnf : ICnf) : Except CheckerError State := do
   have pogDefs'_empty : st.pogDefs' = ∅ := by
     simp [PreState.pogDefs', HashSet.not_contains_empty]
   have pogDefsTerm_tr : st.pogDefsTerm = ⊤ := by
-    rw [PreState.pogDefsTerm, pogDefs'_empty]
+    rw [PreState.pogDefsTerm, pogDefs'_empty, Finset.coe_empty]
     apply ClauseDb.toPropTermSub_emptySet
   have allVars_eq : st.allVars = st.inputCnf.vars.toFinset := by
     -- LATER: Prove these when we are sure they imply the result.
@@ -249,7 +249,7 @@ def addAt (idx : ClauseIdx) (C : IClause) (hints : Array ClauseIdx) : CheckerM U
   have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm := by
     simp [hEq, st.clauseDb.toPropTerm_subset _ |>.trans hImp]
   have hPogDefs : st'.pogDefsTerm = st.pogDefsTerm := by
-    have hMem : ¬idx ∈ st.pogDefs' := fun h =>
+    have hMem : idx ∉ (st.pogDefs' : Set _) := fun h =>
       hContains (pfs.pogDefs_in_clauseDb _ h)
     have : st'.pogDefs' = st.pogDefs' := rfl
     rw [PreState.pogDefsTerm, this]
@@ -279,7 +279,7 @@ def delAt (idx : ClauseIdx) (hints : Array ClauseIdx) : CheckerM Unit := do
   let ⟨_, hMem⟩ ← (if h : st.pogDefs.contains idx then
       throw <| .pogDefClause idx
     else
-      pure ⟨(), h⟩
+      pure ⟨(), HashSet.not_mem_toFinset _ _ |>.mpr h⟩
     : Except CheckerError { _u : Unit // idx ∉ st.pogDefs' })
   let db' := st.clauseDb.delClause idx
   -- The clause is AT by everything except itself.
@@ -346,31 +346,63 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   have pfs' := sorry
   set (σ := State) ⟨st', pfs'⟩
 
+def addPogDefClause (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
+    (idx : ClauseIdx) (C : IClause) (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
+    Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx //
+      p.1.toPropTerm = db₀.toPropTerm ⊓ C.toPropTerm ∧
+      p.1.toPropTermSub (· ∈ p.2.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓ C.toPropTerm ∧
+      ∀ idx, idx ∈ p.2.toFinset → p.1.contains idx } := do
+  let ⟨db, hAdd, hNContains, hDb⟩ ← addClause db₀ idx C
+  let pd := pd₀.insert idx
+
+  have hMem : idx ∈ pd.toFinset := by simp
+  have hContainsTrans : ∀ {idx}, db₀.contains idx → db.contains idx := fun h => by
+    rw [hAdd]
+    exact db₀.contains_addClause _ _ _ |>.mpr (Or.inl h)
+  have hContains : db.contains idx := by
+    rw [hAdd]
+    exact db₀.contains_addClause _ _ _ |>.mpr (Or.inr rfl)
+  have hHelper : db₀.toPropTermSub (· ∈ pd.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) := by
+    apply db₀.toPropTermSub_subset_eq (fun x hMem => by simp; exact Or.inl hMem)
+    intro idx hMem hContains
+    simp at hMem
+    cases hMem with
+    | inl hMem => exact hMem
+    | inr h =>
+      exfalso
+      exact hNContains (h ▸ hContains)
+  have hPd : db.toPropTermSub (· ∈ pd.toFinset) =
+      db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓ C.toPropTerm := by
+    rw [← hHelper, hAdd]
+    exact db₀.toPropTermSub_addClause_eq _ hMem hNContains
+  have hPdDb : ∀ idx, idx ∈ pd.toFinset → db.contains idx := by
+    simp only [HashSet.toFinset_insert, Finset.mem_singleton, Finset.mem_union]
+    intro _ h
+    cases h with
+    | inl hMem => exact hContainsTrans (h _ hMem)
+    | inr h => exact h ▸ hContains
+
+  return ⟨(db, pd), hDb, hPd, hPdDb⟩
+  
 def addSumClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
-    (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx)
-    (h : ∀ idx, pd₀.contains idx → db₀.contains idx) :
+    (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
     Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx //
       p.1.toPropTerm = db₀.toPropTerm ⊓
         (.biImpl (.var x) (l₁.toPropTerm ⊔ l₂.toPropTerm)) ∧
-      p.1.toPropTermSub (p.2.contains ·) = db₀.toPropTermSub (pd₀.contains ·) ⊓
+      p.1.toPropTermSub (· ∈ p.2.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓
         (.biImpl (.var x) (l₁.toPropTerm ⊔ l₂.toPropTerm)) ∧
-      ∀ idx, p.2.contains idx → p.1.contains idx } := do
-  let ⟨db₁, _, _, hEq₁⟩ ← addClause db₀ idx     #[.mkNeg x, l₁, l₂]
-  let ⟨db₂, _, _, hEq₂⟩ ← addClause db₁ (idx+1) #[.mkPos x, -l₁]
-  let ⟨db₃, _, _, hEq₃⟩ ← addClause db₂ (idx+2) #[.mkPos x, -l₂]
-  let pd := pd₀.insert idx |>.insert (idx + 1) |>.insert (idx + 2)
-  have hDb : db₃.toPropTerm = db₀.toPropTerm ⊓
-      (.biImpl (.var x) (l₁.toPropTerm ⊔ l₂.toPropTerm)) := by
-    rw [hEq₃, hEq₂, hEq₁]
-    dsimp [IClause.toPropTerm]
-    -- slow:
-    -- simp [inf_assoc, PropTerm.disj_def_eq]
-    sorry
-  have hPogDefs : db₃.toPropTermSub (pd.contains ·) = db₀.toPropTermSub (pd₀.contains ·) ⊓
-      (.biImpl (.var x) (l₁.toPropTerm ⊔ l₂.toPropTerm)) := by
-    sorry
-  return ⟨(db₃, pd), hDb, hPogDefs, sorry⟩
-
+      ∀ idx, idx ∈ p.2.toFinset → p.1.contains idx } := do
+  let ⟨(db₁, pd₁), hDb₁, hPd₁, h⟩ ← addPogDefClause db₀ pd₀ idx     #[.mkNeg x, l₁, l₂] h
+  let ⟨(db₂, pd₂), hDb₂, hPd₂, h⟩ ← addPogDefClause db₁ pd₁ (idx+1) #[.mkPos x, -l₁]    h
+  let ⟨(db₃, pd₃), hDb₃, hPd₃, h⟩ ← addPogDefClause db₂ pd₂ (idx+2) #[.mkPos x, -l₂]    h
+  have hDb := by
+    rw [hDb₃, hDb₂, hDb₁]
+    simp [IClause.toPropTerm, inf_assoc, PropTerm.disj_def_eq]
+  have hPd := by
+    rw [hPd₃, hPd₂, hPd₁]
+    simp [IClause.toPropTerm, inf_assoc, PropTerm.disj_def_eq]
+  return ⟨(db₃, pd₃), hDb, hPd, h⟩
+  
 def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx) :
     CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
@@ -396,7 +428,7 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   let _ ← checkImpliedWithHints st.clauseDb #[-l₁, -l₂] hints
 
   let ⟨(db', pd'), hDb, hPd, pogDefs_in_clauseDb⟩ ←
-    addSumClauses st.clauseDb st.pogDefs idx x l₁ l₂ hints pfs.pogDefs_in_clauseDb
+    addSumClauses st.clauseDb st.pogDefs idx x l₁ l₂ pfs.pogDefs_in_clauseDb
 
   let st' := { st with
     clauseDb := db'

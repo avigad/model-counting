@@ -46,6 +46,12 @@ def toFinset (s : HashSet α) : Finset α :=
   
 variable [LawfulBEq α] [HashMap.LawfulHashable α]
 
+theorem mem_toFinset (s : HashSet α) (a : α) : a ∈ s.toFinset ↔ s.contains a := by
+  sorry
+
+theorem not_mem_toFinset (s : HashSet α) (a : α) : a ∉ s.toFinset ↔ ¬s.contains a := by
+  sorry
+
 theorem toFinset_isEmpty {s : HashSet α} : s.isEmpty → s.toFinset = ∅ := by
   intro h
   sorry
@@ -65,8 +71,6 @@ theorem toFinset_insert (s : HashSet α) (a : α) : toFinset (s.insert a) = s.to
 theorem toFinset_singleton (a : α) : toFinset (singleton a) = {a} := by
   simp [singleton, toFinset_insert]
 
-theorem contains_iff (s : HashSet α) (a : α) : s.contains a ↔ a ∈ s.toFinset := by
-  sorry
   
 theorem not_contains_empty (a : α) : (empty α).contains a = false :=
   HashMap.not_contains_empty _ a
