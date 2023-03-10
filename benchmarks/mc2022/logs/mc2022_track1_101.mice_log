@@ -1,0 +1,166 @@
+N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track1_101.cnf ./mc2022_track1_101.nnf
+N2T LOG: Time limit 1000 seconds
+annotating...
+smoothing...
+tracing...
+N2T LOG: Elapsed time = 202.046 seconds
+N2T OUTCOME: normal
+N2T: LOG: size ./mc2022_track1_101.trace 96037 lines 423391911 bytes
+TC LOG: Running /Users/bryant/repos/vroland/sharptrace/target/release/sharptrace_checker ./mc2022_track1_101.trace
+TC LOG: Time limit 1000 seconds
+reading from "./mc2022_track1_101.trace"...done.
+parsing...done.
+clauses: 75598
+variables: 1104
+components: 3089
+proofs: 1993 with 2720 steps in total
+claims: 5360
+
+verifying claims... 0%
+verifying claims... 0%
+verifying claims... 1%
+verifying claims... 2%
+verifying claims... 3%
+verifying claims... 4%
+verifying claims... 5%
+verifying claims... 6%
+verifying claims... 7%
+verifying claims... 8%
+verifying claims... 9%
+verifying claims... 10%
+verifying claims... 11%
+verifying claims... 12%
+verifying claims... 13%
+verifying claims... 14%
+verifying claims... 15%
+verifying claims... 16%
+verifying claims... 17%
+verifying claims... 18%
+verifying claims... 19%
+verifying claims... 20%
+verifying claims... 21%
+verifying claims... 22%
+verifying claims... 23%
+verifying claims... 24%
+verifying claims... 25%
+verifying claims... 26%
+verifying claims... 27%
+verifying claims... 28%
+verifying claims... 29%
+verifying claims... 30%
+verifying claims... 31%
+verifying claims... 32%
+verifying claims... 33%
+verifying claims... 34%
+verifying claims... 35%
+verifying claims... 36%
+verifying claims... 37%
+verifying claims... 38%
+verifying claims... 39%
+verifying claims... 40%
+verifying claims... 41%
+verifying claims... 42%
+verifying claims... 43%
+verifying claims... 44%
+verifying claims... 45%
+verifying claims... 46%
+verifying claims... 47%
+verifying claims... 48%
+verifying claims... 49%
+verifying claims... 50%
+verifying claims... 51%
+verifying claims... 52%
+verifying claims... 53%
+verifying claims... 54%
+verifying claims... 55%
+verifying claims... 56%
+verifying claims... 57%
+verifying claims... 58%
+verifying claims... 59%
+verifying claims... 60%
+verifying claims... 61%
+verifying claims... 62%
+verifying claims... 63%
+verifying claims... 64%
+verifying claims... 65%
+verifying claims... 66%
+verifying claims... 67%
+verifying claims... 68%
+verifying claims... 69%
+verifying claims... 70%
+verifying claims... 71%
+verifying claims... 72%
+verifying claims... 73%
+verifying claims... 74%
+verifying claims... 75%
+verifying claims... 76%
+verifying claims... 77%
+verifying claims... 78%
+verifying claims... 79%
+verifying claims... 80%
+verifying claims... 81%
+verifying claims... 82%
+verifying claims... 83%
+verifying claims... 84%
+verifying claims... 85%
+verifying claims... 86%
+verifying claims... 87%
+verifying claims... 88%
+verifying claims... 88%
+verifying claims... 89%
+verifying claims... 90%
+verifying claims... 91%
+verifying claims... 92%
+verifying claims... 93%
+verifying claims... 94%
+verifying claims... 95%
+verifying claims... 96%
+verifying claims... 97%
+verifying claims... 98%
+verifying claims... 99%
+claims verified.          
+
+verifying proofs... 0%
+verifying proofs... 0%
+verifying proofs... 1%
+verifying proofs... 2%
+verifying proofs... 3%
+verifying proofs... 4%
+verifying proofs... 5%
+verifying proofs... 6%
+verifying proofs... 7%
+verifying proofs... 8%
+verifying proofs... 9%
+verifying proofs... 10%
+verifying proofs... 11%
+verifying proofs... 12%
+verifying proofs... 13%
+verifying proofs... 14%
+verifying proofs... 15%
+verifying proofs... 16%
+verifying proofs... 17%
+verifying proofs... 18%
+verifying proofs... 19%
+verifying proofs... 20%
+verifying proofs... 21%
+verifying proofs... 22%
+verifying proofs... 23%
+verifying proofs... 24%
+verifying proofs... 25%
+verifying proofs... 26%
+verifying proofs... 27%
+verifying proofs... 28%
+verifying proofs... 29%
+verifying proofs... 30%
+verifying proofs... 31%
+verifying proofs... 32%
+verifying proofs... 33%
+verifying proofs... 34%
+verifying proofs... 35%
+verifying proofs... 36%
+proofs verified.          
+root model count: 1486848
+TC LOG: Elapsed time = 25.618 seconds
+TC OUTCOME: normal
+OVERALL LOG: Elapsed time = 227.847 seconds
+OVERALL OUTCOME: normal
