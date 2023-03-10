@@ -191,7 +191,7 @@ theorem eq_of_flip' {τ : PropAssignment Var} {l : ILit} {x : Var} {p : Bool} :
       simp [hSet]
     simp [hEq, this]
   . exfalso; exact hSet (τ.set_get_of_ne p hEq ▸ h)
-  
+
 end ILit
 
 /-! Clauses -/
@@ -217,7 +217,7 @@ theorem mem_vars (C : IClause) (x : Var) : x ∈ C.vars.toFinset ↔ ∃ l ∈ C
 
 def toPropTerm (C : IClause) : PropTerm Var :=
   C.data.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
-  
+
 open PropTerm
 
 theorem satisfies_iff {τ : PropAssignment Var} {C : IClause} :
@@ -231,7 +231,7 @@ theorem semVars_sub (C : IClause) : C.toPropTerm.semVars ⊆ C.vars.toFinset := 
   intro ⟨τ, ⟨l, hL, hτ⟩, h⟩
   have := ILit.eq_of_flip' hτ (h l hL)
   exact ⟨l, hL, by simp [this]⟩
-  
+
 theorem mem_vars_of_flip {τ : PropAssignment Var} {C : IClause} {x : Var} {p : Bool} :
     τ ⊨ C.toPropTerm → τ.set x p ⊭ C.toPropTerm → x ∈ C.vars.toFinset := by
   sorry
@@ -306,8 +306,8 @@ theorem not_tautology_of_encodes (C : IClause) (enc : HashMap Var Bool) (h : enc
   simp at hj'
 
 theorem encodes_insert_of_find?_eq_none {C : IClause} {i : Nat} {enc : HashMap Var Bool}
+      (ilt: i < C.size)
       (henc : encodes enc C (i + 1))
-      (ilt: i < Array.size C)
       (h: HashMap.find? enc C[i].var = none) :
     encodes (HashMap.insert enc C[i].var C[i].polarity) C i := by
   constructor
@@ -393,7 +393,7 @@ where
     | i+1, hi, acc, hinv =>
         have ilt := Nat.lt_of_succ_le hi
         match h: acc.find? C[i].var with
-          | .none   => go i (le_of_lt ilt) _ (encodes_insert_of_find?_eq_none hinv ilt h)
+          | .none   => go i (le_of_lt ilt) _ (encodes_insert_of_find?_eq_none ilt hinv h)
           | .some p =>
               if hp: p = C[i].polarity then
                 go i (le_of_lt ilt) _ (encode_of_encodes_of_find?_eq_some ilt hinv h hp)
