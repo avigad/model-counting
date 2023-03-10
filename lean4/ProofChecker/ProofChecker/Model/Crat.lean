@@ -54,11 +54,11 @@ theorem addDisj_new_var_equiv (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
         (satisfies_conj.mp h₁).left
       exact ⟨σ₁', by assumption, by simp; tauto⟩
 
-theorem addDisj_decomposable (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropForm Var) :
+theorem addDisj_partitioned (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropForm Var) :
     -- Note: also works with l₁.semVars ⊆ A
     l₂.semVars ⊆ A → hasUniqueExtension X A Γ →
     Γ ⊓ l₁ ⊓ l₂ ≤ ⊥ → equivalentOver X (l₁ ⊓ Γ) ⟦φ₁⟧ → equivalentOver X (l₂ ⊓ Γ) ⟦φ₂⟧ →
-    φ₁.decomposable → φ₂.decomposable → (φ₁.disj φ₂).decomposable := by
+    φ₁.partitioned → φ₂.partitioned → (φ₁.disj φ₂).partitioned := by
   intro hL₂ hUep hImp e₁ e₂ hD₁ hD₂
   refine ⟨hD₁, hD₂, fun τ ⟨h₁, h₂⟩ => ?_⟩
   have h₁ : τ ⊨ ⟦φ₁⟧ := h₁
@@ -122,6 +122,6 @@ theorem addConj_new_var_equiv (G : Pog) (Γ : PropTerm Var) (ls : Array ILit) : 
 
 /-! Other stuff that doesn't fit anywhere. -/
 
-theorem decomposable_lit (l : ILit) : l.toPropForm.decomposable := by
+theorem partitioned_lit (l : ILit) : l.toPropForm.partitioned := by
   dsimp [ILit.toPropForm]
-  cases l.polarity <;> simp [PropForm.decomposable]
+  cases l.polarity <;> simp [PropForm.partitioned]

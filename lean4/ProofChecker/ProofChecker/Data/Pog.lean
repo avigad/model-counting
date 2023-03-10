@@ -22,13 +22,13 @@ end ILit
 
 namespace PropForm
 
-def decomposable [DecidableEq ν]: PropForm ν → Prop
+def partitioned [DecidableEq ν]: PropForm ν → Prop
   | tr         => True
   | fls        => True
   | var _      => True
-  | neg φ      => φ.decomposable
-  | disj φ ψ   => φ.decomposable ∧ ψ.decomposable ∧ ∀ v, ¬ (φ.eval v ∧ ψ.eval v)
-  | conj φ ψ   => φ.decomposable ∧ ψ.decomposable ∧ (φ.vars ∩ ψ.vars = ∅)
+  | neg φ      => φ.partitioned
+  | disj φ ψ   => φ.partitioned ∧ ψ.partitioned ∧ ∀ v, ¬ (φ.eval v ∧ ψ.eval v)
+  | conj φ ψ   => φ.partitioned ∧ ψ.partitioned ∧ (φ.vars ∩ ψ.vars = ∅)
   | impl _ _   => False
   | biImpl _ _ => False
 
@@ -43,14 +43,14 @@ lemma mem_vars_foldr_conj (φs : List (PropForm Var)) (x : Var) :
   . next φ φs ih =>
     simp [PropForm.vars, ih, Fin.exists_fin_succ]
 
-theorem decomposable_listConj (φs : List (PropForm Var)) :
-    (listConj φs).decomposable ↔
-      ∀ i : Fin φs.length, (φs.get i).decomposable ∧
+theorem partitioned_listConj (φs : List (PropForm Var)) :
+    (listConj φs).partitioned ↔
+      ∀ i : Fin φs.length, (φs.get i).partitioned ∧
       ∀ j : Fin φs.length, i ≠ j → (φs.get i).vars ∩ (φs.get j).vars = ∅ := by
   induction φs
-  . dsimp [listConj, decomposable]; simp
+  . dsimp [listConj, partitioned]; simp
   . next φ φs ih =>
-    dsimp [listConj, decomposable] at *
+    dsimp [listConj, partitioned] at *
     simp only [ih, Finset.inter_self, List.get, not_true, IsEmpty.forall_iff, true_and,
       add_eq, add_zero, Fin.eta, mem_vars_foldr_conj, Fin.forall_fin_succ]
     have aux : vars φ ∩ vars (List.foldr conj tr φs) = ∅ ↔
@@ -67,11 +67,11 @@ theorem decomposable_listConj (φs : List (PropForm Var)) :
 
 def arrayConj (φs : Array (PropForm Var)) : PropForm Var := listConj φs.data
 
-theorem decomposable_arrayConj (φs : Array (PropForm Var)) :
-    (arrayConj φs).decomposable ↔
-      ∀ i : Fin φs.size, (φs[i]).decomposable ∧
+theorem partitioned_arrayConj (φs : Array (PropForm Var)) :
+    (arrayConj φs).partitioned ↔
+      ∀ i : Fin φs.size, (φs[i]).partitioned ∧
       ∀ j : Fin φs.size, i ≠ j → (φs[i]).vars ∩ (φs[j]).vars = ∅ := by
-  dsimp [arrayConj]; rw [decomposable_listConj]; rfl
+  dsimp [arrayConj]; rw [partitioned_listConj]; rfl
 
 def arrayConjTerm (φs : Array (PropForm Var)) : PropTerm Var :=
   φs.data.foldr (init := ⊤) (f := fun φ acc => ⟦φ⟧ ⊓ acc)

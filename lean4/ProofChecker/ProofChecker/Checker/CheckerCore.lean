@@ -115,11 +115,11 @@ structure PreState.WF (st : PreState) : Prop where
     -- NOTE: can strengthen to iff if needed
     ∀ y, y ∈ (st.pog.toPropForm l).vars → D.contains y
 
-  /-- Every formula in the POG forest is decomposable.
+  /-- Every formula in the POG forest is partitioned.
 
   For literals not defining anything in the forest this still holds by fiat because
   `st.pog.toPropForm l = l.toPropForm`. -/
-  decomposable : ∀ l : ILit, (st.pog.toPropForm l).decomposable
+  partitioned : ∀ l : ILit, (st.pog.toPropForm l).partitioned
 
   /-- `depVars` contains all variables that influence the clause database. Contrapositive:
   if a variable is not in `depVars` then it does not influence the clause database so can be
@@ -193,8 +193,8 @@ def initial (inputCnf : ICnf) : Except CheckerError State := do
       simp [pogDefs'_empty]
     -- LATER: Prove these when we are sure they imply the result.
     depVars_pog := sorry
-    decomposable := by
-      simp [hInitPog, decomposable_lit]
+    partitioned := by
+      simp [hInitPog, partitioned_lit]
     -- LATER: Prove these when we are sure they imply the result.
     clauseDb_semVars_sub := sorry
     pogDefsTerm_semVars_sub :=
@@ -462,7 +462,7 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   have pfs' := {
     pogDefs_in_clauseDb
     depVars_pog := sorry
-    decomposable := sorry
+    partitioned := sorry
     clauseDb_semVars_sub := sorry
     pogDefsTerm_semVars_sub := sorry
     inputCnf_semVars_sub := sorry

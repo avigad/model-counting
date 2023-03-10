@@ -5,7 +5,7 @@ import ProofChecker.Data.Pog
 open Finset
 
 /-
-This is the counting function for decomposable formulas, also known as POGs. The main theorem,
+This is the counting function for partitioned formulas, also known as POGs. The main theorem,
 to be proved below, is that this really does count the number of models.
 -/
 
@@ -337,7 +337,7 @@ The main theorem.
 -/
 
 theorem countModels_eq_card_models {φ : PropForm ν} {s : Finset ν}
-      (hvars : φ.vars ⊆ s) (hdec : φ.decomposable) :
+      (hvars : φ.vars ⊆ s) (hdec : φ.partitioned) :
     φ.countModels s.card = card (φ.models s) := by
   induction φ
   case var x      =>
@@ -347,19 +347,19 @@ theorem countModels_eq_card_models {φ : PropForm ν} {s : Finset ν}
   case fls        => simp [countModels]
   case neg φ ih   =>
     rw [vars] at hvars
-    rw [decomposable] at hdec
+    rw [partitioned] at hdec
     rw [countModels, card_models_neg φ, ih hvars hdec]
   case conj φ ψ ihφ ihψ =>
     rw [vars] at hvars
     have hφ := union_subset_left hvars
     have hψ := union_subset_right hvars
-    rw [decomposable] at hdec
+    rw [partitioned] at hdec
     rw [countModels, card_models_conj hvars hdec.2.2, ihφ hφ hdec.1, ihψ hψ hdec.2.1]
   case disj φ ψ ihφ ihψ =>
     rw [vars, union_subset_iff] at hvars
-    rw [decomposable] at hdec
+    rw [partitioned] at hdec
     rw [countModels, card_models_disj_disjoint s hdec.2.2, ihφ hvars.1 hdec.1, ihψ hvars.2 hdec.2.1]
-  case impl  _    => rw [decomposable] at hdec; contradiction
-  case biImpl _ _ => rw [decomposable] at hdec; contradiction
+  case impl  _    => rw [partitioned] at hdec; contradiction
+  case biImpl _ _ => rw [partitioned] at hdec; contradiction
 
 end PropForm
