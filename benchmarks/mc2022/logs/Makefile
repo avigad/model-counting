@@ -8,20 +8,26 @@ data:
 	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.log > seconds-gen.csv
 	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.log > seconds-check.csv
 	$(INTERP) $(GRAB) "COUNT LOG: Elapsed" *.log > seconds-count.csv
-	$(INTERP) $(GRAB) "GEN ERROR" *.log > failures.csv
+	$(INTERP) $(GRAB) "GEN ERROR" *.log > failures-total.csv
 	$(INTERP) $(GRAB) -1 "Compressed POG has" *.D4_log > clauses-defining.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.log > clauses-total.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.nolemma_log > clauses-total-nolemma.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.split_log > clauses-total-split.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.split_nolemma_log > clauses-total-split+nolemma.csv
 
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.onesided_log > seconds-gen-onesided.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.onesided_log > seconds-check-onesided.csv
+	$(INTERP) $(GRAB) "GEN ERROR" *.onesided_log > failures.csv
+	$(INTERP) $(GRAB) "clause TOTAL" *.onesided_log > clauses-total-onesided.csv
 
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv > time+defining.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv clauses-total.csv > time+defining-success.csv
+	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv clauses-total-onesided.csv failures-total.csv > time+defining-onesided-only.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv failures.csv > time+defining-failure.csv
 	$(INTERP) $(MERGE) -f clauses-defining.csv clauses-total.csv > defining+total.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv > time-d4-gen.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen.csv seconds-check.csv > time-d4-verify.csv
+	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-onesided.csv seconds-check-onesided.csv > time-d4-verify-onesided.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv seconds-check.csv seconds-count.csv > times.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-nolemma.csv > clauses-lemma-nolemma.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split.csv > clauses-nosplit-split.csv
@@ -40,11 +46,14 @@ data:
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-split+nolemma.csv seconds-check-split+nolemma.csv > time-verify-split+nolemma.csv
 
 	$(INTERP) $(GRAB) "root model" *.mice_log > models-mice.csv
+	$(INTERP) $(GRAB) "N2T ERROR: Timeout" *.mice_log > timeouts-mice.csv
+	$(INTERP) $(GRAB) "panick" *.mice_log > errors-mice.csv
 	$(INTERP) $(GRAB) "N2T LOG: Elapsed" *.mice_log > seconds-n2t.csv
 	$(INTERP) $(GRAB) "TC LOG: Elapsed" *.mice_log > seconds-tc.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-n2t.csv seconds-tc.csv >  time-mice.csv
 	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-gen.csv seconds-check.csv seconds-count.csv > time-ours.csv
-	$(INTERP) $(MERGE) -f time-ours.csv time-mice.csv models-mice.csv > time-mice-compare.csv
-	$(INTERP) $(GRAB) -1 "GEN: LOG: size" *.log > bytes-ours.csv
-	$(INTERP) $(GRAB) -1 "N2T: LOG: size" *.mice_log > bytes-mice.csv
-	$(INTERP) $(MERGE) -f bytes-ours.csv bytes-mice.csv > bytes-mice-compare.csv
+	$(INTERP) $(MERGE) -f time-ours.csv time-mice.csv models-mice.csv \
+		| sed 's/1436.934/2000/g' > time-mice-good.csv
+	$(INTERP) $(MERGE) -f timeouts-mice.csv time-ours.csv 2000 > time-mice-timeout.csv
+	cat time-mice-good.csv time-mice-timeout.csv > time-mice-compare.csv
+	$(INTERP) $(MERGE) -f errors-mice.csv time-ours.csv 2000 > time-mice-error.csv
