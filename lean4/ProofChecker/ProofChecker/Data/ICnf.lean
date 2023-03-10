@@ -115,7 +115,7 @@ theorem eta (l : ILit) : mk l.var l.polarity = l := by
 @[simp]
 theorem eta_neg (l : ILit) : mk l.var (!l.polarity) = -l := by
   apply ext <;> simp
-  
+
 theorem mkPos_or_mkNeg (l : ILit) : l = .mkPos l.var ∨ l = .mkNeg l.var := by
   rw [← eta l]
   cases l.polarity
@@ -126,7 +126,7 @@ theorem mkPos_or_mkNeg (l : ILit) : l = .mkPos l.var ∨ l = .mkNeg l.var := by
 
 def toPropForm (l : ILit) : PropForm Var :=
   if l.polarity then .var l.var else .neg (.var l.var)
-    
+
 @[simp]
 theorem toPropForm_mkPos (x : Var) : (mkPos x).toPropForm = .var x := by
   simp [toPropForm]
@@ -252,7 +252,7 @@ theorem tautology_iff (C : IClause) :
         rw [hEq, ILit.satisfies_neg]
         assumption
       tauto
-      
+
 /-! Tautology decision procedure -/
 
 /-- Check whether a clause is a tautology. The type is a hack for early-return. The clause is
@@ -263,8 +263,8 @@ def checkTautoAux (C : IClause) : Option (HashMap Var Bool) :=
     | .none => acc.insert l.var l.polarity
     | .some p => if p ≠ l.polarity then none else acc
 
-theorem checkTautoAux_none (C : IClause) : checkTautoAux C = none → C.toPropTerm = ⊤ :=
-  sorry -- Array.SatisfiesM_foldlM, tautology_iff
+theorem checkTautoAux_none (C : IClause) : checkTautoAux C = none → C.toPropTerm = ⊤ := by
+  sorry
 
 theorem checkTautoAux_some (C : IClause) : checkTautoAux C = some m → C.toPropTerm ≠ ⊤ :=
   sorry
@@ -273,6 +273,125 @@ instance : DecidablePred (IClause.toPropTerm · = ⊤) :=
   fun C => match h : checkTautoAux C with
     | .none   => .isTrue (checkTautoAux_none C h)
     | .some _ => .isFalse (checkTautoAux_some C h)
+
+/-- `encodes enc C` says that the hashmap `enc` encodes the (non-tautological) clause `C`.
+More generally, `encodes enc C i` says that `enc` encodes the disjunction of all but the
+first `i` literals of `C`. -/
+
+def encodes (enc : HashMap Var Bool) (C : IClause) (start : Nat := 0) : Prop :=
+  (∀ j : Fin C.size, start ≤ j → enc.find? C[j].var = .some C[j].polarity) ∧
+    ∀ x : Var, enc.contains x ↔ ∃ j : Fin C.size, start ≤ j ∧ C[j].var = x
+
+theorem encodes_empty (C : IClause) : encodes HashMap.empty C (Array.size C) := by
+  simp [encodes]; intro j; exact not_le_of_lt j.isLt
+
+theorem not_tautology_of_encodes (C : IClause) (enc : HashMap Var Bool) (h : encodes enc C) :
+    ¬ (toPropTerm C = ⊤) := by
+  rw [tautology_iff]; simp only [not_exists, not_and]
+  intros l₁ hl₁ l₂ hl₂ heq
+  have ⟨i, hi⟩ := C.get_of_mem_data hl₁
+  have ⟨j, hj⟩ := C.get_of_mem_data hl₂
+  simp only [encodes, zero_le, forall_true_left, true_and] at h
+  have hi' := h.1 i
+  rw [hi, heq, ILit.var_negate, ILit.polarity_negate] at hi'
+  have hj' := h.1 j
+  rw [hj, hi'] at hj'
+  simp at hj'
+
+theorem encodes_insert_of_find?_eq_none {C : IClause} {i : Nat} {enc : HashMap Var Bool}
+      (henc : encodes enc C (i + 1))
+      (ilt: i < Array.size C)
+      (h: HashMap.find? enc C[i].var = none) :
+    encodes (HashMap.insert enc C[i].var C[i].polarity) C i := by
+  constructor
+  . intro j hile
+    cases lt_or_eq_of_le hile
+    case inl h' =>
+      have := henc.1 _ (Nat.succ_le_of_lt h')
+      rw [HashMap.find?_insert_of_ne, this]
+      rw [bne_iff_ne, ne_eq]
+      intro hc
+      rw [←hc, h] at this; contradiction
+    case inr h' =>
+      cases h'
+      simp [HashMap.find?_insert]
+  . intro x
+    rw [HashMap.contains_insert, henc.2 x, beq_iff_eq]; simp only [getElem_fin]
+    constructor
+    . rintro (⟨j, hile, rfl⟩ | rfl)
+      . use j, (Nat.le_succ i).trans hile
+      . use ⟨i, ilt⟩; simp
+    . rintro ⟨j, hile, rfl⟩
+      cases lt_or_eq_of_le hile
+      case inl h' =>
+        left; use j, Nat.succ_le_of_lt h'
+      case inr h' =>
+        right; simp [h']
+
+theorem tautology_of_encodes_of_find?_eq_some
+      {C : IClause} {i : Nat} {enc : HashMap Var Bool} {p : Bool}
+      (ilt: i < C.size)
+      (henc : encodes enc C (i + 1))
+      (h : HashMap.find? enc C[i].var = some p)
+      (hpne : p ≠ C[i].polarity) :
+    toPropTerm C = ⊤ := by
+  rw [tautology_iff]
+  use C[i], C.get_mem_data ⟨i, ilt⟩
+  have : enc.contains C[i].var := by
+    rw [HashMap.contains_iff]; use p; exact h
+  rw [henc.2] at this
+  rcases this with ⟨j, hj, h'⟩
+  use C[j], C.get_mem_data j
+  ext; rw [ILit.var_negate, h']
+  have := henc.1 j hj
+  rw [h', h, Option.some.injEq] at this
+  rw [ILit.polarity_negate, Bool.eq_bnot_to_not_eq, ←this]
+  exact hpne.symm
+
+theorem encode_of_encodes_of_find?_eq_some
+      {C : IClause} {i : Nat} {enc : HashMap Var Bool} {p : Bool}
+      (ilt: i < C.size)
+      (henc : encodes enc C (i + 1))
+      (h : HashMap.find? enc C[i].var = some p)
+      (hpeq : p = ILit.polarity C[i]) :
+    encodes enc C i := by
+  constructor
+  . intro j hile
+    cases lt_or_eq_of_le hile
+    case inl h' =>
+      exact henc.1 _ (Nat.succ_le_of_lt h')
+    case inr h' => cases h'; simp [h, hpeq]
+  . intro x
+    rw [henc.2]
+    constructor
+    . rintro ⟨j, hile, rfl⟩
+      use j, (Nat.le_succ i).trans hile
+    . rintro ⟨j, hile, rfl⟩
+      cases lt_or_eq_of_le hile
+      case inl h' => use j, Nat.succ_le_of_lt h'
+      case inr h' =>
+        have : enc.contains C[i].var := by
+          rw [HashMap.contains_iff]; use p; exact h
+        rw [henc.2] at this
+        rcases this with ⟨j', hj', h''⟩
+        use j', hj'
+        rw [h'']; cases h'; simp
+
+def checkTautoAux' (C : IClause) : { b : Bool // b ↔ toPropTerm C = ⊤ } :=
+  go C.size (le_refl _) .empty C.encodes_empty
+where
+  go : (i : Nat) → i ≤ C.size → (acc : HashMap Var Bool) → encodes acc C i →
+      { b : Bool // b ↔ toPropTerm C = ⊤ }
+    | 0,   _,  acc, hinv => ⟨false, by simp [C.not_tautology_of_encodes acc hinv]⟩
+    | i+1, hi, acc, hinv =>
+        have ilt := Nat.lt_of_succ_le hi
+        match h: acc.find? C[i].var with
+          | .none   => go i (le_of_lt ilt) _ (encodes_insert_of_find?_eq_none hinv ilt h)
+          | .some p =>
+              if hp: p = C[i].polarity then
+                go i (le_of_lt ilt) _ (encode_of_encodes_of_find?_eq_some ilt hinv h hp)
+              else
+                ⟨true, by simp [tautology_of_encodes_of_find?_eq_some ilt hinv h hp]⟩
 
 end IClause
 
@@ -316,7 +435,7 @@ namespace PartPropAssignment
 -- there is no nice to way to extend one to a `PropAssignment` (i.e. a total assignment).
 def toPropTerm (τ : PartPropAssignment) : PropTerm Var :=
   τ.fold (init := ⊤) fun acc x v => acc ⊓ if v then .var x else (.var x)ᶜ
-  
+
 instance : ToString PartPropAssignment where
   toString τ := String.intercalate " ∧ "
     (τ.fold (init := []) (f := fun acc x p => s!"{ILit.mk x p}" :: acc))
