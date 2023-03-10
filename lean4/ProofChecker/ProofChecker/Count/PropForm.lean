@@ -21,6 +21,16 @@ def countModels (nVars : Nat) : PropForm ν → Nat
   | impl _ _   => 0
   | biImpl _ _ => 0
 
+def countWeight (weight : ν → Rat) : PropForm ν → Rat
+  | tr         => 1
+  | fls        => 0
+  | var x      => weight x
+  | neg φ      => 1 - φ.countWeight weight
+  | disj φ ψ   => φ.countWeight weight + ψ.countWeight weight
+  | conj φ ψ   => φ.countWeight weight * ψ.countWeight weight
+  | impl _ _   => 0
+  | biImpl _ _ => 0
+
 end PropForm
 
 /-
