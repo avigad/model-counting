@@ -28,6 +28,7 @@ data:
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv > time-d4-gen.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen.csv seconds-check.csv > time-d4-verify.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-onesided.csv seconds-check-onesided.csv > time-d4-verify-onesided.csv
+	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-onesided.csv seconds-check-onesided.csv failures-total.csv > time-d4-verify-onesided-only.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv seconds-check.csv seconds-count.csv > times.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-nolemma.csv > clauses-lemma-nolemma.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split.csv > clauses-nosplit-split.csv
@@ -53,7 +54,6 @@ data:
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-n2t.csv seconds-tc.csv >  time-mice.csv
 	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-gen.csv seconds-check.csv seconds-count.csv > time-ours.csv
 	$(INTERP) $(MERGE) -f time-ours.csv time-mice.csv models-mice.csv \
-		| sed 's/1436.934/2000/g' > time-mice-good.csv
-	$(INTERP) $(MERGE) -f timeouts-mice.csv time-ours.csv 2000 > time-mice-timeout.csv
-	cat time-mice-good.csv time-mice-timeout.csv > time-mice-compare.csv
-	$(INTERP) $(MERGE) -f errors-mice.csv time-ours.csv 2000 > time-mice-error.csv
+		| sed 's/1436.934/1500/g' | sed 's/1875.151/1500/g' > time-mice-compare.csv
+	$(INTERP) $(MERGE) -f timeouts-mice.csv time-ours.csv 1500 > time-mice-timeout.csv
+	$(INTERP) $(MERGE) -f errors-mice.csv time-ours.csv 1500 > time-mice-error.csv

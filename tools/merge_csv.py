@@ -22,6 +22,7 @@ def usage(name):
     eprint("  -h            Print this message")
     eprint("  -l LABELS     Provide comma-separated set of heading labels")
     eprint("  FILE1.csv ... Source files")
+    eprint("  (If give numeric value, then it gets used for all entries")
 
 # Growing set of result lines, indexed by key
 globalEntries = {}
@@ -37,7 +38,7 @@ def processFile(fname):
         infile = open(fname)
         creader = csv.reader(infile)
     except:
-        eprint("Coudn't open CSV file '%s'" % fname)
+        eprint("Couldn't open CSV file '%s'" % fname)
         sys.exit(1)
     row = 0
     for fields in creader:
@@ -75,8 +76,25 @@ def merge(entries1, count1, entries2, count2, subset = True):
             entries[k] = entry1 + entry2
     return entries
         
+def mergeConstant(entries1, value):
+    entries = {}
+    for k in entries1.keys():
+        entry1 = entries1[k]
+        entries[k] = entry1 + [str(value)]
+    return entries
+
 def nextFile(fname, first, subset):
     global globalEntries, globalCount
+    value = None
+    try:
+        value = int(fname)
+    except:
+        pass
+    if value is not None:
+        globalEntries = mergeConstant(globalEntries, value)
+        globalCount += 1
+        return
+
     entries, ccount = processFile(fname)
     if first:
         globalEntries = entries
@@ -84,8 +102,6 @@ def nextFile(fname, first, subset):
     else:
         globalEntries = merge(globalEntries, globalCount, entries, ccount, subset)
         globalCount += ccount
-#    print("globalCount = %d" % globalCount)
-#    print("globalEntries = %s" % str(globalEntries))
 
 def sumEntries(sumSet):
     global globalEntries, globalCount
