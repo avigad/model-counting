@@ -14,6 +14,8 @@ all:
 	pdflatex mc-paper
 
 rdata:
+	rm -rf $(SRCDATA)
+	mkdir $(SRCDATA)
 	cp -p $(LDATA)/time+defining.csv $(SRCDATA)
 	cp -p $(LDATA)/time+defining-success.csv $(SRCDATA)
 	cp -p $(LDATA)/time+defining-onesided-only.csv $(SRCDATA)
