@@ -143,6 +143,11 @@ def toPropTerm (l : ILit) : PropTerm Var :=
 theorem mk_toPropForm (l : ILit) : ⟦l.toPropForm⟧ = l.toPropTerm := by
   dsimp [toPropForm, toPropTerm]
   cases l.polarity <;> simp
+  
+@[simp]
+theorem vars_toPropForm (l : ILit) : l.toPropForm.vars = {l.var} := by
+  dsimp [toPropForm]
+  cases l.polarity <;> simp [PropForm.vars]
 
 @[simp]
 theorem toPropTerm_mkPos (x : Var) : (mkPos x).toPropTerm = .var x := by
@@ -156,6 +161,11 @@ theorem toPropTerm_mkNeg (x : Var) : (mkNeg x).toPropTerm = (.var x)ᶜ := by
 theorem toPropTerm_neg (l : ILit) : (-l).toPropTerm = l.toPropTermᶜ := by
   dsimp [toPropTerm]
   aesop
+  
+@[simp]
+theorem semVars_toPropTerm (l : ILit) : l.toPropTerm.semVars = {l.var} := by
+  dsimp [toPropTerm]
+  cases l.polarity <;> simp
 
 open PropTerm
 
@@ -214,10 +224,24 @@ instance : ToString IClause where
 theorem mem_vars (C : IClause) (x : Var) : x ∈ C.vars.toFinset ↔ ∃ l ∈ C.data, x = l.var := by
   rw [vars, Array.foldr_eq_foldr_data]
   induction C.data <;> aesop
+  
+def toPropForm (C : IClause) : PropForm Var :=
+  C.data.foldr (init := .fls) (fun l φ => l.toPropForm.disj φ)
 
 def toPropTerm (C : IClause) : PropTerm Var :=
   C.data.foldr (init := ⊥) (fun l φ => l.toPropTerm ⊔ φ)
-
+  
+@[simp]
+theorem mk_toPropForm (C : IClause) : ⟦C.toPropForm⟧ = C.toPropTerm := by
+  dsimp [toPropForm, toPropTerm]
+  induction C.data <;> simp_all
+  
+@[simp]
+theorem vars_toPropForm (C : IClause) : C.toPropForm.vars = C.vars.toFinset := by
+  ext x
+  simp [mem_vars, toPropForm]
+  induction C.data <;> simp_all [PropForm.vars]
+  
 open PropTerm
 
 theorem satisfies_iff {τ : PropAssignment Var} {C : IClause} :
@@ -226,15 +250,8 @@ theorem satisfies_iff {τ : PropAssignment Var} {C : IClause} :
   induction C.data <;> simp_all
 
 theorem semVars_sub (C : IClause) : C.toPropTerm.semVars ⊆ C.vars.toFinset := by
-  intro x
-  simp only [mem_semVars, mem_vars, satisfies_iff, not_exists, not_and]
-  intro ⟨τ, ⟨l, hL, hτ⟩, h⟩
-  have := ILit.eq_of_flip' hτ (h l hL)
-  exact ⟨l, hL, by simp [this]⟩
-
-theorem mem_vars_of_flip {τ : PropAssignment Var} {C : IClause} {x : Var} {p : Bool} :
-    τ ⊨ C.toPropTerm → τ.set x p ⊭ C.toPropTerm → x ∈ C.vars.toFinset := by
-  sorry
+  rw [← vars_toPropForm, ← mk_toPropForm]
+  apply PropForm.semVars_subset_vars
 
 theorem tautology_iff (C : IClause) :
     C.toPropTerm = ⊤ ↔ ∃ l₁ ∈ C.data, ∃ l₂ ∈ C.data, l₁ = -l₂ := by
@@ -434,9 +451,23 @@ theorem mem_vars (φ : ICnf) (x : Var) : x ∈ φ.vars.toFinset ↔ ∃ C ∈ φ
 by
   simp only [vars, Array.foldr_eq_foldr_data]
   induction φ.data <;> aesop
+  
+def toPropForm (φ : ICnf) : PropForm Var :=
+  φ.data.foldr (init := .tr) (fun l φ => l.toPropForm.conj φ)
 
 def toPropTerm (φ : ICnf) : PropTerm Var :=
   φ.data.foldr (init := ⊤) (fun l φ => l.toPropTerm ⊓ φ)
+  
+@[simp]
+theorem mk_toPropForm (φ : ICnf) : ⟦φ.toPropForm⟧ = φ.toPropTerm := by
+  simp only [toPropForm, toPropTerm]
+  induction φ.data <;> simp_all
+  
+@[simp]
+theorem vars_toPropForm (φ : ICnf) : φ.toPropForm.vars = φ.vars.toFinset := by
+  ext x
+  simp only [mem_vars, toPropForm]
+  induction φ.data <;> simp_all [PropForm.vars]
 
 open PropTerm
 
@@ -446,10 +477,8 @@ theorem satisfies_iff {τ : PropAssignment Var} {φ : ICnf} :
   induction φ.data <;> simp_all
 
 theorem semVars_sub (φ : ICnf) : φ.toPropTerm.semVars ⊆ φ.vars.toFinset := by
-  intro x
-  simp only [mem_semVars, mem_vars, satisfies_iff, not_forall]
-  intro ⟨τ, h, ⟨C, hMem, hC⟩⟩
-  exact ⟨C, hMem, sorry⟩
+  rw [← vars_toPropForm, ← mk_toPropForm]
+  apply PropForm.semVars_subset_vars
 
 end ICnf
 

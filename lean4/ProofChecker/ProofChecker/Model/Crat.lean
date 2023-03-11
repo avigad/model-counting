@@ -54,9 +54,9 @@ theorem addDisj_new_var_equiv (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
         (satisfies_conj.mp h₁).left
       exact ⟨σ₁', by assumption, by simp; tauto⟩
 
-theorem addDisj_partitioned (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropForm Var) :
+theorem addDisj_partitioned {A : Set Var} (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropForm Var) :
     -- Note: also works with l₁.semVars ⊆ A
-    l₂.semVars ⊆ A → hasUniqueExtension X A Γ →
+    ↑l₂.semVars ⊆ A → hasUniqueExtension X A Γ →
     Γ ⊓ l₁ ⊓ l₂ ≤ ⊥ → equivalentOver X (l₁ ⊓ Γ) ⟦φ₁⟧ → equivalentOver X (l₂ ⊓ Γ) ⟦φ₂⟧ →
     φ₁.partitioned → φ₂.partitioned → (φ₁.disj φ₂).partitioned := by
   intro hL₂ hUep hImp e₁ e₂ hD₁ hD₂
@@ -75,11 +75,11 @@ theorem addDisj_partitioned (Γ l₁ l₂ : PropTerm Var) (φ₁ φ₂ : PropFor
   simp at this
 
 -- Alternative: use disjoint variables condition on φ₁/φ₂ to put together pair of assignments?!
-theorem addConj_new_var_equiv₂ (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
+theorem addConj_new_var_equiv₂ {A : Set Var} (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
     -- Note: also works with φ₁.semVars ⊆ X
     p ∉ X → p ∉ Γ.semVars → p ∉ l₁.semVars → p ∉ l₂.semVars → φ₂.semVars ⊆ X →
     -- Note: also works with l₁.semVars ⊆ A
-    l₂.semVars ⊆ A → hasUniqueExtension X A Γ →
+    ↑l₂.semVars ⊆ A → hasUniqueExtension X A Γ →
     equivalentOver X (l₁ ⊓ Γ) φ₁ → equivalentOver X (l₂ ⊓ Γ) φ₂ →
     equivalentOver X (.var p ⊓ (.biImpl (.var p) (l₁ ⊓ l₂)) ⊓ Γ) (φ₁ ⊓ φ₂) := by
   intro hMem hΓ hL₁ hL₂ hφ₂ hL₂Γ hUep e₁ e₂ τ
