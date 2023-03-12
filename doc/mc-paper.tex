@@ -213,7 +213,7 @@ counting becomes more tractable.  For example, the {\em deterministic,
 Darwiche~\cite{darwiche:aaai:2002,darwiche:ecai:2004} represents a Boolean formula as a
 directed acyclic graph, with terminal nodes labeled by Boolean
 variables and their complements, and with each nonterminal node
-labeled by Boolean operation And or Or.  Restrictions are place on the
+labeled by Boolean operation And or Or.  Restrictions are placed on the
 structure of the graph such that a count of the models can be computed
 by a single bottom-up traversal of the graph.
 
@@ -274,7 +274,7 @@ that their checking framework is sound and complete.  They also
 present experimental results for cases where they modify existing
 model counters to also generate proof traces, and where they convert
 d-DNNF graphs into a checkable form.  We compare the performance of
-our tool chain to theirs as part of our experimental evluation in
+our tool chain to theirs as part of our experimental evaluation in
 Section~\ref{sect:experimental}.  Our experience with developing a
 formally verified proof system has shown us that, even for the well
 understood framework of extended resolution, ensuring that the system
@@ -1140,7 +1140,7 @@ node at most once.
 
 The challenge for implementing this strategy is to find a way to
 represent the clauses for the simplified formula $\gamma_{\nodeu}$ in the CRAT file.  Some may be
-unalterered input clauses, and these can be used directly.  Others,
+unaltered input clauses, and these can be used directly.  Others,
 however will be clauses that do not appear in the input formula.  We
 implement these by adding POG product nodes to the CRAT file to create
 the appropriate clauses.  Consider an {\em argument} clause
@@ -1212,7 +1212,7 @@ Our ring evaluator can perform both standard and weighted model
 counting.  It performs arithmetic over a subset of the rational
 numbers we term $\drational$, consisting of numbers of the form
 $a \cdot 2^{b} \cdot 5^{c}$, for integers $a$, $b$, and $c$, and
-with $a$ implemented to have arbitary range.
+with $a$ implemented to have arbitrary range.
 Allowing scaling by powers of 2 enables the density computation
 and rescaling required for standard model counting.  Allowing scaling
 by powers of both 2 and 5 enables exact decimal arithmetic, handling
