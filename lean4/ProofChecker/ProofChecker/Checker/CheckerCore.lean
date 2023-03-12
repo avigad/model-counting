@@ -497,6 +497,12 @@ theorem def_ext_correct {st : PreState} (H : st.WF) (st' : PreState) (x : Var) (
       exact hEquiv
   ⟨equiv, extend, uep, equiv_vars⟩
 
+def addConjToPog (g : Pog) (x : Var) (ls : Array ILit) : Except CheckerError { g' : Pog //
+    g.addConj x ls = .ok g' } :=
+  match g.addConj x ls with
+  | .ok g' => pure ⟨g', rfl⟩
+  | .error e => throw <| .graphUpdateError e
+
 def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
 
@@ -522,9 +528,7 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
     db := dbᵢ
     pogDefs := pogDefs.insert (idx+i+1)
 
-  let pog' ← match st.pog.addConj x ls with
-    | .ok s => pure s
-    | .error e => throw <| .graphUpdateError e
+  let ⟨pog', _⟩ ← addConjToPog st.pog x ls
 
   let st' := { st with
     clauseDb := db
@@ -555,13 +559,48 @@ def addSumClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     simp [IClause.toPropTerm, inf_assoc, PropTerm.disj_def_eq]
   return ⟨(db₃, pd₃), hDb, hPd, h⟩
 
-def filterPogHints (st : PreState) (hints : Array ClauseIdx) :
+def ensurePogHints (st : PreState) (hints : Array ClauseIdx) :
     Except CheckerError { _u : Unit //
       ∀ idx, idx ∈ hints.data → idx ∈ st.pogDefs' } := do
-  for idx in hints do
-    if !st.pogDefs.contains idx then
-      throw <| .hintNotPog idx
-  return ⟨(), sorry⟩ -- TODO
+  match hSz : hints.size with
+  | 0 =>
+    return ⟨(), fun _ hMem => by
+      dsimp [Array.size] at hSz
+      rw [List.length_eq_zero.mp hSz] at hMem
+      contradiction⟩
+  | i+1 =>
+    let ⟨_, h⟩ ← go i (hSz ▸ Nat.lt_succ_self _) (fun j hLt => by
+      have := j.isLt
+      linarith)
+    return ⟨(), fun _ hMem => have ⟨i, hI⟩ := Array.get_of_mem_data hMem; hI ▸ h i⟩
+where go (i : Nat) (hLt : i < hints.size)
+    (ih : ∀ (j : Fin hints.size), i < j → hints[j] ∈ st.pogDefs') :
+    Except CheckerError { _u : Unit // ∀ (j : Fin hints.size), hints[j] ∈ st.pogDefs' } := do
+  let idx := hints[i]
+  if hContains : st.pogDefs.contains idx then
+    have hContains : hints[i] ∈ st.pogDefs' :=
+      by simp [PreState.pogDefs', HashSet.mem_toFinset, hContains]
+    match hI : i, hLt, ih with
+    | 0, hLt, ih =>
+      return ⟨(), fun j => by
+        cases j.val.eq_zero_or_pos with
+        | inl hEq =>
+          -- Why does this compute a correct motive while `rw` doesn't?
+          simp only [hI] at hContains
+          simp [hEq, hContains]
+        | inr hLt =>
+          exact ih j hLt⟩
+    | i+1, hLt, ih =>
+      by exact -- Hmmm
+        go i (Nat.lt_of_succ_lt hLt) (fun j hLt => by
+          cases Nat.eq_or_lt_of_le hLt with
+          | inl hEq =>
+            simp only [hI] at hContains
+            simp [← hEq, hContains]
+          | inr hLt =>
+            exact ih j hLt)
+  else
+    throw <| .hintNotPog idx
 
 def addDisjToPog (g : Pog) (x : Var) (l₁ l₂ : ILit) : Except CheckerError { g' : Pog //
     g.addDisj x l₁ l₂ = .ok g' } :=
@@ -583,7 +622,7 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   let ⟨pog', hPog⟩ ← addDisjToPog st.pog x l₁ l₂
 
   -- Check that POG defs imply that the children have no models in common.
-  let ⟨_, hHints⟩ ← filterPogHints st hints
+  let ⟨_, hHints⟩ ← ensurePogHints st hints
   -- NOTE: Important that this be done before adding clauses, for linearity.
   let ⟨_, hImp⟩ ← checkImpliedWithHints st.clauseDb #[-l₁, -l₂] hints
 
