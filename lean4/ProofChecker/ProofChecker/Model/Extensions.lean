@@ -38,6 +38,19 @@ theorem equivalentOver_def_self {x : ν} {X : Set ν} (φ : PropTerm ν) :
     have : σ₁.agreeOn X τ := hAgree₁₂.trans hAgree
     have : σ₁ ⊨ φ := agreeOn_semVars (hAgree₁₂.subset hφ) |>.mpr h₂
     exact ⟨σ₁, by assumption, satisfies_conj.mpr (by simp (config := {zeta := false}) [this])⟩
+    
+theorem hasUniqueExtension_def_ext {X : Set ν} (x : ν) (φ ψ : PropTerm ν) :
+    ↑ψ.semVars ⊆ X → hasUniqueExtension X (insert x X) (φ ⊓ .biImpl (.var x) ψ) := by
+  intro hψ σ₁ σ₂ h₁ h₂ hAgree
+  suffices σ₁ ⊨ .var x ↔ σ₂ ⊨ .var x by
+    intro x h
+    cases Set.mem_insert_iff.mp h
+    next h =>
+      simp only [satisfies_var, ← Bool.eq_iff_eq_true_iff] at this
+      rw [h, this]
+    next h => exact hAgree _ h
+  have := agreeOn_semVars (hAgree.subset hψ)
+  constructor <;> simp_all
 
 theorem disj_def_eq (x : ν) (φ₁ φ₂ : PropTerm ν) :
     ((.var x)ᶜ ⊔ (φ₁ ⊔ φ₂)) ⊓ ((.var x ⊔ φ₁ᶜ) ⊓ (.var x ⊔ φ₂ᶜ)) = .biImpl (.var x) (φ₁ ⊔ φ₂) := by
@@ -53,7 +66,5 @@ theorem equivalentOver_disj_def_ext {x : ν} {X : Set ν} (φ φ₁ φ₂ : Prop
   apply equivalentOver_def_ext _ _ hφ (subset_trans this (by simp [*])) hMem
   
 -- TODO: bigConj_def_eq
-
--- LATER: If needed, prove that disj_def also has UEP.
 
 end PropTerm

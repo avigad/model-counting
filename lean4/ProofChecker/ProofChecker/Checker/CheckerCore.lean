@@ -38,6 +38,7 @@ inductive CheckerError where
   | duplicateClauseIdx (idx : ClauseIdx)
   | unknownClauseIdx (idx : ClauseIdx)
   | pogDefClause (idx : ClauseIdx)
+  | hintNotPog (idx : ClauseIdx)
   | hintNotUnit (idx : ClauseIdx) (C : IClause) (σ : PartPropAssignment)
   | upNoContradiction (τ : PartPropAssignment)
   | duplicateExtVar (x : Var)
@@ -54,6 +55,8 @@ instance : ToString CheckerError where
     | duplicateClauseIdx idx => s!"cannot add clause at index {idx}, index is already used"
     | unknownClauseIdx idx => s!"there is no clause at index {idx}"
     | pogDefClause idx => s!"clause at index {idx} cannot be deleted because it is a POG definition"
+    | hintNotPog idx => s!"hint {idx} cannot be used to imply model disjointness because it's not
+    a POG definition clause"
     | hintNotUnit idx C σ =>
       s!"hinted clause {C} at index {idx} did not become unit under assignment {σ}"
     | upNoContradiction τ =>
@@ -106,6 +109,8 @@ noncomputable def PreState.pogDefsTerm (st : PreState) : PropTerm Var :=
 def PreState.allVars (st : PreState) : Set Var :=
   { x | st.depVars.contains x }
 
+open PropTerm
+
 structure PreState.WF (st : PreState) : Prop where
   /-- The POG definition clauses are all in the clause database. -/
   pogDefs_in_clauseDb : ∀ idx : ClauseIdx, idx ∈ st.pogDefs' → st.clauseDb.contains idx
@@ -128,41 +133,82 @@ structure PreState.WF (st : PreState) : Prop where
 
   pogDefsTerm_semVars_sub : ↑st.pogDefsTerm.semVars ⊆ st.allVars
 
-  inputCnf_semVars_sub : ↑st.inputCnf.toPropTerm.semVars ⊆ st.allVars
-
-  /-- The clause database is equivalent to the original formula over original variables. -/
-  equivalent_clauseDb : PropTerm.equivalentOver st.inputCnf.vars.toFinset
-    st.inputCnf.toPropTerm st.clauseDb.toPropTerm
+  inputCnf_vars_sub : ↑st.inputCnf.vars.toFinset ⊆ st.allVars
 
   /-- Every formula in the POG forest lives over the original variables. -/
   pog_vars : ∀ x : Var, x ∈ st.allVars →
     (st.pog.toPropForm (.mkPos x)).vars ⊆ st.inputCnf.vars.toFinset
 
+  /-- The clause database is equivalent to the original formula over original variables. -/
+  equivalent_clauseDb : equivalentOver st.inputCnf.vars.toFinset
+    st.inputCnf.toPropTerm st.clauseDb.toPropTerm
+
+  extends_pogDefsTerm : ∀ (σ₁ : PropAssignment Var), ∃ (σ₂ : PropAssignment Var),
+    σ₂.agreeOn st.inputCnf.vars.toFinset σ₁ ∧ σ₂ ⊨ st.pogDefsTerm
+
   /-- The POG definition clauses extend uniquely from the original variables to the current set
   of variables. -/
-  uep_pogDefsTerm : PropTerm.hasUniqueExtension st.inputCnf.vars.toFinset st.allVars
+  uep_pogDefsTerm : hasUniqueExtension st.inputCnf.vars.toFinset st.allVars
     st.pogDefsTerm
 
   /-- In the context of the POG defining clauses, every variable is s-equivalent over original
   variables to what it defines in the POG forest. -/
   -- TODO: need `x ∈ st.graph.allVars` as precondition?
-  -- NOTE: It appears this really must quantify over literals and not just variables like some
-  -- of the other invariants.
-  equivalent_lits : ∀ l : ILit, PropTerm.equivalentOver st.inputCnf.vars.toFinset
-    (l.toPropTerm ⊓ st.pogDefsTerm)
-    ⟦st.pog.toPropForm l⟧
-  
+  equivalent_lits : ∀ x : Var, equivalentOver st.inputCnf.vars.toFinset
+    (.var x ⊓ st.pogDefsTerm) ⟦st.pog.toPropForm (.mkPos x)⟧
+
 theorem PreState.WF.partitioned' {st : PreState} (hWf : st.WF) (l : ILit) :
     (st.pog.toPropForm l).partitioned :=
   l.mkPos_or_mkNeg.elim (· ▸ hWf.partitioned l.var) fun h => by
     rw [h, Pog.toPropForm_neg]
     exact hWf.partitioned l.var
-    
+
 theorem PreState.WF.pog_vars' {st : PreState} (hWf : st.WF) (l : ILit) :
     l.var ∈ st.allVars → (st.pog.toPropForm l).vars ⊆ st.inputCnf.vars.toFinset :=
   fun hMem => l.mkPos_or_mkNeg.elim (· ▸ hWf.pog_vars l.var hMem) fun h => by
     rw [h, Pog.toPropForm_neg]
     exact hWf.pog_vars l.var hMem
+
+theorem PreState.WF.equivalent_lits' {st : PreState} (hWf : st.WF) (l : ILit) :
+    l.var ∈ st.allVars → equivalentOver st.inputCnf.vars.toFinset
+      (l.toPropTerm ⊓ st.pogDefsTerm) ⟦st.pog.toPropForm l⟧ := by
+  intro hMem
+  cases l.mkPos_or_mkNeg
+  next hMk =>
+    rw [hMk]
+    simp [hWf.equivalent_lits l.var]
+  next hMk =>
+    rw [hMk]
+    generalize l.var = x at hMem ⊢
+    have hEquiv := hWf.equivalent_lits x
+    simp only [Pog.toPropForm_neg, ILit.toPropTerm_mkNeg, PropTerm.mk_neg]
+    apply equivalentOver_iff_extendsOver _ _ _ |>.mpr
+    constructor
+    . intro σ hσ
+      refine ⟨σ, PropAssignment.agreeOn_refl _ _, ?_⟩
+      rw [satisfies_neg]
+      intro h
+      have ⟨σ₂, hAgree, hσ₂⟩ := hEquiv σ |>.mpr ⟨σ, PropAssignment.agreeOn_refl _ _, h⟩
+      have hAgree := hWf.uep_pogDefsTerm (satisfies_conj.mp hσ₂).right (satisfies_conj.mp hσ).right hAgree
+      have : σ₂.agreeOn (PropTerm.var x).semVars σ := hAgree.subset (by simp [hMem])
+      have : σ ⊨ .var x := agreeOn_semVars this |>.mp (satisfies_conj.mp hσ₂).left
+      have : σ ⊭ .var x := satisfies_neg.mp (satisfies_conj.mp hσ).left
+      contradiction
+    . intro σ hσ
+      have ⟨σ₁, hAgree, hσ₁⟩ := hWf.extends_pogDefsTerm σ
+      refine ⟨σ₁, hAgree, ?_⟩
+      simp only [hσ₁, satisfies_conj, satisfies_neg, and_true]
+      intro h
+      have ⟨σ₂, hAgree₂, hσ₂⟩ := hEquiv σ₁ |>.mp
+        ⟨σ₁, PropAssignment.agreeOn_refl _ _, satisfies_conj.mpr ⟨h, hσ₁⟩⟩
+      have hAgree := hAgree₂.trans hAgree
+      have hSub := subset_trans
+        (PropForm.semVars_subset_vars (st.pog.toPropForm (.mkPos x)))
+        (hWf.pog_vars _ hMem)
+      have : σ ⊨ ⟦st.pog.toPropForm (.mkPos x)⟧ :=
+        agreeOn_semVars (hAgree.subset hSub) |>.mp hσ₂
+      simp [satisfies_neg] at hσ
+      contradiction
 
 /-- A well-formed checker state. -/
 def State := { st : PreState // st.WF }
@@ -215,14 +261,15 @@ def initial (inputCnf : ICnf) : Except CheckerError State := do
     pogDefsTerm_semVars_sub := by
       rw [pogDefsTerm_tr, PropTerm.semVars_tr, Finset.coe_empty]
       apply Set.empty_subset
-    inputCnf_semVars_sub := by
+    inputCnf_vars_sub := by
       rw [allVars_eq]
-      apply ICnf.semVars_sub
     equivalent_clauseDb := by
       rw [ClauseDb.toPropTerm_ofICnf]
       apply PropTerm.equivalentOver_refl
     pog_vars := by
       simp [allVars_eq, hInitPog, PropForm.vars]
+    extends_pogDefsTerm := fun σ =>
+      ⟨σ, PropAssignment.agreeOn_refl _ _, by simp [pogDefsTerm_tr]⟩
     uep_pogDefsTerm := by
       simp only [pogDefsTerm_tr, PropTerm.semVars_tr, Finset.coe_empty, allVars_eq]
       exact PropTerm.hasUniqueExtension_refl _ _
@@ -288,6 +335,7 @@ def addAt (idx : ClauseIdx) (C : IClause) (hints : Array ClauseIdx) : CheckerM U
     clauseDb_semVars_sub := hDb ▸ pfs.clauseDb_semVars_sub
     pogDefsTerm_semVars_sub := hPogDefs ▸ pfs.pogDefsTerm_semVars_sub
     equivalent_lits := hPogDefs ▸ pfs.equivalent_lits
+    extends_pogDefsTerm := hPogDefs ▸ pfs.extends_pogDefsTerm
     uep_pogDefsTerm := hPogDefs ▸ pfs.uep_pogDefsTerm
   }
   set (σ := State) ⟨st', pfs'⟩
@@ -328,50 +376,25 @@ def delAt (idx : ClauseIdx) (hints : Array ClauseIdx) : CheckerM Unit := do
     clauseDb_semVars_sub := hDb ▸ pfs.clauseDb_semVars_sub
     pogDefsTerm_semVars_sub := hPogDefs ▸ pfs.pogDefsTerm_semVars_sub
     equivalent_lits := hPogDefs ▸ pfs.equivalent_lits
+    extends_pogDefsTerm := hPogDefs ▸ pfs.extends_pogDefsTerm
     uep_pogDefsTerm := hPogDefs ▸ pfs.uep_pogDefsTerm
   }
   set (σ := State) ⟨st', pfs'⟩
 
-def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
-  let ⟨st, pfs⟩ ← get
-
-  -- Check that added variable is fresh.
-  if st.depVars.contains x then
+def ensureFreshVar (st : PreState) (x : Var) : Except CheckerError { _u : Unit //
+    x ∉ st.allVars } := do
+  if h : st.depVars.contains x then
     throw <| .duplicateExtVar x
+  else
+    return ⟨(), h⟩
 
-  -- Check that variables are known and compute their dependencies.
-  let Ds ← ls.mapM fun l =>
-    match st.depVars.find? l.var with
-    | some D => pure D
-    | none => throw <| .unknownVar l.var
-
-  -- Compute total dependency set and check pairwise disjointness.
-  let (union, disjoint) := HashSet.Union' Ds
-  if !disjoint then
-    throw <| .depsNotDisjoint (ls.toList.map ILit.var)
-
-  -- Defining clauses for the conjunction.
-  let ⟨db₁, _⟩ ← addClause st.clauseDb idx (ls.map (-·) |>.push (.mkPos x))
-  let mut (db, pogDefs) := (db₁, st.pogDefs.insert idx)
-  for h : i in [0:ls.size] do
-    let l := ls[i]'(Membership.mem.upper h)
-    let ⟨dbᵢ, _⟩ ← addClause db (idx+i+1) #[.mkNeg x, l]
-    db := dbᵢ
-    pogDefs := pogDefs.insert (idx+i+1)
-
-  let pog' ← match st.pog.addConj x ls with
-    | .ok s => pure s
-    | .error e => throw <| .graphUpdateError e
-
-  let st' := { st with
-    clauseDb := db
-    pogDefs
-    pog := pog'
-    depVars := st.depVars.insert x union
-    root := st.root
-  }
-  have pfs' := sorry
-  set (σ := State) ⟨st', pfs'⟩
+def getDeps (st : PreState) (pfs : st.WF) (l : ILit) : Except CheckerError { D : HashSet Var //
+    l.var ∈ st.allVars ∧
+    (st.pog.toPropForm l).vars ⊆ D.toFinset } := do
+  match h : st.depVars.find? l.var with
+  | some D =>
+    return ⟨D, st.depVars.contains_iff _ |>.mpr ⟨D, h⟩, pfs.depVars_pog _ _ h⟩
+  | none => throw <| .unknownVar l.var
 
 def addPogDefClause (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (C : IClause) (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
@@ -411,6 +434,108 @@ def addPogDefClause (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
 
   return ⟨(db, pd), hDb, hPd, hPdDb⟩
 
+theorem def_ext_correct {st : PreState} (H : st.WF) (st' : PreState) (x : Var) (φ ψ : PropTerm Var)
+    (hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm ⊓ (.biImpl (.var x) φ))
+    (hPd : st'.pogDefsTerm = st.pogDefsTerm ⊓ (.biImpl (.var x) φ))
+    (hAv : st'.allVars = insert x st.allVars)
+    (hPog₁ : ∀ y, x ≠ y → st'.pog.toPropForm (.mkPos y) = st.pog.toPropForm (.mkPos y))
+    (hPog₂ : ⟦st'.pog.toPropForm (.mkPos x)⟧ = ψ)
+    (hEquiv : PropTerm.equivalentOver st.inputCnf.vars.toFinset (.var x ⊓ st'.pogDefsTerm) ψ)
+    (hφ : ↑φ.semVars ⊆ st.allVars)
+    (hX : x ∉ st.allVars) :
+    (PropTerm.equivalentOver st.inputCnf.vars.toFinset
+      st.inputCnf.toPropTerm st'.clauseDb.toPropTerm ∧
+    (∀ σ₁, ∃ (σ₂ : PropAssignment Var),
+      σ₂.agreeOn st.inputCnf.vars.toFinset σ₁ ∧ σ₂ ⊨ st'.pogDefsTerm) ∧
+    PropTerm.hasUniqueExtension st.inputCnf.vars.toFinset st'.allVars st'.pogDefsTerm ∧
+    ∀ x, PropTerm.equivalentOver st.inputCnf.vars.toFinset
+      (.var x ⊓ st'.pogDefsTerm) ⟦st'.pog.toPropForm (.mkPos x)⟧) :=
+  have hEquivAv : PropTerm.equivalentOver st.allVars st.clauseDb.toPropTerm st'.clauseDb.toPropTerm
+      := by
+    rw [hDb]
+    exact PropTerm.equivalentOver_def_ext st.clauseDb.toPropTerm φ (H.clauseDb_semVars_sub) hφ hX
+  have equiv :=
+    H.equivalent_clauseDb.trans (hEquivAv.subset H.inputCnf_vars_sub)
+  have hUepInsert :=
+    PropTerm.hasUniqueExtension_def_ext x st.pogDefsTerm φ hφ
+  have extend := by
+    intro σ
+    have ⟨σ₁, hAgree, h₁⟩ := H.extends_pogDefsTerm σ
+    let σ₂ := σ₁.set x (φ.eval σ₁)
+    have hAgree₂₁ : σ₂.agreeOn st.allVars σ₁ := PropAssignment.agreeOn_set_of_not_mem _ _ hX
+    have : σ₂ ⊨ st.pogDefsTerm :=
+      agreeOn_semVars (hAgree₂₁.subset H.pogDefsTerm_semVars_sub) |>.mpr h₁
+    have : σ₂ ⊨ φ ↔ σ₁ ⊨ φ := agreeOn_semVars (hAgree₂₁.subset hφ)
+    exact ⟨σ₂, hAgree₂₁.subset H.inputCnf_vars_sub |>.trans hAgree, by aesop⟩
+  have uep := by
+    rw [hAv, hPd]
+    exact H.uep_pogDefsTerm.conj_right _ |>.trans hUepInsert
+  have hEquivVarNe : ∀ {y : Var}, x ≠ y → PropTerm.equivalentOver st.allVars
+      (.var y ⊓ st'.pogDefsTerm) (.var y ⊓ st.pogDefsTerm) := by
+    intro y hEq
+    suffices PropTerm.equivalentOver (st.allVars ∪ {y})
+        (.var y ⊓ st'.pogDefsTerm) (.var y ⊓ st.pogDefsTerm) from
+      this.subset (Set.subset_union_left _ _)
+    rw [hPd, ← inf_assoc]
+    apply PropTerm.equivalentOver.symm
+    have hX : x ∉ st.allVars ∪ {y} := by simp [hEq, hX]
+    apply PropTerm.equivalentOver_def_ext _ _ ?_ (hφ.trans <| Set.subset_union_left _ _) hX
+    suffices ↑((PropTerm.var y).semVars ∪ st.pogDefsTerm.semVars) ⊆ st.allVars ∪ {y} from
+      subset_trans (PropTerm.semVars_conj _ _) this
+    intro y; simp
+    intro h; cases h with
+    | inl hEq => exact Or.inl hEq
+    | inr hMem => exact Or.inr (H.pogDefsTerm_semVars_sub hMem)
+  have equiv_vars := by
+    intro y
+    by_cases hEq : x = y
+    case neg =>
+      rw [hPog₁ _ hEq]
+      exact (hEquivVarNe hEq).subset H.inputCnf_vars_sub |>.trans (H.equivalent_lits y)
+    case pos =>
+      rw [← hEq, hPog₂]
+      exact hEquiv
+  ⟨equiv, extend, uep, equiv_vars⟩
+
+def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
+  let ⟨st, pfs⟩ ← get
+
+  -- Check that added variable is fresh.
+  let ⟨_, hX⟩ ← ensureFreshVar st x
+
+  -- Check that variables are known and compute their dependencies.
+  let Ds ← ls.mapM fun l => do
+    let ⟨D, _⟩ ← getDeps st pfs l
+    return D
+
+  -- Compute total dependency set and check pairwise disjointness.
+  let (union, disjoint) := HashSet.Union' Ds
+  if !disjoint then
+    throw <| .depsNotDisjoint (ls.toList.map ILit.var)
+
+  -- Defining clauses for the conjunction.
+  let ⟨db₁, _⟩ ← addClause st.clauseDb idx (ls.map (-·) |>.push (.mkPos x))
+  let mut (db, pogDefs) := (db₁, st.pogDefs.insert idx)
+  for h : i in [0:ls.size] do
+    let l := ls[i]'(Membership.mem.upper h)
+    let ⟨dbᵢ, _⟩ ← addClause db (idx+i+1) #[.mkNeg x, l]
+    db := dbᵢ
+    pogDefs := pogDefs.insert (idx+i+1)
+
+  let pog' ← match st.pog.addConj x ls with
+    | .ok s => pure s
+    | .error e => throw <| .graphUpdateError e
+
+  let st' := { st with
+    clauseDb := db
+    pogDefs
+    pog := pog'
+    depVars := st.depVars.insert x union
+    root := st.root
+  }
+  have pfs' := sorry
+  set (σ := State) ⟨st', pfs'⟩
+
 def addSumClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
     Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx //
@@ -429,33 +554,21 @@ def addSumClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     rw [hPd₃, hPd₂, hPd₁]
     simp [IClause.toPropTerm, inf_assoc, PropTerm.disj_def_eq]
   return ⟨(db₃, pd₃), hDb, hPd, h⟩
-  
-def getDeps (st : PreState) (pfs : st.WF) (l : ILit) : Except CheckerError { D : HashSet Var //
-    l.var ∈ st.allVars ∧
-    (st.pog.toPropForm l).vars ⊆ D.toFinset } := do
-  match h : st.depVars.find? l.var with
-  | some D =>
-    return ⟨D, st.depVars.contains_iff _ |>.mpr ⟨D, h⟩, pfs.depVars_pog _ _ h⟩
-  | none => throw <| .unknownVar l.var
-  
-def ensureFreshVar (st : PreState) (x : Var) : Except CheckerError { _u : Unit //
-    x ∉ st.allVars } := do
-  if h : st.depVars.contains x then
-    throw <| .duplicateExtVar x
-  else
-    return ⟨(), h⟩
-    
+
 def filterPogHints (st : PreState) (hints : Array ClauseIdx) :
     Except CheckerError { _u : Unit //
       ∀ idx, idx ∈ hints.data → idx ∈ st.pogDefs' } := do
-  return ⟨(), sorry⟩
-  
+  for idx in hints do
+    if !st.pogDefs.contains idx then
+      throw <| .hintNotPog idx
+  return ⟨(), sorry⟩ -- TODO
+
 def addDisjToPog (g : Pog) (x : Var) (l₁ l₂ : ILit) : Except CheckerError { g' : Pog //
     g.addDisj x l₁ l₂ = .ok g' } :=
   match g.addDisj x l₁ l₂ with
   | .ok g' => pure ⟨g', rfl⟩
   | .error e => throw <| .graphUpdateError e
-  
+
 def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx) :
     CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
@@ -484,6 +597,13 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
     depVars := st.depVars.insert x (D₁.union D₂)
   }
 
+  have hPd : st'.pogDefsTerm = st.pogDefsTerm ⊓ (.biImpl (.var x) (l₁.toPropTerm ⊔ l₂.toPropTerm))
+    := hPd
+
+  have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm ⊓
+      (.biImpl (.var x) (l₁.toPropTerm ⊔ l₂.toPropTerm)) :=
+    hDb
+
   have hDisjoint : st.pogDefsTerm ⊓ l₁.toPropTerm ⊓ l₂.toPropTerm ≤ ⊥ := by
     have : st.pogDefsTerm ≤ st.clauseDb.toPropTermSub (· ∈ hints.data) :=
       st.clauseDb.toPropTermSub_subset hHints
@@ -492,40 +612,53 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
     simp [IClause.toPropTerm] at this
     simp [this]
 
+  have hSemVars : ↑(l₁.toPropTerm ⊔ l₂.toPropTerm).semVars ⊆ st.allVars := by
+    have : ↑(l₁.toPropTerm.semVars ∪ l₂.toPropTerm.semVars) ⊆ st.allVars := by
+      intro x h
+      simp at h
+      cases h <;> next h => simp only [h, hL₁, hL₂]
+    exact subset_trans (PropTerm.semVars_disj _ _) this
+
+  have hAv : st'.allVars = st.allVars.insert x := sorry
+
+  let ⟨equivalent_clauseDb, extends_pogDefsTerm, uep_pogDefsTerm, equivalent_lits⟩ :=
+    def_ext_correct pfs st'
+      x (l₁.toPropTerm ⊔ l₂.toPropTerm) (⟦st.pog.toPropForm l₁⟧ ⊔ ⟦st.pog.toPropForm l₂⟧)
+      hDb hPd hAv
+      (fun l hNe => st.pog.toPropForm_addDisj_lit_of_ne _ _ _ _ _ (by exact hPog) hNe)
+      (by simp [st.pog.toPropForm_addDisj _ _ _ _ hPog])
+      (by
+        rw [hPd, ← inf_assoc]
+        exact addDisj_new_var_equiv st.pogDefsTerm l₁.toPropTerm l₂.toPropTerm _ _ hX
+          (pfs.inputCnf_vars_sub) (pfs.pogDefsTerm_semVars_sub)
+          (by simp [hL₁]) (by simp [hL₂])
+          (pfs.equivalent_lits' l₁ hL₁) (pfs.equivalent_lits' l₂ hL₂))
+      hSemVars hX
+
   -- Variable stuff
   have : db'.toPropTerm.semVars = st.clauseDb.toPropTerm.semVars ∪ {x} := sorry
-  have : st'.allVars = st.allVars.insert x := by
-    sorry
 
   have pfs' := {
     pogDefs_in_clauseDb
+    clauseDb_semVars_sub := sorry
+    pogDefsTerm_semVars_sub := sorry
+    inputCnf_vars_sub := sorry
     depVars_pog := sorry
+    pog_vars := sorry -- TODO next
     partitioned := by
       intro y
       by_cases hEq : x = y
-      . rw [st.pog.toPropForm_addDisj _ _ _ _ (hEq ▸ hPog)] 
-        refine addDisj_partitioned st.pogDefsTerm l₁.toPropTerm l₂.toPropTerm _ _ ?sub
-          pfs.uep_pogDefsTerm hDisjoint (pfs.equivalent_lits l₁) (pfs.equivalent_lits l₂)
+      . rw [st.pog.toPropForm_addDisj _ _ _ _ (hEq ▸ hPog)]
+        refine addDisj_partitioned st.pogDefsTerm l₁.toPropTerm l₂.toPropTerm _ _ ?_
+          pfs.uep_pogDefsTerm hDisjoint (pfs.equivalent_lits' l₁ hL₁) (pfs.equivalent_lits' l₂ hL₂)
           (pfs.partitioned' l₁) (pfs.partitioned' l₂)
         simp [hL₂]
       . rw [st.pog.toPropForm_addDisj_of_ne _ _ _ _ _ hPog hEq]
         exact pfs.partitioned y
-    clauseDb_semVars_sub := sorry
-    pogDefsTerm_semVars_sub := sorry
-    inputCnf_semVars_sub := sorry
-    equivalent_clauseDb := by -- TODO 1
-      apply pfs.equivalent_clauseDb.trans
-      rw [hDb]
-      -- strategy:
-      apply PropTerm.equivalentOver_def_ext <;> sorry
-      -- with X := st.allVars
-      -- use clauseDb_semVars_sub for first obligation
-      -- use l₁,l₂ ∈ allVars for the second
-      -- use freshness check for the third
-      -- reduce to inputVars using subset proof (argh)
-    pog_vars := sorry
-    uep_pogDefsTerm := sorry
-    equivalent_lits := sorry -- TODO 2
+    equivalent_clauseDb
+    extends_pogDefsTerm
+    uep_pogDefsTerm
+    equivalent_lits
   }
   set (σ := State) ⟨st', pfs'⟩
 

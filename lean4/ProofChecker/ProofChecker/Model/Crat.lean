@@ -8,11 +8,15 @@ import ProofChecker.Count.PropForm
 
 open PropTerm
 
-theorem addDisj_new_var_equiv (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
-    s ∉ X → s ∉ Γ.semVars → s ∉ l₁.semVars → s ∉ l₂.semVars →
+theorem addDisj_new_var_equiv {A : Set Var} (Γ l₁ l₂ φ₁ φ₂ : PropTerm Var) :
+    s ∉ A → X ⊆ A → ↑Γ.semVars ⊆ A → ↑l₁.semVars ⊆ A → ↑l₂.semVars ⊆ A →
     equivalentOver X (l₁ ⊓ Γ) φ₁ → equivalentOver X (l₂ ⊓ Γ) φ₂ →
     equivalentOver X (.var s ⊓ Γ ⊓ (.biImpl (.var s) (l₁ ⊔ l₂))) (φ₁ ⊔ φ₂) := by
-  intro hMem hΓ hL₁ hL₂ e₁ e₂ τ
+  intro hNMem hXA hΓ hL₁ hL₂ e₁ e₂ τ
+  have hMem : s ∉ X := fun h => hNMem (hXA h)
+  have hΓ : s ∉ Γ.semVars := fun h => False.elim <| hNMem (hΓ h)
+  have hL₁ : s ∉ l₁.semVars := fun h => False.elim <| hNMem (hL₁ h)
+  have hL₂ : s ∉ l₂.semVars := fun h => False.elim <| hNMem (hL₂ h)
   constructor
   case mp =>
     intro ⟨σ₁, hAgree, h₁⟩
