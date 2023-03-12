@@ -460,6 +460,16 @@ theorem toPropForm_addDisj_of_ne (x y : Var) (l₁ l₂ : ILit) (p p' : Pog) :
     . intro; contradiction
   . intro; contradiction
 
+theorem toPropForm_addDisj_lit_of_ne (x : Var) (l l₁ l₂ : ILit) (p p' : Pog) :
+    p.addDisj x l₁ l₂ = .ok p' → x ≠ l.var →
+    p'.toPropForm l = p.toPropForm l := by
+  cases l.mkPos_or_mkNeg <;>
+    next hMk =>
+      intro h hNe
+      rw [hMk]
+      have := p.toPropForm_addDisj_of_ne _ _ _ _ _ h hNe
+      simp [toPropForm_neg, this]
+
 theorem toPropForm_addConj (x : Var) (ls : Array ILit) (p p' : Pog) :
     p.addConj x ls = .ok p' →
     p'.toPropForm (.mkPos x) = .arrayConj (ls.map p.toPropForm) := by
@@ -517,6 +527,16 @@ theorem toPropForm_addConj_of_ne (x y : Var) (ls : Array ILit) (p p' : Pog) :
         exact hne
     . intro; contradiction
   . intro; contradiction
+
+theorem toPropForm_addConj_lit_of_ne (x : Var) (l : ILit) (ls : Array ILit) (p p' : Pog) :
+    p.addConj x ls = .ok p' → x ≠ l.var →
+    p'.toPropForm l = p.toPropForm l := by
+  cases l.mkPos_or_mkNeg <;>
+    next hMk =>
+      intro h hNe
+      rw [hMk]
+      have := p.toPropForm_addConj_of_ne _ _ _ _ h hNe
+      simp [toPropForm_neg, this]
 
 /-
 Even though we are not using this now, a Pog can keep track of its variables, and if the client

@@ -276,7 +276,7 @@ def equivalentOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :=
 def extendsOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :=
   ∀ (σ₁ : PropAssignment ν), σ₁ ⊨ φ₁ → ∃ (σ₂ : PropAssignment ν), σ₂.agreeOn X σ₁ ∧ σ₂ ⊨ φ₂
 
-theorem extendsOver_iff_equivalentOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :
+theorem equivalentOver_iff_extendsOver (X : Set ν) (φ₁ φ₂ : PropTerm ν) :
     equivalentOver X φ₁ φ₂ ↔ (extendsOver X φ₁ φ₂ ∧ extendsOver X φ₂ φ₁) := by
   constructor
   case mp =>
@@ -346,6 +346,18 @@ theorem hasUniqueExtension.subset_left : X ⊆ X' → hasUniqueExtension X Y φ 
 theorem hasUniqueExtension.subset_right : Y' ⊆ Y → hasUniqueExtension X Y φ →
     hasUniqueExtension X Y' φ :=
   fun hSub h _ _ h₁ h₂ hAgree => (h h₁ h₂ hAgree).subset hSub
+
+theorem hasUniqueExtension.trans : hasUniqueExtension X Y φ → hasUniqueExtension Y Z φ →
+    hasUniqueExtension X Z φ :=
+  fun hXY hYZ _ _ h₁ h₂ hAgree => hAgree |> hXY h₁ h₂ |> hYZ h₁ h₂
+  
+theorem hasUniqueExtension.conj_right (ψ : PropTerm ν) :
+    hasUniqueExtension X Y φ → hasUniqueExtension X Y (φ ⊓ ψ) :=
+  fun hXY _ _ h₁ h₂ hAgree => hXY (satisfies_conj.mp h₁).left (satisfies_conj.mp h₂).left hAgree
+
+theorem hasUniqueExtension.conj_left (ψ : PropTerm ν) :
+    hasUniqueExtension X Y φ → hasUniqueExtension X Y (ψ ⊓ φ) :=
+  fun hXY _ _ h₁ h₂ hAgree => hXY (satisfies_conj.mp h₁).right (satisfies_conj.mp h₂).right hAgree
   
 theorem hasUniqueExtension_to_empty (X : Set ν) (φ : PropTerm ν) : hasUniqueExtension X ∅ φ :=
   hasUniqueExtension_refl X φ |>.subset_right (Set.empty_subset X)
