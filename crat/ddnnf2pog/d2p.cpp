@@ -145,7 +145,7 @@ static void stat_report() {
     lprintf("%s    sum justification    : %d\n", prefix, coj);
     lprintf("%s    literal justification: %d\n", prefix, clj);
     lprintf("%s    lemma application    : %d\n", prefix, cla);
-    lprintf("%s    unified justification: %d\n", prefix, clm);
+    lprintf("%s    monolithic proof     : %d\n", prefix, clm);
     lprintf("%s    clause TOTAL         : %d\n", prefix, cdp+cda+coj+caj+clj+cla+clm);
     double sat_time = get_timer(TIME_SAT);
     lprintf("%s Time\n", prefix);
