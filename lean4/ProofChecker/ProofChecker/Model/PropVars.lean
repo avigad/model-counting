@@ -264,6 +264,15 @@ theorem semVars_impl (φ₁ φ₂ : PropTerm ν) : (φ₁ ⇨ φ₂).semVars ⊆
   rw [sup_comm, semVars_neg] at this
   exact this
 
+theorem semVars_biImpl (φ₁ φ₂ : PropTerm ν) :
+    (PropTerm.biImpl φ₁ φ₂).semVars ⊆ φ₁.semVars ∪ φ₂.semVars := by
+  rw [biImpl_eq_impls]
+  apply subset_trans (semVars_conj _ _)
+  apply Finset.union_subset
+  . apply semVars_impl
+  . rw [Finset.union_comm]
+    apply semVars_impl
+
 /-- Two functions φ₁ and φ₂ are equivalent over X when for every assignment τ, models of φ₁
 extending τ over X are in bijection with models of φ₂ extending τ over X. -/
 -- This is `sequiv` here: https://github.com/ccodel/verified-encodings/blob/master/src/cnf/encoding.lean

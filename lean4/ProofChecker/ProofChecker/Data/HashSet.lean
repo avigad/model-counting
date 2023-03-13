@@ -50,7 +50,7 @@ theorem mem_toFinset (s : HashSet α) (a : α) : a ∈ s.toFinset ↔ s.contains
   sorry
 
 theorem not_mem_toFinset (s : HashSet α) (a : α) : a ∉ s.toFinset ↔ ¬s.contains a := by
-  sorry
+  simp [mem_toFinset]
 
 theorem toFinset_isEmpty {s : HashSet α} : s.isEmpty → s.toFinset = ∅ := by
   intro h

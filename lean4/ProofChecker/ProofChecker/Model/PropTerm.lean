@@ -286,6 +286,10 @@ theorem eq_top_iff {φ : PropTerm ν} : φ = ⊤ ↔ ∀ (τ : PropAssignment ν
 theorem eq_bot_iff {φ : PropTerm ν} : φ = ⊥ ↔ ∀ (τ : PropAssignment ν), τ ⊭ φ :=
   ⟨fun h => by simp [h], fun h => by ext; simp [h]⟩
 
+theorem biImpl_eq_impls (φ ψ : PropTerm ν) : biImpl φ ψ = (φ ⇨ ψ) ⊓ (ψ ⇨ φ) := by
+  ext τ
+  aesop
+
 /-! Quotient helpers -/
 
 -- TODO: custom simp set?
