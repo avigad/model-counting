@@ -98,7 +98,7 @@ assignment, and another procedure that uses a hashset to test whether a clause \
 tautology.
 We have also verified that these low-level procedures do what they are supposed to do.
 
-\subsection{Proof Checker}
+\subsection{The Proof Checker}
 
 Our proof checker interprets the input clauses listed in a CRAT file as a CNF formula $\varphi$.
 It then processes and checks each rule, throwing an exception if a precondition is not met.
@@ -190,7 +190,7 @@ then at each step the invariants hold.
 We should list the invariants and say something about how the checks are
 performed.]
 
-\subsection{The Model Counter}
+\subsection{The Model Counters}
 
 The number of models that a propositional formula has depends on what we take the
 variables to be. For example, there is only one assignment to the variables
@@ -279,7 +279,7 @@ the correctness of all the primitive operations on these hashmaps.
 Thus our proofs depend on the unverified assumption that those operations have the
 expected properties.
 
-In sum, in addition to trusting Lean's foundation and trusted kernel,
+In sum, in addition to trusting Lean's foundation and kernel checker,
 we also have to trust that code extraction respects that foundation,
 that the implementation of arrays and hashmaps satisfy their internal descriptions,
 and that, after parsing, the computation has the correct input formula.
