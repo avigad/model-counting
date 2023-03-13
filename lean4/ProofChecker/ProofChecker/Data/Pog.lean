@@ -132,10 +132,10 @@ end PogElt
 
 -- To generalize this, add a hashmap for the indexing function.
 
-structure Pog :=
-  (elts : Array PogElt)
-  (wf : ∀ i : Fin elts.size, elts[i].args_decreasing)
-  (inv : ∀ i : Fin elts.size, i = elts[i].varNum.natPred)
+structure Pog where
+  elts : Array PogElt
+  wf : ∀ i : Fin elts.size, elts[i].args_decreasing
+  inv : ∀ i : Fin elts.size, i = elts[i].varNum.natPred
 
 def PogError := String
 
