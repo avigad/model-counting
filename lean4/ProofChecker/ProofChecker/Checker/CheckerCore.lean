@@ -620,7 +620,7 @@ def addDisjToPog (g : Pog) (x : Var) (l₁ l₂ : ILit) : Except CheckerError { 
   match g.addDisj x l₁ l₂ with
   | .ok g' => pure ⟨g', rfl⟩
   | .error e => throw <| .graphUpdateError e
-
+  
 def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx) :
     CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
@@ -632,12 +632,12 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   let ⟨D₁, hL₁, hD₁⟩ ← getDeps st pfs l₁
   let ⟨D₂, hL₂, hD₂⟩ ← getDeps st pfs l₂
 
-  let ⟨pog', hPog⟩ ← addDisjToPog st.pog x l₁ l₂
-
   -- Check that POG defs imply that the children have no models in common.
   let ⟨_, hHints⟩ ← ensurePogHints st hints
   -- NOTE: Important that this be done before adding clauses, for linearity.
   let ⟨_, hImp⟩ ← checkImpliedWithHints st.clauseDb #[-l₁, -l₂] hints
+
+  let ⟨pog', hPog⟩ ← addDisjToPog st.pog x l₁ l₂
 
   let ⟨(db', pd'), hDb, hPd, pogDefs_in_clauseDb⟩ ←
     addSumClauses st.clauseDb st.pogDefs idx x l₁ l₂ pfs.pogDefs_in_clauseDb
@@ -672,9 +672,10 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
     exact subset_trans (PropTerm.semVars_disj _ _) this
 
   -- Variable stuff
-  have hAv : st'.allVars = insert x st.allVars := sorry
-  have : db'.toPropTerm.semVars = st.clauseDb.toPropTerm.semVars ∪ {x} := sorry
-
+  have hAv : st'.allVars = insert x st.allVars := by 
+    ext
+    simp [PreState.allVars, HashMap.contains_insert, @eq_comm _ x, or_comm]
+    
   have ⟨equivalent_clauseDb, extends_pogDefsTerm, uep_pogDefsTerm, equivalent_lits⟩ :=
     def_ext_correct pfs st'
       x (l₁.toPropTerm ⊔ l₂.toPropTerm) (⟦st.pog.toPropForm l₁⟧ ⊔ ⟦st.pog.toPropForm l₂⟧)
@@ -691,10 +692,41 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
 
   have pfs' := {
     pogDefs_in_clauseDb
-    clauseDb_semVars_sub := sorry
-    pogDefsTerm_semVars_sub := sorry
-    inputCnf_vars_sub := sorry
-    depVars_pog := sorry
+    clauseDb_semVars_sub := by
+      rw [hAv, hDb]
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_conj _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . exact subset_trans pfs.clauseDb_semVars_sub (Set.subset_insert _ _)
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_biImpl _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . simp
+      exact subset_trans hSemVars (Set.subset_insert _ _)
+    pogDefsTerm_semVars_sub := by
+      rw [hAv, hPd]
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_conj _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . exact subset_trans pfs.pogDefsTerm_semVars_sub (Set.subset_insert _ _)
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_biImpl _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . simp
+      exact subset_trans hSemVars (Set.subset_insert _ _)
+    inputCnf_vars_sub :=
+      hAv ▸ pfs.inputCnf_vars_sub.trans (Set.subset_insert x st.allVars)
+    depVars_pog := by
+      intro y D hFind
+      by_cases hEq : x = y
+      . rw [st.pog.toPropForm_addDisj _ _ _ _ (hEq ▸ hPog)]
+        rw [st.depVars.find?_insert _ (beq_iff_eq _ _ |>.mpr hEq)] at hFind
+        injection hFind with hFind
+        rw [PropForm.vars, ← hFind, HashSet.toFinset_union]
+        apply Finset.union_subset_union <;> assumption
+      . rw [st.pog.toPropForm_addDisj_of_ne _ _ _ _ _ hPog hEq]
+        rw [st.depVars.find?_insert_of_ne _ (bne_iff_ne _ _ |>.mpr hEq)] at hFind
+        exact pfs.depVars_pog y D hFind
     pog_vars := by
       intro y hMem
       simp only [hAv, Set.mem_insert_iff] at hMem
