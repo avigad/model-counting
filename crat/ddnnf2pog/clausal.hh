@@ -93,6 +93,9 @@ public:
 
     void show(FILE *outfile);
 
+    // Show clause, but with literal asserted
+    void show_reduced(FILE *outfile, int ulit);
+
     void write(Writer *writer);
 
     int *data();
@@ -435,6 +438,10 @@ public:
 
     int apply_lemma(Lemma_instance *lemma, Lemma_instance *instance);
 
+    // Monolithic validation: generate proof that input formula --> root literal
+    int monolithic_validate_root(int root_literal);
+
+
 private:
 
     // Private methods for proof generation
@@ -477,6 +484,7 @@ private:
     // Sanity checks on active clauses
     bool check_active();
 
+    // Supporting monolithic validation
+    bool monolithic_load_proof(FILE *lfile, int root_literal);
 };
-
 

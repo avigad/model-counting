@@ -17,17 +17,20 @@ static bool use_lemmas = true;
 static bool delete_files  =  true;
 static bool early_quit = false;
 static bool one_sided = false;
+static bool monolithic = false;
 static int drat_threshold = 1000;
 static int bcp_limit = 1;
 static int clause_limit = INT_MAX;
 
+
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-1] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
+    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-1] [-m] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.d4nnf [POG.crat]\n", name);
     lprintf("  -h        Print this information\n");
     lprintf("  -v VLEVEL Set verbosity level\n");
     lprintf("  -L LOG    Record all results to file LOG\n");
     lprintf("  -p        Quit after determining POG size\n");
     lprintf("  -1        Generate a one-sided proof (only input clause deletions justified)\n");
+    lprintf("  -m        Monolithic mode: Do validation with single call to SAT solver\n");
     lprintf("  -C CLIM   Limit total number of clauses in input + proof (default = %d)\n", clause_limit);
     lprintf("  -b BLIM   Limit depth of Boolean constraint propagation for contradiction proofs (default = %d)\n", bcp_limit);
     lprintf("  -t THRESH Use drat-trim on proofs when SAT problems are above THRESH clauses (default = %d)\n", drat_threshold);
@@ -134,6 +137,7 @@ static void stat_report() {
     int coj = get_count(COUNT_OR_JUSTIFICATION_CLAUSE);
     int clj = get_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
     int cla = get_count(COUNT_LEMMA_APPLICATION_CLAUSE);
+    int clm = get_count(COUNT_MONOLITHIC_CLAUSE);
     lprintf("%s Clauses\n", prefix);    
     lprintf("%s    POG definition       : %d\n", prefix, cdp);
     lprintf("%s    AUX definition       : %d\n", prefix, cda);
@@ -141,7 +145,8 @@ static void stat_report() {
     lprintf("%s    sum justification    : %d\n", prefix, coj);
     lprintf("%s    literal justification: %d\n", prefix, clj);
     lprintf("%s    lemma application    : %d\n", prefix, cla);
-    lprintf("%s    clause TOTAL         : %d\n", prefix, cdp+cda+coj+caj+clj+cla);
+    lprintf("%s    unified justification: %d\n", prefix, clm);
+    lprintf("%s    clause TOTAL         : %d\n", prefix, cdp+cda+coj+caj+clj+cla+clm);
     double sat_time = get_timer(TIME_SAT);
     lprintf("%s Time\n", prefix);
     lprintf("%s   SAT execution  : %.2f\n", prefix, sat_time);
@@ -205,8 +210,14 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     }
     int root_literal = pog.get_root();
     report(3, "Justifying root literal %d\n", root_literal);
-    int unit_cid = one_sided ? cnf.assert_literal(root_literal) :
-	pog.justify(root_literal, false, use_lemmas);
+    int unit_cid = 0;
+    if (one_sided)
+	unit_cid = cnf.assert_literal(root_literal);
+    else if (monolithic)
+	unit_cid = cnf.monolithic_validate_root(root_literal);
+    else
+	unit_cid = pog.justify(root_literal, false, use_lemmas);
+
     if (unit_cid == 0) {
 	err(false, "Failed to justify root literal %d\n", root_literal);
 	// Undercount
@@ -241,7 +252,7 @@ int main(int argc, char *const argv[]) {
     verblevel = 1;
     int c;
     set_panic(panic);
-    while ((c = getopt(argc, argv, "hp1v:L:C:b:t:sek")) != -1) {
+    while ((c = getopt(argc, argv, "hp1mv:L:C:b:t:sek")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -251,6 +262,9 @@ int main(int argc, char *const argv[]) {
 	    break;
 	case '1':
 	    one_sided = true;
+	    break;
+	case 'm':
+	    monolithic = true;
 	    break;
 	case 'v':
 	    verblevel = atoi(optarg);
@@ -319,6 +333,7 @@ int main(int argc, char *const argv[]) {
 	lprintf("%s   Use lemmas:      %s\n", prefix, use_lemmas ? "yes" : "no");
 	lprintf("%s   Delete files:    %s\n", prefix, delete_files ? "yes" : "no");
 	lprintf("%s   One-sided:       %s\n", prefix, one_sided ? "yes" : "no");
+	lprintf("%s   Monolithic mode: %s\n", prefix, monolithic ? "yes" : "no");
 	lprintf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
 	lprintf("%s   Clause limit:    %d\n", prefix, clause_limit);
 	lprintf("%s   BCP limit:       %d\n", prefix, bcp_limit);
