@@ -45,6 +45,8 @@ inductive CheckerError where
   | unknownVar (x : Var)
   | depsNotDisjoint (xs : List Var)
   | finalRootNotSet
+  | finalRootNotUnit (r : ILit)
+  | finalClausesInvalid
   | finalClauseInvalid (idx : ClauseIdx) (C : IClause)
 
 namespace CheckerError
@@ -64,7 +66,10 @@ instance : ToString CheckerError where
     | duplicateExtVar x => s!"extension variable {x} was already introduced"
     | unknownVar x => s!"unknown variable {x}"
     | depsNotDisjoint xs => s!"variables {xs} have non-disjoint dependency sets"
-    | finalRootNotSet => s!"proof done but root literal was not asserted"
+    | finalRootNotSet => s!"proof done but root literal was not set"
+    | finalRootNotUnit r => s!"proof done but root literal {r} was not asserted as a unit clause"
+    | finalClausesInvalid =>
+      s!"proof done but some clause is neither the asserted root nor a POG definition"
     | finalClauseInvalid idx C =>
       s!"proof done but clause {C} at index {idx} is neither the asserted root nor a POG definition"
 
@@ -73,6 +78,7 @@ end CheckerError
 /-- The checker's runtime state. Contains exactly the data needed to fully check a proof.
 It can be ill-formed, so it's a "pre"-well-formed state. -/
 structure PreState where
+  -- NOTE: This is part of the state so we could cheat by changing it. We don't.
   inputCnf : ICnf
 
   /-- The variables present in the original CNF. -/
@@ -720,19 +726,66 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
 def setRoot (r : ILit) : CheckerM Unit := do
   modify fun ⟨st, pfs⟩ => ⟨{ st with root := some r }, { pfs with }⟩
 
--- TODO: final invariant `st.root = some r ∧ st.inputCnf.toPropTerm = ⟦st.scheme.toPropForm r⟧`
-def checkFinalState : CheckerM Unit := do
-  let ⟨st, _⟩ ← get
+def checkFinalClauses (r : ILit) (st : PreState) : Except CheckerError { _u : Unit //
+    (∀ idx C, st.clauseDb.getClause idx = some C → idx ∈ st.pogDefs' ∨ C = #[r])
+    ∧ (∃ idxᵣ, st.clauseDb.getClause idxᵣ = some #[r]) } := do
+  /- NOTE: This check is seriously inefficient. First, `all`/`any` don't use early return. Second,
+  we loop over the clauses twice. Third, this could likely all be implemented in O(1) by storing
+  the number `nClauses` of clauses. As long as `nClauses = st.pogDefs.size + 1` (`+ 1` for the root
+  literal), the conclusion should follow from appropriate invariants. -/
+  match h₁ : st.clauseDb.all (fun idx C => C = #[r] ∨ st.pogDefs.contains idx) with
+  | true =>
+    match h₂ : st.clauseDb.any (fun _ C => C = #[r]) with
+    | true =>
+      have hA := by
+        intro idx C hGet
+        have := st.clauseDb.all_true _ h₁ idx C hGet
+        simp at this
+        rw [PreState.pogDefs', HashSet.mem_toFinset]
+        exact Or.comm.mp this
+      have hE := by
+        have ⟨idxᵣ, C, hGet, hP⟩ := st.clauseDb.any_true _ h₂
+        simp at hP
+        exact ⟨idxᵣ, hP ▸ hGet⟩
+      return ⟨(), hA, hE⟩
+    | false => throw <| .finalRootNotUnit r
+  | false => throw <| .finalClausesInvalid
+
+def checkFinalState : CheckerM { p : ICnf × Pog × ILit //
+    p.1.toPropTerm = ⟦p.2.1.toPropForm p.2.2⟧ } := do
+  let ⟨st, pfs⟩ ← get
 
   let some r := st.root
     | throw <| .finalRootNotSet
+  let ⟨_, hR, _⟩ ← getDeps st pfs r
 
-  -- NOTE: Looping over the entire clause db is not necessary. We could store the number `nClauses`
-  -- and as long as `nClauses = st.pogDefs.size + 1` (`+ 1` for the root literal) at the end,
-  -- the conclusion follows.
-  let _ ← st.clauseDb.foldM (init := ()) fun _ idx C => do
-    if C != #[r] && !st.pogDefs.contains idx then
-      throw <| .finalClauseInvalid idx C
+  let ⟨_, hA, hE⟩ ← checkFinalClauses r st
+  have : st.clauseDb.toPropTerm = r.toPropTerm ⊓ st.pogDefsTerm := by
+    have ⟨idxᵣ, hGet⟩ := hE
+    ext τ
+    rw [st.clauseDb.satisfies_toPropTerm, PreState.pogDefsTerm, satisfies_conj,
+      st.clauseDb.satisfies_toPropTermSub]
+    constructor
+    . intro h
+      have := h _ _ hGet
+      dsimp [IClause.toPropTerm] at this
+      aesop
+    . intro ⟨h₁, h₂⟩ _ _ hGet
+      cases hA _ _ hGet
+      next hMem => exact h₂ _ hMem _ hGet
+      next hEq =>
+        rw [hEq]
+        simp [IClause.toPropTerm, h₁]
+
+  have : st.inputCnf.toPropTerm = ⟦st.pog.toPropForm r⟧ := by
+    have := this ▸ pfs.equivalent_clauseDb
+    have := this.trans (pfs.equivalent_lits' r hR)
+    have hInputVars := PropForm.semVars_subset_vars st.inputCnf.toPropForm
+    simp at hInputVars
+    have hPogVars := subset_trans (PropForm.semVars_subset_vars _) (pfs.pog_vars' r hR)
+    exact equivalentOver_semVars hInputVars hPogVars this
+  
+  return ⟨(st.inputCnf, st.pog, r), this⟩
 
 def checkProofStep (step : CratStep) : CheckerM Unit :=
   match step with
@@ -751,7 +804,7 @@ def checkProof (cnf : ICnf) (pf : Array CratStep) : Except CheckerError Unit := 
   let x : CheckerM Unit := do
     for step in pf do
       checkProofStep step
-    checkFinalState
+    let _ ← checkFinalState
   let (ret, _) := x.run st |>.run
   ret
 
