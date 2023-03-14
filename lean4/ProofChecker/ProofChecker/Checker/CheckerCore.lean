@@ -240,16 +240,69 @@ def initialPog (inputCnf : ICnf) :
         apply hAcc⟩
     | .error e => throw <| .graphUpdateError e
 
+def initialClauseVars (m : HashMap Var (HashSet Var)) (C : IClause) : HashMap Var (HashSet Var) :=
+  C.foldl (init := m) fun m l =>
+    m.insert l.var (HashSet.empty Var |>.insert l.var)
+
+theorem initialClauseVars₁ (m : HashMap Var (HashSet Var)) (C : IClause) (x : Var) :
+    (initialClauseVars m C).contains x ↔ x ∈ C.vars.toFinset ∨ m.contains x := by
+  simp only [initialClauseVars, IClause.mem_vars, Array.foldl_eq_foldl_data]
+  induction C.data generalizing m <;>
+    aesop (add norm HashMap.contains_insert)
+
+theorem initialClauseVars₂ (m : HashMap Var (HashSet Var)) (C : IClause) :
+    (∀ x D, m.find? x = some D → x ∈ D.toFinset) →
+    ∀ x D, (initialClauseVars m C).find? x = some D → x ∈ D.toFinset := by
+  simp only [initialClauseVars, Array.foldl_eq_foldl_data]
+  induction C.data generalizing m
+  . simp
+  next l _ ih =>
+    intro _ _ _
+    rw [List.foldl_cons]
+    apply ih
+    intro y
+    by_cases hEq : l.var = y <;>
+      aesop (add norm HashMap.find?_insert, norm HashMap.find?_insert_of_ne)
+
+def initialCnfVars (m : HashMap Var (HashSet Var)) (φ : ICnf) : HashMap Var (HashSet Var) :=
+  φ.foldl (init := m) initialClauseVars
+
+theorem initialCnfVars₁ (m : HashMap Var (HashSet Var)) (φ : ICnf) (x : Var) :
+    (initialCnfVars m φ).contains x ↔ x ∈ φ.vars.toFinset ∨ m.contains x := by
+  simp only [initialCnfVars, ICnf.mem_vars, Array.foldl_eq_foldl_data]
+  induction φ.data generalizing m <;>
+    aesop (add norm initialClauseVars₁)
+
+theorem initialCnfVars₂ (m : HashMap Var (HashSet Var)) (φ : ICnf) :
+    (∀ x D, m.find? x = some D → x ∈ D.toFinset) →
+    ∀ x D, (initialCnfVars m φ).find? x = some D → x ∈ D.toFinset := by
+  simp only [initialCnfVars, Array.foldl_eq_foldl_data]
+  induction φ.data generalizing m
+  . simp
+  next C _ ih =>
+    intro h _ _
+    rw [List.foldl_cons]
+    apply ih
+    exact initialClauseVars₂ _ _ h
+
+def initialDepVars (inputCnf : ICnf) : { dv : HashMap Var (HashSet Var) //
+    { y | dv.contains y } = inputCnf.vars.toFinset ∧
+    ∀ x D, dv.find? x = some D → x ∈ D.toFinset } :=
+  let dv := initialCnfVars .empty inputCnf
+  have allVars_eq := by ext; simp [initialCnfVars₁]
+  have of_find := by apply initialCnfVars₂; simp
+  ⟨dv, allVars_eq, of_find⟩
+
 def initial (inputCnf : ICnf) : Except CheckerError State := do
   let ⟨initPog, hInitPog⟩ ← initialPog inputCnf
+  let ⟨initDv, allVars_eq, hInitDv⟩ := initialDepVars inputCnf
   let st := {
     inputCnf
     origVars := inputCnf.vars
     clauseDb := .ofICnf inputCnf
     pogDefs := .empty ClauseIdx
     pog := initPog
-    depVars := inputCnf.vars.fold (init := .empty) fun s x =>
-      s.insert x (HashSet.empty Var |>.insert x)
+    depVars := initDv
     root := none
   }
   have pogDefs'_empty : st.pogDefs' = ∅ := by
@@ -257,14 +310,13 @@ def initial (inputCnf : ICnf) : Except CheckerError State := do
   have pogDefsTerm_tr : st.pogDefsTerm = ⊤ := by
     rw [PreState.pogDefsTerm, pogDefs'_empty, Finset.coe_empty]
     apply ClauseDb.toPropTermSub_emptySet
-  have allVars_eq : st.allVars = st.inputCnf.vars.toFinset := by
-    -- LATER: Prove these when we are sure they imply the result.
-    sorry
+  have allVars_eq : st.allVars = st.inputCnf.vars.toFinset := allVars_eq
   have pfs := {
     pogDefs_in_clauseDb := by
       simp [pogDefs'_empty]
-    -- LATER: Prove these when we are sure they imply the result.
-    depVars_pog := sorry
+    depVars_pog := by
+      intro x D hFind
+      simp [hInitPog, PropForm.vars, hInitDv x D hFind]
     partitioned := by
       simp [hInitPog, PropForm.partitioned]
     clauseDb_semVars_sub := by
@@ -620,7 +672,7 @@ def addDisjToPog (g : Pog) (x : Var) (l₁ l₂ : ILit) : Except CheckerError { 
   match g.addDisj x l₁ l₂ with
   | .ok g' => pure ⟨g', rfl⟩
   | .error e => throw <| .graphUpdateError e
-  
+
 def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseIdx) :
     CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
@@ -671,11 +723,10 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
       cases h <;> next h => simp only [h, hL₁, hL₂]
     exact subset_trans (PropTerm.semVars_disj _ _) this
 
-  -- Variable stuff
-  have hAv : st'.allVars = insert x st.allVars := by 
+  have hAv : st'.allVars = insert x st.allVars := by
     ext
     simp [PreState.allVars, HashMap.contains_insert, @eq_comm _ x, or_comm]
-    
+
   have ⟨equivalent_clauseDb, extends_pogDefsTerm, uep_pogDefsTerm, equivalent_lits⟩ :=
     def_ext_correct pfs st'
       x (l₁.toPropTerm ⊔ l₂.toPropTerm) (⟦st.pog.toPropForm l₁⟧ ⊔ ⟦st.pog.toPropForm l₂⟧)
@@ -816,7 +867,7 @@ def checkFinalState : CheckerM { p : ICnf × Pog × ILit //
     simp at hInputVars
     have hPogVars := subset_trans (PropForm.semVars_subset_vars _) (pfs.pog_vars' r hR)
     exact equivalentOver_semVars hInputVars hPogVars this
-  
+
   return ⟨(st.inputCnf, st.pog, r), this⟩
 
 def checkProofStep (step : CratStep) : CheckerM Unit :=
