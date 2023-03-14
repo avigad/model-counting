@@ -1,0 +1,18 @@
+FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track1_015.cnf ./mc2022_track1_015.crat
+FCHECK LOG: Time limit 10000 seconds
+FCHECK: Read CNF file with 200 variables and 564 clauses
+FCHECK: Read CRAT file with 60 operations,  132 asserted + 359 defining = 491 clauses
+FCHECK: Deleted 695 input and asserted clauses
+FCHECK: Final root literal 260
+FCHECK: FULL-PROOF SUCCESS.  CRAT representation verified
+FCHECK: Elapsed seconds: 0.003
+FCHECK LOG: Elapsed time = 0.005 seconds
+FCHECK OUTCOME: normal
+COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track1_015.cnf -p ./mc2022_track1_015.crat
+COUNT LOG: Time limit 4000 seconds
+COUNTER: Elapsed time for count: 0.00 seconds
+COUNTER: Unweighted count = 28311552
+COUNT LOG: Elapsed time = 0.026 seconds
+COUNT OUTCOME: normal
+OVERALL LOG: Elapsed time = 0.031 seconds
+OVERALL OUTCOME: normal
