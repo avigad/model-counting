@@ -56,6 +56,8 @@
 \newcommand{\outdegree}{\textrm{outdegree}}
 \newcommand{\validate}{\textsf{validate}}
 \newcommand{\prov}{\textrm{Prov}}
+\newcommand{\inputformula}{\phi_I}
+\newcommand{\pogformula}{\phi_P}
 
 \newcommand{\makenode}[1]{\mathbf{#1}}
 \newcommand{\nodeu}{\makenode{u}}
@@ -380,8 +382,8 @@ by Kimmig, et al.~\cite{kimmig:jal:2017}.
 \end{definition}
 We write $a - b$ as a shorthand for $a + -b$.
 
-\begin{definition}[Ring Evaluation Problem (REP)]
-  For ring $\ring$, a {\em ring labeling} associates a value $w(x) \in \dset$ with
+\begin{definition}[Ring Evaluation Problem]
+  For commutative ring $\ring$, a {\em ring labeling} associates a value $w(x) \in \dset$ with
   every variable $x \in \varset$.  We then define $w(\obar{x})$ to equal $\mulident-w(x)$.
 
   For Boolean formula $\phi$, and ring labeling $w$, the {\em ring evaluation problem} (REP) is to compute:
@@ -395,7 +397,7 @@ We write $a - b$ as a shorthand for $a + -b$.
 Many important queries about Boolean formulas can be
 expressed as ring evaluation problems.  The
 {\em model counting} problem for formula $\phi$ requires determining $|\modelset(\phi)|$.
-It can be cast as a REP by having $\radd$ and
+It can be cast as a ring evaluation problem by having $\radd$ and
 $\rmul$ be addition and multiplication over rational numbers and using
 label $w(x) = 1/2$ for every variable $x$.
 Ring evaluation of formula $\phi$ will then compute the {\em density} of
