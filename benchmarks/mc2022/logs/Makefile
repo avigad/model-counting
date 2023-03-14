@@ -20,6 +20,7 @@ data:
 	$(INTERP) $(GRAB) "GEN ERROR" *.onesided_log > failures.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.onesided_log > clauses-total-onesided.csv
 
+
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv > time+defining.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv clauses-total.csv > time+defining-success.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv clauses-defining.csv clauses-total-onesided.csv failures-total.csv > time+defining-onesided-only.csv
@@ -45,6 +46,18 @@ data:
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-nolemma.csv seconds-check-nolemma.csv > time-verify-nolemma.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-split.csv seconds-check-split.csv > time-verify-split.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-split+nolemma.csv seconds-check-split+nolemma.csv > time-verify-split+nolemma.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen.csv seconds-check.csv > time-structured.csv
+
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.monolithic_log > seconds-gen-monolithic.csv
+	$(INTERP) $(GRAB) "GEN OUTCOME: Timeout" *.monolithic_log > timeouts-monolithic.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.monolithic_log > seconds-check-monolithic.csv
+	$(INTERP) $(GRAB) "clause TOTAL" *.monolithic_log > clauses-total-monolithic.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen.csv seconds-check.csv > time-structured.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-monolithic.csv seconds-check-monolithic.csv > time-monolithic.csv
+	$(INTERP) $(MERGE) -f time-structured.csv time-monolithic.csv > time-structured+monolithic.csv
+	$(INTERP) $(MERGE) -f time-structured.csv timeouts-monolithic.csv 1500 > time-structured+monolithic_timeout.csv
+	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-monolithic.csv > clauses-total-structured+monolithic.csv
+
 
 	$(INTERP) $(GRAB) "root model" *.mice_log > models-mice.csv
 	$(INTERP) $(GRAB) "N2T ERROR: Timeout" *.mice_log > timeouts-mice.csv
