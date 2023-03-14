@@ -20,6 +20,7 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{booktabs}
+\usepackage{hyperref}
 
 \newcommand{\pand}{\mathbin{\land^{\sf p}}}
 \newcommand{\por}{\mathbin{\lor^{\sf p}}}
@@ -71,12 +72,6 @@
 \newcommand{\Generator}{\progname{d2p}}
 \newcommand{\checker}{\progname{crat-check}}
 \newcommand{\Checker}{\progname{Crat-check}}
-
-%% Colored hyperlink 
-%\newcommand{\cref}[2]{\href{#1}{\color{blue}#2}}
-%% Colored hyperlink showing link in TT font
-% \newcommand{\chref}[1]{\href{#1}{\small\tt \color{blue}#1}}
-\newcommand{\hcref}[1]{\cref{#1}{\small\tt #1}}
 
 
 \bibliographystyle{plainurl}% the mandatory bibstyle
@@ -172,7 +167,7 @@
 \begin{enumerate}
    \item Retrieved 200 public model counting benchmarks from 2022 Model Counting Competition website
      \begin{center}
-       \hcref{https://mccompetition.org/2022/mc-description.html}
+       \url{https://mccompetition.org/2022/mc_description.html}
      \end{center}
      \begin{itemize}
      \item 100 public instances from Track 1 (unweighted model counting)
