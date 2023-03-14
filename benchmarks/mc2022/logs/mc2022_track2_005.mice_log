@@ -1,10 +1,8 @@
 N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track2_005.cnf ./mc2022_track2_005.nnf
 N2T LOG: Time limit 1000 seconds
-thread 'main' panicked at 'index out of bounds: the len is 1 but the index is 1', src/main.rs:527:30
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-N2T ERROR: Return code = 101
-N2T LOG: Elapsed time = 0.007 seconds
-N2T OUTCOME: failed
-N2T: LOG: size ./mc2022_track2_005.trace 0 lines 0 bytes
-OVERALL LOG: Elapsed time = 0.007 seconds
+N2T ERROR: Timeout after 1000 seconds
+N2T LOG: Elapsed time = 1000.070 seconds
+N2T OUTCOME: Timeout
+N2T: LOG: size ./mc2022_track2_005.trace 182923 lines 8322940 bytes
+OVERALL LOG: Elapsed time = 1000.350 seconds
 OVERALL OUTCOME: failed
