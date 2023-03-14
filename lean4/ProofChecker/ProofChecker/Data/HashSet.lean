@@ -14,9 +14,6 @@ def empty (α : Type) [BEq α] [Hashable α] : HashSet α :=
 def isEmpty (s : HashSet α) : Bool :=
   HashMap.isEmpty s
 
-def size (s : HashSet α) : Nat :=
-  HashMap.size s
-
 def insert (s : HashSet α) (a : α) : HashSet α :=
   HashMap.insert s a ()
 
@@ -32,18 +29,12 @@ def union (s t : HashSet α) : HashSet α :=
 def inter (s t : HashSet α) : HashSet α :=
   HashMap.fold (init := empty α) (fun acc a _ =>
     if s.contains a then acc.insert a else acc) t
-      
-def fold (f : σ → α → σ) (init : σ) : HashSet α → σ :=
-  HashMap.fold (init := init) (fun acc a _ => f acc a)
-
-def foldM [Monad m] (f : σ → α → m σ) (init : σ) : HashSet α → m σ :=
-  HashMap.foldM (init := init) (fun acc a _ => f acc a)
 
 variable [DecidableEq α]
 
 def toFinset (s : HashSet α) : Finset α :=
   HashMap.fold (init := ∅) (fun s a _ => s ∪ {a}) s
-  
+
 variable [LawfulBEq α] [HashMap.LawfulHashable α]
 
 theorem mem_toFinset (s : HashSet α) (a : α) : a ∈ s.toFinset ↔ s.contains a := by
@@ -52,41 +43,91 @@ theorem mem_toFinset (s : HashSet α) (a : α) : a ∈ s.toFinset ↔ s.contains
 theorem not_mem_toFinset (s : HashSet α) (a : α) : a ∉ s.toFinset ↔ ¬s.contains a := by
   simp [mem_toFinset]
 
-theorem toFinset_isEmpty {s : HashSet α} : s.isEmpty → s.toFinset = ∅ := by
-  intro h
-  sorry
-
-theorem isEmpty_empty : isEmpty (empty α) := by
-  sorry
-
 @[simp]
 theorem toFinset_empty : toFinset (empty α) = ∅ := by
-  exact toFinset_isEmpty isEmpty_empty
-  
+  ext
+  simp [mem_toFinset, empty, contains, HashMap.contains_empty]
+
 @[simp]
-theorem toFinset_insert (s : HashSet α) (a : α) : toFinset (s.insert a) = s.toFinset ∪ {a} := by
-  sorry
+theorem toFinset_insert (s : HashSet α) (a : α) :
+    toFinset (s.insert a) = Insert.insert a s.toFinset := by
+  ext
+  simp [mem_toFinset, insert, contains, HashMap.contains_insert]
+  tauto
 
 @[simp]
 theorem toFinset_singleton (a : α) : toFinset (singleton a) = {a} := by
   simp [singleton, toFinset_insert]
 
-  
-theorem not_contains_empty (a : α) : (empty α).contains a = false :=
-  HashMap.not_contains_empty _ a
+theorem toFinset_union_sub (s t : HashSet α) : (s.union t).toFinset ⊆ s.toFinset ∪ t.toFinset := by
+  dsimp [union]
+  intro x
+  apply HashMap.foldRecOn
+    (C := fun (acc : HashSet α) => x ∈ acc.toFinset → x ∈ s.toFinset ∪ t.toFinset)
+    (hInit := by simp; tauto)
+  intro _ a _ _ hFind
+  have : a ∈ t.toFinset := by
+    have := HashMap.contains_iff _ _|>.mpr ⟨_, hFind⟩
+    simp [mem_toFinset, contains, this]
+  aesop
 
-theorem insert_comm (s : HashSet α) (a b : α) : (s.insert a).insert b = (s.insert b).insert a := by
-  dsimp [insert]
-  apply HashMap.insert_comm
+theorem sub_toFinset_union_left (s t : HashSet α) : s.toFinset ⊆ (s.union t).toFinset := by
+  dsimp [union]
+  intro x
+  apply HashMap.foldRecOn
+    (C := fun (acc : HashSet α) => x ∈ s.toFinset → x ∈ acc.toFinset)
+    (hInit := id)
+  aesop
+
+theorem sub_toFinset_union (s t : HashSet α) : s.toFinset ∪ t.toFinset ⊆ (s.union t).toFinset := by
+  apply Finset.union_subset (sub_toFinset_union_left s t)
+  dsimp [union]
+  intro _ h
+  have ⟨_, hFind⟩ := HashMap.contains_iff _ _|>.mp (mem_toFinset _ _ |>.mp h)
+  have ⟨_, h⟩ := HashMap.fold_of_mapsTo_of_comm t (init := s) (fun acc a _ => acc.insert a)
+    hFind (by intros; apply HashMap.insert_comm)
+  simp [h]
 
 @[simp]
-theorem toFinset_union (s t : HashSet α) [LawfulBEq α]
-    : toFinset (s.union t) = s.toFinset ∪ t.toFinset := by
-  sorry
+theorem toFinset_union (s t : HashSet α) : (s.union t).toFinset = s.toFinset ∪ t.toFinset :=
+  subset_antisymm (toFinset_union_sub s t) (sub_toFinset_union s t)
+
+theorem toFinset_inter_sub (s t : HashSet α) : (s.inter t).toFinset ⊆ s.toFinset ∩ t.toFinset := by
+  dsimp [inter]
+  intro x
+  apply HashMap.foldRecOn
+    (C := fun (acc : HashSet α) => x ∈ acc.toFinset → x ∈ s.toFinset ∩ t.toFinset)
+    (hInit := by simp)
+  intro _ a _ _ hFind
+  have : a ∈ t.toFinset := by
+    have := HashMap.contains_iff _ _|>.mpr ⟨_, hFind⟩
+    simp [mem_toFinset, contains, this]
+  split <;>
+    aesop (add norm mem_toFinset)
+
+theorem sub_toFinset_inter (s t : HashSet α) : s.toFinset ∩ t.toFinset ⊆ (s.inter t).toFinset := by
+  intro x
+  simp only [inter, Finset.mem_inter]
+  intro ⟨hS, hT⟩
+  have ⟨_, hFind⟩ := HashMap.contains_iff _ _|>.mp (mem_toFinset _ _ |>.mp hT)
+  have ⟨_, h⟩ := HashMap.fold_of_mapsTo_of_comm t (init := empty α)
+    (fun acc a _ => if s.contains a then acc.insert a else acc)
+    hFind ?comm
+  case comm =>
+    intros
+    dsimp [insert]
+    split_ifs <;>
+      aesop (add norm HashMap.insert_comm)
+  rw [h]
+  split
+  . simp
+  . have : x ∉ s.toFinset :=
+      not_mem_toFinset _ _ |>.mpr (by assumption)
+    contradiction
 
 @[simp]
-theorem toFinset_inter (s t : HashSet α) : toFinset (s.inter t) = s.toFinset ∩ t.toFinset := by
-  sorry
+theorem toFinset_inter (s t : HashSet α) : (s.inter t).toFinset = s.toFinset ∩ t.toFinset :=
+  subset_antisymm (toFinset_inter_sub s t) (sub_toFinset_inter s t)
 
 def Union (l : Array (HashSet α)) : HashSet α :=
   l.foldl (init := empty α) union
@@ -99,22 +140,21 @@ theorem toFinset_Union (l : Array (HashSet α)) :
     induction l.data <;> simp_all
   simp [Union, this]
 
-/-- Calculate the Union and also check if the elements are all pairwise disjoint. -/
-def Union' (l : Array (HashSet α)) : HashSet α × Bool :=
-  l.foldl
+/-- Calculate the union of an array of `HashSet`s, and check if the array elements are all pairwise
+disjoint. Return `(⋃ ss, true)` if array elements are pairwise disjoint, otherwise `(⋃ ss, false)`.
+-/
+def disjointUnion (ss : Array (HashSet α)) : HashSet α × Bool :=
+  ss.foldl
     (init := (.empty α, true))
     fun (acc : HashSet α × Bool) t =>
       (acc.1.union t, acc.2 && (acc.1.inter t).isEmpty)
 
-@[simp]
-theorem fst_Union' (l : Array (HashSet α)) : (Union' l).fst = Union l := by
-  -- for another day..
+theorem mem_disjointUnion (ss : Array (HashSet α)) (a : α) :
+    a ∈ (disjointUnion ss).fst.toFinset ↔ ∃ s ∈ ss.data, a ∈ s.toFinset := by
   sorry
 
-theorem snd_Union' (l : Array (HashSet α)) (h : Union' l |>.snd) :
-    ∀ s ∈ l.data, ∀ t ∈ l.data, s ≠ t → s.toFinset ∩ t.toFinset = ∅ := by
-  intro s hs t ht hNe
-  -- for another day..
+theorem disjoint_disjointUnion (ss : Array (HashSet α)) : (disjointUnion ss).snd →
+    ∀ (i j : Fin ss.size), i ≠ j → (ss[i]).toFinset ∩ (ss[j]).toFinset = ∅ := by
   sorry
 
 end HashSet

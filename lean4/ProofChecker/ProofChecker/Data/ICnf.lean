@@ -15,6 +15,9 @@ instance : ToString Var where
 
 instance : Hashable Var where
   hash v := hash v.val
+  
+instance : Ord Var where
+  compare a b := compare a.val b.val
 
 end Var
 

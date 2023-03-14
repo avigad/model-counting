@@ -229,11 +229,18 @@ abbrev CheckerM := ExceptT CheckerError <| StateM State
 
 def initialPog (inputCnf : ICnf) :
     Except CheckerError { p : Pog // ∀ l, p.toPropForm l = l.toPropForm } := do
-  inputCnf.vars.foldM (init := ⟨Pog.empty, Pog.toPropForm_empty⟩) fun ⟨acc, hAcc⟩ x =>
+  -- NOTE: We have to sort the input variables and add them to the POG in-order because that's what
+  -- the current implementation expects, but this limitation is artificial. See `Pog.lean`.
+  let mut vars := #[]
+  for C in inputCnf do
+    for l in C do
+      vars := vars.push l.var
+  vars := vars.sortAndDeduplicate
+  vars.foldlM (init := ⟨Pog.empty, Pog.toPropForm_empty⟩) fun ⟨acc, hAcc⟩ x =>
     match h : acc.addVar x with
     | .ok g => pure ⟨g, by
-      intro l
-      by_cases hEq : x = l.var
+      intro l'
+      by_cases hEq : x = l'.var
       . rw [hEq] at h
         exact acc.toPropForm_addVar_lit _ _ h
       . rw [acc.toPropForm_addVar_lit_of_ne _ _ _ h hEq]
@@ -306,7 +313,7 @@ def initial (inputCnf : ICnf) : Except CheckerError State := do
     root := none
   }
   have pogDefs'_empty : st.pogDefs' = ∅ := by
-    simp [PreState.pogDefs', HashSet.not_contains_empty]
+    simp [PreState.pogDefs']
   have pogDefsTerm_tr : st.pogDefsTerm = ⊤ := by
     rw [PreState.pogDefsTerm, pogDefs'_empty, Finset.coe_empty]
     apply ClauseDb.toPropTermSub_emptySet
@@ -477,24 +484,24 @@ def addPogDefClause (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     rw [hAdd]
     exact db₀.contains_addClause _ _ _ |>.mpr (Or.inr rfl)
   have hHelper : db₀.toPropTermSub (· ∈ pd.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) := by
-    apply db₀.toPropTermSub_subset_eq (fun x hMem => by simp; exact Or.inl hMem)
+    apply db₀.toPropTermSub_subset_eq fun _ hMem => by simp; exact Or.inr hMem
     intro idx hMem hContains
     simp at hMem
     cases hMem with
-    | inl hMem => exact hMem
-    | inr h =>
+    | inl h =>
       exfalso
       exact hNContains (h ▸ hContains)
+    | inr hMem => exact hMem
   have hPd : db.toPropTermSub (· ∈ pd.toFinset) =
       db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓ C.toPropTerm := by
     rw [← hHelper, hAdd]
     exact db₀.toPropTermSub_addClause_eq _ hMem hNContains
   have hPdDb : ∀ idx, idx ∈ pd.toFinset → db.contains idx := by
-    simp only [HashSet.toFinset_insert, Finset.mem_singleton, Finset.mem_union]
+    simp only [HashSet.toFinset_insert, Finset.mem_singleton, Finset.mem_insert]
     intro _ h
     cases h with
-    | inl hMem => exact hContainsTrans (h _ hMem)
-    | inr h => exact h ▸ hContains
+    | inl h => exact h ▸ hContains
+    | inr hMem => exact hContainsTrans (h _ hMem)
 
   return ⟨(db, pd), hDb, hPd, hPdDb⟩
 
@@ -580,7 +587,7 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
     return D
 
   -- Compute total dependency set and check pairwise disjointness.
-  let (union, disjoint) := HashSet.Union' Ds
+  let (union, disjoint) := HashSet.disjointUnion Ds
   if !disjoint then
     throw <| .depsNotDisjoint (ls.toList.map ILit.var)
 
