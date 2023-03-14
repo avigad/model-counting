@@ -254,7 +254,7 @@ void Clause::show(FILE *outfile) {
 
 void Clause::show_reduced(FILE *outfile, int ulit) {
     // See if clause becomes tautology
-    bool tautology = false;
+    bool tautology = is_tautology;
     for (int i = 0; !tautology && i < length(); i++)
 	if (contents[i] == ulit)
 	    tautology = true;
