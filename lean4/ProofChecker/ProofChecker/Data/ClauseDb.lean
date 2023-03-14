@@ -74,6 +74,14 @@ def getClause (db : ClauseDb α) (idx : α) : Option IClause :=
 def contains (db : ClauseDb α) (idx : α) : Bool :=
   db.getClause idx |>.isSome
 
+/-- NOTE: This implementation is not efficient as it doesn't use early return. -/
+def all (db : ClauseDb α) (p : α → IClause → Bool) : Bool :=
+  db.fold (fun acc idx C => acc && p idx C) true
+
+/-- NOTE: This implementation is not efficient as it doesn't use early return. -/
+def any (db : ClauseDb α) (p : α → IClause → Bool) : Bool :=
+  !db.all (fun idx C => !p idx C)
+
 /-- Initialize a clause database from a CNF array. -/
 def ofICnf (cnf : ICnf) : ClauseDb Nat :=
   let (db, _) := cnf.foldl (init := (empty, 1)) fun (db, idx) C =>
@@ -193,6 +201,36 @@ theorem fold_of_getClause_eq_some_of_comm (db : ClauseDb α) (idx : α) (C : ICl
     h (by aesop)
   use b
   simp [fold, hb]
+
+/-! `all` -/
+
+theorem all_true (db : ClauseDb α) (p : α → IClause → Bool) :
+    db.all p → ∀ idx C, db.getClause idx = some C → p idx C := by
+  dsimp [all]
+  intro hAll idx C hGet
+  have ⟨b, hEq⟩ :=
+    fold_of_getClause_eq_some_of_comm db idx C (fun acc idx C => acc && p idx C) true
+      hGet ?comm
+  case comm =>
+    intros
+    simp only [Bool.and_assoc]
+    rw [Bool.and_comm (p _ _)]
+  simp_all
+  
+theorem all_of_all_true (db : ClauseDb α) (p : α → IClause → Bool) :
+    (∀ idx C, db.getClause idx = some C → p idx C) → db.all p := by
+  dsimp [all, fold, getClause]
+  intro
+  apply db.clauses.foldRecOn (C := fun b => b = true) (hInit := rfl)
+  simp_all
+  
+/-! `any` -/
+
+theorem any_true (db : ClauseDb α) (p : α → IClause → Bool) :
+    db.any p → ∃ idx C, db.getClause idx = some C ∧ p idx C = true := by
+  have := db.all_of_all_true (fun idx C => !p idx C)
+  dsimp [any]
+  exact not_imp_not.mp fun _ => by simp_all
 
 /-! `toPropTermSub` -/
 

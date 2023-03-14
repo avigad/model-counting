@@ -1,0 +1,21 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -m -C 2147483647 -L d2p.log ./mc2022_track1_059.cnf ./mc2022_track1_059.nnf ./mc2022_track1_059.crat
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN: Time = 0.01.  Read input file with 330 variables and 5020 clauses
+c Read D4 NNF file with 446752 nodes (159315 explicit) and 320928 edges
+c Compressed POG has 439741 nodes, root literal 440071, and 1682059 defining clauses
+c GEN: Time = 0.82.  Generated POG representation
+GEN ERROR: Timeout after 1000 seconds
+GEN LOG: Elapsed time = 1000.050 seconds
+GEN OUTCOME: Timeout
+GEN: LOG: size ./mc2022_track1_059.crat 439735 lines 17010688 bytes
+OVERALL LOG: Elapsed time = 1000.137 seconds
+OVERALL OUTCOME: failed

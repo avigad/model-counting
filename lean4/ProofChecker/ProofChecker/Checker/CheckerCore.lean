@@ -45,6 +45,8 @@ inductive CheckerError where
   | unknownVar (x : Var)
   | depsNotDisjoint (xs : List Var)
   | finalRootNotSet
+  | finalRootNotUnit (r : ILit)
+  | finalClausesInvalid
   | finalClauseInvalid (idx : ClauseIdx) (C : IClause)
 
 namespace CheckerError
@@ -64,7 +66,10 @@ instance : ToString CheckerError where
     | duplicateExtVar x => s!"extension variable {x} was already introduced"
     | unknownVar x => s!"unknown variable {x}"
     | depsNotDisjoint xs => s!"variables {xs} have non-disjoint dependency sets"
-    | finalRootNotSet => s!"proof done but root literal was not asserted"
+    | finalRootNotSet => s!"proof done but root literal was not set"
+    | finalRootNotUnit r => s!"proof done but root literal {r} was not asserted as a unit clause"
+    | finalClausesInvalid =>
+      s!"proof done but some clause is neither the asserted root nor a POG definition"
     | finalClauseInvalid idx C =>
       s!"proof done but clause {C} at index {idx} is neither the asserted root nor a POG definition"
 
@@ -73,6 +78,7 @@ end CheckerError
 /-- The checker's runtime state. Contains exactly the data needed to fully check a proof.
 It can be ill-formed, so it's a "pre"-well-formed state. -/
 structure PreState where
+  -- NOTE: This is part of the state so we could cheat by changing it. We don't.
   inputCnf : ICnf
 
   /-- The variables present in the original CNF. -/
@@ -116,9 +122,9 @@ structure PreState.WF (st : PreState) : Prop where
   pogDefs_in_clauseDb : ∀ idx : ClauseIdx, idx ∈ st.pogDefs' → st.clauseDb.contains idx
 
   /-- Variable dependencies are correctly stored in `depVars`. -/
-  depVars_pog : ∀ (l : ILit) (D : HashSet Var), st.depVars.find? l.var = some D →
+  depVars_pog : ∀ (x : Var) (D : HashSet Var), st.depVars.find? x = some D →
     -- NOTE: can strengthen to eq if needed
-    (st.pog.toPropForm l).vars ⊆ D.toFinset
+    (st.pog.toPropForm (.mkPos x)).vars ⊆ D.toFinset
 
   /-- Every formula in the POG forest is partitioned.
 
@@ -156,6 +162,12 @@ structure PreState.WF (st : PreState) : Prop where
   -- TODO: need `x ∈ st.graph.allVars` as precondition?
   equivalent_lits : ∀ x : Var, equivalentOver st.inputCnf.vars.toFinset
     (.var x ⊓ st.pogDefsTerm) ⟦st.pog.toPropForm (.mkPos x)⟧
+
+theorem PreState.WF.depVars_pog' {st : PreState} (hWf : st.WF) (l : ILit) (D : HashSet Var) :
+    st.depVars.find? l.var = some D → (st.pog.toPropForm l).vars ⊆ D.toFinset :=
+  fun hFind => l.mkPos_or_mkNeg.elim (· ▸ hWf.depVars_pog l.var D hFind) fun h => by
+   rw [h, Pog.toPropForm_neg, PropForm.vars]
+   exact hWf.depVars_pog l.var D hFind
 
 theorem PreState.WF.partitioned' {st : PreState} (hWf : st.WF) (l : ILit) :
     (st.pog.toPropForm l).partitioned :=
@@ -228,16 +240,69 @@ def initialPog (inputCnf : ICnf) :
         apply hAcc⟩
     | .error e => throw <| .graphUpdateError e
 
+def initialClauseVars (m : HashMap Var (HashSet Var)) (C : IClause) : HashMap Var (HashSet Var) :=
+  C.foldl (init := m) fun m l =>
+    m.insert l.var (HashSet.empty Var |>.insert l.var)
+
+theorem initialClauseVars₁ (m : HashMap Var (HashSet Var)) (C : IClause) (x : Var) :
+    (initialClauseVars m C).contains x ↔ x ∈ C.vars.toFinset ∨ m.contains x := by
+  simp only [initialClauseVars, IClause.mem_vars, Array.foldl_eq_foldl_data]
+  induction C.data generalizing m <;>
+    aesop (add norm HashMap.contains_insert)
+
+theorem initialClauseVars₂ (m : HashMap Var (HashSet Var)) (C : IClause) :
+    (∀ x D, m.find? x = some D → x ∈ D.toFinset) →
+    ∀ x D, (initialClauseVars m C).find? x = some D → x ∈ D.toFinset := by
+  simp only [initialClauseVars, Array.foldl_eq_foldl_data]
+  induction C.data generalizing m
+  . simp
+  next l _ ih =>
+    intro _ _ _
+    rw [List.foldl_cons]
+    apply ih
+    intro y
+    by_cases hEq : l.var = y <;>
+      aesop (add norm HashMap.find?_insert, norm HashMap.find?_insert_of_ne)
+
+def initialCnfVars (m : HashMap Var (HashSet Var)) (φ : ICnf) : HashMap Var (HashSet Var) :=
+  φ.foldl (init := m) initialClauseVars
+
+theorem initialCnfVars₁ (m : HashMap Var (HashSet Var)) (φ : ICnf) (x : Var) :
+    (initialCnfVars m φ).contains x ↔ x ∈ φ.vars.toFinset ∨ m.contains x := by
+  simp only [initialCnfVars, ICnf.mem_vars, Array.foldl_eq_foldl_data]
+  induction φ.data generalizing m <;>
+    aesop (add norm initialClauseVars₁)
+
+theorem initialCnfVars₂ (m : HashMap Var (HashSet Var)) (φ : ICnf) :
+    (∀ x D, m.find? x = some D → x ∈ D.toFinset) →
+    ∀ x D, (initialCnfVars m φ).find? x = some D → x ∈ D.toFinset := by
+  simp only [initialCnfVars, Array.foldl_eq_foldl_data]
+  induction φ.data generalizing m
+  . simp
+  next C _ ih =>
+    intro h _ _
+    rw [List.foldl_cons]
+    apply ih
+    exact initialClauseVars₂ _ _ h
+
+def initialDepVars (inputCnf : ICnf) : { dv : HashMap Var (HashSet Var) //
+    { y | dv.contains y } = inputCnf.vars.toFinset ∧
+    ∀ x D, dv.find? x = some D → x ∈ D.toFinset } :=
+  let dv := initialCnfVars .empty inputCnf
+  have allVars_eq := by ext; simp [initialCnfVars₁]
+  have of_find := by apply initialCnfVars₂; simp
+  ⟨dv, allVars_eq, of_find⟩
+
 def initial (inputCnf : ICnf) : Except CheckerError State := do
   let ⟨initPog, hInitPog⟩ ← initialPog inputCnf
+  let ⟨initDv, allVars_eq, hInitDv⟩ := initialDepVars inputCnf
   let st := {
     inputCnf
     origVars := inputCnf.vars
     clauseDb := .ofICnf inputCnf
     pogDefs := .empty ClauseIdx
     pog := initPog
-    depVars := inputCnf.vars.fold (init := .empty) fun s x =>
-      s.insert x (HashSet.empty Var |>.insert x)
+    depVars := initDv
     root := none
   }
   have pogDefs'_empty : st.pogDefs' = ∅ := by
@@ -245,14 +310,13 @@ def initial (inputCnf : ICnf) : Except CheckerError State := do
   have pogDefsTerm_tr : st.pogDefsTerm = ⊤ := by
     rw [PreState.pogDefsTerm, pogDefs'_empty, Finset.coe_empty]
     apply ClauseDb.toPropTermSub_emptySet
-  have allVars_eq : st.allVars = st.inputCnf.vars.toFinset := by
-    -- LATER: Prove these when we are sure they imply the result.
-    sorry
+  have allVars_eq : st.allVars = st.inputCnf.vars.toFinset := allVars_eq
   have pfs := {
     pogDefs_in_clauseDb := by
       simp [pogDefs'_empty]
-    -- LATER: Prove these when we are sure they imply the result.
-    depVars_pog := sorry
+    depVars_pog := by
+      intro x D hFind
+      simp [hInitPog, PropForm.vars, hInitDv x D hFind]
     partitioned := by
       simp [hInitPog, PropForm.partitioned]
     clauseDb_semVars_sub := by
@@ -393,7 +457,7 @@ def getDeps (st : PreState) (pfs : st.WF) (l : ILit) : Except CheckerError { D :
     (st.pog.toPropForm l).vars ⊆ D.toFinset } := do
   match h : st.depVars.find? l.var with
   | some D =>
-    return ⟨D, st.depVars.contains_iff _ |>.mpr ⟨D, h⟩, pfs.depVars_pog _ _ h⟩
+    return ⟨D, st.depVars.contains_iff _ |>.mpr ⟨D, h⟩, pfs.depVars_pog' _ _ h⟩
   | none => throw <| .unknownVar l.var
 
 def addPogDefClause (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
@@ -497,6 +561,13 @@ theorem def_ext_correct {st : PreState} (H : st.WF) (st' : PreState) (x : Var) (
       exact hEquiv
   ⟨equiv, extend, uep, equiv_vars⟩
 
+-- TODO: do variable dependency tracking in here?
+def addConjToPog (g : Pog) (x : Var) (ls : Array ILit) : Except CheckerError { g' : Pog //
+    g.addConj x ls = .ok g' } :=
+  match g.addConj x ls with
+  | .ok g' => pure ⟨g', rfl⟩
+  | .error e => throw <| .graphUpdateError e
+
 def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
 
@@ -522,9 +593,7 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
     db := dbᵢ
     pogDefs := pogDefs.insert (idx+i+1)
 
-  let pog' ← match st.pog.addConj x ls with
-    | .ok s => pure s
-    | .error e => throw <| .graphUpdateError e
+  let ⟨pog', _⟩ ← addConjToPog st.pog x ls
 
   let st' := { st with
     clauseDb := db
@@ -555,13 +624,48 @@ def addSumClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     simp [IClause.toPropTerm, inf_assoc, PropTerm.disj_def_eq]
   return ⟨(db₃, pd₃), hDb, hPd, h⟩
 
-def filterPogHints (st : PreState) (hints : Array ClauseIdx) :
+def ensurePogHints (st : PreState) (hints : Array ClauseIdx) :
     Except CheckerError { _u : Unit //
       ∀ idx, idx ∈ hints.data → idx ∈ st.pogDefs' } := do
-  for idx in hints do
-    if !st.pogDefs.contains idx then
-      throw <| .hintNotPog idx
-  return ⟨(), sorry⟩ -- TODO
+  match hSz : hints.size with
+  | 0 =>
+    return ⟨(), fun _ hMem => by
+      dsimp [Array.size] at hSz
+      rw [List.length_eq_zero.mp hSz] at hMem
+      contradiction⟩
+  | i+1 =>
+    let ⟨_, h⟩ ← go i (hSz ▸ Nat.lt_succ_self _) (fun j hLt => by
+      have := j.isLt
+      linarith)
+    return ⟨(), fun _ hMem => have ⟨i, hI⟩ := Array.get_of_mem_data hMem; hI ▸ h i⟩
+where go (i : Nat) (hLt : i < hints.size)
+    (ih : ∀ (j : Fin hints.size), i < j → hints[j] ∈ st.pogDefs') :
+    Except CheckerError { _u : Unit // ∀ (j : Fin hints.size), hints[j] ∈ st.pogDefs' } := do
+  let idx := hints[i]
+  if hContains : st.pogDefs.contains idx then
+    have hContains : hints[i] ∈ st.pogDefs' :=
+      by simp [PreState.pogDefs', HashSet.mem_toFinset, hContains]
+    match hI : i, hLt, ih with
+    | 0, hLt, ih =>
+      return ⟨(), fun j => by
+        cases j.val.eq_zero_or_pos with
+        | inl hEq =>
+          -- Why does this compute a correct motive while `rw` doesn't?
+          simp only [hI] at hContains
+          simp [hEq, hContains]
+        | inr hLt =>
+          exact ih j hLt⟩
+    | i+1, hLt, ih =>
+      by exact -- Hmmm
+        go i (Nat.lt_of_succ_lt hLt) (fun j hLt => by
+          cases Nat.eq_or_lt_of_le hLt with
+          | inl hEq =>
+            simp only [hI] at hContains
+            simp [← hEq, hContains]
+          | inr hLt =>
+            exact ih j hLt)
+  else
+    throw <| .hintNotPog idx
 
 def addDisjToPog (g : Pog) (x : Var) (l₁ l₂ : ILit) : Except CheckerError { g' : Pog //
     g.addDisj x l₁ l₂ = .ok g' } :=
@@ -580,12 +684,12 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   let ⟨D₁, hL₁, hD₁⟩ ← getDeps st pfs l₁
   let ⟨D₂, hL₂, hD₂⟩ ← getDeps st pfs l₂
 
-  let ⟨pog', hPog⟩ ← addDisjToPog st.pog x l₁ l₂
-
   -- Check that POG defs imply that the children have no models in common.
-  let ⟨_, hHints⟩ ← filterPogHints st hints
+  let ⟨_, hHints⟩ ← ensurePogHints st hints
   -- NOTE: Important that this be done before adding clauses, for linearity.
   let ⟨_, hImp⟩ ← checkImpliedWithHints st.clauseDb #[-l₁, -l₂] hints
+
+  let ⟨pog', hPog⟩ ← addDisjToPog st.pog x l₁ l₂
 
   let ⟨(db', pd'), hDb, hPd, pogDefs_in_clauseDb⟩ ←
     addSumClauses st.clauseDb st.pogDefs idx x l₁ l₂ pfs.pogDefs_in_clauseDb
@@ -619,9 +723,11 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
       cases h <;> next h => simp only [h, hL₁, hL₂]
     exact subset_trans (PropTerm.semVars_disj _ _) this
 
-  have hAv : st'.allVars = st.allVars.insert x := sorry
+  have hAv : st'.allVars = insert x st.allVars := by
+    ext
+    simp [PreState.allVars, HashMap.contains_insert, @eq_comm _ x, or_comm]
 
-  let ⟨equivalent_clauseDb, extends_pogDefsTerm, uep_pogDefsTerm, equivalent_lits⟩ :=
+  have ⟨equivalent_clauseDb, extends_pogDefsTerm, uep_pogDefsTerm, equivalent_lits⟩ :=
     def_ext_correct pfs st'
       x (l₁.toPropTerm ⊔ l₂.toPropTerm) (⟦st.pog.toPropForm l₁⟧ ⊔ ⟦st.pog.toPropForm l₂⟧)
       hDb hPd hAv
@@ -635,16 +741,54 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
           (pfs.equivalent_lits' l₁ hL₁) (pfs.equivalent_lits' l₂ hL₂))
       hSemVars hX
 
-  -- Variable stuff
-  have : db'.toPropTerm.semVars = st.clauseDb.toPropTerm.semVars ∪ {x} := sorry
-
   have pfs' := {
     pogDefs_in_clauseDb
-    clauseDb_semVars_sub := sorry
-    pogDefsTerm_semVars_sub := sorry
-    inputCnf_vars_sub := sorry
-    depVars_pog := sorry
-    pog_vars := sorry -- TODO next
+    clauseDb_semVars_sub := by
+      rw [hAv, hDb]
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_conj _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . exact subset_trans pfs.clauseDb_semVars_sub (Set.subset_insert _ _)
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_biImpl _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . simp
+      exact subset_trans hSemVars (Set.subset_insert _ _)
+    pogDefsTerm_semVars_sub := by
+      rw [hAv, hPd]
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_conj _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . exact subset_trans pfs.pogDefsTerm_semVars_sub (Set.subset_insert _ _)
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_biImpl _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . simp
+      exact subset_trans hSemVars (Set.subset_insert _ _)
+    inputCnf_vars_sub :=
+      hAv ▸ pfs.inputCnf_vars_sub.trans (Set.subset_insert x st.allVars)
+    depVars_pog := by
+      intro y D hFind
+      by_cases hEq : x = y
+      . rw [st.pog.toPropForm_addDisj _ _ _ _ (hEq ▸ hPog)]
+        rw [st.depVars.find?_insert _ (beq_iff_eq _ _ |>.mpr hEq)] at hFind
+        injection hFind with hFind
+        rw [PropForm.vars, ← hFind, HashSet.toFinset_union]
+        apply Finset.union_subset_union <;> assumption
+      . rw [st.pog.toPropForm_addDisj_of_ne _ _ _ _ _ hPog hEq]
+        rw [st.depVars.find?_insert_of_ne _ (bne_iff_ne _ _ |>.mpr hEq)] at hFind
+        exact pfs.depVars_pog y D hFind
+    pog_vars := by
+      intro y hMem
+      simp only [hAv, Set.mem_insert_iff] at hMem
+      cases hMem
+      next hEq =>
+        simp only [hEq, st.pog.toPropForm_addDisj _ _ _ _ hPog, PropForm.vars]
+        exact Finset.union_subset (pfs.pog_vars' l₁ hL₁) (pfs.pog_vars' l₂ hL₂)
+      next hMem =>
+        have hNe : x ≠ y := fun h => absurd hMem (h ▸ hX)
+        rw [st.pog.toPropForm_addDisj_of_ne _ _ _ _ _ hPog hNe]
+        exact pfs.pog_vars y hMem
     partitioned := by
       intro y
       by_cases hEq : x = y
@@ -665,19 +809,66 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
 def setRoot (r : ILit) : CheckerM Unit := do
   modify fun ⟨st, pfs⟩ => ⟨{ st with root := some r }, { pfs with }⟩
 
--- TODO: final invariant `st.root = some r ∧ st.inputCnf.toPropTerm = ⟦st.scheme.toPropForm r⟧`
-def checkFinalState : CheckerM Unit := do
-  let ⟨st, _⟩ ← get
+def checkFinalClauses (r : ILit) (st : PreState) : Except CheckerError { _u : Unit //
+    (∀ idx C, st.clauseDb.getClause idx = some C → idx ∈ st.pogDefs' ∨ C = #[r])
+    ∧ (∃ idxᵣ, st.clauseDb.getClause idxᵣ = some #[r]) } := do
+  /- NOTE: This check is seriously inefficient. First, `all`/`any` don't use early return. Second,
+  we loop over the clauses twice. Third, this could likely all be implemented in O(1) by storing
+  the number `nClauses` of clauses. As long as `nClauses = st.pogDefs.size + 1` (`+ 1` for the root
+  literal), the conclusion should follow from appropriate invariants. -/
+  match h₁ : st.clauseDb.all (fun idx C => C = #[r] ∨ st.pogDefs.contains idx) with
+  | true =>
+    match h₂ : st.clauseDb.any (fun _ C => C = #[r]) with
+    | true =>
+      have hA := by
+        intro idx C hGet
+        have := st.clauseDb.all_true _ h₁ idx C hGet
+        simp at this
+        rw [PreState.pogDefs', HashSet.mem_toFinset]
+        exact Or.comm.mp this
+      have hE := by
+        have ⟨idxᵣ, C, hGet, hP⟩ := st.clauseDb.any_true _ h₂
+        simp at hP
+        exact ⟨idxᵣ, hP ▸ hGet⟩
+      return ⟨(), hA, hE⟩
+    | false => throw <| .finalRootNotUnit r
+  | false => throw <| .finalClausesInvalid
+
+def checkFinalState : CheckerM { p : ICnf × Pog × ILit //
+    p.1.toPropTerm = ⟦p.2.1.toPropForm p.2.2⟧ } := do
+  let ⟨st, pfs⟩ ← get
 
   let some r := st.root
     | throw <| .finalRootNotSet
+  let ⟨_, hR, _⟩ ← getDeps st pfs r
 
-  -- NOTE: Looping over the entire clause db is not necessary. We could store the number `nClauses`
-  -- and as long as `nClauses = st.pogDefs.size + 1` (`+ 1` for the root literal) at the end,
-  -- the conclusion follows.
-  let _ ← st.clauseDb.foldM (init := ()) fun _ idx C => do
-    if C != #[r] && !st.pogDefs.contains idx then
-      throw <| .finalClauseInvalid idx C
+  let ⟨_, hA, hE⟩ ← checkFinalClauses r st
+  have : st.clauseDb.toPropTerm = r.toPropTerm ⊓ st.pogDefsTerm := by
+    have ⟨idxᵣ, hGet⟩ := hE
+    ext τ
+    rw [st.clauseDb.satisfies_toPropTerm, PreState.pogDefsTerm, satisfies_conj,
+      st.clauseDb.satisfies_toPropTermSub]
+    constructor
+    . intro h
+      have := h _ _ hGet
+      dsimp [IClause.toPropTerm] at this
+      aesop
+    . intro ⟨h₁, h₂⟩ _ _ hGet
+      cases hA _ _ hGet
+      next hMem => exact h₂ _ hMem _ hGet
+      next hEq =>
+        rw [hEq]
+        simp [IClause.toPropTerm, h₁]
+
+  have : st.inputCnf.toPropTerm = ⟦st.pog.toPropForm r⟧ := by
+    have := this ▸ pfs.equivalent_clauseDb
+    have := this.trans (pfs.equivalent_lits' r hR)
+    have hInputVars := PropForm.semVars_subset_vars st.inputCnf.toPropForm
+    simp at hInputVars
+    have hPogVars := subset_trans (PropForm.semVars_subset_vars _) (pfs.pog_vars' r hR)
+    exact equivalentOver_semVars hInputVars hPogVars this
+
+  return ⟨(st.inputCnf, st.pog, r), this⟩
 
 def checkProofStep (step : CratStep) : CheckerM Unit :=
   match step with
@@ -696,7 +887,7 @@ def checkProof (cnf : ICnf) (pf : Array CratStep) : Except CheckerError Unit := 
   let x : CheckerM Unit := do
     for step in pf do
       checkProofStep step
-    checkFinalState
+    let _ ← checkFinalState
   let (ret, _) := x.run st |>.run
   ret
 

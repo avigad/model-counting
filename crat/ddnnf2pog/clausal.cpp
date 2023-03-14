@@ -252,6 +252,23 @@ void Clause::show(FILE *outfile) {
     fprintf(outfile, "0\n");
 }
 
+void Clause::show_reduced(FILE *outfile, int ulit) {
+    // See if clause becomes tautology
+    bool tautology = false;
+    for (int i = 0; !tautology && i < length(); i++)
+	if (contents[i] == ulit)
+	    tautology = true;
+    if (tautology)
+	fprintf(outfile, "%d %d ", ulit, -ulit);
+    else
+	for (int i = 0; i < length(); i++) {
+	    int lit = contents[i];
+	    if (lit != -ulit)
+		fprintf(outfile, "%d ", lit);
+	}
+    fprintf(outfile, "0\n");	
+}
+
 void Clause::write(Writer *writer) {
     if (is_tautology) {
 	int tclause[2 + ILIST_OVHD];
@@ -949,7 +966,7 @@ int Cnf_reasoner::start_or(int var, ilist args) {
     if (cid + ilist_length(args) > clause_limit)
 	err(true, "Adding operation starting with clause %d exceeds limit\n", cid);
     Clause *aclp1 = new Clause();
-    aclp1->add(var); aclp1->add(-arg2);
+    aclp1->add(var); aclp1->add(-arg1);
     add_proof_clause(aclp1);
     Clause *aclp2 = new Clause();
     aclp2->add(var); aclp2->add(-arg2);
@@ -2163,4 +2180,118 @@ bool Cnf_reasoner::check_active() {
     }
 #endif
     return ok;
+}
+
+int Cnf_reasoner::monolithic_validate_root(int root_literal) {
+    const char *cnf_name = "crat_validation_xxx.cnf";
+    const char *lrat_name = "crat_validation_xxx.lrat";
+    char cmd[350];
+
+    FILE *cnf_out = fopen(cnf_name, "w");
+    if (!cnf_out) {
+	err(true, "Couldn't open temporary file '%s'\n", cnf_name);
+    }
+    int starting_proof_size = proof_clauses.size();
+    int full_clause_count = clause_count() + starting_proof_size;
+    // Write Input clauses + initial BCP clauses + defining clauses as CNF
+    fprintf(cnf_out, "p cnf %d %d\n", xvar_count, full_clause_count);
+    for (int cid = 1; cid <= full_clause_count; cid++) {
+	Clause *clp = get_clause(cid);
+	clp->show_reduced(cnf_out, -root_literal);
+    }
+    fclose(cnf_out);
+    
+    double start = tod();
+    snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnf_name, cnf_name, lrat_name);
+    int rc = system(cmd);
+    incr_timer(TIME_SAT, tod()-start);
+    if (rc != 0) {
+	err(false, "Executing command '%s' yielded return code %d\n", cmd, rc);
+	return 0;
+    }
+    FILE *lfile = fopen(lrat_name, "r");
+    if (!lfile) {
+	err(false, "Couldn't open generated LRAT file\n", lrat_name);
+	return 0;
+    }
+    if (!monolithic_load_proof(lfile, root_literal)) {
+	err(false, "Failed to read generated LRAT file\n", lrat_name);
+	return 0;
+    }
+    fclose(lfile);
+    Clause *lnp = proof_clauses.back();
+    if (lnp->length() != 1) {
+	err(false, "Execution of command '%s' did not generate unit clause\n", cmd);	
+	return false;
+    }
+    int nclauses = proof_clauses.size() - starting_proof_size;
+    report(3, "Drat-trim.  %s %d problem clauses.  Added %d proof clauses\n", cnf_name, full_clause_count, nclauses); 
+    incr_histo(HISTO_PROBLEM, full_clause_count);
+    incr_histo(HISTO_PROOF, nclauses);
+
+    if (delete_files) {
+	remove(cnf_name);
+	remove(lrat_name);
+    }
+    return clause_count() + proof_clauses.size();
+}
+ 
+bool Cnf_reasoner::monolithic_load_proof(FILE *lfile, int root_literal) {
+    pwriter->comment("Monolithic proof of root literal %d", root_literal);
+    int nclause = clause_count() + proof_clauses.size();
+    std::unordered_map<int,int> lrat2local;
+    int next_id = nclause + 1;
+    while (find_token(lfile)) {
+	int sid = 0;
+	if (fscanf(lfile, "%d", &sid) != 1) {
+	    err(false, "Couldn't read step Id in LRAT file.  Should be at step #%d\n", next_id);
+	    return false;
+	}
+	if (!find_token(lfile)) {
+	    err(false, "EOF found while trying to parse proof step #%d\n", next_id);
+	}
+	int c = getc(lfile);
+	if (c == EOF) {
+	    err(false, "EOF found while trying to parse proof step #%d\n", sid);
+	    return false;
+	}
+	if (c == 'd') {
+	    c = skip_line(lfile);
+	    if (c == EOF) {
+		err(false, "EOF found while trying to parse proof step #%d\n", sid);
+		return false;
+	    }
+	    ungetc(c, lfile);
+	    continue;
+	} else
+	    ungetc(c, lfile);
+	// Here's the good stuff
+	bool eof;
+	Clause *np = new Clause(lfile, true, &eof);
+	if (np == NULL || eof) {
+	    err(false, "Error encountered while trying to read literals from proof step #%d\n", sid);
+	    return false;
+	}
+	// Add root literal
+	np->add(root_literal);
+	Clause *hp = new Clause(lfile, true, &eof);
+	if (hp == NULL || eof) {
+	    err(false, "Error encountered while trying to read hints from proof step #%d\n", sid);
+	    return false;
+	}
+	lrat2local[sid] = next_id;
+	// Fix up hints
+	for (int i = 0; i < hp->length(); i++) {
+	    int hint = (*hp)[i];
+	    int nhint = (hint <= nclause) ? hint : lrat2local.find(hint)->second;
+	    (*hp)[i] = nhint;
+	}
+	start_assertion(np);
+	add_hints(hp);
+	finish_command(true);
+
+	incr_count(COUNT_MONOLITHIC_CLAUSE);
+	next_id++;
+    }
+    return true;
 }

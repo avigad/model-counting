@@ -13,10 +13,10 @@ theorem addDisj_new_var_equiv {A : Set Var} (Γ l₁ l₂ φ₁ φ₂ : PropTerm
     equivalentOver X (l₁ ⊓ Γ) φ₁ → equivalentOver X (l₂ ⊓ Γ) φ₂ →
     equivalentOver X (.var s ⊓ Γ ⊓ (.biImpl (.var s) (l₁ ⊔ l₂))) (φ₁ ⊔ φ₂) := by
   intro hNMem hXA hΓ hL₁ hL₂ e₁ e₂ τ
-  have hMem : s ∉ X := fun h => hNMem (hXA h)
-  have hΓ : s ∉ Γ.semVars := fun h => False.elim <| hNMem (hΓ h)
-  have hL₁ : s ∉ l₁.semVars := fun h => False.elim <| hNMem (hL₁ h)
-  have hL₂ : s ∉ l₂.semVars := fun h => False.elim <| hNMem (hL₂ h)
+  have hMem : s ∉ X := fun h => absurd (hXA h) hNMem
+  have hΓ : s ∉ Γ.semVars := fun h => absurd (hΓ h) hNMem
+  have hL₁ : s ∉ l₁.semVars := fun h => absurd (hL₁ h) hNMem
+  have hL₂ : s ∉ l₂.semVars := fun h => absurd (hL₂ h) hNMem
   constructor
   case mp =>
     intro ⟨σ₁, hAgree, h₁⟩

@@ -12,6 +12,7 @@ D2P_OPTIONS=
 .SUFFIXES: .cnf \
 	.d4nnf .d4_dt_crat .d4_dt_check_data \
 	.d4_rup_crat .d4_rup_check_data \
+	.d4_rup_mcrat .d4_rup_mcheck_data \
 	.d4_rup_ecrat .d4_rup_echeck_data \
 	.btrace .bcrat .bcheck_data
 
@@ -21,7 +22,13 @@ D2P_OPTIONS=
 .d4nnf.d4_rup_crat:
 	$(D2P) -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_rup_crat_data
 
+.d4nnf.d4_rup_mcrat:
+	$(D2P) -m -v $(VLEVEL) $(D2P_OPTIONS) $*.cnf $< $@ | tee $*.d4_rup_crat_data
+
 .d4_rup_crat.d4_rup_check_data:
+	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
+
+.d4_rup_mcrat.d4_rup_mcheck_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
 
 .d4nnf.d4_rup_ecrat:
