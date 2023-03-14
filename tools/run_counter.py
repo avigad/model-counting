@@ -48,7 +48,7 @@ interpreter = "python3"
 countHome = homePath + "/model-counting/crat/prototype"
 countProgram = countHome + "/crat_counter.py"
 
-timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 10000, "COUNT" : 4000 }
+timeLimits = { "D4" : 4000, "GEN" : 1000, "FCHECK" : 10000, "COUNT" : 4000 }
 
 clauseLimit = (1 << 31) - 1
 
@@ -207,6 +207,9 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
         logName = root + ".d2p_" + extension
     else:
         logName = root + "." + extension
+    if os.path.exists(logName):
+            print("Already have file %s.  Skipping benchmark" % logName)
+            return
     try:
         logFile = open(logName, 'w')
     except:
