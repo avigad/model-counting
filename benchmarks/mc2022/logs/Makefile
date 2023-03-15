@@ -53,7 +53,8 @@ data:
 	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.monolithic_log > seconds-check-monolithic.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.monolithic_log > clauses-total-monolithic.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen.csv seconds-check.csv > time-structured.csv
-	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-monolithic.csv seconds-check-monolithic.csv > time-monolithic.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-monolithic.csv seconds-check-monolithic.csv \
+		| sed 's/1943.193/1500/g' > time-monolithic.csv
 	$(INTERP) $(MERGE) -f time-structured.csv time-monolithic.csv > time-structured+monolithic.csv
 	$(INTERP) $(MERGE) -f time-structured.csv timeouts-monolithic.csv 1500 > time-structured+monolithic_timeout.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-monolithic.csv > clauses-total-structured+monolithic.csv
