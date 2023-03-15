@@ -501,12 +501,19 @@ Performing ring evaluation on an arbitrary Boolean formula could be intractable,
 \begin{proposition}
 For any labeling $w$, ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies:
 \begin{eqnarray}
+%% V1
 \textstyle
 \rep(\boolnot \phi,\; w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
 \textstyle
 \rep\left(\Pand_{i=1,k} \phi_i,\; w \right) &=& \prod_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:product} \\
 \textstyle
 \rep\left(\Por_{i=1,k} \phi_i,\; w\right) &=& \sum_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:sum}
+%% V2
+%\rep(\boolnot \phi, w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
+%\rep\left(\phi_1, w \pand \dots \pand \phi_k, w \right) &=& \prod_{i=1..k} \rep(\phi_i, w) \label{eqn:ring:product} \\
+%\rep\left(\phi_1, w \por \dots \por \phi_k, w \right) &=& \sum_{i=1..k} \rep(\phi_i, w) \label{eqn:ring:sum}
+%\rep\left(\Pand_{i=1,k} \phi_i, w \right) &=& \prod_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:product} \\
+%\rep\left(\Por_{i=1,k} \phi_i, w\right) &=& \sum_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:sum}
 \end{eqnarray}
 \end{proposition}
 
@@ -624,6 +631,43 @@ knowledge compilation.
 %% resolution~\cite{Tseitin:1983} with reverse unit propagation
 %% (RUP)~\cite{goldberg,vangelder08_verifying_rup_proofs} as the core method for
 %% proving that a set of clauses logically implies another clause.
+%% Alternate version
+%% knowledge compilation.  The proof system is based on extended
+%% resolution~\cite{Tseitin:1983} with reverse unit propagation
+%% (RUP)~\cite{goldberg,vangelder08_verifying_rup_proofs} as the core method for
+%% proving that a set of clauses logically implies another clause.
+%% 
+%% As an example, consider the formula $\varphi = (\obar{a} \lor b) \land (\obar{b} \lor c \lor \obar{e}) \land (\obar c \lor d)$ 
+%% and a RUP step to derive the target clause $(\obar{a} \lor d \lor \obar{e})$ from the three clauses from $\varphi$.
+%% A RUP proof would take the following form.  We start with the assignment that falsifies the target clause. This assignment
+%% is extended by clauses in $\varphi$ that become unit and eventually the empty clause. In the illustration below, the 
+%% involved clauses (antecedents) are shown in the order that they became unit / falsified. 
+%% 
+%% \begin{center}
+%%   \begin{tabular}{lcccc}
+%%          & \makebox[15mm]{Target}    & \makebox[10mm]{} & \makebox[10mm]{Antecedents} & \makebox[10mm]{} \\
+%%   Clause & $\obar{a} \lor d \lor \obar{e}$ & $\obar{c} \lor d$  & $\obar{e} \lor \obar{b} \lor c$   & $\obar{a} \lor b$ \\
+%%   \midrule
+%%   Units  & $a$, $\obar{d}$, $e$      &  $\obar{c}$             & $\obar{b}$                         & $\nil$ \\
+%%   \end{tabular}
+%% \end{center}
+%% 
+%% RUP is an alternative formulation of resolution.  For target clause
+%% $C$, it can be seen that applying resolution operations to the
+%% antecedent clauses from right to left will derive a clause $C'$ such
+%% that $C' \subseteq C$.  By {\em subsumption} %~\cite{philipp:lpar:2017},
+%% we then have $C' \rightarrow C$.  Compared to listing each resolution
+%% operation as a separate step, using RUP as the basic proof step makes
+%% the proofs more compact.
+%% 
+%% As is shown in Figure~\ref{fig:chain}
+%% two programs are involved in producing a certified compilation of a formula:
+%% \begin{itemize}
+%% \item The {\em proof generator} produces a CRAT file that both defines the POG and gives a proof that the POG is logically equivalent to the input formula.
+%% As the figure indicates, the generator starts with the output of another knowledge compiler, such as one generating a d-DNNF representation of the formula.
+%% \item The {\em proof checker} ensures that all of the proof conditions are satisfied.
+%% \end{itemize}
+%% >>>>>>> 9c1793da858d00e5d4022d6d33c009848ba2083b
 
 The CRAT format draws its inspiration from the LRAT format for Boolean
 formulas~\cite{lrat} and the QRAT format for quantified Boolean
