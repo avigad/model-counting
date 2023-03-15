@@ -548,6 +548,29 @@ resolution~\cite{Tseitin:1983} with reverse unit propagation
 (RUP)~\cite{goldberg,vangelder08_verifying_rup_proofs} as the core method for
 proving that a set of clauses logically implies another clause.
 
+As an example, consider the formula $\varphi = (\obar{a} \lor b) \land (\obar{b} \lor c \lor \obar{e}) \land (\obar c \lor d)$ 
+and a RUP step to derive the target clause $(\obar{a} \lor d \lor \obar{e})$ from the three clauses from $\varphi$.
+A RUP proof would take the following form.  We start with the assignment that falsifies the target clause. This assignment
+is extended by clauses in $\varphi$ that become unit and eventually the empty clause. In the illustration below, the 
+involved clauses (antecedents) are shown in the order that they became unit / falsified. 
+
+\begin{center}
+  \begin{tabular}{lcccc}
+         & \makebox[15mm]{Target}    & \makebox[10mm]{} & \makebox[10mm]{Antecedents} & \makebox[10mm]{} \\
+  Clause & $\obar{a} \lor d \lor \obar{e}$ & $\obar{c} \lor d$  & $\obar{e} \lor \obar{b} \lor c$   & $\obar{a} \lor b$ \\
+  \midrule
+  Units  & $a$, $\obar{d}$, $e$      &  $\obar{c}$             & $\obar{b}$                         & $\nil$ \\
+  \end{tabular}
+\end{center}
+
+RUP is an alternative formulation of resolution.  For target clause
+$C$, it can be seen that applying resolution operations to the
+antecedent clauses from right to left will derive a clause $C'$ such
+that $C' \subseteq C$.  By {\em subsumption} %~\cite{philipp:lpar:2017},
+we then have $C' \rightarrow C$.  Compared to listing each resolution
+operation as a separate step, using RUP as the basic proof step makes
+the proofs more compact.
+
 As is shown in Figure~\ref{fig:chain}
 two programs are involved in producing a certified compilation of a formula:
 \begin{itemize}
