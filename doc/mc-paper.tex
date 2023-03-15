@@ -435,8 +435,10 @@ Performing ring evaluation on an arbitrary Boolean formula could be intractable,
 Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the following for any labeling $w$:
 \begin{eqnarray}
 \rep(\boolnot \phi, w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
-\rep\left(\Pand_{i=1,k} \phi_i, w \right) &=& \prod_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:product} \\
-\rep\left(\Por_{i=1,k} \phi_i, w\right) &=& \sum_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:sum}
+\rep\left(\phi_1, w \pand \dots \pand \phi_k, w \right) &=& \prod_{i=1..k} \rep(\phi_i, w) \label{eqn:ring:product} \\
+\rep\left(\phi_1, w \por \dots \por \phi_k, w \right) &=& \sum_{i=1..k} \rep(\phi_i, w) \label{eqn:ring:sum}
+%\rep\left(\Pand_{i=1,k} \phi_i, w \right) &=& \prod_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:product} \\
+%\rep\left(\Por_{i=1,k} \phi_i, w\right) &=& \sum_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:sum}
 \end{eqnarray}
 \end{proposition}
 
