@@ -28,6 +28,7 @@ data:
 	$(INTERP) $(MERGE) -f clauses-defining.csv clauses-total.csv > defining+total.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv > time-d4-gen.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen.csv seconds-check.csv > time-d4-verify.csv
+	$(INTERP) $(MERGE) -f seconds-d4.csv 25000 failures.csv > time-d4-failure.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-onesided.csv seconds-check-onesided.csv > time-d4-verify-onesided.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-onesided.csv seconds-check-onesided.csv failures-total.csv > time-d4-verify-onesided-only.csv
 	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv seconds-check.csv seconds-count.csv > times.csv
