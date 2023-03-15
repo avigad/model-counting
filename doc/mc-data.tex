@@ -480,33 +480,29 @@ Here is another way to summarize the impact on the combined time to generate and
 \begin{figure}
 \centering{%
 \begin{tikzpicture}[scale = 0.90]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=1500,
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log,
       legend style={at={(0.22,0.98)}},
       legend cell align={left},
                               x post scale=1.8, y post scale=2.2,
                               xmode=log,xmin=0.01,xmax=1500,
                               xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100,{1,000}},
+                              ymin=0.01, ymax=1900,
                               ytick={0.01, 0.1,1.0,10,100,1000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
                               xlabel={Structured generation + checking (seconds)}, ylabel={Monolithic generation + checking (seconds)},
             ]
     \input{data-formatted/time-structured+monolithic}
     \input{data-formatted/time-structured+monolithic_timeout}
-%    \addplot[mark=none, color=black] coordinates{(0.01,1500) (1500,1500)};
-%    \addplot[mark=none, color=black] coordinates{(1500,0.01) (1500,1500)};
-%    \addplot[mark=none, color=lightblue] coordinates{(10.0,0.01) (10000.0,10.0)};
     \addplot[mark=none, color=lightblue] coordinates{(1.0,0.01) (10000.0,100.0)};
     \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
-%    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1000,1000000)};
-%    \node[left] at (axis cs: 50,0.06) {$0{.}001\times$};
+    \addplot[color=black,dashed] coordinates{(0.01,1500) (1500,1500)};
     \node[left] at (axis cs: 5.0,0.06) {$0{.}01\times$};
     \node[left] at (axis cs: 0.5,0.06) {$0{.}1\times$};
     \node[left] at (axis cs: 0.05,0.06) {$1\times$};
     \node[left] at (axis cs: 0.05,0.6) {$10\times$};
     \node[left] at (axis cs: 0.05,6.0) {$100\times$};
-%    \node[left] at (axis cs: 0.05,60.0) {$1000\times$};
 
           \end{axis}
 \end{tikzpicture}
@@ -535,9 +531,9 @@ Here is another way to summarize the impact on the combined time to generate and
     \addplot[mark=none, color=lightblue] coordinates{(1e3,1e2) (1e7,1e6)};
 %    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1000,1000000)};
 %    \node[left] at (axis cs: 50,0.06) {$0{.}001\times$};
-    \node[left] at (axis cs: 5000,60000) {$10\times$};
-    \node[left] at (axis cs: 5000,6000) {$1\times$};
-    \node[left] at (axis cs: 50000,6000) {$0.1\times$};
+    \node[left] at (axis cs: 3500,40000) {$10\times$};
+    \node[left] at (axis cs: 3500,4000) {$1\times$};
+    \node[left] at (axis cs: 35000,4000) {$0.1\times$};
 %    \node[left] at (axis cs: 0.05,60.0) {$1000\times$};
 
           \end{axis}
@@ -554,12 +550,13 @@ Here is another way to summarize the impact on the combined time to generate and
 \begin{figure}
 \centering{%
 \begin{tikzpicture}[scale = 0.90]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=1500,
-      legend style={at={(0.22,0.98)}},
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10},
+      legend style={at={(0.22,0.97)}},
       legend cell align={left},
                               x post scale=1.8, y post scale=2.2,
-                              xmode=log,xmin=0.01,xmax=1500,
+                              xmode=log,xmin=0.01,xmax=1900,
                               xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100,{1,000}},
+                              ymode=log, ymin=0.01, ymax=1900,
                               ytick={0.01, 0.1,1.0,10,100,1000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
                               xlabel={CRAT total time (seconds)}, ylabel={MICE total time (seconds)},
             ]
@@ -570,6 +567,10 @@ Here is another way to summarize the impact on the combined time to generate and
       \scriptsize \textsf{MICE error},
     }
     \input{data-formatted/time-mice-timeout}
+
+    \addplot[color=black,dashed] coordinates{(0.01,1500) (1500,1500)};
+    \addplot[color=black,dashed] coordinates{(1500,0.01) (1500,1500)};
+
 %    \addplot[mark=none, color=black] coordinates{(0.01,1500) (1500,1500)};
 %    \addplot[mark=none, color=black] coordinates{(1500,0.01) (1500,1500)};
     \addplot[mark=none, color=lightblue] coordinates{(10.0,0.01) (10000.0,10.0)};
