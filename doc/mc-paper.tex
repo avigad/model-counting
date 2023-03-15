@@ -20,6 +20,7 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{booktabs}
+\usepackage{hyperref}
 
 \newcommand{\pand}{\mathbin{\land^{\sf p}}}
 \newcommand{\por}{\mathbin{\lor^{\sf p}}}
@@ -1209,7 +1210,7 @@ We implemented the three programs illustrated in
 Figure~\ref{fig:chain} to supplement the knowledge compiler \dfour{}.
 The proof generator and proof checker were written in C/C++, while the
 ring evaluator was written in Python.\footnote{The programs are
-available at \texttt{https://github.com/rebryant/crat}.}  The proof
+available at \url{https://github.com/rebryant/crat}.}  The proof
 generator uses \cadical{}~\cite{biere-cadical-2019} as its SAT solver.  To convert proof steps
 back into hinted CRAT clause additions, the generator can use either
 its own RUP proof generator, or it can invoke \dtrim{}~\cite{RAT}.

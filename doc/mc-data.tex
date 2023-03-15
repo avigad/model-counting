@@ -20,6 +20,7 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{booktabs}
+\usepackage{hyperref}
 
 \newcommand{\pand}{\mathbin{\land^{\sf p}}}
 \newcommand{\por}{\mathbin{\lor^{\sf p}}}
@@ -71,12 +72,6 @@
 \newcommand{\Generator}{\progname{d2p}}
 \newcommand{\checker}{\progname{crat-check}}
 \newcommand{\Checker}{\progname{Crat-check}}
-
-%% Colored hyperlink 
-%\newcommand{\cref}[2]{\href{#1}{\color{blue}#2}}
-%% Colored hyperlink showing link in TT font
-% \newcommand{\chref}[1]{\href{#1}{\small\tt \color{blue}#1}}
-\newcommand{\hcref}[1]{\cref{#1}{\small\tt #1}}
 
 
 \bibliographystyle{plainurl}% the mandatory bibstyle
@@ -172,7 +167,7 @@
 \begin{enumerate}
    \item Retrieved 200 public model counting benchmarks from 2022 Model Counting Competition website
      \begin{center}
-       \hcref{https://mccompetition.org/2022/mc-description.html}
+       \url{https://mccompetition.org/2022/mc_description.html}
      \end{center}
      \begin{itemize}
      \item 100 public instances from Track 1 (unweighted model counting)
@@ -207,6 +202,7 @@
      \item Exceeded clause limit for 1 instance (Our programs represent a clause ID as a 32-bit signed value)
      \item Ran out of memory for 1 instance
      \item Timed out for 14 instances
+     \item Was able to do one-sided verification for 9 of these.
      \end{itemize}
    \item For completed CRAT files, ran {\sc crat-check} CRAT checker
      \begin{itemize}
@@ -484,7 +480,7 @@ Here is another way to summarize the impact on the combined time to generate and
       legend style={at={(0.22,0.98)}},
       legend cell align={left},
                               x post scale=1.8, y post scale=2.2,
-                              xmode=log,xmin=0.01,xmax=1500,
+                              xmode=log,xmin=0.01,xmax=1900,
                               xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100,{1,000}},
                               ymin=0.01, ymax=1900,
                               ytick={0.01, 0.1,1.0,10,100,1000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
@@ -498,6 +494,7 @@ Here is another way to summarize the impact on the combined time to generate and
     \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
     \addplot[color=black,dashed] coordinates{(0.01,1500) (1500,1500)};
+    \addplot[color=black,dashed] coordinates{(1500,0.01) (1500,1500)};
     \node[left] at (axis cs: 5.0,0.06) {$0{.}01\times$};
     \node[left] at (axis cs: 0.5,0.06) {$0{.}1\times$};
     \node[left] at (axis cs: 0.05,0.06) {$1\times$};
@@ -542,6 +539,15 @@ Here is another way to summarize the impact on the combined time to generate and
 \caption{Monolithic versus Structured Validation: Clauses}
 \label{fig:monolithic:clauses}
 \end{figure}
+
+Ran all benchmarks for which generation + checking could complete in 1000 seconds.  Total = 83.  All completed in less than 1000 seconds with structured.
+Compare both runtimes and total number of clauses for structured vs. monolithic:
+\begin{itemize}
+\item Structured complete 83.
+\item Monolithic completed  69, timed out on 14.
+\item Of the 69 completed, 23 were faster with monolithic, 36 were slower (min ratio = 0.015, max ratio = 9.66, hmean = 0.40)
+\item Of the 69 completed, 59 had fewer total clauses with monolithic, 10 had more (min ratio = 0.07, max ratio = 1.09, hmean = 0.49)
+\end{itemize}
 
 
 
@@ -598,7 +604,7 @@ Here is another way to summarize the impact on the combined time to generate and
 For comparison, we also ran the MICE tool chain for certifying model
 counters~\cite{fichte:sat:2022}.  Figure~\ref{fig:mice} compares the
 runtimes of our toolchain versus theirs.  The X-axis shows the sum of
-the elapsed times for our generator, checker, and counter, while the
+the elapsed times for our generator, checker, and counter (since the MICE checker also provides a count), while the
 Y-axis shows the sum of the elapsed times for \textsc{nnf2trace},
 generating a file in their trace format from a d-DNNF graph generated
 by D4, and for \textsc{sharptrace}, a checker for the trace format.
@@ -624,13 +630,14 @@ done efficiently.
 
 Overall, we can summarize the results as:
 \begin{itemize}
-\item 85 total data points
-\item 64 were completed by both programs in under 1000 seconds
-\item Of these, the MICE toolchain was faster for 20, and the CRAT toolchain was faster for 45
-\item 5 completed with CRAT under 1000 seconds but exceeded that threshold for MICE
+\item 84 total data points
+\item 63 were completed by both programs in under 1000 seconds
+\item Of those 20 were faster with MICE, 43 with CRAT
+\item 6 completed with CRAT under 1000 seconds but exceeded that threshold for MICE
 \item 1 completed with MICE under 1000 seconds but exceeded that threshold for CRAT
-\item 15 completed with CRAT but generated errors for MICE.
+\item 14 completed with CRAT but generated errors for MICE.
 \end{itemize}
+
 
 \bibliography{references}
 
