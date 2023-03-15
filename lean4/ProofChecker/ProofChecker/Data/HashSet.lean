@@ -33,12 +33,37 @@ def inter (s t : HashSet α) : HashSet α :=
 variable [DecidableEq α]
 
 def toFinset (s : HashSet α) : Finset α :=
-  HashMap.fold (init := ∅) (fun s a _ => s ∪ {a}) s
+  HashMap.fold (init := ∅) (fun X a _ => Insert.insert a X) s
 
 variable [LawfulBEq α] [HashMap.LawfulHashable α]
 
-theorem mem_toFinset (s : HashSet α) (a : α) : a ∈ s.toFinset ↔ s.contains a := by
-  sorry
+theorem toFinset_sub (s : HashSet α) (a : α) : a ∈ s.toFinset → s.contains a := by
+  dsimp [toFinset]
+  apply HashMap.foldRecOn
+    (C := fun acc => a ∈ acc → s.contains a)
+    (hInit := by simp)
+  simp only [Finset.mem_insert]
+  intro _ a _ ih hFind hMem
+  cases hMem with
+  | inl h =>
+    apply HashMap.contains_iff _ _ |>.mpr 
+    exact h ▸ ⟨_, hFind⟩
+  | inr h => exact ih h
+
+theorem sub_toFinset (s : HashSet α) (a : α) : s.contains a → a ∈ s.toFinset := by
+  dsimp [toFinset, contains]
+  intro hContains
+  have ⟨_, hFind⟩ := HashMap.contains_iff _ _ |>.mp hContains
+  have ⟨_, hEq⟩ := HashMap.fold_of_mapsTo_of_comm s (fun (X : Finset α) a _ => Insert.insert a X) ∅
+    hFind ?comm
+  case comm =>
+    intros
+    ext
+    aesop
+  simp [hEq]
+
+theorem mem_toFinset (s : HashSet α) (a : α) : a ∈ s.toFinset ↔ s.contains a :=
+  ⟨toFinset_sub s a, sub_toFinset s a⟩
 
 theorem not_mem_toFinset (s : HashSet α) (a : α) : a ∉ s.toFinset ↔ ¬s.contains a := by
   simp [mem_toFinset]
@@ -47,7 +72,7 @@ theorem not_mem_toFinset (s : HashSet α) (a : α) : a ∉ s.toFinset ↔ ¬s.co
 theorem toFinset_empty : toFinset (empty α) = ∅ := by
   ext
   simp [mem_toFinset, empty, contains, HashMap.contains_empty]
-  
+
 theorem toFinset_of_isEmpty (s : HashSet α) : s.isEmpty → s.toFinset = ∅ := by
   intro h
   ext
@@ -151,7 +176,7 @@ disjoint. Return `(⋃ ss, true)` if array elements are pairwise disjoint, other
 def disjointUnion (ss : Array (HashSet α)) : HashSet α × Bool :=
   ss.foldl (init := (.empty α, true)) fun (U, b) t =>
     (U.union t, b && (U.inter t).isEmpty)
-      
+
 theorem disjointUnion_characterization (ss : Array (HashSet α)) :
     (∀ a, a ∈ (disjointUnion ss).fst.toFinset ↔ ∃ s ∈ ss.data, a ∈ s.toFinset)
     ∧ ((disjointUnion ss).snd →
