@@ -174,28 +174,30 @@ theorem count_eq' (pog : Pog) (nVars : Nat) (x : Var) (φ : PropForm Var) :
 The weighted count function
 -/
 
-def conjProdW {n : Nat} (g : Fin n → Rat) : Rat :=
+variable {R : Type} [CommRing R]
+
+def conjProdW {n : Nat} (g : Fin n → R) : R :=
   (Array.ofFn g).foldr (init := 1) (f := fun a b => a * b)
 
-def conjProdW' {n : Nat} (g : Fin n → Rat) : Rat :=
+def conjProdW' {n : Nat} (g : Fin n → R) : R :=
   (List.ofFn g).foldr (init := 1) (f := fun a b => a * b)
 
-theorem conjProdW_eq_conjProdW' : @conjProdW = @conjProdW' := by
+theorem conjProdW_eq_conjProdW' : @conjProdW R _ = @conjProdW' R _ := by
   apply funext; intro n
   apply funext; intro g
   rw [conjProdW, conjProdW', Array.foldr_eq_foldr_data, List.ofFn, Array.toList_eq]
 
-def toCountWeightArray (pog : Pog) (weight : Var → Rat) :
-    { A : Array Rat // A.size = pog.elts.size } :=
+def toCountWeightArray (pog : Pog) (weight : Var → R) :
+    { A : Array R // A.size = pog.elts.size } :=
   aux pog.elts.size #[] (by rw [add_comm]; rfl)
 where
-  aux : (n : Nat) → (A : Array Rat) → (pog.elts.size = A.size + n) →
-        { A : Array Rat // A.size = pog.elts.size }
+  aux : (n : Nat) → (A : Array R) → (pog.elts.size = A.size + n) →
+        { A : Array R // A.size = pog.elts.size }
   | 0, A, h => ⟨A, h.symm⟩
   | n + 1, A, h =>
     have ASizeLt : A.size < pog.elts.size := by
       rw [h, ←add_assoc]; exact lt_succ_of_le (le_add_right _ _)
-    let nextElt : Rat :=
+    let nextElt : R :=
       match pog.elts[A.size]'ASizeLt, pog.wf ⟨A.size, ASizeLt⟩, pog.inv ⟨A.size, ASizeLt⟩ with
         | var x, _, _ => weight x
         | disj x left right, ⟨hleft, hright⟩, hinv =>
@@ -212,7 +214,7 @@ where
               if args[j].polarity then A[args[j].var.natPred] else 1 - A[args[j].var.natPred]
     aux n (A.push nextElt) (by rw [Array.size_push, h, add_assoc, add_comm 1])
 
-def countWeight (pog : Pog) (weight : Var → Rat) (x : Var) : Rat :=
+def countWeight (pog : Pog) (weight : Var → R) (x : Var) : R :=
   if h : x.natPred < pog.elts.size then
     have : x.natPred < (pog.toCountWeightArray weight).1.size := by
       rwa [(pog.toCountWeightArray weight).2]
@@ -220,7 +222,7 @@ def countWeight (pog : Pog) (weight : Var → Rat) (x : Var) : Rat :=
   else
     PropForm.countWeight weight (ILit.mkPos x).toPropForm
 
-theorem countWeight_foldr_conj (weight : Var → Rat) (φs : List (PropForm Var)) :
+theorem countWeight_foldr_conj (weight : Var → R) (φs : List (PropForm Var)) :
    PropForm.countWeight weight (List.foldr PropForm.conj PropForm.tr φs) =
       List.foldr (fun a b => a * b) 1
         (φs.map (PropForm.countWeight weight)) := by
@@ -229,14 +231,14 @@ theorem countWeight_foldr_conj (weight : Var → Rat) (φs : List (PropForm Var)
   . next φ φs ih =>
     rw [List.foldr_cons, PropForm.countWeight, ih, List.map, List.foldr]
 
-theorem toCountWeightArray_spec (pog : Pog) (weight : Var → Rat) :
+theorem toCountWeightArray_spec (pog : Pog) (weight : Var → R) :
   ∀ i : Fin (pog.toCountWeightArray weight).1.size,
       (pog.toCountWeightArray weight).1[i] =
         PropForm.countWeight weight (pog.toPropForm (.mkPos (succPNat i))) := by
   apply aux
   rintro ⟨i, h⟩; contradiction
 where
-  aux : (n : Nat) → (A : Array Rat) → (h : pog.elts.size = A.size + n) →
+  aux : (n : Nat) → (A : Array R) → (h : pog.elts.size = A.size + n) →
           (h' : (∀ i : Fin A.size, A[i] =
             PropForm.countWeight weight (pog.toPropForm (.mkPos (succPNat i))))) →
     ∀ i : Fin (Pog.toCountWeightArray.aux pog weight n A h).1.size,
@@ -317,7 +319,7 @@ where
           rw [ILit.mkPos_var_false _ hlnp, pog.toPropForm_of_polarity_eq_false _ hlnp,
               PropForm.countWeight]
 
-theorem countWeight_eq_countWeight (pog : Pog) (weight : Var → Rat) (x : Var) :
+theorem countWeight_eq_countWeight (pog : Pog) (weight : Var → R) (x : Var) :
     pog.countWeight weight x = (pog.toPropForm (.mkPos x)).countWeight weight := by
   rw [countWeight, toPropForm, ILit.var_mkPos]
   split
@@ -328,7 +330,7 @@ theorem countWeight_eq_countWeight (pog : Pog) (weight : Var → Rat) (x : Var) 
     dsimp; rw [this, toPropForm, ILit.var_mkPos, dif_pos h]
   . next h => rfl
 
-theorem countWeight_eq' (pog : Pog) (weight : Var → Rat) (x : Var) (φ : PropForm Var) :
+theorem countWeight_eq' (pog : Pog) (weight : Var → R) (x : Var) (φ : PropForm Var) :
     pog.toPropForm (.mkPos x) = φ →
     pog.countWeight weight x = φ.countWeight weight := by
       intro h; rw [←h, countWeight_eq_countWeight]
