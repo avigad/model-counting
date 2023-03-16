@@ -42,7 +42,7 @@ lemma mem_vars_foldr_conj (φs : List (PropForm Var)) (x : Var) :
   . simp [PropForm.vars]
   . next φ φs ih =>
     simp [PropForm.vars, ih, Fin.exists_fin_succ]
-
+    
 theorem partitioned_listConj (φs : List (PropForm Var)) :
     (listConj φs).partitioned ↔
       ∀ i : Fin φs.length, (φs.get i).partitioned ∧
@@ -67,10 +67,14 @@ theorem partitioned_listConj (φs : List (PropForm Var)) :
 
 def arrayConj (φs : Array (PropForm Var)) : PropForm Var := listConj φs.data
 
+theorem mem_vars_arrayConj (φs : Array (PropForm Var)) (x : Var) :
+    x ∈ (arrayConj φs).vars ↔ ∃ i : Fin φs.size, x ∈ φs[i].vars :=
+  mem_vars_foldr_conj φs.data x
+
 theorem partitioned_arrayConj (φs : Array (PropForm Var)) :
     (arrayConj φs).partitioned ↔
-      ∀ i : Fin φs.size, (φs[i]).partitioned ∧
-      ∀ j : Fin φs.size, i ≠ j → (φs[i]).vars ∩ (φs[j]).vars = ∅ := by
+      ∀ i : Fin φs.size, φs[i].partitioned ∧
+      ∀ j : Fin φs.size, i ≠ j → φs[i].vars ∩ φs[j].vars = ∅ := by
   dsimp [arrayConj]; rw [partitioned_listConj]; rfl
 
 def arrayConjTerm (φs : Array (PropForm Var)) : PropTerm Var :=
