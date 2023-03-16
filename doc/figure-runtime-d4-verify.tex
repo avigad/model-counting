@@ -1,0 +1,40 @@
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 0.90]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log,
+      legend style={at={(0.30,0.96)}},
+      legend cell align={left},
+                              x post scale=1.8, y post scale=2.4,
+                              xmode=log,xmin=0.01,xmax=4000,
+                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
+                              ymin=0.01, ymax=29000,
+                              ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
+                              xlabel={D4 runtime (seconds)}, ylabel={CRAT generation and checking runtime (seconds)},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \input{data-formatted/time-d4-verify}
+    \input{data-formatted/time-d4-verify-onesided-only}
+    \input{data-formatted/time-d4-failure}
+    \legend{
+      \scriptsize \textsf{Full validation},
+      \scriptsize \textsf{One-sided validation},
+      \scriptsize \textsf{Resource limit exceeded},
+    }
+    \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (2000,20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (200, 20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (20, 20000)};
+    \node[left] at (axis cs: 0.9,0.12) {$0{.}1\times$};
+    \node[left] at (axis cs: 0.09,0.12) {$1\times$};
+    \node[left] at (axis cs: 0.09,1.2) {$10\times$};
+    \node[left] at (axis cs: 0.09,12.0) {$100\times$};
+    \node[left] at (axis cs: 0.09,120.0) {$1000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Combined runtime for CRAT proof generation and checking  as function of D4 runtime}
+\label{fig:d4:crat}
+\end{figure}

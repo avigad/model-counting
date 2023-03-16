@@ -891,183 +891,11 @@ assign $\assign(r) = 0$.  Deleting all but the final asserted clause and all inp
 that
 $\modelset(P) \subseteq \modelset(\inputformula)$.
 
-\subsection{CRAT Example}
-
-\begin{figure}
-\begin{minipage}{0.62\textwidth}
-(A)  Input Formula\\[1.2ex]
-\begin{tabular}{lll}
-\toprule
-\makebox[5mm]{ID} & \makebox[15mm]{Clauses} & \\
-\midrule
-1 & \texttt{-1 3 -4} & \texttt{0} \\
-2 & \texttt{-1 -3 4} & \texttt{0} \\
-3 & \texttt{3 -4} & \texttt{0}\\
-4 & \texttt{1 -3 4} & \texttt{0} \\
-5 & \texttt{-1 -2} & \texttt{0} \\
-\bottomrule
-\end{tabular}
-\\[1.8ex]
-(C) POG Declaration\\[1.2ex]
-\begin{tabular}{llll}
-\toprule
-\makebox[5mm]{ID} & \multicolumn{2}{l}{CRAT line} & Explanation \\
-\midrule
-6 & \texttt{p 5 -3 -4} & \texttt{0} & $p_5 = \obar{x}_3 \pand \obar{x}_4$ \\
-9 & \texttt{p 6 3 4} & \texttt{0} & $p_6 = x_3 \pand x_4$ \\
-12 & \texttt{s 7 5 6 7 10} & \texttt{0} & $s_7 = p_5 \por p_6$ \\
-15 & \texttt{p 8 -1 7} & \texttt{0} & $p_8 = \obar{x}_1 \pand s_7$ \\
-18 & \texttt{p 9 1 -2 7} & \texttt{0} & $p_9 = x_1 \pand \obar{x}_2 \pand s_7$ \\
-22 & \texttt{s 10 8 9 16 19} & \texttt{0} & $s_{10} = p_8 \por p_9$ \\
- & \texttt{r 10} && Root $r = s_{10}$\\
-\bottomrule
-\end{tabular}
-\end{minipage}
-\begin{minipage}{0.35\textwidth}
-(B) POG Representation \\
-\input{dd/eg4}
-\end{minipage}
-%% Break
-\\[2.5ex]
-\begin{minipage}{0.45\textwidth}
-(D) Implicit Clauses\\[1.2ex]
-\begin{tabular}{llll}
-\toprule
-\makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
-\midrule
-\texttt{6} & \texttt{5 3 4} & \texttt{0} & Define $p_5$ \\
-\texttt{7} & \texttt{-5 -3} & \texttt{0} & \\
-\texttt{8} & \texttt{-5 -4} & \texttt{0} & \\
-\midrule
-\texttt{9} & \texttt{6 -3 -4} & \texttt{0} & Define $p_6$ \\
-\texttt{10} & \texttt{-6 3} & \texttt{0} & \\
-\texttt{11} & \texttt{-6 4} & \texttt{0} & \\
-\midrule
-\texttt{12} & \texttt{-7 5 6} & \texttt{0} & Define $s_7$ \\
-\texttt{13} & \texttt{7 -5} & \texttt{0} & \\
-\texttt{14} & \texttt{7 -6} & \texttt{0} & \\
-\midrule
-\texttt{15} & \texttt{8 1 -7} & \texttt{0} & Define $p_8$ \\
-\texttt{16} & \texttt{-8 -1} & \texttt{0} & \\
-\texttt{17} & \texttt{-8 7} & \texttt{0} & \\
-\midrule
-\texttt{18} & \texttt{9 -1 2 -7} & \texttt{0} & Define $p_9$ \\
-\texttt{19} & \texttt{-9 1} & \texttt{0} & \\
-\texttt{20} & \texttt{-9 -2} & \texttt{0} & \\
-\texttt{21} & \texttt{-9 7} & \texttt{0} & \\
-\midrule
-\texttt{22} & \texttt{-10 8 9} & \texttt{0} & Define $s_{10}$ \\
-\texttt{23} & \texttt{10 -8} & \texttt{0} & \\
-\texttt{24} & \texttt{10 -9} & \texttt{0} & \\
-\bottomrule
-\end{tabular}
-\end{minipage}
-\begin{minipage}{0.49\textwidth}
-(E) CRAT Assertions\\[1.2ex]
-\begin{tabular}{llllll}
-\toprule
-\makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hints} & Explanation \\
-\midrule
-\texttt{25} & \texttt{a 5 1 3} & \texttt{0} & \texttt{3 6} & \texttt{0} & $\obar{x}_1 \land \obar{x}_3 \imply p_5$ \\
-\texttt{26} & \texttt{a 6 1 -3} & \texttt{0} & \texttt{4 9} & \texttt{0} & $\obar{x}_1 \land x_3 \imply p_6$ \\
-\texttt{27} & \texttt{a 3 7 1} & \texttt{0} & \texttt{13 25} & \texttt{0} & $\obar{x}_3 \land \obar{x}_1 \imply s_7$  \\
-\texttt{28} & \texttt{a 7 1} & \texttt{0} & \texttt{27 14 26} & \texttt{0} & $\obar{x}_1 \imply s_7$  \\
-\texttt{29} & \texttt{a 8 1} & \texttt{0} & \texttt{28 15} & \texttt{0} & $\obar{x}_1 \imply p_8$  \\
-\texttt{30} & \texttt{a 5 -1 3} & \texttt{0} & \texttt{1 6} & \texttt{0} & $x_1 \land \obar{x}_3 \imply p_5$ \\
-\texttt{31} & \texttt{a 6 -1 -3} & \texttt{0} & \texttt{2 9} & \texttt{0} & $x_1 \land x_3 \imply p_6$ \\
-\texttt{32} & \texttt{a 3 7 -1} & \texttt{0} & \texttt{13 30} & \texttt{0} & $\obar{x}_3 \land x_1 \imply s_7$  \\
-\texttt{33} & \texttt{a 7 -1} & \texttt{0} & \texttt{32 14 31} & \texttt{0} & $x_1 \imply s_7$  \\
-\texttt{34} & \texttt{a 9 -1} & \texttt{0} & \texttt{5 33 18} & \texttt{0} & $x_1 \imply p_9$  \\
-\texttt{35} & \texttt{a 1 10} & \texttt{0} & \texttt{23 29} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
-\texttt{36} & \texttt{a 10} & \texttt{0} & \texttt{35 24 34} & \texttt{0} & $s_{10}$ \\
-\bottomrule
-\end{tabular}
-\\[1.5ex]
-(F) Input Clause Deletions\\[1.2ex]
-\begin{tabular}{lllll}
-  \toprule
- \multicolumn{3}{l}{CRAT line} & Explanation\\
-\midrule
- \texttt{d 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
- \texttt{d 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
- \texttt{d 3} & \texttt{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
- \texttt{d 4} & \texttt{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
- \texttt{d 5} & \texttt{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
-\bottomrule
-\end{tabular}
-\end{minipage}
-\caption{Example formula (A), its POG representation (B), and its CRAT proof (C), (E), and (F)}
-\label{fig:eg4:all}
-\end{figure}
-
-Figure \ref{fig:eg4:all} illustrates an example formula and shows how
-the CRAT file declares its POG representation.  The input formula (A)
-consists of five clauses over variables $x_1$, $x_2$, $x_3$, and
-$x_4$.  The generated POG (B) has six nonterminal nodes representing
-four products and two sums.  We name these by the node
-type (product $\nodep$ or sum $\nodes$), subscripted by the ID of the
-extension variable.
-% We denote the extension variable for nodes $\nodep_i$ and $\nodes_j$ as $p_i$ and $s_j$, respectively.
-  The first part of the CRAT file (C) declares
-these nodes using clause IDs that increment by three or four,
-depending on whether the node has two children or three.  The last two
-nonzero values in the sum declarations are hints providing the
-required mutual exclusion proof.
-
-We step through a detailed example to provide a better understanding of the CRAT proof framework.
-Figure
-\ref{fig:eg4:all}(D) shows the defining clauses that are implicitly
-defined by the POG operation declarations.  These do not appear in the
-CRAT file.  Referring back to the declarations of the sum nodes in
-Figure \ref{fig:eg4:all}(C), we can see that the declaration of node
-$\nodes_7$ had clause IDs 7 and 10 as hints.  We can see in Figure
-\ref{fig:eg4:all}(A) that these two clauses resolve to the clause
-$\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $\nodes_7$
-have disjoint models.  Similarly, node $\nodes_{10}$ is declared as having
-clause IDs 16 and 19 as hints.  These resolve to the clause
-$\obar{p}_8 \lor \obar{p}_9$, showing that the two children of
-$\nodes_{10}$ have disjoint models.
-
-Figure \ref{fig:eg4:all}(E) provides the sequence of assertions
-leading to unit clause 36, consisting of the literal $s_{10}$.  This clause indicates that $\nodes_{10}$ is implied by the input clauses, i.e.,
-any total assignment $\assign$
-satisfying the input clauses must have $\assign(s_{10}) = 1$.
-Working backward, we can see that
-clause 29 indicates that variable $p_8$ will be implied by the input
-clauses when $\assign(x_1) = 0$, while clause 34 indicates that node $p_9$ will
-be implied by the input clauses when $\assign(x_1) = 1$.  These serve as the
-hints for clause 36.
-
-Figure \ref{fig:eg4:all}(F) shows the RUP proof steps required to
-delete the input clauses.  Consider the first of these, deleting
-input clause $\obar{x}_1 \lor x_3 \lor \obar{x}_4$.  The requirement is to show
-that there is no total assignment $\assign$ that falsifies this clause but assigns $\assign(s_{10}) = 1$.
-The proof proceeds by first assuming that the clause is false, requiring
-$\assign(x_1) = 1$, $\assign(x_3) = 0$, and $\assign(x_4) = 1$.  The hints then consist of unit
-clauses (e.g., clause 36 asserting that $\alpha(p_{10}) = 1$) or
-clauses that cause unit propagation.  Hint clauses 8 and 10 force the
-assignments $\assign(p_5) = \assign(p_6) = 0$.  These, plus hint clause 12 force
-$\assign(s_7) = 0$.  This, plus hint clauses 16 and 21 force $\assign(p_8) = \assign(p_9) = 0$, leading
-via clause 22 to $\assign(s_{10}) = 0$.  But this contradicts clause 36,
-completing the RUP proof.  The deletion hints for the other input
-clauses follow similar patterns---they work from the bottom nodes of
-the POG upward, showing that any total assignment that falsifies the clause
-must assign $\assign(s_{10}) = 0$.
-
-Deleting the asserted clauses is so simple that we do not show it.  It
-involves simply deleting the clauses from clause number 35 down to
-clause number 25, with each deletion using the same hints as were used
-to add that clause.  In the end, therefore, only the defining clauses
-for the POG nodes and the unit clause asserting $s_{10}$ remain,
-completing a proof that the POG is logically equivalent to the input
-formula.
-
-Observe that this proof must ``visit'' nodes
-$\nodep_5$ and $\nodep_6$ twice, separately considering  assignments where $\assign(x_1) = 1$
-(clauses 25 and 26) and where $\assign(x_1) = 1$ (clauses 30 and 31).  In
-general, a naive proof must expand the POG into a tree.
-We address this shortcoming by introducing {\em lemmas}, as is described in Section~\ref{sect:lemma}
-
+Appendix~\ref{app:crat:example} shows the CRAT description for
+an input formula with five clauses, yielding a POG with five
+nonterminal nodes.  It explains how the clause addition and deletion
+steps yield a proof of equivalence between the input formula and its POG
+representation.
 
 \section{Generating CRAT from d-DNNF}
 \label{section:generating:crat}
@@ -1278,14 +1106,348 @@ bounded by the number of POG nodes.
 
 \section{Optimizations}
 
-The performance of forward implication, both in its execution time and
-the size of the proof generated can be improved by two optimizations
+The performance of the proof generator for forward implication, both in its execution time and
+the size of the proof generated, can be improved by two optimizations
 described here.  A key feature is that they do not require any changes
 to the proof framework---they build on the power of extended
 resolution to create new logical structures within the proof.  They
-involve declaring new product nodes to encode both conjunctions and
-disjunctions (via DeMorgan's Law) of literals.  These nodes are not
-part of the POG representation of the formula; they serve only to enable the forward implication proof.
+involve declaring new product nodes to encode both products of literals.
+These nodes are not part of the POG
+representation of the formula; they serve only to enable the forward
+implication proof.  Here we only summarize the two optimizations.
+More details are presented in Appendix~\ref{app:optimizations}.
+
+{\em Literal Grouping:} A single recursive step of $\validate$ can encounter product nodes
+having many---tens or even hundreds---of literals as children.  The
+earlier formulation of $\validate$ considers each literal $\lit \in L$
+separately, calling a SAT solver for every literal that cannot be
+validated with BCP\@.  The literal grouping optimization handles
+all of these literals together.  It defines product node $\nodev$
+having the literals as children.  The goal then becomes to prove that
+any total assignment must yield 1 for extension variable $v$.  Calling
+a solver with $v$ set to 0 yields an unsatisfiability proof that can
+be mapped back to a sequence of clause additions in the CRAT file that
+validates all of the literals.
+
+{\em Lemmas:} Our formulation of $\validate$ requires each call at a
+node $\nodeu$ to recursively validate all of its children.  This
+effectively expands the graph into a tree, potentially requiring an
+exponential number of recursive steps.  Instead, for each node
+$\nodeu$ having $\indegree(u) > 1$, the program can define and
+generate the proof of a lemma for $\nodeu$ when it is first reached by
+a call to $\validate$ and then apply this lemma for this and
+subsequent calls.  The lemma states that the POG with root node
+$\nodeu$ satisfies forward implication for a formula
+$\gamma_{\nodeu}$, where some of the clauses in this formula can be
+input clauses from $\inputformula$, but others can be simplified
+versions of input clauses.
+The key idea is to introduce product nodes to encode (via DeMorgan's
+Laws) the simplified clauses and have these serve as lemma arguments.
+
+The combination of these two optimization guarantees that 1) each call
+to $\validate$ for a product node will cause at most one invocation of
+the SAT solver, and 2) each call to $\validate$ for any node $\nodeu$
+will cause further recursive calls only once.  Our experimental
+results (Appendix~\ref{app:experiments}) shows that these
+optimizations yield substantial benefits.
+
+
+
+\input{lean}
+
+
+\section{Experimental Evaluation}
+\label{sect:experimental}
+We have implemented versions of the three programs that, in addition to the \dfour{} knowledge compiler,  form the
+toolchain illustrated in Figure~\ref{fig:chain}.  One version,
+including a proof generator, proof checker, and ring evaluator for
+standard and weighted model counting, is designed to be fully
+scalable.  The other version, consisting of a proof checker and
+ring evaluator has been formally verified within the \lean{} proof
+system.
+
+Our long-term goal is to have a toolchain suitable for use in a
+knowledge compilation competition, along the lines of the annual
+competitions for other automated reasoning tools.  Our experiments
+consider the benchmark problems and computing capabilities that would
+arise in such a competition and evaluate whether our implementations
+could handle these problems.  As with the original proof-generating
+SAT competitions, we assume that the proofs at a competition could be
+checked with the unverified checker.  Having a verified checker
+that works on some subset of the benchmarks would provide an
+additional degree of certainty.
+
+Our proof generator is written in C/C++ and uses
+\cadical{}~\cite{biere-cadical-2019} as its SAT solver.  To convert
+proof steps back into hinted CRAT clause additions, the generator can
+use either its own RUP proof generator, or it can invoke
+\dtrim{}~\cite{RAT}.  The latter yields shorter proofs and scales well
+to large proofs, but each invocation has a high startup cost.  We
+therefore only use it when solving larger problems (currently ones
+with over 1000 clauses).
+
+The proof generator can optionally be instructed to generate a {\em
+one-sided} proof, providing only the reverse-implication portion of the proof via
+input clause deletion.  This can provide useful information---any
+assignment that is a model for the compiled representation
+must also be a model for the input formula---even when generating a
+full validation is impractical.
+
+Our ring evaluator can perform both standard and weighted model
+counting.  It performs arithmetic over a subset of the rational
+numbers we term $\drational$, consisting of numbers of the form
+$a \cdot 2^{b} \cdot 5^{c}$, for integers $a$, $b$, and $c$, and
+with $a$ implemented to have arbitrary range.
+Allowing scaling by powers of 2 enables the density computation
+and rescaling required for standard model counting.  Allowing scaling
+by powers of both 2 and 5 enables exact decimal arithmetic, handling
+the weights used in the weighted model counting competitions.
+
+We provide only a summary of our experiments here.  A more complete
+description is provided in Appendix~\ref{app:experiments}\@. For our
+evaluation, we used the public benchmark problems from the 2022
+standard and weighted model competitions.  We found that there were
+180 unique CNF files among these, ranging in size from 250 to
+2,753,207 clauses.  We ran our programs on a processor with 64~GB of
+memory and having an attached high-speed, solid-state
+disk---capabilities that should be included in the cluster nodes for
+future competitions.
+
+With a runtime limit of 4000 seconds (the model counting competition
+has a limit of 3600 seconds), \dfour{} completed for 124 of the
+benchmark problems.  Our proof generator was able to convert all of
+these into POGs, with their declarations ranging from 304 to
+2,761,457,765 (median 848,784) defining clauses.
+%(The
+%maximum count overflowed the overflowed the 32-bit signed integers we
+%used to represent clause identifiers in both the proof generator and
+%checker.)
+We then ran our proof generator with a time limit of 10,000 seconds.
+It was able to generate full proofs for 108 of the problems and
+one-sided proofs for an additional 9 of them, leaving just 7 with no
+verification.  The checker successfully verified all of the generated
+proofs.  The longest runtime for the combination of proof generator
+and checker for a full proof was 13,145 seconds.
+It is worth noting that, to date, we have not found
+any errors in the d-DNNF graph generated by \dfour{}.  
+
+Appendix~\ref{app:experiments} also presents experimental results
+comparing the monolithic and structural methods for generating forward
+implication proofs, the effects of our two optimizations of structural
+proofs, and a comparison with the MICE proof framework.
+
+
+\section{Conclusions}
+\label{sect:future}
+
+Our experiments demonstrate that our toolchain could handle a
+substantial portion of the solutions generated in a knowledge compiler
+competition.  Further engineering and optimization of our proof
+generator and checker could improve their performance and capacity,
+and we could increase the time limit for these programs.
+
+
+
+
+%% Each node $\nodeu$ in an $SDD$ has children $p_1, p_2, \ldots, p_k$ and
+%% $s_1, s_2, \ldots p_k$, where the Boolean formula $\phi(\nodeu)$ associated
+%% with the node is defined recursively as $\phi(\nodeu) = \bigwedge_{i=1,k}
+%% [\phi(p_i) \land \phi(s_i)]$.  Moreover, each children $p_i$ and $p_j$
+%% such that $1 \leq i < j \leq k$ must satisfy $\modelset(\phi(p_i))
+%% \cap \modelset(\phi(p_j)) = \emptyset$, and for every $p_i$ and $s_j$
+%% such that $1 \leq i,j \leq k$, we must have $\dependencyset(\phi(p_i))
+%% \cap \dependencyset(\phi(s_j)) = \emptyset$.  The POG representation
+%% of such a node could have $k$ product nodes: $t_i = p_i \pand s_i$
+%% for $1 \leq i \leq k$, and then $k-1$ binary sum nodes to form
+%% the sum of $t_1, \ldots, t_k$.
+
+\bibliography{references}
+
+\newpage
+
+\appendix
+
+\section{CRAT Example}
+\label{app:crat:example}
+
+\begin{figure}
+\begin{minipage}{0.62\textwidth}
+(A)  Input Formula\\[1.2ex]
+\begin{tabular}{lll}
+\toprule
+\makebox[5mm]{ID} & \makebox[15mm]{Clauses} & \\
+\midrule
+1 & \texttt{-1 3 -4} & \texttt{0} \\
+2 & \texttt{-1 -3 4} & \texttt{0} \\
+3 & \texttt{3 -4} & \texttt{0}\\
+4 & \texttt{1 -3 4} & \texttt{0} \\
+5 & \texttt{-1 -2} & \texttt{0} \\
+\bottomrule
+\end{tabular}
+\\[1.8ex]
+(C) POG Declaration\\[1.2ex]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{CRAT line} & Explanation \\
+\midrule
+6 & \texttt{p 5 -3 -4} & \texttt{0} & $p_5 = \obar{x}_3 \pand \obar{x}_4$ \\
+9 & \texttt{p 6 3 4} & \texttt{0} & $p_6 = x_3 \pand x_4$ \\
+12 & \texttt{s 7 5 6 7 10} & \texttt{0} & $s_7 = p_5 \por p_6$ \\
+15 & \texttt{p 8 -1 7} & \texttt{0} & $p_8 = \obar{x}_1 \pand s_7$ \\
+18 & \texttt{p 9 1 -2 7} & \texttt{0} & $p_9 = x_1 \pand \obar{x}_2 \pand s_7$ \\
+22 & \texttt{s 10 8 9 16 19} & \texttt{0} & $s_{10} = p_8 \por p_9$ \\
+ & \texttt{r 10} && Root $r = s_{10}$\\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.35\textwidth}
+(B) POG Representation \\
+\input{dd/eg4}
+\end{minipage}
+%% Break
+\\[2.5ex]
+\begin{minipage}{0.45\textwidth}
+(D) Implicit Clauses\\[1.2ex]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
+\midrule
+\texttt{6} & \texttt{5 3 4} & \texttt{0} & Define $p_5$ \\
+\texttt{7} & \texttt{-5 -3} & \texttt{0} & \\
+\texttt{8} & \texttt{-5 -4} & \texttt{0} & \\
+\midrule
+\texttt{9} & \texttt{6 -3 -4} & \texttt{0} & Define $p_6$ \\
+\texttt{10} & \texttt{-6 3} & \texttt{0} & \\
+\texttt{11} & \texttt{-6 4} & \texttt{0} & \\
+\midrule
+\texttt{12} & \texttt{-7 5 6} & \texttt{0} & Define $s_7$ \\
+\texttt{13} & \texttt{7 -5} & \texttt{0} & \\
+\texttt{14} & \texttt{7 -6} & \texttt{0} & \\
+\midrule
+\texttt{15} & \texttt{8 1 -7} & \texttt{0} & Define $p_8$ \\
+\texttt{16} & \texttt{-8 -1} & \texttt{0} & \\
+\texttt{17} & \texttt{-8 7} & \texttt{0} & \\
+\midrule
+\texttt{18} & \texttt{9 -1 2 -7} & \texttt{0} & Define $p_9$ \\
+\texttt{19} & \texttt{-9 1} & \texttt{0} & \\
+\texttt{20} & \texttt{-9 -2} & \texttt{0} & \\
+\texttt{21} & \texttt{-9 7} & \texttt{0} & \\
+\midrule
+\texttt{22} & \texttt{-10 8 9} & \texttt{0} & Define $s_{10}$ \\
+\texttt{23} & \texttt{10 -8} & \texttt{0} & \\
+\texttt{24} & \texttt{10 -9} & \texttt{0} & \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+(E) CRAT Assertions\\[1.2ex]
+\begin{tabular}{llllll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hints} & Explanation \\
+\midrule
+\texttt{25} & \texttt{a 5 1 3} & \texttt{0} & \texttt{3 6} & \texttt{0} & $\obar{x}_1 \land \obar{x}_3 \imply p_5$ \\
+\texttt{26} & \texttt{a 6 1 -3} & \texttt{0} & \texttt{4 9} & \texttt{0} & $\obar{x}_1 \land x_3 \imply p_6$ \\
+\texttt{27} & \texttt{a 3 7 1} & \texttt{0} & \texttt{13 25} & \texttt{0} & $\obar{x}_3 \land \obar{x}_1 \imply s_7$  \\
+\texttt{28} & \texttt{a 7 1} & \texttt{0} & \texttt{27 14 26} & \texttt{0} & $\obar{x}_1 \imply s_7$  \\
+\texttt{29} & \texttt{a 8 1} & \texttt{0} & \texttt{28 15} & \texttt{0} & $\obar{x}_1 \imply p_8$  \\
+\texttt{30} & \texttt{a 5 -1 3} & \texttt{0} & \texttt{1 6} & \texttt{0} & $x_1 \land \obar{x}_3 \imply p_5$ \\
+\texttt{31} & \texttt{a 6 -1 -3} & \texttt{0} & \texttt{2 9} & \texttt{0} & $x_1 \land x_3 \imply p_6$ \\
+\texttt{32} & \texttt{a 3 7 -1} & \texttt{0} & \texttt{13 30} & \texttt{0} & $\obar{x}_3 \land x_1 \imply s_7$  \\
+\texttt{33} & \texttt{a 7 -1} & \texttt{0} & \texttt{32 14 31} & \texttt{0} & $x_1 \imply s_7$  \\
+\texttt{34} & \texttt{a 9 -1} & \texttt{0} & \texttt{5 33 18} & \texttt{0} & $x_1 \imply p_9$  \\
+\texttt{35} & \texttt{a 1 10} & \texttt{0} & \texttt{23 29} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
+\texttt{36} & \texttt{a 10} & \texttt{0} & \texttt{35 24 34} & \texttt{0} & $s_{10}$ \\
+\bottomrule
+\end{tabular}
+\\[1.5ex]
+(F) Input Clause Deletions\\[1.2ex]
+\begin{tabular}{lllll}
+  \toprule
+ \multicolumn{3}{l}{CRAT line} & Explanation\\
+\midrule
+ \texttt{d 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
+ \texttt{d 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
+ \texttt{d 3} & \texttt{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
+ \texttt{d 4} & \texttt{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
+ \texttt{d 5} & \texttt{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\caption{Example formula (A), its POG representation (B), and its CRAT proof (C), (E), and (F)}
+\label{fig:eg4:all}
+\end{figure}
+
+Figure \ref{fig:eg4:all} illustrates an example formula and shows how
+the CRAT file declares its POG representation.  The input formula (A)
+consists of five clauses over variables $x_1$, $x_2$, $x_3$, and
+$x_4$.  The generated POG (B) has six nonterminal nodes representing
+four products and two sums.  We name these by the node
+type (product $\nodep$ or sum $\nodes$), subscripted by the ID of the
+extension variable.
+% We denote the extension variable for nodes $\nodep_i$ and $\nodes_j$ as $p_i$ and $s_j$, respectively.
+  The first part of the CRAT file (C) declares
+these nodes using clause IDs that increment by three or four,
+depending on whether the node has two children or three.  The last two
+nonzero values in the sum declarations are hints providing the
+required mutual exclusion proof.
+
+\subsection{Node Declarations}
+
+We step through a detailed example to provide a better understanding of the CRAT proof framework.
+Figure
+\ref{fig:eg4:all}(D) shows the defining clauses that are implicitly
+defined by the POG operation declarations.  These do not appear in the
+CRAT file.  Referring back to the declarations of the sum nodes in
+Figure \ref{fig:eg4:all}(C), we can see that the declaration of node
+$\nodes_7$ had clause IDs 7 and 10 as hints.  We can see in Figure
+\ref{fig:eg4:all}(A) that these two clauses resolve to the clause
+$\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $\nodes_7$
+have disjoint models.  Similarly, node $\nodes_{10}$ is declared as having
+clause IDs 16 and 19 as hints.  These resolve to the clause
+$\obar{p}_8 \lor \obar{p}_9$, showing that the two children of
+$\nodes_{10}$ have disjoint models.
+
+\subsection{Forward Implication Proof}
+
+Figure \ref{fig:eg4:all}(E) provides the sequence of assertions
+leading to unit clause 36, consisting of the literal $s_{10}$.  This clause indicates that $\nodes_{10}$ is implied by the input clauses, i.e.,
+any total assignment $\assign$
+satisfying the input clauses must have $\assign(s_{10}) = 1$.
+Working backward, we can see that
+clause 29 indicates that variable $p_8$ will be implied by the input
+clauses when $\assign(x_1) = 0$, while clause 34 indicates that node $p_9$ will
+be implied by the input clauses when $\assign(x_1) = 1$.  These serve as the
+hints for clause 36.
+
+\subsection{Reverse Implication Proof}
+
+Figure \ref{fig:eg4:all}(F) shows the RUP proof steps required to
+delete the input clauses.  Consider the first of these, deleting
+input clause $\obar{x}_1 \lor x_3 \lor \obar{x}_4$.  The requirement is to show
+that there is no total assignment $\assign$ that falsifies this clause but assigns $\assign(s_{10}) = 1$.
+The proof proceeds by first assuming that the clause is false, requiring
+$\assign(x_1) = 1$, $\assign(x_3) = 0$, and $\assign(x_4) = 1$.  The hints then consist of unit
+clauses (e.g., clause 36 asserting that $\alpha(p_{10}) = 1$) or
+clauses that cause unit propagation.  Hint clauses 8 and 10 force the
+assignments $\assign(p_5) = \assign(p_6) = 0$.  These, plus hint clause 12 force
+$\assign(s_7) = 0$.  This, plus hint clauses 16 and 21 force $\assign(p_8) = \assign(p_9) = 0$, leading
+via clause 22 to $\assign(s_{10}) = 0$.  But this contradicts clause 36,
+completing the RUP proof.  The deletion hints for the other input
+clauses follow similar patterns---they work from the bottom nodes of
+the POG upward, showing that any total assignment that falsifies the clause
+must assign $\assign(s_{10}) = 0$.
+
+Deleting the asserted clauses is so simple that we do not show it.  It
+involves simply deleting the clauses from clause number 35 down to
+clause number 25, with each deletion using the same hints as were used
+to add that clause.  In the end, therefore, only the defining clauses
+for the POG nodes and the unit clause asserting $s_{10}$ remain,
+completing a proof that the POG is logically equivalent to the input
+formula.
+
+
+\section{Optimizations for Forward Implication Proofs}
+\label{app:optimizations}
 
 \subsection{Literal Grouping}
 
@@ -1307,7 +1469,7 @@ variable $v$.  A single call to the solver can generate this proof by invoking i
 
 
 \subsection{Lemmas}
-\label{sect:lemma}
+\label{app:lemma}
 
 As we have noted, the recursive calling of $\validate$ starting at
 root $\noder$ effectively expands the POG into a tree, and this can
@@ -1373,272 +1535,25 @@ the graph.  For any node $\nodeu$, the first call to
 $\validate(\nodeu, \passign, \psi)$ may require further recursion,
 but any subsequent call can simply reuse the lemma proved by the first call.
 
-
-\input{lean}
-
-
-\section{Experimental Evaluation}
-\label{sect:experimental}
-
-We implemented the three programs illustrated in
-Figure~\ref{fig:chain} to supplement the knowledge compiler \dfour{}.
-The proof generator and proof checker were written in C/C++, while the
-ring evaluator was written in Python.\footnote{The programs are
-available at \url{https://github.com/rebryant/crat}.}  The proof
-generator uses \cadical{}~\cite{biere-cadical-2019} as its SAT solver.  To convert proof steps
-back into hinted CRAT clause additions, the generator can use either
-its own RUP proof generator, or it can invoke \dtrim{}~\cite{RAT}.
-The latter yields shorter proofs and scales well to large proofs, but
-each invocation has a high startup cost.  We therefore set a threshold
-of 1000 clauses in the SAT problem for using \dtrim{}.
-
-The proof generator can optionally be instructed to generate a {\em
-  one-sided} proof, providing only reverse-implication portion via
-input clause deletion.  This can provide useful information---any
-assignment that is a model for the compiled representation
-must also be a model for the input formula---even when generation of a
-full validation is impractical.
-
-Our ring evaluator can perform both standard and weighted model
-counting.  It performs arithmetic over a subset of the rational
-numbers we term $\drational$, consisting of numbers of the form
-$a \cdot 2^{b} \cdot 5^{c}$, for integers $a$, $b$, and $c$, and
-with $a$ implemented to have arbitrary range.
-Allowing scaling by powers of 2 enables the density computation
-and rescaling required for standard model counting.  Allowing scaling
-by powers of both 2 and 5 enables exact decimal arithmetic, handling
-the weights used in the weighted model counting competitions.
+\subsection{Lemma Example}
+Observe that the forward implication proof shown in Figure~\ref{fig:eg4:all}  must ``visit'' nodes
+$\nodep_5$ and $\nodep_6$ twice, separately considering  assignments where $\assign(x_1) = 1$
+(clauses 25 and 26) and where $\assign(x_1) = 1$ (clauses 30 and 31).
 
 
-\section{Future Work}
-\label{sect:future}
 
-
-%% Each node $\nodeu$ in an $SDD$ has children $p_1, p_2, \ldots, p_k$ and
-%% $s_1, s_2, \ldots p_k$, where the Boolean formula $\phi(\nodeu)$ associated
-%% with the node is defined recursively as $\phi(\nodeu) = \bigwedge_{i=1,k}
-%% [\phi(p_i) \land \phi(s_i)]$.  Moreover, each children $p_i$ and $p_j$
-%% such that $1 \leq i < j \leq k$ must satisfy $\modelset(\phi(p_i))
-%% \cap \modelset(\phi(p_j)) = \emptyset$, and for every $p_i$ and $s_j$
-%% such that $1 \leq i,j \leq k$, we must have $\dependencyset(\phi(p_i))
-%% \cap \dependencyset(\phi(s_j)) = \emptyset$.  The POG representation
-%% of such a node could have $k$ product nodes: $t_i = p_i \pand s_i$
-%% for $1 \leq i \leq k$, and then $k-1$ binary sum nodes to form
-%% the sum of $t_1, \ldots, t_k$.
-
-\bibliography{references}
-
-
-\appendix
-
-\section{Experimental Methodology}
 
 \section{Detailed Experimental Results}
+\label{app:experiments}
 
-\begin{figure}
-\centering{%
-\begin{tikzpicture}[scale = 0.80]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=3000000000,
-      legend style={at={(0.30,0.98)}},
-      legend cell align={left},
-                              x post scale=1.8, y post scale=1.8,
-                              xmode=log, xmin=0.01,xmax=4000,
-                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
-                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 1e10}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$,$10^{10}$},
-                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
-%                              title={D4 Defining Clause Generation}
-            ]
-    \input{data-formatted/time+defining-success}
-    \input{data-formatted/time+defining-onesided-only}
-    \input{data-formatted/time+defining-failure}
-    \legend{
-      \scriptsize \textsf{Full validation},
-      \scriptsize \textsf{One-sided validation},
-      \scriptsize \textsf{Resource limit exceeded},
-    }
- \end{axis}
-\end{tikzpicture}
-} % centering
-\caption{Number of defining clauses in generated POG as function of D4 runtime}
-\label{fig:generate:d4:log}
-\end{figure}
+\input{figure-runtime-d4-verify}
 
+\input{figure-clauses-d4-verify}
 
-\begin{figure}
-\centering{%
-\begin{tikzpicture}[scale = 0.80]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=20000,
-      legend style={at={(0.30,0.98)}},
-      legend cell align={left},
-                              x post scale=1.8, y post scale=2.4,
-                              xmode=log,xmin=0.01,xmax=4000,
-                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
-                              ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
-                              xlabel={D4 runtime (seconds)}, ylabel={CRAT generation and checking runtime (seconds)},
-%                              title={D4 Defining Clause Generation}
-            ]
-    \input{data-formatted/time-d4-verify}
-    \input{data-formatted/time-d4-verify-onesided-only}
-    \legend{
-      \scriptsize \textsf{Full validation},
-      \scriptsize \textsf{One-sided validation},
-    }
-    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1000,1000000)};
-    \node[left] at (axis cs: 0.9,0.12) {$0{.}1\times$};
-    \node[left] at (axis cs: 0.09,0.12) {$1\times$};
-    \node[left] at (axis cs: 0.09,1.2) {$10\times$};
-    \node[left] at (axis cs: 0.09,12.0) {$100\times$};
-    \node[left] at (axis cs: 0.09,120.0) {$1000\times$};
+\input{figure-runtime-monolithic}
 
-          \end{axis}
-\end{tikzpicture}
-} % centering
-\caption{Combined runtime for CRAT proof generation and checking  as function of D4 runtime}
-\label{fig:d4:crat}
-\end{figure}
+\input{figure-clauses-optimizations}
 
-\begin{figure}
-\centering{%
-\begin{tikzpicture}[scale = 0.80]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000,
-                              x post scale=1.8, y post scale=2.15,
-                              xmode=log,xmin=100,xmax=1000000000,
-                              xtick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, xticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
-                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
-                              xlabel={Defining Clauses}, ylabel={Proof Clauses},
-%                              title={D4 Defining Clause Generation}
-            ]
-    \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
-    \addplot[mark=none, color=lightblue] coordinates{(100,1000) (1e8,1e9)};
-    \addplot[mark=none, color=lightblue] coordinates{(100,10000) (1e7,1e9)};
-    \addplot[mark=none, color=lightblue] coordinates{(100,100000) (1e6,1e9)};
-    \addplot[mark=none, color=lightblue] coordinates{(100,1000000) (1e5,1e9)};
-    \input{data-formatted/defining+total}
-    \node[left] at (axis cs: 900,1200) {$1\times$};
-    \node[left] at (axis cs: 900,12000) {$10\times$};
-    \node[left] at (axis cs: 900,120000) {$100\times$};
-    \node[left] at (axis cs: 900,1200000) {$1{,}000\times$};
-    \node[left] at (axis cs: 900,12000000) {$10{,}000\times$};
-
-          \end{axis}
-\end{tikzpicture}
-} % centering
-\caption{Total number of clauses in CRAT file as function of number of defining clauses}
-\label{fig:defining:total}
-\end{figure}
-
-
-\begin{figure}
-\begin{minipage}{0.49\textwidth}
-\centering{%
-\begin{tikzpicture}[scale = 0.80]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=1000, ymax=3e8,
-      legend style={at={(0.50,0.98)}},
-      legend cell align={left},
-                              x post scale=1.1, y post scale=1.8,
-                              xmode=log,xmin=1000,xmax=1e7,
-                              xtick={1000, 10000, 100000, 1000000, 10000000}, xticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$},
-                              ytick={1000, 10000, 100000, 1000000, 10000000, 100000000, 1e9}, yticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$, $10^9$},
-%                              xlabel={Optimized Proof Clauses},
-%                              ylabel={Proof Clauses},
-            ]
-    \input{data-formatted/clauses-lemma-nolemma}
-    \input{data-formatted/clauses-nosplit-split}
-    \legend{
-      \scriptsize \textsf{No lemmas},
-      \scriptsize \textsf{No literal grouping},
-    }
-    \addplot[mark=none, color=lightblue] coordinates{(1000,1000) (1e8,1e8)};
-    \addplot[mark=none, color=lightblue] coordinates{(1000,10000) (1e8,1e9)};
-    \addplot[mark=none, color=lightblue] coordinates{(1000,100000) (1e7,1e9)};
-
-    \node[left] at (axis cs: 5000,7000) {$1\times$};
-    \node[left] at (axis cs: 5000,70000) {$10\times$};
-    \node[left] at (axis cs: 5000,700000) {$100\times$};
-
-
-          \end{axis}
-\end{tikzpicture}
-} % centering
-\end{minipage}
-\begin{minipage}{0.49\textwidth}
-\centering{%
-\begin{tikzpicture}[scale = 0.80]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=1000, ymax=3e8,
-      legend style={at={(0.50,0.98)}},
-      legend cell align={left},
-                              x post scale=1.1, y post scale=1.8,
-                              xmode=log,xmin=1000,xmax=1e7,
-                              xtick={1000, 10000, 100000, 1000000, 10000000}, xticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$},
-                              ytick={1000, 10000, 100000, 1000000, 10000000, 100000000, 1e9}, yticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$, $10^9$},
-%                              xlabel={Optimized Proof Clauses},y
-%                              ylabel={Proof Clauses},
-            ]
-    \input{data-formatted/clauses-optimized-unoptimized}
-    \legend{
-      \scriptsize \textsf{Neither optimization},
-    }
-    \addplot[mark=none, color=lightblue] coordinates{(1000,1000) (1e8,1e8)};
-    \addplot[mark=none, color=lightblue] coordinates{(1000,10000) (1e8,1e9)};
-    \addplot[mark=none, color=lightblue] coordinates{(1000,100000) (1e7,1e9)};
-
-    \node[left] at (axis cs: 5000,7000) {$1\times$};
-    \node[left] at (axis cs: 5000,70000) {$10\times$};
-    \node[left] at (axis cs: 5000,700000) {$100\times$};
-  \end{axis}
-\end{tikzpicture}
-} % centering
-\end{minipage}
-\caption{Proof clauses when one (left) or both (right) optimizations are disabled, versus when both optimizations are enabled}
-\label{fig:optimized:lessoptimized}
-\end{figure}
-
-\begin{figure}
-\centering{%
-\begin{tikzpicture}[scale = 0.80]
-  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=0.01, ymax=1500,
-      legend style={at={(0.22,0.98)}},
-      legend cell align={left},
-                              x post scale=1.8, y post scale=2.2,
-                              xmode=log,xmin=0.01,xmax=1500,
-                              xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100,{1,000}},
-                              ytick={0.01, 0.1,1.0,10,100,1000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
-                              xlabel={CRAT total time (seconds)}, ylabel={MICE total time (seconds)},
-            ]
-    \input{data-formatted/time-mice-compare}
-    \input{data-formatted/time-mice-error}
-    \legend{
-      \scriptsize \textsf{Correct or timeout},
-      \scriptsize \textsf{MICE error},
-    }
-    \input{data-formatted/time-mice-timeout}
-%    \addplot[mark=none, color=black] coordinates{(0.01,1500) (1500,1500)};
-%    \addplot[mark=none, color=black] coordinates{(1500,0.01) (1500,1500)};
-    \addplot[mark=none, color=lightblue] coordinates{(10.0,0.01) (10000.0,10.0)};
-    \addplot[mark=none, color=lightblue] coordinates{(1.0,0.01) (10000.0,100.0)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (10000,100000)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (1000,100000)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1000,1000000)};
-    \node[left] at (axis cs: 50,0.06) {$0{.}001\times$};
-    \node[left] at (axis cs: 5.0,0.06) {$0{.}01\times$};
-    \node[left] at (axis cs: 0.5,0.06) {$0{.}1\times$};
-    \node[left] at (axis cs: 0.05,0.06) {$1\times$};
-    \node[left] at (axis cs: 0.05,0.6) {$10\times$};
-    \node[left] at (axis cs: 0.05,6.0) {$100\times$};
-    \node[left] at (axis cs: 0.05,60.0) {$1000\times$};
-
-          \end{axis}
-\end{tikzpicture}
-} % centering
-\caption{Running Time for MICE versus CRAT proof chains}
-\label{fig:mice}
-\end{figure}
-
+\input{figure-mice-crat}
 
 \end{document}

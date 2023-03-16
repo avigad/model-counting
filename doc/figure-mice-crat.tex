@@ -1,0 +1,47 @@
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 0.90]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10},
+      legend style={at={(0.22,0.97)}},
+      legend cell align={left},
+                              x post scale=1.8, y post scale=2.2,
+                              xmode=log,xmin=0.01,xmax=1900,
+                              xtick={0.01, 0.1,1.0,10,100,1000}, xticklabels={0.01, 0.1, 1.0, 10, 100,{1,000}},
+                              ymode=log, ymin=0.01, ymax=1900,
+                              ytick={0.01, 0.1,1.0,10,100,1000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
+                              xlabel={CRAT total time (seconds)}, ylabel={MICE total time (seconds)},
+            ]
+    \input{data-formatted/time-mice-compare}
+    \input{data-formatted/time-mice-error}
+    \legend{
+      \scriptsize \textsf{Correct or timeout},
+      \scriptsize \textsf{MICE error},
+    }
+    \input{data-formatted/time-mice-timeout}
+
+    \addplot[color=black,dashed] coordinates{(0.01,1500) (1500,1500)};
+    \addplot[color=black,dashed] coordinates{(1500,0.01) (1500,1500)};
+
+%    \addplot[mark=none, color=black] coordinates{(0.01,1500) (1500,1500)};
+%    \addplot[mark=none, color=black] coordinates{(1500,0.01) (1500,1500)};
+    \addplot[mark=none, color=lightblue] coordinates{(10.0,0.01) (1000.0,1.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(1.0,0.01) (1000.0,10.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (1000.0,100.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (1000.0,1000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (100,1000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (10,1000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (1,1000)};
+    \node[left] at (axis cs: 50,0.06) {$0{.}001\times$};
+    \node[left] at (axis cs: 5.0,0.06) {$0{.}01\times$};
+    \node[left] at (axis cs: 0.5,0.06) {$0{.}1\times$};
+    \node[left] at (axis cs: 0.05,0.06) {$1\times$};
+    \node[left] at (axis cs: 0.05,0.6) {$10\times$};
+    \node[left] at (axis cs: 0.05,6.0) {$100\times$};
+    \node[left] at (axis cs: 0.05,60.0) {$1000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Running Time for MICE versus CRAT proof chains}
+\label{fig:mice}
+\end{figure}

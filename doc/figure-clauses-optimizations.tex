@@ -1,0 +1,64 @@
+\begin{figure}
+\begin{minipage}{0.49\textwidth}
+\centering{%
+\begin{tikzpicture}[scale = 0.80]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=1000, ymax=3e8, 
+      legend style={at={(0.50,0.98)}},
+      legend cell align={left},
+                              x post scale=1.1, y post scale=1.8,
+                              xmode=log,xmin=1000,xmax=1e7, 
+                              xtick={1000, 10000, 100000, 1000000, 10000000}, xticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$},
+                              ytick={1000, 10000, 100000, 1000000, 10000000, 100000000, 1e9}, yticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$, $10^9$},
+%                              xlabel={Optimized Proof Clauses},
+%                              ylabel={Proof Clauses},
+            ]
+    \input{data-formatted/clauses-lemma-nolemma}
+    \input{data-formatted/clauses-nosplit-split}
+    \legend{
+      \scriptsize \textsf{No lemmas},
+      \scriptsize \textsf{No literal grouping},
+    }
+    \addplot[mark=none, color=lightblue] coordinates{(1000,1000) (1e8,1e8)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,10000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,100000) (1e7,1e9)};
+
+    \node[left] at (axis cs: 5000,7000) {$1\times$};
+    \node[left] at (axis cs: 5000,70000) {$10\times$};
+    \node[left] at (axis cs: 5000,700000) {$100\times$};
+
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+\centering{%
+\begin{tikzpicture}[scale = 0.80]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=1000, ymax=3e8, 
+      legend style={at={(0.50,0.98)}},
+      legend cell align={left},
+                              x post scale=1.1, y post scale=1.8,
+                              xmode=log,xmin=1000,xmax=1e7, 
+                              xtick={1000, 10000, 100000, 1000000, 10000000}, xticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$},
+                              ytick={1000, 10000, 100000, 1000000, 10000000, 100000000, 1e9}, yticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$, $10^9$},
+%                              xlabel={Optimized Proof Clauses},y
+%                              ylabel={Proof Clauses},
+            ]
+    \input{data-formatted/clauses-optimized-unoptimized}    
+    \legend{
+      \scriptsize \textsf{Neither optimization},
+    }
+    \addplot[mark=none, color=lightblue] coordinates{(1000,1000) (1e8,1e8)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,10000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,100000) (1e7,1e9)};
+
+    \node[left] at (axis cs: 5000,7000) {$1\times$};
+    \node[left] at (axis cs: 5000,70000) {$10\times$};
+    \node[left] at (axis cs: 5000,700000) {$100\times$};
+  \end{axis}
+\end{tikzpicture}
+} % centering
+\end{minipage}
+\caption{Proof clauses when one (left) or both (right) optimizations are disabled, versus when both optimizations are enabled}
+\label{fig:optimized:lessoptimized}
+\end{figure}
