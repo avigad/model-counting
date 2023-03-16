@@ -469,6 +469,57 @@ def getDeps (st : PreState) (pfs : st.WF) (l : ILit) : Except CheckerError { D :
     return ⟨D, st.depVars.contains_iff _ |>.mpr ⟨D, h⟩, pfs.depVars_pog' _ _ h⟩
   | none => throw <| .unknownVar l.var
 
+def getDepsArray {st : PreState} (pfs : st.WF) (ls : Array ILit) :
+    Except CheckerError { Ds : Array (HashSet Var) //
+      (∀ l ∈ ls.data, l.var ∈ st.allVars) ∧
+      Ds.size = ls.size ∧
+      ∀ (i : Nat) (hI : i < ls.size) (hI' : i < Ds.size),
+        (st.pog.toPropForm ls[i]).vars ⊆ Ds[i].toFinset } :=
+  let f l :=
+    match st.depVars.find? l.var with
+    | some D => return D
+    | none => throw <| .unknownVar l.var
+  let x : Except CheckerError (Array (HashSet Var)) := ls.mapM f
+  match h : x with
+  | .error e => throw e
+  | .ok Ds =>
+    have := Array.SatisfiesM_mapM (as := ls) (f := f)
+      -- Postcondition on the input
+      (motive := fun i => ∀ (j : Fin ls.size), j < i → ls[j].var ∈ st.allVars)
+      -- Postcondition on the outputs
+      (p := fun i val => (st.pog.toPropForm ls[i]).vars ⊆ val.toFinset)
+      (h0 := by simp)
+      (hs := by
+        dsimp
+        intro i ih
+        split
+        next h =>
+          simp only [SatisfiesM_Except_eq]
+          intro D hEq
+          cases hEq
+          refine ⟨pfs.depVars_pog' _ _ h, ?_⟩
+          intro j hJ
+          cases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hJ) with
+          | inl hJ => exact ih j hJ
+          | inr hJ =>
+            simp only [hJ]
+            exact st.depVars.contains_iff _ |>.mpr ⟨_, h⟩
+        . simp)
+    have hLs := by
+      intro l hL
+      simp only [SatisfiesM_Except_eq] at this
+      have ⟨h, _⟩ := this _ h
+      have ⟨i, hI⟩ := Array.get_of_mem_data hL
+      exact hI ▸ h i i.isLt
+    have hDs := by
+      simp only [SatisfiesM_Except_eq] at this
+      have := this _ h
+      aesop
+    have hSz := by
+      apply SatisfiesM_Except_eq.mp ?_ _ h
+      apply Array.size_mapM
+    return ⟨Ds, hLs, hSz, hDs⟩
+
 def addPogDefClause (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (C : IClause) (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
     Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx //
@@ -614,17 +665,7 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   let ⟨_, hX⟩ ← ensureFreshVar st x
 
   -- Check that variables are known and compute their dependencies.
-  let Ds ← ls.mapM fun l => do
-    let ⟨D, _⟩ ← getDeps st pfs l
-    return D
-
-  have hLs : ∀ l, l ∈ ls.data → l.var ∈ st.allVars := by
-    sorry
-  have hSz : ls.size = Ds.size := by
-    sorry
-  have hDs : ∀ (i : Nat) (hI : i < ls.size),
-      (st.pog.toPropForm ls[i]).vars ⊆ (Ds[i]'(hSz ▸ hI)).toFinset :=
-    sorry
+  let ⟨Ds, hLs, hSz, hDs⟩ ← getDepsArray pfs ls
 
   -- Compute total dependency set and check pairwise disjointness.
   let ⟨U, hU, hDisjoint⟩ ← disjointUnion ls Ds
@@ -651,7 +692,8 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
     intro x
     simp only [PropForm.mem_vars_arrayConj, getElem_fin, Array.getElem_map]
     intro ⟨i, hMem⟩
-    have := hDs i (Array.size_map st.pog.toPropForm ls ▸ i.isLt) hMem
+    have hI : i < ls.size := Array.size_map st.pog.toPropForm ls ▸ i.isLt
+    have := hDs i hI (hSz ▸ hI) hMem
     exact hU x |>.mpr ⟨_, Array.getElem_mem_data _ _, this⟩
 
   have hSemVars : ↑(PropTerm.semVars ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) ⊆ st.allVars :=
@@ -678,7 +720,7 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
         exact addConj_new_var_equiv
           st.pog st.pogDefsTerm ls
           hX pfs.inputCnf_vars_sub pfs.pogDefsTerm_semVars_sub pfs.uep_pogDefsTerm
-          pfs.extends_pogDefsTerm 
+          pfs.extends_pogDefsTerm
           fun l hL =>
             have hMem := hLs l hL
             ⟨hMem, pfs.pog_semVars l hMem, pfs.equivalent_lits' l hMem⟩)
@@ -745,9 +787,9 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
         . exact pfs.partitioned' (ls[i.val])
         . intro j hNe
           have h := Array.size_map st.pog.toPropForm ls
-          have h' := h.trans hSz
-          have hI := hDs i (h ▸ i.isLt)
-          have hJ := hDs j (h ▸ j.isLt)
+          have h' := h.trans hSz.symm
+          have hI := hDs i (h ▸ i.isLt) (h' ▸ i.isLt)
+          have hJ := hDs j (h ▸ j.isLt) (h' ▸ j.isLt)
           have hIJ := hDisjoint i j (h' ▸ i.isLt) (h' ▸ j.isLt) (Fin.val_ne_of_ne hNe)
           simp at hI hJ hIJ ⊢
           apply Finset.subset_empty.mp
