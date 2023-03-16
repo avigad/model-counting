@@ -645,8 +645,12 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm ⊓
       (.biImpl (.var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) := hDb
       
-  have hVars : (PropForm.arrayConj (ls.map st.pog.toPropForm)).vars ⊆ U.toFinset :=
-    sorry
+  have hVars : (PropForm.arrayConj (ls.map st.pog.toPropForm)).vars ⊆ U.toFinset := by
+    intro x
+    simp only [PropForm.mem_vars_arrayConj, getElem_fin, Array.getElem_map]
+    intro ⟨i, hMem⟩
+    have := hDs i (Array.size_map st.pog.toPropForm ls ▸ i.isLt) hMem
+    exact hU x |>.mpr ⟨_, Array.getElem_mem_data _ _, this⟩
 
   have hSemVars : ↑(PropTerm.semVars ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) ⊆ st.allVars :=
     by sorry
