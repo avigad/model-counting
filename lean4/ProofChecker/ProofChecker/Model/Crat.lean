@@ -113,16 +113,46 @@ theorem addConj_new_var_equiv₂ {A : Set Var} (Γ l₁ l₂ φ₁ φ₂ : PropT
     have : σ₃ ⊨ Γ := agreeOn_semVars (σ₁.agreeOn_set_of_not_mem _ hΓ) |>.mpr (by tauto)
     exact ⟨σ₃, σ₁.agreeOn_set_of_not_mem _ hMem |>.trans hAgree₁, by simp; tauto⟩
 
--- TODO: Extend to n-ary conjunctions. Possible formulation:
-theorem addConj_new_var_equiv (G : Pog) (Γ : PropTerm Var) (ls : Array ILit) : p ∉ X → p ∉ Γ.semVars →
-    hasUniqueExtension X Γ.semVars Γ →
-    (∀ l ∈ ls.data, p ≠ l.var ∧ l.var ∈ Γ.semVars ∧ PropTerm.semVars ⟦G.toPropForm l⟧ ⊆ Γ.semVars ∧
+theorem addConj_new_var_equiv {A : Set Var} (G : Pog) (Γ : PropTerm Var) (ls : Array ILit) :
+    p ∉ A → X ⊆ A → ↑Γ.semVars ⊆ A → hasUniqueExtension X A Γ →
+    (∀ σ₁, ∃ (σ₂ : PropAssignment Var), σ₂.agreeOn X σ₁ ∧ σ₂ ⊨ Γ) →
+    (∀ l ∈ ls.data, l.var ∈ A ∧ ↑(PropTerm.semVars ⟦G.toPropForm l⟧) ⊆ X ∧
       equivalentOver X (l.toPropTerm ⊓ Γ) ⟦G.toPropForm l⟧) →
     equivalentOver X
-      -- TODO: Clean up `arrayConjTerm` and family
-      (.var p ⊓ (.biImpl (.var p) (PropForm.arrayConjTerm (ls.map ILit.toPropForm))) ⊓ Γ)
-      (PropForm.arrayConjTerm (ls.map G.toPropForm)) :=
-  sorry
+      (.var p ⊓ (Γ ⊓ .biImpl (.var p) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧))
+      ⟦PropForm.arrayConj (ls.map G.toPropForm)⟧ := by
+  intro hMem hX hΓ hUep hExt hLs τ
+  refine ⟨?mp, ?mpr⟩ <;>
+    simp only [PropForm.mk_arrayConj, satisfies_conj, satisfies_biImpl,
+      PropForm.satisfies_arrayConjTerm, Array.map_data, List.mem_map', and_imp,
+      forall_apply_eq_imp_iff₂, forall_exists_index, ILit.mk_toPropForm]
+  case mp =>
+    intro σ₁ hAgree hσ₁p hσ₁Γ hσ₁
+    simp only [hσ₁p, true_iff, ILit.mk_toPropForm] at hσ₁
+    refine ⟨σ₁, hAgree, ?_⟩
+    intro l hL
+    have ⟨_, hTpf, hEquiv⟩ := hLs l hL
+    have : σ₁ ⊨ l.toPropTerm := hσ₁ l hL
+    have : σ₁ ⊨ l.toPropTerm ⊓ Γ := by simp [this, hσ₁Γ]
+    have ⟨σ₂, hAgree₂, hσ₂⟩ := hEquiv τ |>.mp ⟨σ₁, hAgree, this⟩
+    apply agreeOn_semVars ?_ |>.mp hσ₂
+    exact (hAgree₂.trans hAgree.symm).subset hTpf
+  case mpr =>
+    intro σ₂ hAgree₂ hTpfs
+    have ⟨σ₁, hAgree₁, h₁⟩ := hExt τ
+    let σ₁' := σ₁.set p true
+    have hσ₁'p : σ₁' ⊨ .var p := by simp
+    have hAgree₁'A : σ₁'.agreeOn A σ₁ := σ₁.agreeOn_set_of_not_mem _ hMem
+    have hAgree₁' : σ₁'.agreeOn X τ := hAgree₁'A.subset hX |>.trans hAgree₁
+    have hσ₁'Γ : σ₁' ⊨ Γ := agreeOn_semVars (hAgree₁'A.subset hΓ) |>.mpr h₁
+    refine ⟨σ₁', hAgree₁', hσ₁'p, hσ₁'Γ, ⟨fun _ => ?_, fun _ => hσ₁'p⟩⟩
+    intro l hL
+    have : σ₂ ⊨ ⟦G.toPropForm l⟧ := hTpfs l hL
+    have ⟨σ₃, hAgree₃, h₃⟩ := (hLs l hL).right.right τ |>.mpr ⟨σ₂, hAgree₂, this⟩
+    refine agreeOn_semVars ?_ |>.mp (satisfies_conj.mp h₃).left
+    have : ↑l.toPropTerm.semVars ⊆ A := by simp [(hLs l hL).left]
+    apply PropAssignment.agreeOn.subset this
+    exact hUep (satisfies_conj.mp h₃).right hσ₁'Γ (hAgree₃.trans hAgree₁'.symm)
 
 /-! Other stuff that doesn't fit anywhere. -/
 

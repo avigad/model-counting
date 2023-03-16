@@ -181,6 +181,10 @@ theorem PreState.WF.pog_vars' {st : PreState} (hWf : st.WF) (l : ILit) :
     rw [h, Pog.toPropForm_neg]
     exact hWf.pog_vars l.var hMem
 
+theorem PreState.WF.pog_semVars {st : PreState} (hWf : st.WF) (l : ILit) :
+    l.var ∈ st.allVars → ↑(PropTerm.semVars ⟦st.pog.toPropForm l⟧) ⊆ st.inputCnf.vars.toFinset :=
+  fun hMem => subset_trans (PropForm.semVars_subset_vars _) (hWf.pog_vars' l hMem)
+
 theorem PreState.WF.equivalent_lits' {st : PreState} (hWf : st.WF) (l : ILit) :
     l.var ∈ st.allVars → equivalentOver st.inputCnf.vars.toFinset
       (l.toPropTerm ⊓ st.pogDefsTerm) ⟦st.pog.toPropForm l⟧ := by
@@ -214,9 +218,7 @@ theorem PreState.WF.equivalent_lits' {st : PreState} (hWf : st.WF) (l : ILit) :
       have ⟨σ₂, hAgree₂, hσ₂⟩ := hEquiv σ₁ |>.mp
         ⟨σ₁, PropAssignment.agreeOn_refl _ _, satisfies_conj.mpr ⟨h, hσ₁⟩⟩
       have hAgree := hAgree₂.trans hAgree
-      have hSub := subset_trans
-        (PropForm.semVars_subset_vars (st.pog.toPropForm (.mkPos x)))
-        (hWf.pog_vars _ hMem)
+      have hSub := hWf.pog_semVars (.mkPos x) hMem
       have : σ ⊨ ⟦st.pog.toPropForm (.mkPos x)⟧ :=
         agreeOn_semVars (hAgree.subset hSub) |>.mp hσ₂
       simp [satisfies_neg] at hσ
@@ -571,7 +573,7 @@ theorem def_ext_correct {st : PreState} (H : st.WF) (st' : PreState) (x : Var) (
 def addProdClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (x : Var) (ls : Array ILit)
     (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
-    Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx // 
+    Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx //
       p.1.toPropTerm = db₀.toPropTerm ⊓
         (.biImpl (.var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) ∧
       p.1.toPropTermSub (· ∈ p.2.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓
@@ -615,7 +617,7 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   let Ds ← ls.mapM fun l => do
     let ⟨D, _⟩ ← getDeps st pfs l
     return D
-    
+
   have hLs : ∀ l, l ∈ ls.data → l.var ∈ st.allVars := by
     sorry
   have hSz : ls.size = Ds.size := by
@@ -628,7 +630,7 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   let ⟨U, hU, hDisjoint⟩ ← disjointUnion ls Ds
 
   let ⟨pog', hPog⟩ ← addConjToPog st.pog x ls
-  
+
   let ⟨(db', pd'), hDb, hPd, pogDefs_in_clauseDb⟩ ←
     addProdClauses st.clauseDb st.pogDefs idx x ls pfs.pogDefs_in_clauseDb
 
@@ -644,7 +646,7 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
 
   have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm ⊓
       (.biImpl (.var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) := hDb
-      
+
   have hVars : (PropForm.arrayConj (ls.map st.pog.toPropForm)).vars ⊆ U.toFinset := by
     intro x
     simp only [PropForm.mem_vars_arrayConj, getElem_fin, Array.getElem_map]
@@ -653,7 +655,13 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
     exact hU x |>.mpr ⟨_, Array.getElem_mem_data _ _, this⟩
 
   have hSemVars : ↑(PropTerm.semVars ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) ⊆ st.allVars :=
-    by sorry
+    by
+      apply subset_trans (Finset.coe_subset.mpr <| PropForm.semVars_subset_vars _)
+      intro x
+      simp only [Finset.mem_coe, PropForm.mem_vars_arrayConj, getElem_fin, Array.getElem_map,
+        ILit.vars_toPropForm, Finset.mem_singleton]
+      intro ⟨i, h⟩
+      exact h ▸ hLs ls[i] (Array.getElem_mem_data _ _)
 
   have hAv : st'.allVars = insert x st.allVars := by
     ext
@@ -665,7 +673,15 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
       hDb hPd hAv
       (fun l hNe => st.pog.toPropForm_addConj_lit_of_ne _ _ _ _ (by exact hPog) hNe)
       (by simp [st.pog.toPropForm_addConj _ _ _ hPog])
-      sorry
+      (by
+        rw [hPd]
+        exact addConj_new_var_equiv
+          st.pog st.pogDefsTerm ls
+          hX pfs.inputCnf_vars_sub pfs.pogDefsTerm_semVars_sub pfs.uep_pogDefsTerm
+          pfs.extends_pogDefsTerm 
+          fun l hL =>
+            have hMem := hLs l hL
+            ⟨hMem, pfs.pog_semVars l hMem, pfs.equivalent_lits' l hMem⟩)
       hSemVars hX
 
   have pfs' := {
