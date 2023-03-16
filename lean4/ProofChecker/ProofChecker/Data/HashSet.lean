@@ -245,7 +245,9 @@ theorem mem_disjointUnion (ss : Array (HashSet α)) (a : α) :
   disjointUnion_characterization ss |>.left a
 
 theorem disjoint_disjointUnion (ss : Array (HashSet α)) : (disjointUnion ss).snd →
-    ∀ (i j : Fin ss.size), i ≠ j → ss[i].toFinset ∩ ss[j].toFinset = ∅ :=
-  disjointUnion_characterization ss |>.right
+    ∀ (i j : Nat) (hI : i < ss.size) (hJ : j < ss.size), i ≠ j →
+      ss[i].toFinset ∩ ss[j].toFinset = ∅ :=
+  fun h i j hI hJ hNe =>
+    disjointUnion_characterization ss |>.right h ⟨i, hI⟩ ⟨j, hJ⟩ (by simp [hNe])
 
 end HashSet

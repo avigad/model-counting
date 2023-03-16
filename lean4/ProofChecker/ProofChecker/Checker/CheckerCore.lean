@@ -568,12 +568,42 @@ theorem def_ext_correct {st : PreState} (H : st.WF) (st' : PreState) (x : Var) (
       exact hEquiv
   ⟨equiv, extend, uep, equiv_vars⟩
 
--- TODO: do variable dependency tracking in here?
+def addProdClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
+    (idx : ClauseIdx) (x : Var) (ls : Array ILit)
+    (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
+    Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx // 
+      p.1.toPropTerm = db₀.toPropTerm ⊓
+        (.biImpl (.var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) ∧
+      p.1.toPropTermSub (· ∈ p.2.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓
+        (.biImpl (.var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) ∧
+      ∀ idx, idx ∈ p.2.toFinset → p.1.contains idx } := do
+  let ⟨db₁, _⟩ ← addClause db₀ idx (ls.map (-·) |>.push (.mkPos x))
+  let mut (db, pogDefs) := (db₁, pd₀.insert idx)
+  for h : i in [0:ls.size] do
+    let l := ls[i]'(Membership.mem.upper h)
+    let ⟨dbᵢ, _⟩ ← addClause db (idx+i+1) #[.mkNeg x, l]
+    db := dbᵢ
+    pogDefs := pogDefs.insert (idx+i+1)
+  return ⟨(db, pogDefs), sorry, sorry, sorry⟩
+
 def addConjToPog (g : Pog) (x : Var) (ls : Array ILit) : Except CheckerError { g' : Pog //
     g.addConj x ls = .ok g' } :=
   match g.addConj x ls with
   | .ok g' => pure ⟨g', rfl⟩
   | .error e => throw <| .graphUpdateError e
+
+def disjointUnion (ls : Array ILit) (Ds : Array (HashSet Var)) :
+    Except CheckerError { U : HashSet Var //
+      (∀ x, x ∈ U.toFinset ↔ ∃ D ∈ Ds.data, x ∈ D.toFinset) ∧
+      ∀ (i j : Nat) (hI : i < Ds.size) (hJ : j < Ds.size), i ≠ j →
+        Ds[i].toFinset ∩ Ds[j].toFinset = ∅ } :=
+  match h : HashSet.disjointUnion Ds with
+  | (U, true) =>
+    have h₁ : (HashSet.disjointUnion Ds).fst = U := congrArg Prod.fst h
+    have h₂ : (HashSet.disjointUnion Ds).snd = true := congrArg Prod.snd h
+    return ⟨U, h₁ ▸ HashSet.mem_disjointUnion Ds, HashSet.disjoint_disjointUnion Ds h₂⟩
+  | (_, false) =>
+    throw <| .depsNotDisjoint (ls.toList.map ILit.var)
 
 def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
@@ -585,31 +615,130 @@ def addProd (idx : ClauseIdx) (x : Var) (ls : Array ILit) : CheckerM Unit := do
   let Ds ← ls.mapM fun l => do
     let ⟨D, _⟩ ← getDeps st pfs l
     return D
+    
+  have hLs : ∀ l, l ∈ ls.data → l.var ∈ st.allVars := by
+    sorry
+  have hSz : ls.size = Ds.size := by
+    sorry
+  have hDs : ∀ (i : Nat) (hI : i < ls.size),
+      (st.pog.toPropForm ls[i]).vars ⊆ (Ds[i]'(hSz ▸ hI)).toFinset :=
+    sorry
 
   -- Compute total dependency set and check pairwise disjointness.
-  let (union, disjoint) := HashSet.disjointUnion Ds
-  if !disjoint then
-    throw <| .depsNotDisjoint (ls.toList.map ILit.var)
+  let ⟨U, hU, hDisjoint⟩ ← disjointUnion ls Ds
 
-  -- Defining clauses for the conjunction.
-  let ⟨db₁, _⟩ ← addClause st.clauseDb idx (ls.map (-·) |>.push (.mkPos x))
-  let mut (db, pogDefs) := (db₁, st.pogDefs.insert idx)
-  for h : i in [0:ls.size] do
-    let l := ls[i]'(Membership.mem.upper h)
-    let ⟨dbᵢ, _⟩ ← addClause db (idx+i+1) #[.mkNeg x, l]
-    db := dbᵢ
-    pogDefs := pogDefs.insert (idx+i+1)
-
-  let ⟨pog', _⟩ ← addConjToPog st.pog x ls
+  let ⟨pog', hPog⟩ ← addConjToPog st.pog x ls
+  
+  let ⟨(db', pd'), hDb, hPd, pogDefs_in_clauseDb⟩ ←
+    addProdClauses st.clauseDb st.pogDefs idx x ls pfs.pogDefs_in_clauseDb
 
   let st' := { st with
-    clauseDb := db
-    pogDefs
+    clauseDb := db'
+    pogDefs := pd'
     pog := pog'
-    depVars := st.depVars.insert x union
-    root := st.root
+    depVars := st.depVars.insert x U
   }
-  have pfs' := sorry
+
+  have hPd : st'.pogDefsTerm = st.pogDefsTerm ⊓
+      (.biImpl (.var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) := hPd
+
+  have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm ⊓
+      (.biImpl (.var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) := hDb
+      
+  have hVars : (PropForm.arrayConj (ls.map st.pog.toPropForm)).vars ⊆ U.toFinset :=
+    sorry
+
+  have hSemVars : ↑(PropTerm.semVars ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) ⊆ st.allVars :=
+    by sorry
+
+  have hAv : st'.allVars = insert x st.allVars := by
+    ext
+    simp [PreState.allVars, HashMap.contains_insert, @eq_comm _ x, or_comm]
+
+  have ⟨equivalent_clauseDb, extends_pogDefsTerm, uep_pogDefsTerm, equivalent_lits⟩ :=
+    def_ext_correct pfs st'
+      x ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧ ⟦PropForm.arrayConj (ls.map st.pog.toPropForm)⟧
+      hDb hPd hAv
+      (fun l hNe => st.pog.toPropForm_addConj_lit_of_ne _ _ _ _ (by exact hPog) hNe)
+      (by simp [st.pog.toPropForm_addConj _ _ _ hPog])
+      sorry
+      hSemVars hX
+
+  have pfs' := {
+    pogDefs_in_clauseDb
+    clauseDb_semVars_sub := by
+      rw [hAv, hDb]
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_conj _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . exact subset_trans pfs.clauseDb_semVars_sub (Set.subset_insert _ _)
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_biImpl _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . simp
+      exact subset_trans hSemVars (Set.subset_insert _ _)
+    pogDefsTerm_semVars_sub := by
+      rw [hAv, hPd]
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_conj _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . exact subset_trans pfs.pogDefsTerm_semVars_sub (Set.subset_insert _ _)
+      apply subset_trans (Finset.coe_subset.mpr <| semVars_biImpl _ _)
+      rw [Finset.coe_union]
+      apply Set.union_subset
+      . simp
+      exact subset_trans hSemVars (Set.subset_insert _ _)
+    inputCnf_vars_sub :=
+      hAv ▸ pfs.inputCnf_vars_sub.trans (Set.subset_insert x st.allVars)
+    depVars_pog := by
+      intro y D hFind
+      by_cases hEq : x = y
+      . rw [st.pog.toPropForm_addConj _ _ _ (hEq ▸ hPog)]
+        rw [st.depVars.find?_insert _ (beq_iff_eq _ _ |>.mpr hEq)] at hFind
+        injection hFind with hFind
+        exact hFind ▸ hVars
+      . rw [st.pog.toPropForm_addConj_of_ne _ _ _ _ hPog hEq]
+        rw [st.depVars.find?_insert_of_ne _ (bne_iff_ne _ _ |>.mpr hEq)] at hFind
+        exact pfs.depVars_pog y D hFind
+    pog_vars := by
+      intro y hMem
+      simp only [hAv, Set.mem_insert_iff] at hMem
+      cases hMem with
+      | inl hEq =>
+        intro x
+        simp only [hEq, st.pog.toPropForm_addConj _ _ _ hPog, PropForm.mem_vars_arrayConj,
+          getElem_fin, Array.getElem_map]
+        intro ⟨i, hMem⟩
+        refine pfs.pog_vars' ls[i] ?_ hMem
+        exact hLs ls[i.val] (Array.getElem_mem_data _ _)
+      | inr hMem =>
+        have hNe : x ≠ y := fun h => absurd hMem (h ▸ hX)
+        rw [st.pog.toPropForm_addConj_of_ne _ _ _ _ hPog hNe]
+        exact pfs.pog_vars y hMem
+    partitioned := by
+      intro y
+      by_cases hEq : x = y
+      . rw [st.pog.toPropForm_addConj _ _ _ (hEq ▸ hPog), PropForm.partitioned_arrayConj]
+        intro i
+        simp only [getElem_fin, Array.getElem_map]
+        constructor
+        . exact pfs.partitioned' (ls[i.val])
+        . intro j hNe
+          have h := Array.size_map st.pog.toPropForm ls
+          have h' := h.trans hSz
+          have hI := hDs i (h ▸ i.isLt)
+          have hJ := hDs j (h ▸ j.isLt)
+          have hIJ := hDisjoint i j (h' ▸ i.isLt) (h' ▸ j.isLt) (Fin.val_ne_of_ne hNe)
+          simp at hI hJ hIJ ⊢
+          apply Finset.subset_empty.mp
+          exact hIJ ▸ Finset.inter_subset_inter hI hJ
+      . rw [st.pog.toPropForm_addConj_of_ne _ _ _ _ hPog hEq]
+        exact pfs.partitioned y
+    equivalent_clauseDb
+    extends_pogDefsTerm
+    uep_pogDefsTerm
+    equivalent_lits
+  }
   set (σ := State) ⟨st', pfs'⟩
 
 def addSumClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
