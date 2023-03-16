@@ -566,7 +566,7 @@ Our generalization is provided to allow an
 
 A proof in our framework takes the form of a sequence of clause addition
 and deletion steps, with each step maintaining logical equivalence to
-the original formula.  More precisely, the status of the proof at any step will be represented by
+the original formula.  More precisely, the status of the proof at any step is represented as
 a set of {\em active} clauses $\phi$, i.e., those that
 have been added but not yet deleted.  Our framework is based
 on {\em extended} resolution~\cite{Tseitin:1983}, meaning that proof
@@ -592,7 +592,7 @@ RUP
 is the core rule supported by standard
 proof checkers~\cite{RAT,wetzler14_drattrim} for propositional logic.
 It is a way to check a sequence of applications of the resolution proof rule~\cite{robinson-1965}.
-Let $C = \lit_1 \lor \lit_2 \lor \cdots \lor \lit_p$ be a clause to be
+Let $C = \{\lit_1, \lit_2, \ldots,\lit_p\}$ be a clause to be
 proved redundant with respect to formula $\phi$.  Let $D_1, D_2, \ldots, D_k$ be a sequence of supporting
 {\em antecedent} clauses, such that each $D_i$ is in $\phi$.
 A RUP step
@@ -1056,7 +1056,7 @@ be directly represented as a POG node.  Rather than representing every
 d-DNNF node explicitly, our program performs simplifications to
 eliminate Boolean constants.
 Except for the degenerate cases
-where the formula is unsatisfiable or a tautology, we can also assume
+where the formula is unsatisfiable or a tautology, we can therefore assume
 that the POG does not contain any constant nodes.
 In addition, negation operators will
 only be applied to variables, and so we can view the POG as consisting
@@ -1065,15 +1065,55 @@ of {\em literal} nodes corresponding to input variables and their negations, alo
 
 \subsection{Forward implication proof}
 
-For input formula $\inputformula$ and its translation into a POG with root literal
-$r$, the most challenging part of the proof is to show that
-$\modelset(\inputformula) \subseteq \modelset(P)$, i.e., that any total
-assignment $\alpha$ that is a model of $\inputformula$ will yield $\assign(r) =
-1$, for root literal $r$.
-This part of the proof consists of a series of clause assertions
-leading to one adding $r$ as a unit clause.
+For input formula $\inputformula$ and its translation into a POG $P$
+with root literal $r$, the most challenging part of the proof is to
+show that $\modelset(\inputformula) \subseteq \modelset(P)$, i.e.,
+that any total assignment $\alpha$ that is a model of $\inputformula$
+will yield $\assign(r) = 1$, for root literal $r$.  This part of the
+proof consists of a series of clause assertions leading to one adding
+$r$ as a unit clause.  We have devised two methods of generating this
+proof.  The {\em monolithic} approach makes just one call to a
+proof-generating SAT solver and has it determine the relationship
+between the two representations.  The {\em structural} approach
+recursively traverses the POG, generating proof obligations at each
+node encountered.  It too may require calls to a proof-generating SAT
+solver.
 
-We describe this part of the proof generation as a recursive procedure
+As notation,
+let $\psi$ be a subset of the clauses in $\inputformula$.
+For partial assignment
+$\passign$, the expression  $\simplify{\psi}{\passign}$ denotes the set of clauses $\gamma$
+obtained from $\psi$ by: 1) eliminating any
+clause containing a literal $\lit$ such that $\passign(\lit) = 1$,
+2) for the remaining clauses eliminating those literals $\lit$ for
+which $\passign(\lit) = 0$, and 3) eliminating any duplicate clauses.
+In doing these simplifications, we also track the {\em provenance}
+of each simplified clause $C$, i.e., which of the (possibly multiple) input clauses simplified to become $C$.
+More formally, for $C \in \simplify{\psi}{\passign}$, we let $\prov(C, \psi)$ denote
+those clauses $C' \in \psi$, such that
+$C' \subseteq C \cup \bigcup_{\lit \in \passign} \obar{\lit}$.
+We then extend the definition of $\prov$ to any simplified formula
+$\gamma$ as $\prov(\gamma, \psi) = \bigcup_{C \in \gamma} \prov(C, \psi)$.
+
+The monolithic approach
+takes advantage of the clausal representations of
+the input formula $\inputformula$ and the POG, given by its set of defining clauses $\pogformula$.
+Furthermore, it can
+negate the POG formula by simply negating its root literal.  Forward implication
+will hold
+when $\inputformula \imply (r \land \pogformula)$.  Equivalently,
+the formula $\inputformula \land \simplify{\pogformula}{\{\obar{r}\}}$
+should be unsatisfiable, where the
+conjunction can be expressed as the union
+of the two sets of clauses.  The proof generator writes the clauses to a file, invokes a proof-generating solver, and
+imports the proof steps as assertion steps in the CRAT file.
+Our experimental results show
+that this approach can be very effective and generates short proofs
+for smaller problems, but it does not scale well enough for routine
+use.
+
+
+We describe the structural approach to proof generation as a recursive procedure
 $\validate(\nodeu, \passign, \psi)$ taking as arguments POG
 node $\nodeu$, partial assignment
 $\passign$, and a set of clauses $\psi \subseteq \inputformula$.
@@ -1088,21 +1128,6 @@ The top-level call has $\nodeu = \noder$, $\passign = \emptyset$, and $\psi = \i
 The result will therefore be to add the unit clause $r$ to the proof.
 Here we present a correct, but somewhat inefficient formulation of
 $\validate$.  We then refine it with some optimizations.
-
-Let $\psi$ be a subset of the clauses in $\inputformula$.
-For partial assignment
-$\passign$, the expression  $\simplify{\psi}{\passign}$ denotes the set of clauses $\gamma$
-obtained from $\psi$ by: 1) eliminating any
-clause containing a literal $\lit$ such that $\passign(\lit) = 1$,
-2) for the remaining clauses eliminating those literals $\lit$ for
-which $\passign(\lit) = 0$, and 3) eliminating any duplicate clauses.
-In doing these simplifications, we also track the {\em provenance}
-of each simplified clause $C$, i.e., which of the (possibly multiple) input clauses simplified to become $C$.
-More formally, for $C \in \simplify{\psi}{\passign}$, we let $\prov(C, \psi)$ denote
-those clauses $C' \in \psi$, such that
-$C' \subseteq C \cup \bigcup_{\lit \in \passign} \obar{\lit}$.
-We then extend the definition of $\prov$ to any simplified formula
-$\gamma$ as $\prov(\gamma, \psi) = \bigcup_{C \in \gamma} \prov(C, \psi)$.
 
 The recursive call $\validate(u, \passign, \psi)$ assumes that we have
 traversed a path from the root node down to node $\nodeu$, with the
@@ -1168,7 +1193,7 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
 to generate the target clause for node $\nodeu$.
 \end{enumerate}
 Observe that most of these steps involve a polynomial number of
-operations per recursive call.  The only step that could have
+operations per recursive call.  The only one that could have
 exponential complexity is when a SAT solver must be invoked to validate a
 literal.
 
@@ -1181,9 +1206,9 @@ CRAT framework by first deleting all asserted clauses, except for the
 final unit clause for root literal $r$, and then deleting all of the
 input clauses.  Suppose at some point in this process that we want to
 delete clause $C$ such that the remaining set of clauses will form the
-CNF formula $\psi$.  Deleting $C$ requires proving that
-$\modelset(\psi) = \modelset(\psi \lor C)$, i.e., that deleting $C$
-does not make the formula easier to satisfy.
+CNF formula $\phi$.  Deleting $C$ requires proving that
+$\phi \imply C$.
+
 
 The asserted clauses can be deleted in reverse order, using the same
 hints that were used in their original assertions.  By reversing the
@@ -1224,8 +1249,8 @@ bounded by the number of POG nodes.
 \section{Optimizations}
 
 The performance of forward implication, both in its execution time and
-the size of the proof generated by two optimizations described here.
-A key feature of these optimizations is that they do not require any changes to the
+the size of the proof generated can be improved by two optimizations described here.
+A key feature is that they do not require any changes to the
 proof framework---they build on the power of extended resolution to
 create new logical structures within the proof.
 
@@ -1233,17 +1258,17 @@ create new logical structures within the proof.
 
 A single recursive step of $\validate$ can encounter product nodes
 having many---tens or even hundreds---of literals as children.  The earlier formulation of $\validate$
-considered each literal $\lit \in L$ separately,
+considers each literal $\lit \in L$ separately,
 calling a SAT solver
-on the formula  $\simplify{\psi}{\passign \cup \{\obar{\lit}\}}$ when $\lit$ could not be validated with BCP\@.
+on the formula  $\simplify{\psi}{\passign \cup \{\obar{\lit}\}}$ when $\lit$ cannot be validated with BCP\@.
 
 Literal grouping allows all literals to be validated with a single call to the SAT solver.
 It collects those literals
 $\lit_1, \lit_2, \ldots, \lit_m$ that cannot be validated by BCP and defines a
 product node $\nodev$ having these literals as children.  The goal
 then becomes to prove that any total assignment must yield 1 for extension
-variable $v$.  This can be done by contradiction using the SAT solver.
-In particular, looking at the defining clauses for $\nodev$ (Table
+variable $v$.  A single call to the solver can generate this proof.
+Looking at the defining clauses for $\nodev$ (Table
 \ref{tab:defining}(A)), we can see that assigning 0 to $v$ will cause
 the first defining clause to simplify to
 $C = \obar{\lit}_1 \lor  \obar{\lit}_2 \lor \cdots \lor \obar{\lit}_m$, and for the remaining
@@ -1258,23 +1283,23 @@ $C = \obar{\lit}_1 \lor  \obar{\lit}_2 \lor \cdots \lor \obar{\lit}_m$, and for 
 
 As we have noted, the recursive calling of $\validate$ starting at
 root $\noder$ effectively expands the POG into a tree, and this can
-lead to an exponential number of calls.  We can exploit the property
-that a shared subgraph in the graph generated by a top-down d-DNNF
-compiler arises when the program detects that the simplified set of
+lead to an exponential number of calls.  
+These shared subgraphs arise when the knowledge compiler employs {\em clause caching}
+detecting that the simplified set of
 clauses arising from one partial assignment to the literals matches that
-of a previous partial assignment.  When this d-DNNF node is translated into POG
+of a previous partial assignment~\cite{darwiche:aaai:2002}.
+When this d-DNNF node is translated into POG
 node $\nodeu$, the proof generator can assume (and also check), that
 there is a simplified set of clauses $\gamma_{\nodeu}$
 for which the subgraph with root $\nodeu$ is its POG representation.
 
-The forward implication proof can exploit this property of shared
-subgraphs by constructing and proving a {\em lemma} for each node
+The proof generator can exploit the sharing of subgraphs
+by constructing and proving a {\em lemma} for each node
 $\nodeu$ having $\indegree(\nodeu) > 1$.  This proof shows that any
 total assignment $\assign$ that satisfies formula $\gamma$ must yield
 $\assign(u) = 1$.  This lemma is then invoked for every node having
-$\nodeu$ as a child.  The net effect is to allow $\validate$ to
-exploit the graph structure of the POG, invoking $\validate$ on each
-node at most once.
+$\nodeu$ as a child.  The net effect is that generator will recurse during a call to $\validate$ only once for each node in the POG\@.
+
 
 The challenge for implementing this strategy is to find a way to
 represent the clauses for the simplified formula $\gamma_{\nodeu}$ in the CRAT file.  Some may be
