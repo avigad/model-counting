@@ -59,7 +59,7 @@
 \newcommand{\validate}{\textsf{validate}}
 \newcommand{\prov}{\textrm{Prov}}
 \newcommand{\inputformula}{\phi_I}
-\newcommand{\pogformula}{\phi_P}
+\newcommand{\pogformula}{\theta_P}
 
 \newcommand{\makenode}[1]{\mathbf{#1}}
 \newcommand{\nodeu}{\makenode{u}}
@@ -132,8 +132,21 @@
 %\Copyright{Jane Open Access and Joan R. Public} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
 
 %\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10003752.10003790.10003794</concept_id>
+       <concept_desc>Theory of computation~Automated reasoning</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Automated reasoning}
+
 
 %\keywords{Dummy keyword} %TODO mandatory; please add comma-separated list of keywords
+\keywords{Propositional model counting, Proof checking}
 
 %\category{} %optional, e.g. invited paper
 
@@ -211,7 +224,7 @@ each possible assignment, and the goal becomes to compute the sum of the weights
 of the satisfying assignments.
 
 Model counting is a challenging problem---more challenging that the
-already NP-hard problem of Boolean (un)satisfiability.  Several
+already NP-hard problem of Boolean satisfiability.  Several
 tractable variants of Boolean satisfiability, including 2-SAT, become
 intractable when the goal becomes model counting and not just
 satisfiability \cite{valiant:siam:1979}.  Nonetheless, a number of
@@ -329,10 +342,13 @@ trustworthy---its errors will also be caught by the proof checker.
 To further enhance the trustworthiness of our toolchain, we have
 developed formally verified versions of the proof checker and ring
 evaluator in the \lean{} proof assistant.  Running these two programs
-has the effect of formally verifying both the logical equivalence of the POG to the input formula and the correctness of the count.
-In addition, the
-existence of a formally verified checker serves the important role of
-establishing the soundness of our proof framework.
+has the effect of formally verifying both the logical equivalence of
+the POG to the input formula and the correctness of the count.  In
+addition, the existence of a formally verified checker serves the
+important role of establishing the soundness of our proof framework.
+Indeed, in the course of developing a formally verified checker, we
+identified subtle aspects of the proof obligations required to assure
+soundness.
 
 \section{Related Work}
 
@@ -340,7 +356,7 @@ Having a SAT solver generate a proof of unsatisfiability has a long
 tradition~\cite{ZhangMalik} and has become widely accepted due to the
 formulation of clausal proof systems for which proofs can readily be
 generated and efficiently (and, in some cases, formally) checked
-\cite{cruz-cade-2017,RAT,wetzler14_drattrim,Tan:2021}.  Some progress has also
+\cite{cruz-cade-2017,RAT,Tan:2021,wetzler14_drattrim}.  Some progress has also
 been made on extending these proof systems to quantified Boolean
 formulas~\cite{bryant:cade:2021,heule:JAR2014}.
 
@@ -354,12 +370,12 @@ model counters to also generate proof traces, and where they convert
 d-DNNF graphs into a checkable form.  Our tool chain is not directly
 comparable to theirs---they certify the output of a standard modeling
 program, while we certify the output of a knowledge compiler and then
-produce a certified standard or weighted model count.  There tool
+produce a certified standard or weighted model count.  Their tool
 chain can be applied to some programs that are pure model counters,
 while ours can be applied to pure knowledge compilers.  Nonetheless,
 we compare the performance of our tool chain to theirs as part of our
 experimental evaluation in Section~\ref{sect:experimental}.  Our
-experience with developing a formally verified CRAT proof checker has shown
+experience with developing a formally verified proof checker has shown
 us that, even for the well understood framework of extended
 resolution, it can be challenging to formulate the full set of requirements to guarantee soundness.
 
@@ -418,25 +434,24 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
   formula can be represented as a set of {\em clauses}, each of which is a
   set of literals.  Each clause represents the sum of the
   literals, and the formula is the product of its clauses.  We use
-  set notation to reference the clauses in a formula and the
-  literals in a clause.  A clause consisting of a single literal is referred to as a {\em unit} clause.
+  set notation to reference the clauses within a formula and the
+  literals within a clause.  A clause consisting of a single literal is referred to as a {\em unit} clause and the literal as a {\em unit} literal.
 This literal must be assigned value $1$ by any satisfying assignment of the formula.
 
   A {\em partitioned-operation formula}
  satisfies the following for all product and sum operations:
-      \begin{itemize}
+      \begin{enumerate}
       \item The arguments to a product must have disjoint dependency sets.  That is, operation
         $\bigwedge_{i=1,k} \phi_i$ requires $\dependencyset(\phi_i) \cap \dependencyset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
       \item The arguments to a sum must have disjoint models.  That is, operation
         $\bigvee_{i=1,k} \phi_i$ requires $\modelset(\phi_i) \cap \modelset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
-      \end{itemize}
+      \end{enumerate}
      We let $\pand$ and $\por$ denote the product and sum operations in a partitioned-operation formula.
 
   \section{Ring Evaluation of a Boolean Formula}
 
 We propose a general framework for summarizing properties of Boolean
-formulas inspired by the formulation of {\em algebraic model counting}
-by Kimmig, et al.~\cite{kimmig:jal:2017}.
+formulas inspired by the formulation of {\em algebraic model counting}.~\cite{kimmig:jal:2017}.
 
 \begin{definition}[Commutative Ring]
   A {\em commutative ring} $\ring$ is an algebraic structure
@@ -470,20 +485,21 @@ expressed as ring evaluation problems.  The
 It can be cast as a ring evaluation problem by having $\radd$ and
 $\rmul$ be addition and multiplication over rational numbers and using
 label $w(x) = 1/2$ for every variable $x$.
-Ring evaluation of formula $\phi$ will then compute the {\em density} of
+Ring evaluation of formula $\phi$ gives the {\em density} of
 the formula, i.e., the fraction of all possible total assignments that are
-models.  For $n = |\varset|$, scaling the density by $2^n$ will then
-yield the number of models.
+models.  For $n = |\varset|$, scaling the density by $2^n$ 
+yields the number of models.
 
 The {\em weighted model counting} (WMC) problem is also defined over
 rational numbers.  Some formulations of WMC allow
 independently assigning weights $W(x)$ and $W(\obar{x})$ for each variable $x$ and its complement, with the possibility that
 $W(x) + W(\obar{x}) \not = 1$.
-We can convert this more general form into a
+We can cast this as a
 ring evaluation problem by letting $r(x) = W(x) + W(\obar{x})$,
 performing ring evaluation with label $w(x) = W(x)/r(x)$ for each
-variable $x$, and then computing the final result as $\rep(\phi, w)\;
-\rmul\; \prod_{x \in \varset} r(x)$.  Of course, this requires that $r(x) \not = 0$ for all $x \in \varset$.
+variable $x$, and computing the weighted count
+as $\rep(\phi, w)\; \rmul\; \prod_{x \in \varset} r(x)$.
+Of course, this requires that $r(x) \not = 0$ for all $x \in \varset$.
 
 The {\em function hashing problem} provides a test
 of inequivalence for Boolean formulas.  That is, for $n = |\varset|$, let $\ring$ be a
@@ -492,10 +508,10 @@ $\phi_1$ and $\phi_2$ will clearly have $\rep(\phi_1, w) = \rep(\phi_2, w)$
 if they are logically equivalent.  If they are not equivalent, then
 the probability that $\rep(\phi_1, w) \not = \rep(\phi_2, w)$ will be at
 least $\left(1-\frac{1}{m}\right)^n \geq \left(1-\frac{1}{2n}\right)^n > 1/2$.
-Therefore, ring evaluation can be used as part of a
+Function hashing can therefore be used as part of a
 randomized algorithm for equivalence testing~\cite{blum:ipl:1980}.
 
-We compare ring evaluation to algebraic model counting in Section~\ref{sect:future}.
+%We compare ring evaluation to algebraic model counting in Section~\ref{sect:future}.
 
 \section{Partitioned-Operation Graphs (POGs)}
 
@@ -508,9 +524,9 @@ Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the fo
 \textstyle
 \rep(\boolnot \phi,\; w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
 \textstyle
-\rep\left(\Pand_{i=1,k} \phi_i,\; w \right) &=& \prod_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:product} \\
+{\Large \rep}\left(\Pand_{i=1,k} \phi_i,\; w \right) &=& \prod_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:product} \\
 \textstyle
-\rep\left(\Por_{i=1,k} \phi_i,\; w\right) &=& \sum_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:sum}
+{\Large \rep}\left(\Por_{i=1,k} \phi_i,\; w\right) &=& \sum_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:sum}
 %% V2
 %\rep(\boolnot \phi, w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
 %\rep\left(\phi_1, w \pand \dots \pand \phi_k, w \right) &=& \prod_{i=1..k} \rep(\phi_i, w) \label{eqn:ring:product} \\
@@ -532,8 +548,8 @@ A nonterminal node is labeled by one of the three Boolean operations: $\boolnot$
 Node $\nodeu$ can be labeled with $\boolnot$ only if $\outdegree(\nodeu) = 1$.
 It can be labeled with operation $\pand$ or $\por$ only if it satisfies the partitioning restriction for that operation.
 There is a unique {\em root node} $\noder$ such that $\indegree(\noder) = 0$.
-As can be seen, a POG is simply a way to represent a partitioned-operation
-formula with a sharing of common subformulas.  Indeed, every node the graph can be viewed as a partitioned-operation formula, and so we write
+As can be seen, a POG is represents a partitioned-operation
+formula with a sharing of common subformulas.  Indeed, every node in the graph can be viewed as a partitioned-operation formula, and so we write
 $\phi_{\nodeu}$ as the formula denoted by node $\nodeu$.
 Each such formula has a set of models, and we write $\modelset(\nodeu)$ as a shorthand for $\modelset(\phi_{\nodeu})$.
 
@@ -549,7 +565,8 @@ representing Boolean functions \cite{darwiche:jair:2002}.
 POGs generalize d-DNNF in two ways:
 \begin{itemize}
 \item They allow negation of arbitrary nodes in the graph, not just
-  variables.  As we have seen, ring evaluation can readily handle negation, and so we allow it in the interest of generality.
+  variables.  As we have seen, ring evaluation can readily handle negation.
+  %, and so we allow it in the interest of generality.
 %%  Negation could be useful in some contexts, such as when
 %%  converting binary decision diagrams (BDDs) having complemented
 %%  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
@@ -558,11 +575,12 @@ POGs generalize d-DNNF in two ways:
   they have disjoint models.  By contrast, each
   sum node $\nodeu$ in a d-DNNF can have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a {\em decision variable} $x$ such that
   any total assignment $\assign \in  \modelset(\nodeu_b)$ has $\assign(x)=b$, for $b \in \{0,1\}$.
-Our generalization is provided to allow an
-  encoding of Sentential Decision Diagrams (SDDs)~\cite{darwiche:ijcai:2011} as
-  POGs.  This is discussed in Section~\ref{sect:future}, describing possible future research.
+%%Our generalization is provided to allow an
+%%  encoding of Sentential Decision Diagrams (SDDs)~\cite{darwiche:ijcai:2011} as
+%%  POGs.  This is discussed in Section~\ref{sect:future}, describing possible future research.
 \end{itemize}
-  Both of these generalizations allow more flexibility in the POG
+  Although not required for representing d-DNNF graphs,
+  both of these generalizations allow more flexibility in the POG
   representation while maintaining the ability to efficiently perform ring evaluation.
 
 \section{Clausal Proof Frameworks}
@@ -573,15 +591,16 @@ the original formula.  More precisely, the status of the proof at any step is re
 a set of {\em active} clauses $\phi$, i.e., those that
 have been added but not yet deleted.  Our framework is based
 on {\em extended} resolution~\cite{Tseitin:1983}, meaning that proof
-steps can introduce new {\em extension variables}.  Let $Z$
+steps can introduce new {\em extension variables} encoding Boolean formulas over input and prior extension variables.
+Let $Z$
 denote the set of extension variables occuring in formula $\phi$.
 Starting with input formula $\inputformula$,
 we want to maintain the invariant that
 $\inputformula \ifandonlyif \exists Z\,\phi$.
 
 Clauses can be added in two different ways.  One is when they serve as
-the {\em defining clauses} for an extension variable.  We will use
-this form only when defining $\pand$ and $\por$ operations, as is
+the {\em defining clauses} for an extension variable.  This form
+occurs only when defining $\pand$ and $\por$ operations, as is
 described in Section~\ref{sect:crat}.  The other is by {\em
   implication redundancy}.  That is, we can add clause $C$ to the set
 of clauses forming formula $\phi$ when $\phi \imply C$.  Clauses can
@@ -672,14 +691,14 @@ knowledge compilation.
 %% \end{itemize}
 %% >>>>>>> 9c1793da858d00e5d4022d6d33c009848ba2083b
 
-The CRAT format draws its inspiration from the LRAT format for Boolean
-formulas~\cite{lrat} and the QRAT format for quantified Boolean
-formulas (QBF)~\cite{heule:JAR2014}.  The following are its key properties:
+The CRAT format draws its inspiration from the LRAT~\cite{lrat} and
+QRAT~\cite{heule:JAR2014} formats for unquantified and quantified Boolean formulas, respectively.
+The following are its key properties:
 \begin{itemize}
   \item
   The file contains declarations of $\pand$ and $\por$ operations to describe the POG.
   Declaring a node $\nodeu$
-implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clauses
+implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clauses $\theta_{\nodeu}$
   encoding the product or sum operation.
   This is the only means for adding extension variables to the proof.
 \item Boolean negation is supported implicitly by allowing the
@@ -726,7 +745,7 @@ implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clau
 \end{table}
 
 Table~\ref{tab:crat:syntax} shows the declarations that can occur in a CRAT file.
-The checker is provided with the input formula as a separate file.
+%% The checker is provided with the input formula as a separate file.
 As with other clausal proof formats, a variable is
 represented by a positive integer $v$, with the first ones being input
 variables and successive ones being extension variables.  Literal $\lit$
@@ -819,10 +838,11 @@ this declaration implicitly causes three clauses to be added to the proof, defin
 The hints must provide a RUP proof of the clause $\obar{\lit}_1 \lor \obar{\lit}_2$, showing that the two children of this node have disjoint models.
 
 Finally, the literal denoting the root of the POG is declared with the
-{\tt r} command.  It can occur anywhere in the file.  Typically, it
-will be the extension variable representing the root of a graph, but in
-degenerate cases it can be the positive or negative literal of an
-input variable.
+{\tt r} command.  It can occur anywhere in the file.  Except in degenerate cases, it
+will be the extension variable representing the root of a graph
+%, but in
+%degenerate cases it can be the positive or negative literal of an
+%input variable.
 
 \subsection{Semantics}
 
@@ -849,16 +869,19 @@ the set of all total assignments $\assign$ such that $\assign(r) = 1$.
 
 The sequence of operator declarations, asserted clauses, and
 clause deletions represents a systematic transformation of the input formula
-into a POG\@.  Validating all of these steps serves to prove that the
+into a POG formula.  Validating all of these steps serves to prove that the
 POG is logically equivalent to the input formula.
 At the completion of the proof, the following conditions must hold:
-\begin{itemize}
-\item There should exactly one remaining clause that was added via RUP
-  addition, and this should be a unit clause consisting of the root literal $r$.
+\begin{enumerate}
+\item There is exactly one remaining clause that was added via RUP
+  addition, and this is a unit clause consisting of root literal $r$.
 \item All of the input clauses have been deleted.
-\end{itemize}
+\end{enumerate}
+Let $\inputformula$ denote the input formula and $\pogformula$ represent the formula encoded by unit clause $r$ and the defining clauses for the POG nodes:
+$\pogformula = \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{\nodeu}$.  We write $\modelset(P)$ as a shorthand for $\modelset(\pogformula)$, recognizing that
+any assignment to the input variables implicitly defines the assignments to the extension variables.
 The sequence of clause addition steps provide a {\em forward implication} proof that
-$\modelset(\phi) \subseteq \modelset(P)$.  That is, any total
+$\modelset(\inputformula) \subseteq \modelset(P)$.  That is, any total
 assignment $\assign$ satisfying the input formula must also satisfy
 the formula represented by the POG\@.
 Conversely,
@@ -866,7 +889,7 @@ each proof step that deletes an input clause proves that any
 total assignment $\alpha$ that falsifies the clause must
 assign $\assign(r) = 0$.  Deleting all but the final asserted clause and all input clauses provides a {\em reverse implication} proof
 that
-$\modelset(P) \subseteq \modelset(\phi)$.
+$\modelset(P) \subseteq \modelset(\inputformula)$.
 
 \subsection{CRAT Example}
 
@@ -1049,20 +1072,23 @@ We address this shortcoming by introducing {\em lemmas}, as is described in Sect
 \section{Generating CRAT from d-DNNF}
 \label{section:generating:crat}
 
-Figure~\ref{fig:chain} illustrates one method of generating a CRAT
-file from an input formula in conjunctive normal form.  Our tool chain
-is based on the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017},
-but it would also work for other tools that use a top-down search
-strategy to generate a d-DNNF representation.  Converting a d-DNNF
+%%Figure~\ref{fig:chain} illustrates one method of generating a CRAT
+%%file from an input formula in conjunctive normal form.  Our tool chain
+%%is based on the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017},
+%%but it would also work for other tools that use a top-down search
+%%strategy to generate a d-DNNF representation.
+Converting a d-DNNF
 graph into a POG is straightforward---each node in a d-DNNF graph can
 be directly represented as a POG node.  Rather than representing every
 d-DNNF node explicitly, our program performs simplifications to
 eliminate Boolean constants.
-Except for the degenerate cases
-where the formula is unsatisfiable or a tautology, we can therefore assume
+Except for the degenerate cases,
+%where the formula is unsatisfiable or a tautology,
+we can therefore assume
 that the POG does not contain any constant nodes.
-In addition, negation operators will
-only be applied to variables, and so we can view the POG as consisting
+In addition, negation is only
+applied to variables, and so we can merge the negation operations into the terminal nodes,
+viewing the POG as consisting
 of {\em literal} nodes corresponding to input variables and their negations, along with
 {\em terminal} nodes, which can be further classified as {\em product} nodes and {\em sum} nodes.
 
@@ -1100,16 +1126,17 @@ $\gamma$ as $\prov(\gamma, \psi) = \bigcup_{C \in \gamma} \prov(C, \psi)$.
 
 The monolithic approach
 takes advantage of the clausal representations of
-the input formula $\inputformula$ and the POG, given by its set of defining clauses $\pogformula$.
+the input formula $\inputformula$ and the POG formula $\pogformula$, consisting of the defining clauses of its nodes plus a unit clause for root literal $r$.
 Furthermore, it can
-negate the POG formula by simply negating its root literal.  Forward implication
+negate the POG formula by simply negating its root literal.  More precisely $\neg \pogformula = \bigcup_{\nodeu\in P} \simplify{\theta_{\nodeu}}{\{\obar{r}\}}$
+Forward implication
 will hold
-when $\inputformula \imply (r \land \pogformula)$.  Equivalently,
-the formula $\inputformula \land \simplify{\pogformula}{\{\obar{r}\}}$
+when $\inputformula \imply \pogformula$.  Equivalently,
+the formula $\inputformula \land \neg \pogformula$
 should be unsatisfiable, where the
 conjunction can be expressed as the union
-of the two sets of clauses.  The proof generator writes the clauses to a file, invokes a proof-generating solver, and
-imports the proof steps as assertion steps in the CRAT file.
+of the two sets of clauses.  The proof generator writes the clauses to a file and invokes a proof-generating SAT solver.
+For each clause $C$ in the unsatisfiability proof, it adds clause $\{r\} \cup C$ to the CRAT proof, and so the empty clause in the proof becomes the unit clause $r$.
 Our experimental results show
 that this approach can be very effective and generates short proofs
 for smaller problems, but it does not scale well enough for routine
@@ -1121,14 +1148,14 @@ $\validate(\nodeu, \passign, \psi)$ taking as arguments POG
 node $\nodeu$, partial assignment
 $\passign$, and a set of clauses $\psi \subseteq \inputformula$.
 The procedure adds a number of clauses to the proof, culminating with
-the addition of the {\em target clause}
+the addition of the {\em target} clause:
 $u \lor \bigvee_{\lit \in \passign} \obar{\lit}$, indicating
 that $\left(\bigwedge_{\lit \in \passign} \lit\right) \imply u$, i.e.,
 that any total
 assignment $\assign$ such that $\passign \subseteq \assign$
 will assign $\assign(u) = 1$.
 The top-level call has $\nodeu = \noder$, $\passign = \emptyset$, and $\psi = \inputformula$.
-The result will therefore be to add the unit clause $r$ to the proof.
+The result will therefore be to add unit clause $r$ to the proof.
 Here we present a correct, but somewhat inefficient formulation of
 $\validate$.  We then refine it with some optimizations.
 
@@ -1169,7 +1196,7 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
   \begin{enumerate}
     \item For each literal
   $\lit \in L$, we must prove that any total assignment $\alpha$, such that
-  $\passign \subset \alpha$ must have $\alpha(\lit) = 1$.  In some
+  $\passign \subset \alpha$ has $\alpha(\lit) = 1$.  In some
   cases, this can be done by simple Boolean constraint propagation (BCP).
   In other cases, we must prove that the formula
   $\simplify{\psi}{\passign \cup \{\obar{\lit}\}}$ is unsatisfiable.  We
@@ -1252,10 +1279,13 @@ bounded by the number of POG nodes.
 \section{Optimizations}
 
 The performance of forward implication, both in its execution time and
-the size of the proof generated can be improved by two optimizations described here.
-A key feature is that they do not require any changes to the
-proof framework---they build on the power of extended resolution to
-create new logical structures within the proof.
+the size of the proof generated can be improved by two optimizations
+described here.  A key feature is that they do not require any changes
+to the proof framework---they build on the power of extended
+resolution to create new logical structures within the proof.  They
+involve declaring new product nodes to encode both conjunctions and
+disjunctions (via DeMorgan's Law) of literals.  These nodes are not
+part of the POG representation of the formula; they serve only to enable the forward implication proof.
 
 \subsection{Literal Grouping}
 
@@ -1270,13 +1300,8 @@ It collects those literals
 $\lit_1, \lit_2, \ldots, \lit_m$ that cannot be validated by BCP and defines a
 product node $\nodev$ having these literals as children.  The goal
 then becomes to prove that any total assignment must yield 1 for extension
-variable $v$.  A single call to the solver can generate this proof.
-Looking at the defining clauses for $\nodev$ (Table
-\ref{tab:defining}(A)), we can see that assigning 0 to $v$ will cause
-the first defining clause to simplify to
-$C = \obar{\lit}_1 \lor  \obar{\lit}_2 \lor \cdots \lor \obar{\lit}_m$, and for the remaining
-  clauses to become tautologies.  The SAT solver can be invoked on formula
-  $\simplify{\psi}{\passign} \cup \{ C \}$ to show that is unsatisfiable.
+variable $v$.  A single call to the solver can generate this proof by invoking it on the formula
+  $\simplify{\psi}{\passign} \cup \simplify{\theta_{\nodev}}{\{ \obar{v} \}}$ to show that is unsatisfiable.
   The proof steps can be mapped back into clause addition steps in the CRAT file, using as hints the
   input clauses and the defining clauses for $\nodev$.
 
@@ -1288,7 +1313,7 @@ As we have noted, the recursive calling of $\validate$ starting at
 root $\noder$ effectively expands the POG into a tree, and this can
 lead to an exponential number of calls.  
 These shared subgraphs arise when the knowledge compiler employs {\em clause caching}
-detecting that the simplified set of
+to detect that the simplified set of
 clauses arising from one partial assignment to the literals matches that
 of a previous partial assignment~\cite{darwiche:aaai:2002}.
 When this d-DNNF node is translated into POG
@@ -1299,9 +1324,9 @@ for which the subgraph with root $\nodeu$ is its POG representation.
 The proof generator can exploit the sharing of subgraphs
 by constructing and proving a {\em lemma} for each node
 $\nodeu$ having $\indegree(\nodeu) > 1$.  This proof shows that any
-total assignment $\assign$ that satisfies formula $\gamma$ must yield
+total assignment $\assign$ that satisfies formula $\gamma_{\nodeu}$ must yield
 $\assign(u) = 1$.  This lemma is then invoked for every node having
-$\nodeu$ as a child.  The net effect is that generator will recurse during a call to $\validate$ only once for each node in the POG\@.
+$\nodeu$ as a child.  As a result, the generator will make recursive calls during a call to $\validate$ only once for each node in the POG\@.
 
 
 The challenge for implementing this strategy is to find a way to
