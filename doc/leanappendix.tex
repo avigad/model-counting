@@ -1,0 +1,342 @@
+\section{More information about the formally verified checker}
+\label{appendix:lean}
+
+We have implemented the rightmost two components of Figure~\ref{fig:chain}, namely the
+proof checker and both model and weighted model counters, in the Lean 4 programming language
+and proof assistant [cite]. Lean 4 implements a logical foundation in which expressions
+have a computational interpretation, and just as with other proof assistants like Isabelle and Coq,
+a function defined within the formal system can be compiled to efficient code.
+At the same time, we can state and prove claims about the function within the system, thereby
+verifying that the functions compute the intended results.
+
+Verifying our checker and the model counters in this way serves at least two purposes.
+When we run them on particular data sets, they provide high confidence
+that the particular results we obtain are correct.
+More broadly, however, our success also validates our general approach,
+showing, in particular, that the CRAT proof format is sound.
+Indeed, our formalization helped us discover a bug in our implementation
+of the informal proof checker: in the ``\emph{s}'' step described at the end of
+Subsection~\ref{subsection:syntax}, it is sound (and necessary) to allow defining
+clauses for the new operations in the proof of $\obar{\lit}_1 \lor \obar{\lit}_2$,
+but it is generally not sound to allow the input clauses or other added clauses.
+[NOTE: let's add this specification to the end of Section 6.1.]
+Our verified implementation of the checker tells us that the algorithm is sound and
+provides a reference for other implementations.
+
+In this section, we describe the implementation in Lean and the specifications we have proved.
+Lean 4's logical foundation describes a functional programming language with
+inductive data types,
+but our procedures also make use of calculations with natural numbers, integers, and rationals,
+and data structures for arrays and hashmaps.
+Lean's code extraction uses efficient but unverified versions of these,
+and so in Subsection~\ref{subsection:verification:specifics} we clarify
+what exactly we have verified and what we currently trust.
+
+\subsection{Logical objects and operations}
+
+Our specifications are built on a generic library for the syntax and semantics of
+propositional logic. The data type of propositional formulas with variables indexed by
+a datatype \lstinline{ν} is defined inductively as follows:
+\begin{lstlisting}
+inductive PropForm (ν : Type)
+  | var (x : ν)
+  | tr
+  | fls
+  | neg (φ : PropForm ν)
+  | conj (φ₁ φ₂ : PropForm ν)
+  | disj (φ₁ φ₂ : PropForm ν)
+  | impl (φ₁ φ₂ : PropForm ν)
+  | biImpl (φ₁ φ₂ : PropForm ν)
+\end{lstlisting}
+The last two constructors denote implication and bi-implication, which are not used in this
+project. The usual syntactic and semantic notions are defined in the expected ways.
+It is convenient to take a truth assignment \lstinline{PropAssignment ν} to a function that
+assigns a boolean value to every assignment, and later restrict attention to subsets of the
+variables. In Lean, we introduce the notation \lstinline{τ ⊨ φ} for the statement that
+\lstinline{τ} satisfies \lstinline{φ}. We write \lstinline{entails φ₁ φ₂} to say that
+\lstinline{φ₁} and \lstinline{φ₂} and \lstinline{equivalent φ₁ φ₂}.
+For the purpose of model counting, if \lstinline{s} is any finite set of variables,
+we define \lstinline{models φ s} to be the finite set of truth assignments \lstinline{τ}
+satisfying \lstinline{φ} that assign arbitrary values on \lstinline{s} and
+\lstinline{false} outside \lstinline{s}.
+
+In logic, the set of propositional formulas modulo equivalence is sometimes called the
+\emph{Lindenbaum--Tarski algebra}. We have found it convenient to define this quotient,
+which we denote \lstinline{PropTerm ν}, and lift the boolean operations and the entailment
+relation to this new type. The advantage is that equivalent formulas give
+rise to equal elements in the quotient.
+This makes easier to prove equivalences as we go, since we can calculate with the associated
+elements of the quotient and substitute one for another when the corresponding formulas are equivalent.
+
+In our application, we instantiate \lstinline{ν} to a type \lstinline{Var} consisting
+of positive natural numbers, corresponding to the indexing of variables in the DIMACS
+format for SAT. It may be helpful to think of the elements of \lstinline{PropForm Var},
+\lstinline{PropTerm Var}, and \lstinline{PropAssignment Var} as mathematical objects
+rather than computational data. Our proof checker and model counters do not compute
+with them; rather, we use them to specify what the checker and model counters are supposed to do.
+The starting point for the proof checker is, instead, a CNF formula, which \emph{is}
+presented as data.
+Specifically, a literal is a nonzero integer, with the understanding that $-\ell$ represents
+the negation of $\ell$. A clause is an array of literals, and a CNF formula is an array
+of clauses:
+\begin{lstlisting}
+def ILit := { i : Int // i ≠ 0 }
+abbrev IClause := Array ILit
+abbrev ICnf := Array IClause
+\end{lstlisting}
+We define operations that translate these objects to the elements of \lstinline{PropForm Var}
+that they represent. Lean provides us with helpful ``anonymous projection'' syntax that allows
+us to write, for example, \lstinline{C.toPropForm} for the expression
+\lstinline{Clause.toPropForm C}.
+Similarly, we have a representation \lstinline{C.toPropTerm}
+of \lstinline{C} as an equivalence class of propositional formulas, and we can speak of the
+value of \lstinline{C} under any truth assignment.
+Our code represents partial truth assignments as hashmaps:
+\begin{lstlisting}
+abbrev PartPropAssignment := HashMap Var Bool
+\end{lstlisting}
+We have written a procedure that reduces a clause \lstinline{C} with respect to a partial
+assignment, and another procedure that uses a hashset to test whether a clause \lstinline{C} is a
+tautology.
+We have also verified that these low-level procedures do what they are supposed to do.
+
+\subsection{The Proof Checker}
+\label{subsection:proof:checker}
+
+Our proof checker interprets the input clauses listed in a CRAT file as a CNF formula $\varphi$.
+It then processes and checks each rule, throwing an exception if a precondition is not met.
+If it terminates without raising an exception, it outputs a POG, $P$, with distinguished root
+$\bf r$.
+We have formally proved the claim that in this case the formula corresponding to node
+$\bf r$ is a partitioned formula and is
+logically equivalent to $\varphi$.
+The POG $P$ can be saved to a file [TODO: implement this?] or passed on to one of the model counting
+procedures described in the next section.
+
+In our code, each element of a POG  is either a variable, a binary disjunction,
+or an arbitrary conjunction:
+\begin{lstlisting}
+inductive PogElt where
+  | var  : Var → PogElt
+  | disj : Var → ILit → ILit → PogElt
+  | conj : Var → Array ILit → PogElt
+\end{lstlisting}
+In the first case, the argument \lstinline{x} in the expression
+\lstinline{var x} is the index
+of the variable; in \lstinline{disj x left right} and \lstinline{conj x args}
+it is the definition number in the CRAT file.
+The CRAT generator described in Section~\ref{section:generating:crat}
+declares new variables sequentially, so we currently make the simplifying assumption
+that the $i$th element of the array has the node with index $i + 1$,
+but it will not be hard to generalize this.
+Notice that the arguments to \lstinline{disj} and \lstinline{conj} are literals,
+corresponding to positive or negative instances of variables declared earlier in the POG.
+So our POG data structure is as follows:
+\begin{lstlisting}
+structure Pog where
+  elts : Array PogElt
+  wf : ∀ i : Fin elts.size, elts[i].args_decreasing
+  inv : ∀ i : Fin elts.size, i = elts[i].varNum.natPred
+\end{lstlisting}
+The invariant \lstinline{wf} says that the graph is well founded, in the
+sense that if \lstinline{elts[i]} is a disjunction
+or a conjunction, then the variables occurring in the arguments have smaller indices.
+Note that \lstinline{Fin elts.size} is the data type consisting of natural numbers
+less than the size of the array \lstinline{elts}; our code enforces statically
+that the array accesses are within bounds.
+
+Note that we have not yet said that the corresponding formula is partitioned.
+For each POG \lstinline{P} and literal \lstinline{l}, we define
+\lstinline{P.toPropForm l} to be the
+propositional formula that arises from interpreting \lstinline{l} as a propositional
+formula, unfolding all the defined conjunctions and disjunctions. We define
+what it means for such a formula to be partitioned:
+\begin{lstlisting}
+def partitioned : PropForm ν → Prop
+  | tr         => True
+  | fls        => True
+  | var _      => True
+  | neg φ      => φ.partitioned
+  | disj φ ψ   => φ.partitioned ∧ ψ.partitioned ∧
+                    ∀ τ, ¬ (φ.eval τ ∧ ψ.eval τ)
+  | conj φ ψ   => φ.partitioned ∧ ψ.partitioned ∧ (φ.vars ∩ ψ.vars = ∅)
+  | impl _ _   => False
+  | biImpl _ _ => False
+\end{lstlisting}
+In other words, we rule out formulas with implication and bi-implication, and otherwise
+we follow the straightforward recursive definition.
+
+With these definitions in place, we can explain the specification for our checker.
+Our parser reads a CRAT file and returns an input formula \lstinline{cnf : ICnf} and a
+CRAT proof {pf : Array CratStep}, that is, an array of single proof steps:
+\begin{lstlisting}
+inductive CratStep (α ν β : Type)
+  | /-- Add asymmetric tautology. -/
+    addAt (idx : α) (C : Array β) (upHints : Array α)
+  | /-- Delete asymmetric tautology. -/
+    delAt (idx : α) (upHints : Array α)
+  | /-- Declare product operation. -/
+    prod (idx : α) (x : ν) (ls : Array β)
+  | /-- Declare sum operation. -/
+    sum (idx : α) (x : ν) (l₁ l₂ : β) (upHints : Array α)
+  | /-- Delete operation. -/
+    delOp (x : ν)
+\end{lstlisting}
+The core checker takes those as input, as well as a specification of the final node \lstinline{r},
+and either throws an exception, indicating that the proof is not well formed,
+or returns a POG \lstinline{P}.
+The specification asserts that, in the latter case, \lstinline{P.toPropForm r} is partitioned
+and is equivalent to \lstinline{cnf.toPropForm}.
+
+\subsection{The Model Counters}
+
+We have formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem,
+Definition~\ref{def:ring_evaluation}, as follows:
+\begin{lstlisting}
+def weightCount {R : Type} [CommRing R]
+    (weight : ν → R) (φ : PropForm ν) (s : Finset ν) : R :=
+  ∑ τ in models φ s, ∏ x in s, if τ x then weight x else 1 - weight x
+\end{lstlisting}
+Here \lstinline{R} is assumed to be a commutative ring. The curly brackets around \lstinline{R} indicate that
+this argument is meant ot be left implicit, because it can inferred from the return type of
+the weight function. Similarly, the square brackets indicate that the commutative ring structure
+is a type class argument, generally inferred from the context.
+
+More precisely, the quantity \lstinline{weightCount weight φ s} adds up the weights of the models
+of \lstinline{φ} over the set of variables \lstinline{s}. We prove that as long as \lstinline{s}
+contains the variables of \lstinline{φ}, adding extra variables does not change the sum, that is, \lstinline{vars φ ⊆ s} implies
+\begin{lstlisting}
+  weightCount weight φ s = weightCount weight φ (vars φ)
+\end{lstlisting}
+The counting scheme of Proposition~\ref{prop:ring:eval} for partitioned formulas is expressed as follows:
+\begin{lstlisting}
+ def countWeight (weight : ν → Rat) : PropForm ν → Rat
+  | tr       => 1
+  | fls      => 0
+  | var x    => weight x
+  | neg φ    => 1 - countWeight weight φ
+  | disj φ ψ => countWeight weight φ + countWeight weight ψ
+  | conj φ ψ => countWeight weight φ * countWeight weight ψ
+\end{lstlisting}
+We arbitrarily assign 0 to implications and bi-implications;
+recall that, by definition, these do not appear in partitioned formulas.
+Proposition~\ref{prop:ring:eval} is then formalized as follows:
+\begin{lstlisting}
+theorem countWeight_eq_weightCount (weight : ν → R) {φ : PropForm ν}
+    (hdec : partitioned φ) :
+  countWeight weight φ = weightCount weight φ (vars φ)
+\end{lstlisting}
+
+The functions just described are not meant to be computed, but,
+rather, serve as our mathematical reference.
+We have implemented an efficient function to calculate the weighted model count
+for an arbitrary node of a Pog, and we have proved that it computes the function above on the
+associated formula:
+\begin{lstlisting}
+theorem countWeight_eq_countWeight (pog : Pog) (weight : Var → Rat)
+    (x : Var) :
+  pog.countWeight weight x = (pog.toPropForm (.mkPos x)).countWeight weight
+\end{lstlisting}
+Here \lstinline{.mkPos x} denotes the positive literal for the variable \lstinline{x}.
+Applying this to the output of our verified CRAT proof checker,
+we obtain a proof that
+our toolchain computes the correct weighted model count of the input CNF.
+
+Lean 4 does not yet have an efficient implementation of rational arithmetic, and
+we have not yet implemented a verified version of $\drational$,
+defined in Section~\ref{sect:experimental}.
+We have therefore implemented a separate procedure that carries out an integer
+calculation of the number of models.
+The number of models that a propositional formula has depends on what we take the
+variables to be. For example, there is only one assignment to the variables
+$\{ x, y \}$ that makes $x \wedge y$ true, but there are two assignments to the
+variables $\{ x, y, z \}$ that make $x \wedge y$ true.
+It is not hard to show that for partitioned formulas \lstinline{PropForm ν} whose
+variables are among a finite set \lstinline{s} of variables of cardinality \lstinline{numVars},
+we can count the number of models of the formula on the variables in \lstinline{s}
+recursively as follows:
+\begin{lstlisting}
+def countModels (nVars : Nat) : PropForm ν → Nat
+  | tr       => 2^nVars
+  | fls      => 0
+  | var _    => 2^(nVars - 1)
+  | neg φ    => 2^nVars - countModels nVars φ
+  | disj φ ψ => countModels nVars φ + countModels nVars ψ
+  | conj φ ψ => countModels nVars φ * countModels nVars ψ / 2^nVars
+\end{lstlisting}
+We have also implemented an efficient counting function for POGs and proved that
+it computes that same quantity on the corresponding formulas.
+Finally,
+We have proved that the calculation above really does
+return the number of models:
+\begin{lstlisting}
+theorem countModels_eq_card_models {φ : PropForm ν} {s : Finset ν}
+    (hvars : vars φ ⊆ s) (hpar :  partitioned φ) :
+  countModels (card s) φ = card (models φ s)
+\end{lstlisting}
+In particular, taking \lstinline{s} to be exactly the variables of \lstinline{φ},
+we have that the number of models on its variables is \lstinline{countModels φ (card (vars φ))}.
+
+\subsection{Implementation of the Proof Checker}
+
+We have specified the behavior of the proof checker in Section~\ref{subsection:proof:checker};
+in this section we sketch the implementation.
+Establishing its correctness was, by far, the most challenging part of the formalization
+process.
+For clarity, we describe the algorithm with ordinary mathematical notation rather than
+Lean snippets.
+
+We begin by reading the input CNF formula $\varphi$ and adding its clauses to a clause
+database $C$. We initialize that POG graph $G$ with the variables of $\varphi$,
+and then iteratively process each line of the CRAT proof as follows:
+\begin{itemize}
+  \item (Summarize what each step does.)
+\end{itemize}
+We establish that all the following invariants hold at each step:
+\begin{itemize}
+  \item (Wojciech has a long list of invariants)
+\end{itemize}
+At the end \ldots [Explain how the invariants at the end imply the desired conclusion.]
+
+\subsection{Verification specifics}
+\label{subsection:verification:specifics}
+
+In this subsection, we clarify what has been verified and what has been trusted.
+Recall that our first step is to parse a CRAT file to read in the initial CNF formula
+and the CRAT proof. We do not verify this step.
+If one is only interested in obtaining a model count or a verified model count,
+there is no strong need to verify the parsing of the proof,
+because if the checker succeeds in constructing an equivalent POG,
+it does not really matter whether the proof was the one the user intended.
+But it would be nice to have reassurance that the CNF formula that serves
+as input to our verified checker matches the one described in the file.
+An easy and fairly standard way of addressing this is to print out the CNF formula
+right after parsing it and then do a diff with the original input.
+This involves trusting only the correctness of the print procedure and diff.
+Similarly, if one wants to establish the correctness of the POG contained in the CRAT file,
+one can print out the POG that is constructed by the checker and compare.
+
+Lean's code extraction replaces calculations with natural numbers and integers with
+efficient but unverified arbitrary precision versions.
+Lean also uses an efficient implementation of arrays; within the
+formal system, these are defined in terms of lists, but code extraction replaces them
+with dynamic arrays and uses reference counting to allow destructive updates when it is safe
+to do so [cite counting immutable beans paper].
+Code extraction also provides efficient implementations of tail recursive functions and loops
+[cite ``do unchained'' paper].
+Finally, Lean's standard library implements hashmaps in terms of array.
+Many of the basic properties of hashmaps have been formally verified, but not all.
+In particular, we make use of a fold operation whose verification is not yet complete.
+Thus our proofs depend on the assumption that the fold operation has the
+expected properties.
+
+In sum, in addition to trusting Lean's foundation and kernel checker,
+we also have to trust that code extraction respects that foundation,
+that the implementation of arrays and hashmaps satisfy their internal descriptions,
+and that, after parsing, the computation has the correct input formula.
+All of our specifications have been completely proved and verified relative to that.
+
+\subsection{Evaluation}
+
+[TODO: Say something to establish that the procedure run in reasonable time and produce
+useful results; or maybe this goes in the next section?]
