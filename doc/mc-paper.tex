@@ -469,15 +469,14 @@ We write $a - b$ as a shorthand for $a + -b$.
 
 \begin{definition}[Ring Evaluation Problem]
 \label{def:ring_evaluation}
-  For commutative ring $\ring$, a {\em ring labeling} associates a value $w(x) \in \dset$ with
+  For commutative ring $\ring$, a {\em ring weight function} associates a value $w(x) \in \dset$ with
   every variable $x \in \varset$.  We then define $w(\obar{x})$ to equal $\mulident-w(x)$.
 
-  For Boolean formula $\phi$, and ring labeling $w$, the {\em ring evaluation problem} is to compute:
+  For Boolean formula $\phi$, and ring weight function $w$, the {\em ring evaluation problem} is to compute:
   \begin{eqnarray}
     \rep(\phi, w) & = & \sum_{\alpha \in \modelset(\phi)} \;\; \prod_{\lit \in \alpha} w(\ell) \label{eqn:rep}
   \end{eqnarray}
   In this equation, sum \scalebox{0.8}{$\sum$} is computed using addition operation $\radd$, and product \scalebox{0.8}{$\prod$} is computed using multiplication operation $\rmul$.
-\label{def:labeling}
 \end{definition}
 
 Many important properties of Boolean formulas can be
