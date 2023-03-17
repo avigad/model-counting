@@ -229,7 +229,7 @@ tractable variants of Boolean satisfiability, including 2-SAT, become
 intractable when the goal becomes model counting and not just
 satisfiability \cite{valiant:siam:1979}.  Nonetheless, a number of
 model counters have developed that scale to very large formulas, as
-witnessed by their progress in the annual model counting competitions.
+witnessed by the progress in recent model counting competitions.
 
 One approach to model counting, known as {\em knowledge compilation},
 transforms the formula into a structured form for which model counting
@@ -240,11 +240,11 @@ Boolean formula as a directed acyclic graph, with terminal nodes
 labeled by Boolean variables and their complements, and with each
 nonterminal node labeled by Boolean operation And or Or.  Restrictions
 are placed on the structure of the graph such that a count of the
-models can be computed by a single bottom-up traversal of the graph.
+models can be computed by a single bottom-up traversal.
 Kimmig, et al., present a very general framework, known as {\em
   algebraic model counting}~\cite{kimmig:jal:2017}, describing
 properties of Boolean functions that can be efficiently computing from
-its d-DNNF representation.  These include standard and weighted model
+a d-DNNF representation.  These include standard and weighted model
 counting, and much more.
 
 One shortcoming of existing knowledge compilers is that they have no
@@ -264,7 +264,7 @@ compilation, including d-DNNF\@.  We present the CRAT file format.
 It captures both the structure of a POG and a checkable proof
 that the POG is logically equivalent to a Boolean formula given in
 conjunctive normal form (CNF).  A proof consists of a sequence of
-clause addition and deletion steps, based on the extended resolution
+clause addition and deletion steps, based on an extended resolution
 proof system~\cite{Tseitin:1983}.  We present a set of conditions that
 a CRAT file must satisfy to provide an equivalence proof.
 
@@ -337,7 +337,7 @@ As the dashed box in Figure~\ref{fig:chain} indicates, this tool chain
 shifts the need for trustworthy code away from the complex and highly
 optimized knowledge compiler to a relatively simple checker and
 evaluator.  Importantly, the proof generator need not be
-trustworthy---its errors will also be caught by the proof checker.
+trusted---its errors will also be caught by the proof checker.
 
 To further enhance the trustworthiness of our toolchain, we have
 developed formally verified versions of the proof checker and ring
@@ -357,14 +357,14 @@ tradition~\cite{ZhangMalik} and has become widely accepted due to the
 formulation of clausal proof systems for which proofs can readily be
 generated and efficiently (and, in some cases, formally) checked
 \cite{cruz-cade-2017,RAT,Tan:2021,wetzler14_drattrim}.  Some progress has also
-been made on extending these proof systems to quantified Boolean
+been made on extending these proof systems to other domains, including quantified Boolean
 formulas~\cite{bryant:cade:2021,heule:JAR2014}.
 
 Fichte, Hecher, and Roland~\cite{fichte:sat:2022} devised the MICE
 proof framework for model counting programs.  Their proof rules are
 based on the algorithmic steps commonly used by model counting
 programs, and they present a series of lemmas and a theorem stating
-that their checking framework is sound and complete.  They also
+that their checking framework is sound.  They also
 present experimental results for cases where they modify existing
 model counters to also generate proof traces, and where they convert
 d-DNNF graphs into a checkable form.  Our tool chain is not directly
@@ -374,12 +374,12 @@ produce a certified standard or weighted model count.  Their tool
 chain can be applied to some programs that are pure model counters,
 while ours can be applied to pure knowledge compilers.  Nonetheless,
 we compare the performance of our tool chain to theirs as part of our
-experimental evaluation in Section~\ref{sect:experimental}.  Our
+experimental evaluation in Appendix~\ref{app:experiments}.  Our
 experience with developing a formally verified proof checker has shown
 us that, even for the well understood framework of extended
 resolution, it can be challenging to formulate the full set of requirements to guarantee soundness.
 
-We know of know other work addressing the more general question of
+We know of no other work addressing the question of
 certifying the output of a knowledge compiler.
 
 
@@ -451,7 +451,7 @@ This literal must be assigned value $1$ by any satisfying assignment of the form
   \section{Ring Evaluation of a Boolean Formula}
 
 We propose a general framework for summarizing properties of Boolean
-formulas inspired by the formulation of {\em algebraic model counting}.~\cite{kimmig:jal:2017}.
+formulas inspired by the formulation of {\em algebraic model counting}~\cite{kimmig:jal:2017}.
 
 \begin{definition}[Commutative Ring]
   A {\em commutative ring} $\ring$ is an algebraic structure
@@ -475,7 +475,7 @@ We write $a - b$ as a shorthand for $a + -b$.
   \begin{eqnarray}
     \rep(\phi, w) & = & \sum_{\alpha \in \modelset(\phi)} \;\; \prod_{\lit \in \alpha} w(\ell) \label{eqn:rep}
   \end{eqnarray}
-  In this equation, sum $\sum$ is computed using addition operation $\radd$, and product $\prod$ is computed using multiplication operation $\rmul$.
+  In this equation, sum \scalebox{0.8}{$\sum$} is computed using addition operation $\radd$, and product \scalebox{0.8}{$\prod$} is computed using multiplication operation $\rmul$.
 \label{def:labeling}
 \end{definition}
 
@@ -524,9 +524,9 @@ Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the fo
 \textstyle
 \rep(\boolnot \phi,\; w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
 \textstyle
-{\Large \rep}\left(\Pand_{i=1,k} \phi_i,\; w \right) &=& \prod_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:product} \\
+\scalebox{1.2}{\rep}\left(\Pand_{i=1,k} \phi_i,\; w \right) &=& \prod_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:product} \\
 \textstyle
-{\Large \rep}\left(\Por_{i=1,k} \phi_i,\; w\right) &=& \sum_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:sum}
+\scalebox{1.2}{\rep}\left(\Por_{i=1,k} \phi_i,\; w\right) &=& \sum_{i=1,k} \rep(\phi_i, w) \label{eqn:ring:sum}
 %% V2
 %\rep(\boolnot \phi, w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
 %\rep\left(\phi_1, w \pand \dots \pand \phi_k, w \right) &=& \prod_{i=1..k} \rep(\phi_i, w) \label{eqn:ring:product} \\
@@ -693,7 +693,7 @@ knowledge compilation.
 
 The CRAT format draws its inspiration from the LRAT~\cite{lrat} and
 QRAT~\cite{heule:JAR2014} formats for unquantified and quantified Boolean formulas, respectively.
-The following are its key properties:
+Key properties include:
 \begin{itemize}
   \item
   The file contains declarations of $\pand$ and $\por$ operations to describe the POG.
@@ -910,7 +910,7 @@ graph into a POG is straightforward---each node in a d-DNNF graph can
 be directly represented as a POG node.  Rather than representing every
 d-DNNF node explicitly, our program performs simplifications to
 eliminate Boolean constants.
-Except for the degenerate cases,
+Except in degenerate cases,
 %where the formula is unsatisfiable or a tautology,
 we can therefore assume
 that the POG does not contain any constant nodes.
@@ -1106,12 +1106,12 @@ bounded by the number of POG nodes.
 
 \section{Optimizations}
 
-The performance of the proof generator for forward implication, both in its execution time and
+The performance of the structural proof generator for forward implication, both in its execution time and
 the size of the proof generated, can be improved by two optimizations
 described here.  A key feature is that they do not require any changes
 to the proof framework---they build on the power of extended
 resolution to create new logical structures within the proof.  They
-involve declaring new product nodes to encode both products of literals.
+involve declaring new product nodes to encode products of literals.
 These nodes are not part of the POG
 representation of the formula; they serve only to enable the forward
 implication proof.  Here we only summarize the two optimizations.
@@ -1134,7 +1134,7 @@ node $\nodeu$ to recursively validate all of its children.  This
 effectively expands the graph into a tree, potentially requiring an
 exponential number of recursive steps.  Instead, for each node
 $\nodeu$ having $\indegree(u) > 1$, the program can define and
-generate the proof of a lemma for $\nodeu$ when it is first reached by
+generate the proof of a {\em lemma} for $\nodeu$ when it is first reached by
 a call to $\validate$ and then apply this lemma for this and
 subsequent calls.  The lemma states that the POG with root node
 $\nodeu$ satisfies forward implication for a formula
@@ -1152,22 +1152,20 @@ results (Appendix~\ref{app:experiments}) shows that these
 optimizations yield substantial benefits.
 
 
-
 \input{lean}
 
 
 \section{Experimental Evaluation}
 \label{sect:experimental}
-We have implemented versions of the three programs that, in addition to the \dfour{} knowledge compiler,  form the
+We have implemented versions of the three programs that, along with the \dfour{} knowledge compiler,  form the
 toolchain illustrated in Figure~\ref{fig:chain}.  One version,
 including a proof generator, proof checker, and ring evaluator for
 standard and weighted model counting, is designed to be fully
 scalable.  The other version, consisting of a proof checker and
 ring evaluator has been formally verified within the \lean{} proof
 system.
-
 Our long-term goal is to have a toolchain suitable for use in a
-knowledge compilation competition, along the lines of the annual
+knowledge compiler competition, along the lines of the annual
 competitions for other automated reasoning tools.  Our experiments
 consider the benchmark problems and computing capabilities that would
 arise in such a competition and evaluate whether our implementations
@@ -1190,12 +1188,12 @@ The proof generator can optionally be instructed to generate a {\em
 one-sided} proof, providing only the reverse-implication portion of the proof via
 input clause deletion.  This can provide useful information---any
 assignment that is a model for the compiled representation
-must also be a model for the input formula---even when generating a
+must also be a model for the input formula---even when 
 full validation is impractical.
 
 Our ring evaluator can perform both standard and weighted model
-counting.  It performs arithmetic over a subset of the rational
-numbers we term $\drational$, consisting of numbers of the form
+counting.  It performs arithmetic over a subset of the rationals
+consisting of numbers of the form
 $a \cdot 2^{b} \cdot 5^{c}$, for integers $a$, $b$, and $c$, and
 with $a$ implemented to have arbitrary range.
 Allowing scaling by powers of 2 enables the density computation
@@ -1445,6 +1443,11 @@ for the POG nodes and the unit clause asserting $s_{10}$ remain,
 completing a proof that the POG is logically equivalent to the input
 formula.
 
+Observe that the forward implication proof shown in Figure~\ref{fig:eg4:all}  must ``visit'' nodes
+$\nodep_5$ and $\nodep_6$ twice, separately considering  assignments where $\assign(x_1) = 1$
+(clauses 25 and 26) and where $\assign(x_1) = 1$ (clauses 30 and 31).  
+Section~\ref{app:lemma:eg} shows how to use a lemma such that these nodes are each only visited once.
+
 
 \section{Optimizations for Forward Implication Proofs}
 
@@ -1539,9 +1542,88 @@ $\validate(\nodeu, \passign, \psi)$ may require further recursion,
 but any subsequent call can simply reuse the lemma proved by the first call.
 
 \subsection{Lemma Example}
-Observe that the forward implication proof shown in Figure~\ref{fig:eg4:all}  must ``visit'' nodes
-$\nodep_5$ and $\nodep_6$ twice, separately considering  assignments where $\assign(x_1) = 1$
-(clauses 25 and 26) and where $\assign(x_1) = 1$ (clauses 30 and 31).
+\label{app:lemma:eg}
+
+\begin{figure}
+(A) Additional nodes\\[1.0em]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{CRAT line} & Explanation \\
+\midrule
+25 & \texttt{p 11 -3 4} & \texttt{0} & $v_{11} = \obar{x}_3 \pand {x}_4$ \\
+28 & \texttt{p 12  3 -4} & \texttt{0} & $v_{12} = {x}_3 \pand \obar{x}_4$ \\
+\bottomrule
+\end{tabular}
+\\[1.0em]
+(B) Implicit Clauses\\[1.2em]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
+\midrule
+\texttt{25} & \texttt{11 3 -4} & \texttt{0} & Argument clause $\{x_3 ,\, \obar{x}_4\}$, activated by $\obar{v}_{11}$ \\
+\texttt{26} & \texttt{-11 -3} & \texttt{0} & \\
+\texttt{27} & \texttt{-11 4} & \texttt{0} & \\
+\midrule
+\texttt{28} & \texttt{12 -3 4} & \texttt{0} & Argument clause $\{\obar{x}_3,\,  {x}_4\}$, activated by $\obar{v}_{12}$ \\
+\texttt{29} & \texttt{-12 3} & \texttt{0} & \\
+\texttt{30} & \texttt{-12 -4} & \texttt{0} & \\
+\bottomrule
+\end{tabular}
+\\[1.0em]
+(C) CRAT Assertions\\[1.0em]
+\begin{tabular}{llllll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hints} & Explanation \\
+\midrule
+\multicolumn{6}{l}{Lemma Proof} \\
+\texttt{31} & \texttt{a 5 11 12 3} & \texttt{0} & \texttt{25 6} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land \obar{x}_3 \imply p_{5}$ \\
+\texttt{32} & \texttt{a 6 11 12 -3} & \texttt{0} & \texttt{28 9} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land {x}_3 \imply p_{6}$ \\
+\texttt{33} & \texttt{a 3 7 11 12} & \texttt{0} & \texttt{13 31} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land \obar{x}_3 \imply s_{7}$ \\
+\texttt{34} & \texttt{a 7 11 12} & \texttt{0} & \texttt{33 14 32} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \imply s_{7}$ \\
+\midrule
+\multicolumn{6}{l}{Lemma Application \#1} \\
+\texttt{35} & \texttt{a -11 1} & \texttt{0} & \texttt{26 27 3} & \texttt{0} & $\obar{x}_1 \imply \obar{v}_{11}$ \\
+\texttt{36} & \texttt{a -12 1} & \texttt{0} & \texttt{29 30 4} & \texttt{0} & $\obar{x}_1 \imply \obar{v}_{12}$ \\
+\texttt{37} & \texttt{a 7 1} & \texttt{0} & \texttt{35 36 34} & \texttt{0} & $\obar{x}_1 \imply s_7$ \\
+\midrule
+\texttt{38} & \texttt{a 8 1} & \texttt{0} & \texttt{37 15} & \texttt{0} & $\obar{x}_1 \imply p_8$ \\
+\midrule
+\multicolumn{6}{l}{Lemma Application \#2} \\
+\texttt{39} & \texttt{a -11 -1} & \texttt{0} & \texttt{26 27 1} & \texttt{0} & ${x}_1 \imply \obar{v}_{11}$ \\
+\texttt{40} & \texttt{a -12 -1} & \texttt{0} & \texttt{29 30 2} & \texttt{0} & ${x}_1 \imply \obar{v}_{12}$ \\
+\texttt{41} & \texttt{a 7 -1} & \texttt{0} & \texttt{39 40 34} & \texttt{0} & ${x}_1 \imply s_7$ \\
+\midrule
+\texttt{42} & \texttt{a 9 -1} & \texttt{0} & \texttt{5 41 18} & \texttt{0} & ${x}_1 \imply p_9$ \\
+\texttt{43} & \texttt{a 1 10} & \texttt{0} & \texttt{23 38} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
+\texttt{44} & \texttt{a 10} & \texttt{0} & \texttt{43 24 42} & \texttt{0} & $s_{10}$ \\
+\bottomrule
+\end{tabular}
+\caption{Example of lemma definition, proof, and application}
+\label{fig:eg4:lemmas}
+\end{figure}
+
+Figure~\ref{fig:eg4:lemmas} shows an alternate forward implication
+proof for the example of Figure~\ref{fig:eg4:all} using a lemma to
+represent the shared node $\nodes_7$.  We can see that the POG with
+this node as root encodes the Boolean formula $x_3 \leftrightarrow x_4$, having a CNF representation consisting of the clauses
+$\{x_3 ,\, \obar{x}_4\}$ and $\{\obar{x}_3 ,\, {x}_4\}$.  The product node
+declarations shown in Figure~\ref{fig:eg4:lemmas}(A) create synthetic
+clauses 25 and 28 to encode these arguments with activating literals
+$\obar{v}_{11}$ and $\obar{v}_{12}$, respectively.  Clauses 31--34
+then provide a proof of the lemma, stating that any assignment
+$\assign$ that activates these clauses will  assign $1$ to $s_7$.
+Clauses 35 and 36 state that an assignment with $\assign(x_1) = 0$
+will cause the first synthetic clause to activate due to input clause
+3, and it will cause the second synthetic clause to activate due to
+input clause 4.  From this, clause 37 can use the lemma to state that
+assigning $0$ to $x_1$ will cause $s_7$ to evaluate to $1$.  Similarly,
+clauses 39 and 40 serve to activate the synthetic clauses when
+$\assign(x_1) = 1$, due to input clauses 1 and 2, and clause 41 then
+uses the lemma to state that assigning $1$ to $x_1$ will cause $s_7$ to
+evaluate to $1$.
+
+In this example, adding the lemma increases the proof length, but that
+is only because it is such a simple formula.
 
 
 
@@ -1583,14 +1665,13 @@ method for the forward implication proof, with the two optimizations
 of literal grouping and lemmas.
 Running with a time limit of 4000 seconds\footnote{All measured times
 in this document are actual elapsed times, not CPU times.}, \dfour{}
-was able to generated d-DNNF representations for 124 of these, and it timed out on the
+was able to generate d-DNNF representations for 124 of these, and it timed out on the
 rest.  Our proof generator was able to convert all of the generated
 d-DNNF graphs into POGs and determine how many defining clauses they
 would generate.  A POG operation with $k$ arguments requires $k+1$
-defining clauses, and so the total number of defining clauses is equal
-to the sum of the number of nonterminal nodes plus the sum of number
-of children for each of these nodes.  The number of defining clauses
-ranged from 304 to 2,761,457,765 with a median of 848,784.
+defining clauses, and so the total number of defining clauses in pog $P$ equals
+the number of nonterminal nodes plus the number of edges in the graph, corresponding to our definition of $|P|$.
+The number of defining clauses ranged from 304 to 2,761,457,765 with a median of 848,784.
 
 \subsection{Performance of the Proof Generator and Checker}
 
@@ -1599,7 +1680,7 @@ ranged from 304 to 2,761,457,765 with a median of 848,784.
 For each of the 124 d-DNNF graphs generated by \dfour{}, we attempted
 to use our proof generator and unverified checker, limiting proof
 generation to 10,000 seconds.  We also attempted to generate and check
-one-sided proofs for 124 graphs, again with a time limit of 10,000
+one-sided proofs for the graphs, again with a time limit of 10,000
 seconds for proof generation.
 
 Figure~\ref{fig:d4:crat} summarizes our results in terms of the time
@@ -1613,8 +1694,8 @@ Relative to the runtime for \dfour{}, two problems ran faster
 with the generator and checker.  These were for problems having small numbers of
 models (relative to the number of variables), and so most of the time
 spent by both \dfour{} and our proof generator was in running a CDCL
-solver to search the very sparse solution space.  Our solver,
-\cadical{} generally outperforms the miniSAT-based CDCL solver used by
+solver to search the very sparse solution space.  
+\cadical{} generally outperforms the miniSAT-based solver used by
 \dfour{}.  At the other extreme, one problem that required only 19
 seconds for \dfour{} required 8657 seconds to generate a proof and 45
 seconds to check it.  It is unclear why the proof generation required
@@ -1624,7 +1705,7 @@ checking times versus the time for \dfour{} had a harmonic mean of
 
 Of the 16 benchmarks that could not be fully validated, one had so
 many defining clauses that it overflowed the 32-bit signed integers
-our programs used for clause identifiers.  Another exited due to the
+our programs use for clause identifiers.  Another exited due to the
 virtual memory limit imposed by the operating system, and the
 other 14 timed out.  Of the 15 that did not overflow the clause
 counter, we were able to complete a one-sided verification for 9, but
@@ -1669,7 +1750,7 @@ approach.  On the other hand, the monolithic approach timed out for 13
 of the cases and was slower for the other 37.  In general, we can see
 the monolithic approach faring worse on larger problems.
 
-Figure~\ref{fig:monolithic:clauses} shows the total numbers of clauses
+Figure~\ref{fig:monolithic:clauses} shows the total number of clauses
 for the two approaches for the 70 cases where both approaches completed within 1000 seconds.
 As can be seen, the monolithic approach consistently produces
 shorter proofs, perhaps due to the benefits of the proof trimming by
@@ -1698,7 +1779,7 @@ Figure~\ref{fig:optimized:lessoptimized} shows how disabling these optimizations
 total number of clauses in the proofs, where the X axis indicates the
 total number with both optimizations enabled, while the Y axis
 indicates the number with one (left) or both (right) optimizations
-enabled.
+disabled.
 
 As the figures illustrated, each optimization on its own can shorten
 the proofs, sometimes substantially, and the two combine to have even
@@ -1715,13 +1796,13 @@ in one case ran $38\times$ faster.  Similarly, literal grouping could
 take longer, but in one case ran $3.9\times$ faster.
 
 Overall, it is clear that these two optimizations are worthwhile, and
-even critical to success for some benchmarks.
+sometimes critical, to success for some benchmarks.
 
 \subsection{Comparison with MICE Framework}
 
 To compare the performance of our toolchain versus that of
 MICE~\cite{fichte:sat:2022}, we consider how the combination of proof
-generation, proof checking, and ring evaluation in the CRAT toolchain compare to the time to
+generation, proof checking, and ring evaluation in the CRAT toolchain compares to the time to
 run their proof generator \progname{nnf2trace} and checker
 \progname{sharptrace}.  We add the time for ring evaluation on our
 side, since their checker provides a count, although only an
