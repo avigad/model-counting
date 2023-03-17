@@ -1,8 +1,8 @@
 \section{A Formally Verified CRAT Checker and POG Model Counter}
 
 We have implemented the rightmost two components of Figure~\ref{fig:chain}, namely the
-proof checker and both model and weighted model counters, in the Lean 4 programming language
-and proof assistant [cite].
+proof checker and both model and weighted model counters, in the \lean{} programming language
+and proof assistant~\cite{demoura:cade:2021}.
 In this section, we briefly describe the functions we have implemented in Lean and
 the specifications we have proved.
 More information is provided in the Appendix~\ref{appendix:lean}.
@@ -13,9 +13,9 @@ More information is provided in the Appendix~\ref{appendix:lean}.
 Our specifications are built on a generic library for the syntax and semantics of
 propositional logic. We define the data type \lstinline{PropForm Var} of propositional
 formulas with variables \lstinline{Var}, which are positive natural numbers,
-corresponding to the indexing of variables in the DIMACS format for SAT.
+corresponding to the indexing of variables in the CNF file.
 It is convenient to take a truth assignment \lstinline{PropAssignment Var} to a function that
-assigns a boolean value to every assignment, and later restrict attention to subsets of the
+assigns a Boolean value to every assignment, and later restrict attention to subsets of the
 variables.
 
 We define the following representations for CNF formulas.
@@ -48,8 +48,7 @@ For each POG \lstinline{P} and literal \lstinline{l}, we define
 \lstinline{P.toPropForm l} to be the
 propositional formula that arises from interpreting \lstinline{l} as a propositional
 formula, unfolding all the defined conjunctions and disjunctions.
-Our formulation of what it means for such a formula to be partitioned, corresponding
-to the definition at the end of \cref{section:logical:foundations}, is as follows:
+A partitioned-operation formula, as defined in \cref{section:logical:foundations}, is expressed as:
 \begin{lstlisting}
 def partitioned : PropForm Var → Prop
   | tr | fls | var _ => True
@@ -65,6 +64,7 @@ the proof is not well-formed. We have proved that if the checker terminates succ
 it succeeds in constructing a POG that is partitioned and equivalent to that CNF. This is formalized as \lstinline{(pog.toPropForm r).partitioned ∧ inputCnf.toPropForm ≡ pog.toPropForm r}.
 
 \subsection{The Model Counters}
+\label{subsection:counting}
 
 We have formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem,
 \cref{def:ring_evaluation}, as follows:
@@ -84,8 +84,8 @@ The counting scheme of Proposition~\ref{prop:ring:eval} for partitioned formulas
   | disj φ ψ => ringEval weight φ + ringEval weight ψ
   | conj φ ψ => ringEval weight φ * ringEval weight ψ
 \end{lstlisting}
-We arbitrarily assign 0 to implications and bi-implications;
-recall that, by definition, these do not appear in partitioned formulas.
+%%We arbitrarily assign 0 to implications and bi-implications;
+%%recall that, by definition, these do not appear in partitioned formulas.
 Proposition~\ref{prop:ring:eval} is then formalized as follows:
 \begin{lstlisting}
 theorem ringEval_eq_weightCount (weight : Var → R) {φ : PropForm Var} :

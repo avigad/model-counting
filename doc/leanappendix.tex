@@ -2,8 +2,8 @@
 \label{appendix:lean}
 
 We have implemented the rightmost two components of Figure~\ref{fig:chain}, namely the
-proof checker and both model and weighted model counters, in the Lean 4 programming language
-and proof assistant [cite]. Lean 4 implements a logical foundation in which expressions
+proof checker and both model and weighted model counters, in the \lean{} programming language
+and proof assistant [cite]. \lean{} implements a logical foundation in which expressions
 have a computational interpretation, and just as with other proof assistants like Isabelle and Coq,
 a function defined within the formal system can be compiled to efficient code.
 At the same time, we can state and prove claims about the function within the system, thereby
@@ -24,7 +24,7 @@ Our verified implementation of the checker tells us that the algorithm is sound 
 provides a reference for other implementations.
 
 In this section, we describe the implementation in Lean and the specifications we have proved.
-Lean 4's logical foundation describes a functional programming language with
+\lean{}'s logical foundation describes a functional programming language with
 inductive data types,
 but our procedures also make use of calculations with natural numbers, integers, and rationals,
 and data structures for arrays and hashmaps.
@@ -101,7 +101,7 @@ tautology.
 We have also verified that these low-level procedures do what they are supposed to do.
 
 \subsection{The Proof Checker}
-\label{subsection:proof:checker}
+\label{appendix:proof:checker}
 
 Our proof checker interprets the input clauses listed in a CRAT file as a CNF formula $\varphi$.
 It then processes and checks each rule, throwing an exception if a precondition is not met.
@@ -242,7 +242,7 @@ Applying this to the output of our verified CRAT proof checker,
 we obtain a proof that
 our toolchain computes the correct weighted model count of the input CNF.
 
-Lean 4 does not yet have an efficient implementation of rational arithmetic, and
+\lean{} does not yet have an efficient implementation of rational arithmetic, and
 we have not yet implemented a verified version of $\drational$,
 defined in Section~\ref{sect:experimental}.
 We have therefore implemented a separate procedure that carries out an integer
@@ -279,7 +279,7 @@ we have that the number of models on its variables is \lstinline{countModels φ 
 
 \subsection{Implementation of the Proof Checker}
 
-We have specified the behavior of the proof checker in Section~\ref{subsection:proof:checker};
+We have specified the behavior of the proof checker in Section~\ref{appendix:proof:checker};
 in this section we sketch the implementation.
 Establishing its correctness was, by far, the most challenging part of the formalization
 process.
@@ -336,7 +336,7 @@ that the implementation of arrays and hashmaps satisfy their internal descriptio
 and that, after parsing, the computation has the correct input formula.
 All of our specifications have been completely proved and verified relative to that.
 
-\subsection{Evaluation}
+%% \subsection{Evaluation}
 
-[TODO: Say something to establish that the procedure run in reasonable time and produce
-useful results; or maybe this goes in the next section?]
+%% [TODO: Say something to establish that the procedure run in reasonable time and produce
+%% useful results; or maybe this goes in the next section?]
