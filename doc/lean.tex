@@ -51,11 +51,10 @@ formula, unfolding all the defined conjunctions and disjunctions.
 A partitioned-operation formula, as defined in \cref{section:logical:foundations}, is expressed as:
 \begin{lstlisting}
 def partitioned : PropForm Var → Prop
-  | tr | fls | var _ => True
-  | neg φ    => φ.partitioned
-  | disj φ ψ => φ.partitioned ∧ ψ.partitioned ∧
-                    ∀ τ, ¬ (φ.eval τ ∧ ψ.eval τ)
-  | conj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ (φ.vars ∩ ψ.vars = ∅)
+ | tr | fls | var _ => True
+ | neg φ    => φ.partitioned
+ | disj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ ∀ τ, ¬(φ.eval τ ∧ ψ.eval τ)
+ | conj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ (φ.vars ∩ ψ.vars = ∅)
 \end{lstlisting}
 
 Our proof checker starts by parsing the CNF formula and storing it internally.
@@ -84,8 +83,6 @@ The counting scheme of Proposition~\ref{prop:ring:eval} for partitioned formulas
   | disj φ ψ => ringEval weight φ + ringEval weight ψ
   | conj φ ψ => ringEval weight φ * ringEval weight ψ
 \end{lstlisting}
-%%We arbitrarily assign 0 to implications and bi-implications;
-%%recall that, by definition, these do not appear in partitioned formulas.
 Proposition~\ref{prop:ring:eval} is then formalized as follows:
 \begin{lstlisting}
 theorem ringEval_eq_weightCount (weight : Var → R) {φ : PropForm Var} :
