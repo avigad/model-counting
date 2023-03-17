@@ -63,7 +63,7 @@ data:
 
 	$(INTERP) $(GRAB) "root model" *.mice_log > models-mice.csv
 	$(INTERP) $(GRAB) "N2T ERROR: Timeout" *.mice_log > timeouts-mice.csv
-	$(INTERP) $(GRAB) "panick" *.mice_log > errors-mice.csv
+#	$(INTERP) $(GRAB) "panick" *.mice_log > errors-mice.csv
 	$(INTERP) $(GRAB) "N2T LOG: Elapsed" *.mice_log > seconds-n2t.csv
 	$(INTERP) $(GRAB) "TC LOG: Elapsed" *.mice_log > seconds-tc.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-n2t.csv seconds-tc.csv >  time-mice.csv
@@ -71,4 +71,4 @@ data:
 	$(INTERP) $(MERGE) -f time-ours.csv time-mice.csv models-mice.csv \
 		| sed 's/1436.934/1500/g' | sed 's/1875.151/1500/g' > time-mice-compare.csv
 	$(INTERP) $(MERGE) -f timeouts-mice.csv time-ours.csv 1500 > time-mice-timeout.csv
-	$(INTERP) $(MERGE) -f errors-mice.csv time-ours.csv 1500 > time-mice-error.csv
+#	$(INTERP) $(MERGE) -f errors-mice.csv time-ours.csv 1500 > time-mice-error.csv

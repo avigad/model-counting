@@ -20,6 +20,8 @@
     \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (10, 1000)};
     \addplot[color=black,dashed] coordinates{(0.01,1500) (1500,1500)};
     \addplot[color=black,dashed] coordinates{(1500,0.01) (1500,1500)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1000) (1000,1000)};
+    \addplot[mark=none, color=lightblue] coordinates{(1000,0.01) (1000,1000)};
     \node[left] at (axis cs: 5.0,0.06) {$0{.}01\times$};
     \node[left] at (axis cs: 0.5,0.06) {$0{.}1\times$};
     \node[left] at (axis cs: 0.05,0.06) {$1\times$};
@@ -29,6 +31,6 @@
           \end{axis}
 \end{tikzpicture}
 } % centering
-\caption{Monolithic versus Structural Validation: Time}
+\caption{Monolithic versus Structural Validation: Time.  Timeouts are shown as points on the dashed lines.}
 \label{fig:monolithic:time}
 \end{figure}

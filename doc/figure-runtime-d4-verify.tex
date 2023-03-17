@@ -21,6 +21,7 @@
       \scriptsize \textsf{Resource limit exceeded},
     }
     \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,20000) (4000,20000)};
     \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (2000,20000)};
@@ -35,6 +36,6 @@
           \end{axis}
 \end{tikzpicture}
 } % centering
-\caption{Combined runtime for CRAT proof generation and checking  as function of D4 runtime}
+\caption{Combined runtime for CRAT proof generation and checking  as function of D4 runtime.  Timeouts are shown as points on the dashed line.}
 \label{fig:d4:crat}
 \end{figure}
