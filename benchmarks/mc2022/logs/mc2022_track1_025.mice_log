@@ -1,5 +1,6 @@
 N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track1_025.cnf ./mc2022_track1_025.nnf
 N2T LOG: Time limit 1000 seconds
+single child: 1
 annotating...
 cloning 32 to 48289
 cloning 514 to 48292
@@ -232,9 +233,9 @@ cloning 6522 to 75868
 cloning 25895 to 75908
 smoothing...
 tracing...
-N2T LOG: Elapsed time = 158.429 seconds
+N2T LOG: Elapsed time = 139.130 seconds
 N2T OUTCOME: normal
-N2T: LOG: size ./mc2022_track1_025.trace 668246 lines 127638228 bytes
+N2T: LOG: size ./mc2022_track1_025.trace 591090 lines 122643982 bytes
 TC LOG: Running /Users/bryant/repos/vroland/sharptrace/target/release/sharptrace_checker ./mc2022_track1_025.trace
 TC LOG: Time limit 1000 seconds
 reading from "./mc2022_track1_025.trace"...done.
@@ -387,10 +388,8 @@ verifying proofs... 34%
 verifying proofs... 35%
 verifying proofs... 36%
 proofs verified.          
-thread 'main' panicked at 'coult not find root claim!: IntegrityError(NoRootClaim)', src/main.rs:109:10
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-TC ERROR: Return code = 101
-TC LOG: Elapsed time = 3.956 seconds
-TC OUTCOME: failed
-OVERALL LOG: Elapsed time = 162.509 seconds
-OVERALL OUTCOME: failed
+root model count: 995353648043325277633470371179901552767596542902694690949393806712545504789889138240157620657590241028863880769128775400
+TC LOG: Elapsed time = 3.877 seconds
+TC OUTCOME: normal
+OVERALL LOG: Elapsed time = 143.164 seconds
+OVERALL OUTCOME: normal

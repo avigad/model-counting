@@ -1,104 +1,6 @@
-D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_039.cnf -dDNNF -out=./mc2022_track2_039.nnf
-D4 LOG: Time limit 1000 seconds
-c [33mBenchmark Information[0m
-c Number of variables: 1245
-c Number of clauses: 3002
-c Number of literals: 6298
-c Preproc options: 
-c Integer mode 
-c
-c [1m[32mOption list [0m
-c Caching: 1
-c Reduce cache procedure level: 20
-c Strategy for Reducing the cache: 0
-c Cache representation: CL
-c Part of the formula that is cached: NT
-c Variable heuristic: VSADS
-c Phase heuristic: TRUE
-c Partitioning heuristic: CB + graph reduction + equivalence simplication
-c
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c top 5: -1063 
-c top 5: -1063 -267 
-c top 5: -1063 -267 -576 
-c top 5: -1063 -267 -576 -643 
-c unitLits 1048577 4194308 Bytes
-c freeVariables 1048577
-c top 5: -1063 -267 -576 643 
-c top 5: -1063 -267 -576 
-c top 5: -1063 -267 576 
-c top 5: -1063 -267 576 -643 
-c top 5: -1063 -267 576 643 
-c top 5: -1063 -267 576 
-c top 5: -1063 -267 576 
-c top 5: -1063 -267 576 
-c top 5: -1063 -267 576 
-c top 5: -1063 267 
-c top 5: -1063 267 -576 
-c top 5: -1063 267 -576 -643 
-c top 5: -1063 267 -576 -643 
-c top 5: -1063 267 -576 643 
-c top 5: -1063 267 576 
-c top 5: -1063 267 576 -643 
-c top 5: -1063 267 576 643 
-c top 5: -1063 267 
-c top 5: -1063 
-c top 5: 1063 
-c top 5: 1063 -576 
-c top 5: 1063 -576 -643 
-c top 5: 1063 -576 -643 -539 
-c top 5: 1063 -576 -643 539 
-c top 5: 1063 -576 643 
-c top 5: 1063 -576 643 -539 
-c top 5: 1063 -576 643 539 
-c top 5: 1063 576 
-c top 5: 1063 576 -643 
-c top 5: 1063 576 -643 -539 
-c      16384 |       1.02 |      51274 |       8196 |      57139 |        565 |     354914 |     406892 |          0 |       8196 |        3175 |          0 | 
-c top 5: 1063 576 -643 539 
-c top 5: 1063 576 643 
-c top 5: 1063 576 643 -539 
-c top 5: 1063 576 643 539 
-c top 5: 1063 
-c top 5: 1063 1240 
-c top 5: 1063 1240 
-c top 5: 1063 1240 
-c top 5: 1063 
-c top 5: 1063 
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c
-c [1m[31mStatistics [0m
-c [33mCompilation Information[0m
-c Number of compiled node: 25607
-c Number of split formula: 96899
-c Number of decision node: 12803
-c Number of node built on domain constraints: 0
-c Number of decomposable AND nodes: 21756
-c Number of backbone calls: 0
-c Number of partitioner calls: 4783
-c Average number of assigned literal to obtain decomposable AND nodes: 601.86/1245
-c Minimum number of assigned variable where a decomposable AND appeared: 174
-c 
-c [33mGraph Information[0m
-c Number of nodes: 582390
-c Number of edges: 670336
-c 
-c [1m[34mCache Information[0m
-c Memory used: 565 MB
-c
-c Number of positive hit: 87205
-c Number of negative hit: 12803
-c Number of reduceCall: 0
-c
-c Final time: 1.792534
-c 
-s 0.000000
-D4 LOG: Elapsed time = 2.169 seconds
-D4 OUTCOME: normal
 N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track2_039.cnf ./mc2022_track2_039.nnf
 N2T LOG: Time limit 1000 seconds
+single child: 1
 annotating...
 cloning 335 to 60171
 cloning 1311 to 60177
@@ -637,9 +539,9 @@ cloning 34498 to 123128
 cloning 34511 to 124111
 smoothing...
 tracing...
-N2T LOG: Elapsed time = 252.217 seconds
+N2T LOG: Elapsed time = 229.006 seconds
 N2T OUTCOME: normal
-N2T: LOG: size ./mc2022_track2_039.trace 1080465 lines 183364568 bytes
+N2T: LOG: size ./mc2022_track2_039.trace 954117 lines 175925002 bytes
 TC LOG: Running /Users/bryant/repos/vroland/sharptrace/target/release/sharptrace_checker ./mc2022_track2_039.trace
 TC LOG: Time limit 1000 seconds
 reading from "./mc2022_track2_039.trace"...done.
@@ -793,10 +695,8 @@ verifying proofs... 35%
 verifying proofs... 36%
 verifying proofs... 37%
 proofs verified.          
-thread 'main' panicked at 'coult not find root claim!: IntegrityError(NoRootClaim)', src/main.rs:109:10
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-TC ERROR: Return code = 101
-TC LOG: Elapsed time = 5.691 seconds
-TC OUTCOME: failed
-OVERALL LOG: Elapsed time = 260.270 seconds
-OVERALL OUTCOME: failed
+root model count: 1480701849511443905393013346560496787744154844493671369171989969767261352361321379280763528297094267046368320710923692624199400
+TC LOG: Elapsed time = 5.362 seconds
+TC OUTCOME: normal
+OVERALL LOG: Elapsed time = 234.637 seconds
+OVERALL OUTCOME: normal

@@ -1,112 +1,6 @@
-D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_053.cnf -dDNNF -out=./mc2022_track2_053.nnf
-D4 LOG: Time limit 1000 seconds
-c [33mBenchmark Information[0m
-c Number of variables: 1291
-c Number of clauses: 3144
-c Number of literals: 6604
-c Preproc options: 
-c Integer mode 
-c
-c [1m[32mOption list [0m
-c Caching: 1
-c Reduce cache procedure level: 20
-c Strategy for Reducing the cache: 0
-c Cache representation: CL
-c Part of the formula that is cached: NT
-c Variable heuristic: VSADS
-c Phase heuristic: TRUE
-c Partitioning heuristic: CB + graph reduction + equivalence simplication
-c
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c top 5: -1101 
-c top 5: -1101 -633 
-c top 5: -1101 -633 -282 
-c top 5: -1101 -633 -282 -601 
-c unitLits 1048577 4194308 Bytes
-c freeVariables 1048577
-c top 5: -1101 -633 -282 -601 
-c top 5: -1101 -633 -282 601 
-c top 5: -1101 -633 -282 601 
-c top 5: -1101 -633 -282 601 
-c top 5: -1101 -633 -282 601 
-c top 5: -1101 -633 -282 601 
-c top 5: -1101 -633 282 
-c top 5: -1101 -633 282 -601 
-c top 5: -1101 -633 282 601 
-c      16384 |       0.71 |      38573 |       8197 |      43602 |        565 |     233476 |     272762 |          0 |       8197 |        2701 |          0 | 
-c top 5: -1101 -633 282 
-c top 5: -1101 633 
-c top 5: -1101 633 -601 
-c top 5: -1101 633 -601 -282 
-c top 5: -1101 633 -601 -282 
-c top 5: -1101 633 -601 -282 
-c top 5: -1101 633 -601 282 
-c top 5: -1101 633 -601 282 
-c top 5: -1101 633 601 
-c top 5: -1101 633 601 -282 
-c top 5: -1101 633 601 282 
-c top 5: -1101 
-c top 5: 1101 
-c top 5: 1101 -633 
-c top 5: 1101 -633 -601 
-c top 5: 1101 -633 -601 -1170 
-c top 5: 1101 -633 -601 1170 
-c top 5: 1101 -633 601 
-c top 5: 1101 -633 601 -1170 
-c      32768 |       1.54 |      79200 |      16390 |      89622 |        565 |     482994 |     563085 |          0 |      16390 |        5175 |          0 | 
-c      49152 |       2.51 |     123672 |      24581 |     139720 |        566 |     732371 |     856981 |          0 |      24581 |        7796 |          0 | 
-c top 5: 1101 -633 601 1170 
-c top 5: 1101 633 
-c top 5: 1101 633 -601 
-c top 5: 1101 633 -601 -1170 
-c top 5: 1101 633 -601 1170 
-c top 5: 1101 633 -601 
-c top 5: 1101 633 601 
-c top 5: 1101 633 601 -1170 
-c      65536 |       3.61 |     169613 |      32773 |     191648 |        566 |     994941 |    1165519 |          0 |      32773 |       10173 |          0 | 
-c unitLits 2097153 8388612 Bytes
-c top 5: 1101 633 601 1170 
-c      81920 |       4.63 |     212195 |      40962 |     239792 |        578 |    1241006 |    1454183 |          0 |      40962 |       12783 |          0 | 
-c top 5: 1101 
-c top 5: 1101 1285 
-c top 5: 1101 1285 
-c top 5: 1101 1285 
-c top 5: 1101 
-c top 5: 1101 
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c
-c [1m[31mStatistics [0m
-c [33mCompilation Information[0m
-c Number of compiled node: 85375
-c Number of split formula: 250276
-c Number of decision node: 42687
-c Number of node built on domain constraints: 0
-c Number of decomposable AND nodes: 70426
-c Number of backbone calls: 0
-c Number of partitioner calls: 13262
-c Average number of assigned literal to obtain decomposable AND nodes: 637.16/1291
-c Minimum number of assigned variable where a decomposable AND appeared: 171
-c 
-c [33mGraph Information[0m
-c Number of nodes: 1296648
-c Number of edges: 1519185
-c 
-c [1m[34mCache Information[0m
-c Memory used: 578 MB
-c
-c Number of positive hit: 221525
-c Number of negative hit: 42687
-c Number of reduceCall: 0
-c
-c Final time: 4.864631
-c 
-s 0.000000
-D4 LOG: Elapsed time = 5.761 seconds
-D4 OUTCOME: normal
 N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track2_053.cnf ./mc2022_track2_053.nnf
 N2T LOG: Time limit 1000 seconds
+single child: 1
 annotating...
 cloning 39 to 198494
 cloning 39 to 198500
@@ -976,9 +870,9 @@ cloning 90 to 236424
 cloning 938 to 236433
 smoothing...
 tracing...
-N2T LOG: Elapsed time = 982.413 seconds
+N2T LOG: Elapsed time = 922.692 seconds
 N2T OUTCOME: normal
-N2T: LOG: size ./mc2022_track2_053.trace 1977920 lines 510833601 bytes
+N2T: LOG: size ./mc2022_track2_053.trace 1740213 lines 496941272 bytes
 TC LOG: Running /Users/bryant/repos/vroland/sharptrace/target/release/sharptrace_checker ./mc2022_track2_053.trace
 TC LOG: Time limit 1000 seconds
 reading from "./mc2022_track2_053.trace"...done.
@@ -1128,10 +1022,8 @@ verifying proofs... 31%
 verifying proofs... 32%
 verifying proofs... 33%
 proofs verified.          
-thread 'main' panicked at 'coult not find root claim!: IntegrityError(NoRootClaim)', src/main.rs:109:10
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-TC ERROR: Return code = 101
-TC LOG: Elapsed time = 15.101 seconds
-TC OUTCOME: failed
-OVERALL LOG: Elapsed time = 1003.698 seconds
-OVERALL OUTCOME: failed
+root model count: 311028719207543778204161109787806295884444813202906058332642502596954930632856051101421355685188458879722441865388018278128598200
+TC LOG: Elapsed time = 14.625 seconds
+TC OUTCOME: normal
+OVERALL LOG: Elapsed time = 937.877 seconds
+OVERALL OUTCOME: normal
