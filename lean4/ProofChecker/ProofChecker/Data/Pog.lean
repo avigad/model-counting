@@ -35,6 +35,21 @@ def partitioned [DecidableEq ν]: PropForm ν → Prop
 def listConj (φs : List (PropForm Var)) : PropForm Var :=
   φs.foldr (init := .tr) (f := .conj)
 
+def listConjTerm' (φs : List (PropForm Var)) : PropTerm Var :=
+  φs.foldr (init := ⊤) (f := (⟦·⟧ ⊓ ·)) -- fold using the monocle capybara operator
+
+def listConjTerm (φs : List (PropTerm Var)) : PropTerm Var :=
+  φs.foldr (init := ⊤) (f := (· ⊓ ·)) 
+
+open PropTerm in
+theorem satisfies_listConjTerm (φs : List (PropTerm Var)) (τ : PropAssignment Var) :
+    τ ⊨ listConjTerm φs ↔ ∀ φ ∈ φs, τ ⊨ φ := by
+  dsimp [listConjTerm]
+  induction φs <;> simp_all
+  
+@[simp]
+theorem listConjTerm_nil : listConjTerm [] = ⊤ := rfl
+
 lemma mem_vars_foldr_conj (φs : List (PropForm Var)) (x : Var) :
     x ∈ (φs.foldr (init := PropForm.tr) (f := .conj)).vars ↔
       ∃ i : Fin (φs.length), x ∈ (φs.get i).vars := by
@@ -79,6 +94,11 @@ theorem partitioned_arrayConj (φs : Array (PropForm Var)) :
 
 def arrayConjTerm (φs : Array (PropForm Var)) : PropTerm Var :=
   φs.data.foldr (init := ⊤) (f := fun φ acc => ⟦φ⟧ ⊓ acc)
+  
+theorem arrayConjTerm_eq_listConjTerm_data (φs : Array (PropForm Var)) :
+    arrayConjTerm φs = listConjTerm (φs.data.map (⟦·⟧)) := by
+  dsimp [arrayConjTerm, listConjTerm]
+  induction φs.data <;> simp_all
 
 @[simp]
 theorem mk_arrayConj (φs : Array (PropForm Var)) : ⟦arrayConj φs⟧ = arrayConjTerm φs := by

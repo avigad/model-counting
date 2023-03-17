@@ -620,7 +620,71 @@ theorem def_ext_correct {st : PreState} (H : st.WF) (st' : PreState) (x : Var) (
       rw [← hEq, hPog₂]
       exact hEquiv
   ⟨equiv, extend, uep, equiv_vars⟩
+  
+def loopM_with_invariant [Monad m] {State : Type _} (invariant : Nat → State → Prop)
+    (n : Nat)
+    (start_state : { st // invariant 0 st })
+    (step : (i : Fin n) → { st // invariant i st } → m { st // invariant (i+1) st }) :
+    m { st // invariant n st } :=
+  go n 0 (by rw [add_zero]) start_state
+where
+  go : (b : Nat) → (i : Nat) → b + i = n → { st // invariant i st } → m { st // invariant n st }
+    | 0, i, h, state =>
+      have : i = n := Nat.zero_add i ▸ h
+      return this ▸ state
+    | (b + 1), i, h, state => do
+      let v ← step ⟨i, by rw [← h]; linarith⟩ state
+      go b (i + 1) (by rw [← h]; ac_rfl) v
 
+def addPogDefClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
+    (idx : ClauseIdx) (ls : Array ILit) (f : ILit → IClause)
+    (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
+    Except CheckerError { p : ClauseDb ClauseIdx × HashSet ClauseIdx //
+      p.1.toPropTerm = db₀.toPropTerm ⊓
+        PropForm.arrayConjTerm (ls.map fun l => (f l).toPropForm) ∧
+      p.1.toPropTermSub (· ∈ p.2.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓
+        PropForm.arrayConjTerm (ls.map fun l => (f l).toPropForm) ∧
+      ∀ idx, idx ∈ p.2.toFinset → p.1.contains idx } := do
+  let ⟨out, h₁, h₂, h₃⟩ ← loopM_with_invariant
+    (State := ClauseDb ClauseIdx × HashSet ClauseIdx)
+    (invariant := fun i ⟨db, pd⟩ =>
+      db.toPropTerm = db₀.toPropTerm ⊓
+        PropForm.listConjTerm (ls.data.take i |>.map fun l => (f l).toPropTerm) ∧
+      db.toPropTermSub (· ∈ pd.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓
+        PropForm.listConjTerm (ls.data.take i |>.map fun l => (f l).toPropTerm) ∧
+      ∀ idx, idx ∈ pd.toFinset → db.contains idx)
+    (n := ls.size)
+    (start_state := ⟨(db₀, pd₀), by simp, by simp, h⟩)
+    (step := fun i ⟨(db, pd), ih₁, ih₂, ih₃⟩ => do
+      let l := ls[i]
+      let ⟨st', hDb, hPd, h⟩ ← addPogDefClause db pd (idx+i+1) (f l) ih₃
+      have hEquiv : 
+          PropForm.listConjTerm (ls.data.take (i + 1) |>.map fun l => (f l).toPropTerm) =
+          PropForm.listConjTerm (ls.data.take i |>.map fun l => (f l).toPropTerm) ⊓
+            IClause.toPropTerm (f l) := by
+        ext
+        simp [PropForm.satisfies_listConjTerm, List.take_succ, List.get?_eq_get i.isLt,
+          Array.getElem_eq_data_get]
+        constructor
+        . aesop
+        . intro ⟨h₁, h₂⟩ φ h
+          cases h with
+          | inl h =>
+            have ⟨l, hL, hφ⟩ := h
+            exact hφ ▸ h₁ l hL
+          | inr h =>
+            simp_all
+      have hDb' := by rw [hDb, ih₁, inf_assoc, hEquiv]
+      have hPd' := by rw [hPd, ih₂, inf_assoc, hEquiv]
+      return ⟨st', hDb', hPd', h⟩)
+  have hDb := by
+    simp only [List.take_length] at h₁
+    simp [PropForm.arrayConjTerm_eq_listConjTerm_data, Function.comp, h₁]
+  have hPd := by
+    simp only [List.take_length] at h₂
+    simp [PropForm.arrayConjTerm_eq_listConjTerm_data, Function.comp, h₂]
+  return ⟨out, hDb, hPd, h₃⟩
+  
 def addProdClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (x : Var) (ls : Array ILit)
     (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
@@ -630,14 +694,33 @@ def addProdClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
       p.1.toPropTermSub (· ∈ p.2.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓
         (.biImpl (.var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧) ∧
       ∀ idx, idx ∈ p.2.toFinset → p.1.contains idx } := do
-  let ⟨db₁, _⟩ ← addClause db₀ idx (ls.map (-·) |>.push (.mkPos x))
-  let mut (db, pogDefs) := (db₁, pd₀.insert idx)
-  for h : i in [0:ls.size] do
-    let l := ls[i]'(Membership.mem.upper h)
-    let ⟨dbᵢ, _⟩ ← addClause db (idx+i+1) #[.mkNeg x, l]
-    db := dbᵢ
-    pogDefs := pogDefs.insert (idx+i+1)
-  return ⟨(db, pogDefs), sorry, sorry, sorry⟩
+  let ⟨(db₁, pd₁), hDb₁, hPd₁, h₁⟩ ← addPogDefClause db₀ pd₀ idx (ls.map (-·) |>.push (.mkPos x)) h
+  let ⟨(db₂, pd₂), hDb₂, hPd₂, h₂⟩ ← addPogDefClauses db₁ pd₁ idx ls (#[.mkNeg x, ·]) h₁
+  have hEquiv :
+      IClause.toPropTerm (ls.map (-·) |>.push (.mkPos x)) ⊓
+      PropForm.arrayConjTerm (ls.map (IClause.toPropForm #[ILit.mkNeg x, ·])) =
+      .biImpl (var x) ⟦PropForm.arrayConj (ls.map ILit.toPropForm)⟧ := by
+    ext τ
+    simp [-satisfies_mk, PropForm.satisfies_arrayConjTerm, IClause.satisfies_iff]
+    refine ⟨?mp, ?mpr⟩
+    case mp =>
+      intro ⟨_, h⟩
+      have h : ∀ (l : ILit), l ∈ ls.data → τ ⊭ .var x ∨ τ ⊨ l.toPropTerm := fun l hL => by
+        have := h l hL
+        rw [IClause.satisfies_iff] at this
+        simp_all
+      cases h : τ x <;>
+        aesop
+    case mpr =>
+      intro
+      refine ⟨?_, fun l hL => IClause.satisfies_iff.mpr ?_⟩ <;>
+        cases h : τ x <;>
+          aesop
+  have hDb := by
+    rw [hDb₂, hDb₁, inf_assoc, hEquiv]
+  have hPd := by
+    rw [hPd₂, hPd₁, inf_assoc, hEquiv]
+  return ⟨(db₂, pd₂), hDb, hPd, h₂⟩
 
 def addConjToPog (g : Pog) (x : Var) (ls : Array ILit) : Except CheckerError { g' : Pog //
     g.addConj x ls = .ok g' } :=
