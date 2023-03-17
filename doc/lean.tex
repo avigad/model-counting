@@ -7,29 +7,16 @@ In this section, we briefly describe the functions we have implemented in Lean a
 the specifications we have proved.
 More information is provided in the Appendix~\ref{appendix:lean}.
 
-\subsection{Logical objects and operations}
+\subsection{The Proof Checker}
+\label{subsection:proof:checker}
 
 Our specifications are built on a generic library for the syntax and semantics of
-propositional logic. The data type of propositional formulas with variables indexed by
-a datatype \lstinline{ν} is defined inductively as follows:
-\begin{lstlisting}
-inductive PropForm (ν : Type)
-  | var (x : ν)
-  | tr
-  | fls
-  | neg (φ : PropForm ν)
-  | conj (φ₁ φ₂ : PropForm ν)
-  | disj (φ₁ φ₂ : PropForm ν)
-  | impl (φ₁ φ₂ : PropForm ν)
-  | biImpl (φ₁ φ₂ : PropForm ν)
-\end{lstlisting}
-The last two constructors denote implication and bi-implication, which are not used in this
-project. The usual syntactic and semantic notions are defined in the expected ways.
-It is convenient to take a truth assignment \lstinline{PropAssignment ν} to a function that
+propositional logic. We define the data type \lstinline{PropForm Var} of propositional
+formulas with variables \lstinline{Var}, which are positive natural numbers,
+corresponding to the indexing of variables in the DIMACS format for SAT.
+It is convenient to take a truth assignment \lstinline{PropAssignment Var} to a function that
 assigns a boolean value to every assignment, and later restrict attention to subsets of the
-variables. In our application, we instantiate \lstinline{ν} to a type \lstinline{Var} consisting
-of positive natural numbers, corresponding to the indexing of variables in the DIMACS
-format for SAT.
+variables.
 
 We define the following representations for CNF formulas.
 A literal is represented as a nonzero integer, a clause is an array of literals,
@@ -43,15 +30,8 @@ We also define functions \lstinline{ILit.toPropForm}, \lstinline{IClause.toPropF
 and \lstinline{ICnf.toPropForm} to relate these to propositional formulas and their
 semantics.
 
-\subsection{The Proof Checker}
-\label{subsection:proof:checker}
-
-Our proof checker starts by parsing the CNF formula and storing it internally.
-It then processes and checks each rule of a CRAT proof, throwing an exception if
-a precondition is not met. We have proved that if the checker terminates successfully,
-it succeeds in constructing a POG that is equivalent to that CNF.
-
-In greater detail, each element of a POG  is either a variable, a binary disjunction,
+The goal of the proof checker is to construct a POG that is equivalent to the input CNF.
+Each element of a POG  is either a variable, a binary disjunction,
 or an arbitrary conjunction:
 \begin{lstlisting}
 inductive PogElt where
@@ -62,89 +42,62 @@ inductive PogElt where
 In the first case, the argument \lstinline{x} in the expression
 \lstinline{var x} is the index
 of the variable; in \lstinline{disj x left right} and \lstinline{conj x args}
-it is the definition number in the CRAT file.
-The CRAT generator described in Section~\ref{section:generating:crat}
-declares new variables sequentially, so we currently make the simplifying assumption
-that the $i$th element of the array has the node with index $i + 1$,
-but it will not be hard to generalize this.
-Notice that the arguments to \lstinline{disj} and \lstinline{conj} are literals,
-corresponding to positive or negative instances of variables declared earlier in the POG.
-So our POG data structure is as follows:
-\begin{lstlisting}
-structure Pog where
-  elts : Array PogElt
-  wf : ∀ i : Fin elts.size, elts[i].args_decreasing
-  inv : ∀ i : Fin elts.size, i = elts[i].varNum.natPred
-\end{lstlisting}
-The invariant \lstinline{wf} says that the graph is well founded, in the
-sense that if \lstinline{elts[i]} is a disjunction
-or a conjunction, then the variables occurring in the arguments have smaller indices.
-Note that \lstinline{Fin elts.size} is the data type consisting of natural numbers
-less than the size of the array \lstinline{elts}; our code enforces statically
-that the array accesses are within bounds.
-
+it is the definition number in the CRAT file. Note that representing edges as literals allows us to negate the arguments to \lstinline{disj} and \lstinline{conj}.
+A \lstinline{Pog} is then simply an array of \lstinline{PogElt}.
 For each POG \lstinline{P} and literal \lstinline{l}, we define
 \lstinline{P.toPropForm l} to be the
 propositional formula that arises from interpreting \lstinline{l} as a propositional
-formula, unfolding all the defined conjunctions and disjunctions. We define
-what it means for such a formula to be partitioned:
+formula, unfolding all the defined conjunctions and disjunctions.
+Our formulation of what it means for such a formula to be partitioned, corresponding
+to the definition at the end of \cref{section:logical:foundations}, is as follows:
 \begin{lstlisting}
-def partitioned : PropForm ν → Prop
-  | tr         => True
-  | fls        => True
-  | var _      => True
-  | neg φ      => φ.partitioned
-  | disj φ ψ   => φ.partitioned ∧ ψ.partitioned ∧
+def partitioned : PropForm Var → Prop
+  | tr | fls | var _ => True
+  | neg φ    => φ.partitioned
+  | disj φ ψ => φ.partitioned ∧ ψ.partitioned ∧
                     ∀ τ, ¬ (φ.eval τ ∧ ψ.eval τ)
-  | conj φ ψ   => φ.partitioned ∧ ψ.partitioned ∧ (φ.vars ∩ ψ.vars = ∅)
-  | impl _ _   => False
-  | biImpl _ _ => False
+  | conj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ (φ.vars ∩ ψ.vars = ∅)
 \end{lstlisting}
-In other words, we rule out formulas with implication and bi-implication, and otherwise
-we follow the straightforward recursive definition.
 
-The core checker reads in a CRAT proof, which includes a specification of the final node \lstinline{r}.
-It either throws an exception, indicating that the proof is not well formed,
-or returns a POG \lstinline{P}.
-We have formally proved the claim that in the latter case the propositional formula \lstinline{P.toPropForm r} corresponding to node \lstinline{r} is partitioned
-and is equivalent to \lstinline{cnf.toPropForm}.
+Our proof checker starts by parsing the CNF formula and storing it internally.
+It then processes and checks each rule of a CRAT proof, throwing an exception if
+the proof is not well-formed. We have proved that if the checker terminates successfully,
+it succeeds in constructing a POG that is partitioned and equivalent to that CNF. This is formalized as \lstinline{(pog.toPropForm r).partitioned ∧ inputCnf.toPropForm ≡ pog.toPropForm r}.
 
 \subsection{The Model Counters}
 
 We have formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem,
-Definition~\ref{def:ring_evaluation}, as follows:
+\cref{def:ring_evaluation}, as follows:
 \begin{lstlisting}
 def weightCount {R : Type} [CommRing R]
-    (weight : ν → R) (φ : PropForm ν) (s : Finset ν) : R :=
+    (weight : Var → R) (φ : PropForm Var) (s : Finset Var) : R :=
   ∑ τ in models φ s, ∏ x in s, if τ x then weight x else 1 - weight x
 \end{lstlisting}
 Here \lstinline{R} is assumed to be a commutative ring.
 The counting scheme of Proposition~\ref{prop:ring:eval} for partitioned formulas is expressed as follows:
 \begin{lstlisting}
- def countWeight (weight : ν → Rat) : PropForm ν → Rat
+ def ringEval (weight : Var → R) : PropForm Var → R
   | tr       => 1
   | fls      => 0
   | var x    => weight x
-  | neg φ    => 1 - countWeight weight φ
-  | disj φ ψ => countWeight weight φ + countWeight weight ψ
-  | conj φ ψ => countWeight weight φ * countWeight weight ψ
+  | neg φ    => 1 - ringEval weight φ
+  | disj φ ψ => ringEval weight φ + ringEval weight ψ
+  | conj φ ψ => ringEval weight φ * ringEval weight ψ
 \end{lstlisting}
 We arbitrarily assign 0 to implications and bi-implications;
 recall that, by definition, these do not appear in partitioned formulas.
 Proposition~\ref{prop:ring:eval} is then formalized as follows:
 \begin{lstlisting}
-theorem countWeight_eq_weightCount (weight : ν → R) {φ : PropForm ν}
-    (hdec : partitioned φ) :
-  countWeight weight φ = weightCount weight φ (vars φ)
+theorem ringEval_eq_weightCount (weight : Var → R) {φ : PropForm Var} :
+    partitioned φ → ringEval weight φ = weightCount weight φ (vars φ)
 \end{lstlisting}
 
-We have implemented an efficient function \lstinline{Pog.countWeight} to calculate the weighted model count
+We have implemented an efficient function \lstinline{Pog.ringEval} to calculate the weighted model count
 for an arbitrary node of a Pog, and we have proved that it computes the function above on the
 associated formula:
 \begin{lstlisting}
-theorem countWeight_eq_countWeight (pog : Pog) (weight : Var → Rat)
-    (x : Var) :
-  pog.countWeight weight x = (pog.toPropForm (.mkPos x)).countWeight weight
+theorem ringEval_eq_ringEval (pog : Pog) (weight : Var → R) (x : Var) :
+  pog.ringEval weight x = (pog.toPropForm (.mkPos x)).ringEval weight
 \end{lstlisting}
 Here \lstinline{.mkPos x} denotes the positive literal for the variable \lstinline{x}.
 Applying this to the output of our verified CRAT proof checker,
@@ -153,12 +106,12 @@ our toolchain computes the correct weighted model count of the input CNF.
 
 We have also implemented a separate procedure that directly carries out an integer
 calculation of the number of models.
-For partitioned formulas \lstinline{PropForm ν} whose
+For partitioned formulas \lstinline{PropForm Var} whose
 variables are among a finite set \lstinline{s} of variables of cardinality \lstinline{numVars},
 we can count the number of models of the formula on the variables in \lstinline{s}
 recursively as follows:
 \begin{lstlisting}
-def countModels (nVars : Nat) : PropForm ν → Nat
+def countModels (nVars : Nat) : PropForm Var → Nat
   | tr       => 2^nVars
   | fls      => 0
   | var _    => 2^(nVars - 1)
@@ -172,9 +125,8 @@ Finally,
 we have proved that the calculation above really does
 return the number of models:
 \begin{lstlisting}
-theorem countModels_eq_card_models {φ : PropForm ν} {s : Finset ν}
-    (hvars : vars φ ⊆ s) (hpar :  partitioned φ) :
-  countModels (card s) φ = card (models φ s)
+theorem countModels_eq_card_models {φ : PropForm Var} {s : Finset Var} :
+  vars φ ⊆ s → partitioned φ → countModels (card s) φ = card (models φ s)
 \end{lstlisting}
 In particular, taking \lstinline{s} to be exactly the variables of \lstinline{φ},
 we have that the number of models on its variables is \lstinline{countModels φ (card (vars φ))}.
