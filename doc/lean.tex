@@ -166,10 +166,10 @@ def countModels (nVars : Nat) : PropForm ν → Nat
   | disj φ ψ => countModels nVars φ + countModels nVars ψ
   | conj φ ψ => countModels nVars φ * countModels nVars ψ / 2^nVars
 \end{lstlisting}
-We have also implemented an efficient counting function for POGs and proved that
+We have implemented an efficient counting function for POGs and proved that
 it computes that same quantity on the corresponding formulas.
 Finally,
-We have proved that the calculation above really does
+we have proved that the calculation above really does
 return the number of models:
 \begin{lstlisting}
 theorem countModels_eq_card_models {φ : PropForm ν} {s : Finset ν}
