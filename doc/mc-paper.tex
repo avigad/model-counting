@@ -1216,18 +1216,6 @@ the weights used in the weighted model counting competitions.
 \section{Experimental Evaluation}
 \label{sect:experimental}
 
-%% Our experiments are designed to evaluate the following:
-%% \begin{itemize}
-%% \item
-%%   whether or toolchain can handle challenging benchmark problems,
-%% \item  
-%% the effectiveness of some design choices and optimizations,
-%% \item
-%% the tradeoffs between the unverified and verified checker, and
-%% \item
-%% how the performance of our toolchain compares to that of the MICE model counter verifier.
-%% \end{itemize}
-
 We provide only a summary of our experiments here.  A more complete
 description is provided in Appendix~\ref{app:experiments}\@. For our
 evaluation, we used the public benchmark problems from the 2022
@@ -1434,17 +1422,17 @@ required mutual exclusion proof.
 
 \subsection{Node Declarations}
 
-We step through a detailed example to provide a better understanding of the CRAT proof framework.
+We step through portions of the file to provide a better understanding of the CRAT proof framework.
 Figure
 \ref{fig:eg4:all}(D) shows the defining clauses that are implicitly
 defined by the POG operation declarations.  These do not appear in the
 CRAT file.  Referring back to the declarations of the sum nodes in
 Figure \ref{fig:eg4:all}(C), we can see that the declaration of node
 $\nodes_7$ had clause IDs 7 and 10 as the hint.  We can see in Figure
-\ref{fig:eg4:all}(A) that these two clauses resolve to the clause
+\ref{fig:eg4:all}(A) that these two clauses form a RUP proof for the clause
 $\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $\nodes_7$
 have disjoint models.  Similarly, node $\nodes_{10}$ is declared as having
-clause IDs 16 and 19 as the hint.  These resolve to the clause
+clause IDs 16 and 19 as the hint.  These form a RUP proof for the clause
 $\obar{p}_8 \lor \obar{p}_9$, showing that the two children of
 $\nodes_{10}$ have disjoint models.
 
@@ -1496,7 +1484,8 @@ Section~\ref{app:lemma:eg} shows how to use a lemma such that these nodes are ea
 
 The two optimizations we have implemented exploit the power of our
 general resolution framework to define new structures within the
-proof. In particular, they create new product nodes that are not part
+proof.
+They create new product nodes that are not part
 of the POG representation.
 
 \label{app:optimizations}
@@ -1537,8 +1526,8 @@ by constructing and proving a {\em lemma} for each node
 $\nodeu$ having $\indegree(\nodeu) > 1$.  This proof shows that any
 total assignment $\assign$ that satisfies formula $\gamma_{\nodeu}$ must yield
 $\assign(u) = 1$.  This lemma is then invoked for every node having
-$\nodeu$ as a child.  As a result, the generator will make recursive calls during a call to $\validate$ only once for each node in the POG\@.
-
+$\nodeu$ as a child.
+As a result, the generator will make recursive calls during a call to $\validate$ only once for each node in the POG\@.
 
 The challenge for implementing this strategy is to find a way to
 represent the clauses for the simplified formula $\gamma_{\nodeu}$ in the CRAT file.  Some may be
@@ -1674,14 +1663,17 @@ is only because it is such a simple formula.
 \section{Detailed Experimental Results}
 \label{app:experiments}
 
-The primary purpose of our experiments is to assess the ability of our
-implementation of the toolchain illustrated in Figure~\ref{fig:chain}
-to check the results from a possible knowledge compiler competition,
-along the lines of the annual competitions in SAT solvers, model
-counters, and other automated reasoning tools.  As secondary goals, we
-seek insights into how possible algorithmic choices affect the
-performance of the toolchain and how our toolchain compares to the
-MICE framework for verifying model counters~\cite{fichte:sat:2022}.
+Our experiments are designed to evaluate the following:
+\begin{itemize}
+\item
+  whether or toolchain can handle challenging benchmark problems,
+\item  
+the effectiveness of some design choices and optimizations,
+\item
+the tradeoffs between the unverified and verified checker, and
+\item
+how the performance of our toolchain compares to that of the MICE model counter verifier.
+\end{itemize}
 
 \subsection{Experimental Setup}
 
@@ -1712,7 +1704,7 @@ was able to generate d-DNNF representations for 124 of these, and it timed out o
 rest.  Our proof generator was able to convert all of the generated
 d-DNNF graphs into POGs and determine how many defining clauses they
 would generate.  A POG operation with $k$ arguments requires $k+1$
-defining clauses, and so the total number of defining clauses in pog $P$ equals
+defining clauses, and so the total number of defining clauses in POG $P$ equals
 the number of nonterminal nodes plus the number of edges in the graph, corresponding to our definition of $|P|$ in Section~\ref{sect:pog}.
 The number of defining clauses ranged from 304 to 2,761,457,765 with a median of 848,784.
 
@@ -1720,9 +1712,9 @@ The number of defining clauses ranged from 304 to 2,761,457,765 with a median of
 
 \input{figure-runtime-d4-verify}
 
-For each of the 124 d-DNNF graphs generated by \dfour{}, we attempted
-to use our proof generator and unverified checker, limiting proof
-generation to 10,000 seconds.  We also attempted to generate and check
+For each of the 124 d-DNNF graphs generated by \dfour{}, we ran
+our proof generator and unverified checker, limiting proof
+generation to 10,000 seconds.  We ran the programs to generate and check
 one-sided proofs for the graphs, again with a time limit of 10,000
 seconds for proof generation.
 
@@ -1730,29 +1722,30 @@ Figure~\ref{fig:d4:crat} summarizes our results in terms of the time
 required by \dfour{} (X axis) versus the sum of the times for the
 proof generator and checker (Y axis).
 We were able to complete a full validation for 108 of the 124
-benchmarks, with times ranging from fractions of a second to 13,144.
+benchmarks, with times ranging from fractions of a second to 13,144
 seconds, with a median of 71.6 seconds.
 
-Relative to the runtime for \dfour{}, two problems ran faster
-with the generator and checker.  These were for problems having small numbers of
-models (relative to the number of variables), and so most of the time
-spent by both \dfour{} and our proof generator was in running a CDCL
-solver to search the very sparse solution space.
-\cadical{} generally outperforms the miniSAT-based solver used by
-\dfour{}.  At the other extreme, one problem that required only 19
-seconds for \dfour{} required 8657 seconds to generate a proof and 45
-seconds to check it.  It is unclear why the proof generation required
-so much time.  Overall the ratios between the combined generation plus
-checking times versus the time for \dfour{} had a harmonic mean of
-5.5.
+Relative to the runtime for \dfour{}, two problems ran faster with the
+generator and checker.  These were for problems having small numbers
+of models (relative to the number of variables), and so most of the
+time spent by both \dfour{} and our proof generator was in running a
+CDCL solver to search the very sparse solution space.  \cadical{}
+generally outperforms the miniSAT-based solver used by \dfour{}.  At
+the other extreme, one problem that required only 19 seconds for
+\dfour{} required 8657 seconds to generate a proof and 45 seconds to
+check it.  This one particular benchmark appears to expose weak performance
+limitations by our implementation of BCP\@.  Overall the ratios
+between the combined generation plus checking times versus the time
+for \dfour{} had a harmonic mean of 5.5.
 
 Of the 16 benchmarks that could not be fully validated, one had so
 many defining clauses that it overflowed the 32-bit signed integers
 our programs use for clause identifiers.  Another exited due to the
-virtual memory limit imposed by the operating system, and the
-other 14 timed out.  Of the 15 that did not overflow the clause
-counter, we were able to complete a one-sided verification for 9, but
-the other 6 timed out.
+virtual memory limit imposed by the operating system, and the other 14
+timed out.  Of the 15 that did not overflow the clause counter, we
+were able to complete a one-sided verification for 9, but the other 6
+timed out.  Overall, we were able to provide some level of
+verification for 94\% of the benchmark problems.
 
 \input{figure-clauses-d4-verify}
 
@@ -1803,8 +1796,8 @@ shorter proofs, perhaps due to the benefits of the proof trimming by
 These experiments suggest that a hybrid of the two approaches might
 yield the best results in terms of consistency, runtime, and proof
 size.  It would begin the recursive descent of $\validate$ according
-to a structural approach, but monolithically generate forward
-implication proofs once it encounters sufficiently small subgraphs.
+to a structural approach, but monolithically generate
+the proof once it encounters a sufficiently small subgraph.
 
 
 \subsection{Impact of Optimizations}
