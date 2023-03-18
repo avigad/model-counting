@@ -13,7 +13,7 @@ More information is provided in the Appendix~\ref{appendix:lean}.
 Our specifications are built on a generic library for the syntax and semantics of
 propositional logic. We define the data type \lstinline{PropForm Var} of propositional
 formulas with variables \lstinline{Var}, which are positive natural numbers,
-corresponding to the indexing of variables in the CNF file.
+corresponding to the indexing of variables in the CNF and CRAT files.
 It is convenient to take a truth assignment \lstinline{PropAssignment Var} to a function that
 assigns a Boolean value to every assignment, and later restrict attention to subsets of the
 variables.
@@ -31,8 +31,8 @@ and \lstinline{ICnf.toPropForm} to relate these to propositional formulas and th
 semantics.
 
 The goal of the proof checker is to construct a POG that is equivalent to the input CNF.
-Each element of a POG  is either a variable, a binary disjunction,
-or an arbitrary conjunction:
+Each element of a POG  is either a variable, a binary disjunction (sum),
+or an arbitrary conjunction (product):
 \begin{lstlisting}
 inductive PogElt where
   | var  : Var → PogElt
