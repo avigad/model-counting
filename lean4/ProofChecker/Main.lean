@@ -8,7 +8,7 @@ def runCheckCmd (p : Cli.Parsed) : IO UInt32 := do
   let cratFname := p.positionalArg! "crat"
   let verbose := p.hasFlag "verbose"
   IO.print "Parsing CNF..\n"
-  let cnf ← ICnf.readDimacsFile cnfFname.value
+  let (cnf, nVars) ← ICnf.readDimacsFile cnfFname.value
   IO.print "done.\nParsing CRAT..\n"
   (← IO.getStdout).flush
   let pf ← CratStep.readDimacsFile cratFname.value

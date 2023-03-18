@@ -65,31 +65,42 @@ def ILit.ofToken : Token → Except String ILit
     else .error s!"literal can't be zero at '{i}'"
   | .str s => .error s!"expected int at '{s}'"
 
+def ILit.ofTokenBounded (bd : Nat) (tk : Token) : Except String ILit := do
+  let l ← ILit.ofToken tk
+  if l.var ≤ bd then
+    return l
+  else
+    throw s!"literal {l} exceeds maximum variable index {bd}"
+
 def IClause.ofTokens (tks : Array Token) : Except String IClause := do
   tks.mapM ILit.ofToken
 
-/-- Return a CNF computed from the tokens of a DIMACS CNF file. -/
-def ICnf.ofLines (lns : Array (Array Token)) : Except String ICnf := do
+def IClause.ofTokensBounded (bd : Nat) (tks : Array Token) : Except String IClause := do
+  tks.mapM (ILit.ofTokenBounded bd)
+
+/-- Return a CNF computed from the tokens of a DIMACS CNF file, together with the variable count
+stored in the header. -/
+def ICnf.ofLines (lns : Array (Array Token)) : Except String (ICnf × Nat) := do
   let some hdr := lns[0]? 
     | throw s!"expected at least one line"
-  -- TODO: Check nVars
-  let #[.str "p", .str "cnf", .int nVars, .int nClauses] := hdr
+  let #[.str "p", .str "cnf", nVars, .int nClauses] := hdr
     | throw s!"unexpected header {hdr}"
+  let nVars ← Nat.ofToken nVars
   let mut clauses : ICnf := #[]
   for ln in lns[1:] do
     try
       let some (.int 0) := ln[ln.size - 1]?
         | throw s!"missing terminating 0"
       let lits := ln[:ln.size - 1]
-      let clause ← IClause.ofTokens lits
+      let clause ← IClause.ofTokensBounded nVars lits
       clauses := clauses.push clause
     catch e =>
-      throw s!"error on line '{ln}': {e}"
+      throw s!"error on line '{" ".intercalate <| ln.toList.map toString}': {e}"
   if Int.ofNat clauses.size ≠ nClauses then
     throw s!"expected {nClauses} clauses, but got {clauses.size}"
-  return clauses
+  return (clauses, nVars)
 
-def ICnf.readDimacsFile (fname : String) : IO ICnf := do
+def ICnf.readDimacsFile (fname : String) : IO (ICnf × Nat) := do
   let lns ← IO.FS.lines fname
   let lns := Dimacs.tokenizeLines lns
   match ofLines lns with
@@ -147,7 +158,8 @@ def CratStep.readDimacsFile (fname : String) : IO (Array CratStep) := do
   for ln in lns do
     match CratStep.ofTokens ln with
     | .ok v => pf := pf.push v
-    | .error e => throw <| IO.userError s!"error on line '{ln}': {e}"
+    | .error e =>
+      throw <| IO.userError s!"error on line '{" ".intercalate <| ln.toList.map toString}': {e}"
   return pf
   
 def CratStep.toDimacs : CratStep → String
