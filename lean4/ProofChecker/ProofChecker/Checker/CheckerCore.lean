@@ -2,6 +2,7 @@ import Std.Data.Array.Basic
 
 import ProofChecker.Data.ClauseDb
 import ProofChecker.Data.Pog
+import ProofChecker.Count.Pog
 import ProofChecker.Data.HashSet
 import ProofChecker.Model.Crat
 
@@ -227,18 +228,14 @@ theorem PreState.WF.equivalent_lits' {st : PreState} (hWf : st.WF) (l : ILit) :
 /-- A well-formed checker state. -/
 def State := { st : PreState // st.WF }
 
-abbrev CheckerM := ExceptT CheckerError <| StateM State
+abbrev CheckerM := StateT State <| Except CheckerError
 
-def initialPog (inputCnf : ICnf) :
+def initialPog (nVars : Nat) :
     Except CheckerError { p : Pog // ∀ l, p.toPropForm l = l.toPropForm } := do
-  -- NOTE: We have to sort the input variables and add them to the POG in-order because that's what
-  -- the current implementation expects, but this limitation is artificial. See `Pog.lean`.
-  let mut vars := #[]
-  for C in inputCnf do
-    for l in C do
-      vars := vars.push l.var
-  vars := vars.sortAndDeduplicate
-  vars.foldlM (init := ⟨Pog.empty, Pog.toPropForm_empty⟩) fun ⟨acc, hAcc⟩ x =>
+  -- NOTE: We add all input variables to the POG in-order because that's what the current
+  -- implementation expects, but this requirement is artificial. See `Pog.lean`.
+  nVars.foldM (init := ⟨Pog.empty, Pog.toPropForm_empty⟩) fun x ⟨acc, hAcc⟩ =>
+    let x := ⟨x + 1, Nat.zero_lt_succ _⟩
     match h : acc.addVar x with
     | .ok g => pure ⟨g, by
       intro l'
@@ -302,8 +299,8 @@ def initialDepVars (inputCnf : ICnf) : { dv : HashMap Var (HashSet Var) //
   have of_find := by apply initialCnfVars₂; simp
   ⟨dv, allVars_eq, of_find⟩
 
-def initial (inputCnf : ICnf) : Except CheckerError State := do
-  let ⟨initPog, hInitPog⟩ ← initialPog inputCnf
+def initial (inputCnf : ICnf) (nVars : Nat) : Except CheckerError State := do
+  let ⟨initPog, hInitPog⟩ ← initialPog nVars
   let ⟨initDv, allVars_eq, hInitDv⟩ := initialDepVars inputCnf
   let st := {
     inputCnf
@@ -1159,18 +1156,28 @@ def checkProofStep (step : CratStep) : CheckerM Unit :=
   | .sum idx x l₁ l₂ hints => addSum idx x l₁ l₂ hints
   | .root r => setRoot r
 
--- def count (r : Var) : CheckerM Nat := do
---   let ⟨st, _⟩ ← get
---   st.graph.pog.count r st.origVars.size
-
-def checkProof (cnf : ICnf) (pf : Array CratStep) : Except CheckerError Unit := do
-  let mut st : State ← initial cnf
+def checkProof (cnf : ICnf) (nVars : Nat) (pf : Array CratStep) : Except CheckerError Unit := do
+  let st : State ← initial cnf nVars
   let x : CheckerM Unit := do
     for step in pf do
       checkProofStep step
     let _ ← checkFinalState
-  let (ret, _) := x.run st |>.run
-  ret
+  let _ ← x.run st
+  return ()
+
+def checkProofAndCount (cnf : ICnf) (nVars : Nat) (pf : Array CratStep) :
+    Except CheckerError Nat := do
+  let st : State ← initial cnf nVars
+  let x : CheckerM ILit := do
+    for step in pf do
+      checkProofStep step
+    let ⟨(_, _, r), _⟩ ← checkFinalState
+    return r
+  let (r, st) ← x.run st
+  if r.polarity = true then
+    return st.val.pog.count nVars r.var
+  else
+    return 2^nVars - st.val.pog.count nVars r.var
 
 #exit
 
