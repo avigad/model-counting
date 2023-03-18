@@ -509,8 +509,47 @@ inductive UnitPropResultDep {α : Type} [BEq α] [Hashable α]
   /-- The hint `C` at index `idx` did not become unit under `σ`. -/
   | hintNotUnit (idx : α) (C : IClause) (σ : PartPropAssignment)
   /-- The hint index `idx` points at a nonexistent clause. -/
-  | hintNonexistent (idx : α)
-
+ | hintNonexistent (idx : α)
+  
+/-- Check whether the given clause is a unit and return the unit literal if so. Otherwise fail.
+Note that repeating a literal as in (l ∨ l ∨ l) is allowed and counts as a unit. -/
+def checkIsUnit (C₀ : IClause) : Option { l : ILit // l.toPropTerm = C₀.toPropTerm } := do
+  let ⟨l?, _, hL?⟩ ← loopM_with_invariant (n := C₀.size)
+    (invariant := fun i (acc : Option ILit) =>
+      (acc = none → i = 0) ∧
+      ∀ l, acc = some l →
+        l ∈ C₀.data ∧
+        ∀ j : Fin C₀.size, j < i → C₀[j] = l)
+    (start_state := ⟨none, by simp⟩)
+    (step := fun i ⟨acc, ih₁, _⟩ => do
+      let lᵢ := C₀[i]
+      have hL : lᵢ ∈ C₀.data := C₀.get_mem_data i
+      if hI : i.val = 0 then
+        return ⟨some lᵢ, by simp, by simp_all⟩
+      else
+        match acc with
+        | some l =>
+          if h : lᵢ = l then
+            return ⟨some lᵢ, by simp, by
+              intro _ h
+              injection h with h; cases h
+              refine ⟨hL, fun j hJ => ?_⟩
+              cases Nat.lt_or_eq_of_le (Nat.le_of_lt_succ hJ) <;>
+                simp_all⟩
+          else
+            none
+        | none => False.elim <| hI <| ih₁ rfl)
+  match l?, hL? with
+  | some l, hL =>
+    return ⟨l, by
+      ext
+      have ⟨_, h₂⟩ := hL _ rfl
+      have : ∀ l' ∈ C₀.data, l' = l := fun _ hL' =>
+        have ⟨i, hI⟩ := Array.get_of_mem_data hL'
+        hI ▸ h₂ i i.isLt
+      aesop (add norm IClause.satisfies_iff)⟩
+  | none,   _  => none
+  
 /-- Propagate units starting from the given assignment. The clauses in `hints` are expected
 to become unit in the order provided. Return the extended assignment, or `none` if a contradiction
 was found. See `unitPropWithHintsDep` for a certified version. -/
@@ -530,12 +569,20 @@ def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints 
           db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤ C.toPropTerm ⊓ σ.val.toPropTerm :=
         le_inf (inf_le_of_left_le (toPropTermSub_of_getClause_eq_some db hMem hGet)) σ.property
       match hRed : C.reduce σ.val with
-      | some #[u] =>
+      | some #[] =>
+        have : db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤ ⊥ := by
+          have : C.toPropTerm ⊓ σ.val.toPropTerm ≤ ⊥ :=
+            IClause.reduce_eq_some _ _ _ hRed
+          exact le_trans hDbσ₀ this
+        return .contradiction this
+      | some C' => 
+        let some ⟨u, hU⟩ := checkIsUnit C'
+          | return .hintNotUnit hint C σ.val
         have : db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤
             PartPropAssignment.toPropTerm (σ.val.insert u.var u.polarity) := by
           have hU : db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤ u.toPropTerm := by
             have h := IClause.reduce_eq_some _ _ _ hRed
-            conv at h => rhs; simp [IClause.toPropTerm]
+            conv at h => rhs; rw [← hU]; simp [IClause.toPropTerm]
             exact le_trans hDbσ₀ h
           refine PropTerm.entails_ext.mpr fun τ hτ => ?_
           have hU : τ ⊨ u.toPropTerm :=
@@ -553,12 +600,6 @@ def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints 
             rw [HashMap.find?_insert_of_ne _ _ (bne_iff_ne _ _ |>.mpr (Ne.symm hEq))] at hFind
             exact hσ _ _ hFind
         σ := ⟨σ.val.insert u.var u.polarity, this⟩
-      | some #[] =>
-        have : db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤ ⊥ := by
-          have : C.toPropTerm ⊓ σ.val.toPropTerm ≤ ⊥ :=
-            IClause.reduce_eq_some _ _ _ hRed
-          exact le_trans hDbσ₀ this
-        return .contradiction this
       | _ => return .hintNotUnit hint C σ.val
   return .extended σ.val σ.property
 

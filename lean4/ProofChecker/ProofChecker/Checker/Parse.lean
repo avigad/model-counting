@@ -107,6 +107,14 @@ def ICnf.readDimacsFile (fname : String) : IO (ICnf × Nat) := do
   | .ok v => return v
   | .error e => throw <| IO.userError e
   
+def ICnf.toDimacs (cnf : ICnf) (nVars : Nat) : String := Id.run do
+  let mut s := s!"p cnf {nVars} {cnf.size}\n"
+  for C in cnf do
+    for l in C do
+      s := s ++ toString l ++ " "
+    s := s ++ "0\n"
+  return s
+  
 /-- Return a proof step given a DIMACS line. -/
 def CratStep.ofTokens (tks : Array Token) : Except String CratStep := do
   let toUpHints (tks : Array Token) : Except String (Array Nat) := do
@@ -161,13 +169,3 @@ def CratStep.readDimacsFile (fname : String) : IO (Array CratStep) := do
     | .error e =>
       throw <| IO.userError s!"error on line '{" ".intercalate <| ln.toList.map toString}': {e}"
   return pf
-  
-def CratStep.toDimacs : CratStep → String
-  | addAt idx C upHints => s!"{idx} a {pArray C} 0 {pArray upHints} 0"
-  | delAt idx upHints => s!"dc {idx} {pArray upHints} 0"
-  | prod idx x ls => s!"{idx} p {x} {pArray ls} 0"
-  | sum idx x l₁ l₂ upHints => s!"{idx} s {x} {l₁} {l₂} {pArray upHints} 0"
-  | root x => s!"r {x}"
-where
-  pArray {α : Type} [ToString α] (a : Array α) :=
-    " ".intercalate (a.foldr (init := []) fun a acc => toString a :: acc)
