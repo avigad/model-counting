@@ -840,7 +840,7 @@ The hints must provide a RUP proof of the clause $\obar{\lit}_1 \lor \obar{\lit}
 
 Finally, the literal denoting the root of the POG is declared with the
 {\tt r} command.  It can occur anywhere in the file.  Except in degenerate cases, it
-will be the extension variable representing the root of a graph
+will be the extension variable representing the root of a graph.
 %, but in
 %degenerate cases it can be the positive or negative literal of an
 %input variable.
@@ -941,10 +941,10 @@ As notation,
 let $\psi$ be a subset of the clauses in $\inputformula$.
 For partial assignment
 $\passign$, the expression  $\simplify{\psi}{\passign}$ denotes the set of clauses $\gamma$
-obtained from $\psi$ by: 1) eliminating any
+obtained from $\psi$ by: i) eliminating any
 clause containing a literal $\lit$ such that $\passign(\lit) = 1$,
-2) for the remaining clauses eliminating those literals $\lit$ for
-which $\passign(\lit) = 0$, and 3) eliminating any duplicate clauses.
+ii) for the remaining clauses eliminating those literals $\lit$ for
+which $\passign(\lit) = 0$, and iii) eliminating any duplicate clauses.
 In doing these simplifications, we also track the {\em provenance}
 of each simplified clause $C$, i.e., which of the (possibly multiple) input clauses simplified to become $C$.
 More formally, for $C \in \simplify{\psi}{\passign}$, we let $\prov(C, \psi)$ denote
