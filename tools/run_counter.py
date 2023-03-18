@@ -11,7 +11,7 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-f] [-s n|g|c] [-m] [-L] [-G] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-f] [-s n|g|c] [-m] [-L] [-G] [-F] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -s n|g|c Stop after NNF generation, CRAT generation (g) or proof check (c)")
@@ -19,6 +19,7 @@ def usage(name):
     print("  -m       Monolithic mode: Do validation with single call to SAT solver")
     print("  -L       Expand each node, rather than using lemmas")
     print("  -G       Prove each literal separately, rather than grouping into single proof")
+    print("  -F       Run Lean checker to formally check")
     print("  EXT      Can be any extension for wild-card matching (e.g., cnf, nnf)")
 
 # Blocking file.  If present in directory, won't proceed.  Recheck every sleepTime seconds
@@ -32,6 +33,7 @@ oneSided = False
 monolithic = False
 useLemma = True
 group = True
+useLean = False
 
 # Pathnames
 homePath = "/Users/bryant/repos"
@@ -44,11 +46,14 @@ genProgram = genHome + "/d2p"
 checkHome = homePath + "/model-counting/crat/checker"
 checkProgram = checkHome + "/crat-check"
 
+leanHome = homePath + "/model-counting/lean4"
+leanCheckProgram = leanHome + "/ProofChecker/build/bin/checker"
+
 interpreter = "python3"
 countHome = homePath + "/model-counting/crat/prototype"
 countProgram = countHome + "/crat_counter.py"
 
-timeLimits = { "D4" : 4000, "GEN" : 1000, "FCHECK" : 10000, "COUNT" : 4000 }
+timeLimits = { "D4" : 4000, "GEN" : 4000, "FCHECK" : 1000, "LCHECK" : 1000, "COUNT" : 4000 }
 
 clauseLimit = (1 << 31) - 1
 
@@ -177,6 +182,15 @@ def runCheck(root, home, logFile):
     ok =  runProgram("FCHECK", root, cmd, logFile)
     return ok
 
+def runLeanCheck(root, home, logFile):
+    cnfName = home + "/" + root + ".cnf"
+    cratName = home + "/" + root + ".crat"
+    cmd = [leanCheckProgram]
+    cmd += [cnfName, cratName]
+    ok =  runProgram("LCHECK", root, cmd, logFile)
+    return ok
+
+
 def runCount(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
     cratName = home + "/" + root + ".crat"
@@ -198,16 +212,14 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
         extension = "nolemma_" + extension
     if not group:
         extension = "split_" + extension
+    if useLean:
+        extension = "lean_" + extension
     if stopD4:
-        logName = root + ".D4_" + extension
-        if os.path.exists(logName):
-            print("Already have file %s.  Skipping benchmark" % logName)
-            return
-    elif stopGen:
-        logName = root + ".d2p_" + extension
-    else:
-        logName = root + "." + extension
-    if os.path.exists(logName):
+        extension = ".D4_" + extension
+    if stopGen:
+        extension = ".d2p_" + extension
+    logName = root + "." + extension
+    if not force and os.path.exists(logName):
             print("Already have file %s.  Skipping benchmark" % logName)
             return
     try:
@@ -224,11 +236,16 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     if not done:
         ok = ok and runGen(root, home, logFile, force)
     done = done or stopGen
-    if not done:
-        ok = ok and runCheck(root, home, logFile)
-    done = done or stopCheck
-    if not done:
-        ok = ok and runCount(root, home, logFile)
+    if useLean:
+        if not done:
+            ok = ok and runLeanCheck(root, home, logFile)
+        done = done or stopCheck
+    else:
+        if not done:
+            ok = ok and runCheck(root, home, logFile)
+        done = done or stopCheck
+        if not done:
+            ok = ok and runCount(root, home, logFile)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     result += "%s LOG: Elapsed time = %.3f seconds\n" % (prefix, seconds)
@@ -254,13 +271,13 @@ def runBatch(home, fileList, stopD4, stopGen, stopCheck, force):
         runSequence(r, home, stopD4, stopGen, stopCheck, force)
 
 def run(name, args):
-    global useLemma, group, oneSided, monolithic
+    global useLemma, group, oneSided, monolithic, useLean
     home = "."
     stopD4 = False
     stopGen = False
     stopCheck = False
     force = False
-    optList, args = getopt.getopt(args, "hf1mLGs:")
+    optList, args = getopt.getopt(args, "hf1mLGFs:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -275,6 +292,8 @@ def run(name, args):
             useLemma = False
         elif opt == '-G':
             group = False
+        elif opt == '-F':
+            useLean = True
         elif opt == '-s':
             if val == 'n':
                 stopD4 = True
