@@ -69,10 +69,11 @@ data:
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-n2t.csv seconds-tc.csv >  time-mice.csv
 	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-gen.csv seconds-check.csv seconds-count.csv > time-ours.csv
 	$(INTERP) $(MERGE) -f time-ours.csv time-mice.csv models-mice.csv \
-		| sed 's/1436.934/1500/g' | sed 's/1875.151/1500/g' > time-mice-compare.csv
+		| sed 's/1436.934/1500/g' | sed 's/1875.151/1500/g'> time-mice-compare.csv
 	$(INTERP) $(MERGE) -f timeouts-mice.csv time-ours.csv 1500 > time-mice-timeout.csv
 #	$(INTERP) $(MERGE) -f errors-mice.csv time-ours.csv 1500 > time-mice-error.csv
 
 	$(INTERP) $(GRAB) "LCHECK LOG: Elapsed" *.lean_log > seconds-check-lean.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv seconds-check.csv seconds-check-lean.csv \
-		| sed 's/1003.419/1500/g' | sed 's/1003.692/1500/g' > time-check-regular-lean.csv
+		| sed 's/1003.419/1500/g' | sed 's/1003.692/1500/g' | sed 's/301.135/1500/g' \
+		> time-check-regular-lean.csv
