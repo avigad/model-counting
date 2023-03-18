@@ -396,6 +396,19 @@ Overall, we can summarize the results as:
 \end{itemize}
 
 
+\section{Benchmarking the \lean{} Proof Checker}
+
+Ran \lean{} checker on the benchmarks yielding at most $10^7$ clauses, with time limit of 1000 seconds.
+\begin{itemize}
+\item 80 total
+\item Had 2 that failed RUP check (need to investigate)
+\item One of them needs to be rerun (Very long generation time)
+\item Two timed out for \lean{}
+\end{itemize}
+
+\input{figure-check}
+
+
 \bibliography{references}
 
 

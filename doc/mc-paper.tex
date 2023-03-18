@@ -1738,6 +1738,7 @@ few models, and so the proof clauses must encode large proofs of
 unsatisfiability.
 
 \subsection{Monolithic Forward Implication Proofs}
+\label{app:experiment:monolithic}
 
 \input{figure-runtime-monolithic}
 
@@ -1776,14 +1777,15 @@ implication proofs once it encounters sufficiently small subgraphs.
 
 
 \subsection{Impact of Optimizations}
+\label{app:experiment:optimize}
 
 \input{figure-clauses-optimizations}
 
 To assess the impact of the two optimizations: literal grouping and
 lemmas, we ran the proof generator on the 80 problems for which the
 combination of the two optimizations yielded proofs totaling at most
-100~million clauses.  Compared to the problems used to assess monolithic
-proof generation, this set included one that had a short proof but
+10~million clauses.  Compared to the problems used to assess monolithic
+proof generation (Section~\ref{app:experiment:monolithic}), this set included one that had a short proof but
 long runtime and excluded four that had short runtimes but long
 proofs.  We then ran the proof generator on all three combinations of
 the optimizations being partially or totally disabled.
