@@ -24,6 +24,16 @@ inductive CratStep
 
 namespace CratStep
 
+def toDimacs : CratStep → String
+  | addAt idx C upHints => s!"{idx} a {pArray C} 0 {pArray upHints} 0"
+  | delAt idx upHints => s!"dc {idx} {pArray upHints} 0"
+  | prod idx x ls => s!"{idx} p {x} {pArray ls} 0"
+  | sum idx x l₁ l₂ upHints => s!"{idx} s {x} {l₁} {l₂} {pArray upHints} 0"
+  | root x => s!"r {x}"
+where
+  pArray {α : Type} [ToString α] (a : Array α) :=
+    " ".intercalate (a.foldr (init := []) fun a acc => toString a :: acc)
+
 instance : ToString CratStep where
   toString := fun
     | addAt idx C upHints => s!"{idx} a {C} 0 (hints: {upHints})"
@@ -618,21 +628,6 @@ theorem def_ext_correct {st : PreState} (H : st.WF) (st' : PreState) (x : Var) (
       exact hEquiv
   ⟨equiv, extend, uep, equiv_vars⟩
   
-def loopM_with_invariant [Monad m] {State : Type _} (invariant : Nat → State → Prop)
-    (n : Nat)
-    (start_state : { st // invariant 0 st })
-    (step : (i : Fin n) → { st // invariant i st } → m { st // invariant (i+1) st }) :
-    m { st // invariant n st } :=
-  go n 0 (by rw [add_zero]) start_state
-where
-  go : (b : Nat) → (i : Nat) → b + i = n → { st // invariant i st } → m { st // invariant n st }
-    | 0, i, h, state =>
-      have : i = n := Nat.zero_add i ▸ h
-      return this ▸ state
-    | (b + 1), i, h, state => do
-      let v ← step ⟨i, by rw [← h]; linarith⟩ state
-      go b (i + 1) (by rw [← h]; ac_rfl) v
-
 def addPogDefClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (ls : Array ILit) (f : ILit → IClause)
     (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
@@ -642,15 +637,14 @@ def addPogDefClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
       p.1.toPropTermSub (· ∈ p.2.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓
         PropForm.arrayConjTerm (ls.map fun l => (f l).toPropForm) ∧
       ∀ idx, idx ∈ p.2.toFinset → p.1.contains idx } := do
-  let ⟨out, h₁, h₂, h₃⟩ ← loopM_with_invariant
-    (State := ClauseDb ClauseIdx × HashSet ClauseIdx)
+  let ⟨out, h₁, h₂, h₃⟩ ← loopM_with_invariant (State := ClauseDb ClauseIdx × HashSet ClauseIdx)
+    (n := ls.size)
     (invariant := fun i ⟨db, pd⟩ =>
       db.toPropTerm = db₀.toPropTerm ⊓
         PropForm.listConjTerm (ls.data.take i |>.map fun l => (f l).toPropTerm) ∧
       db.toPropTermSub (· ∈ pd.toFinset) = db₀.toPropTermSub (· ∈ pd₀.toFinset) ⊓
         PropForm.listConjTerm (ls.data.take i |>.map fun l => (f l).toPropTerm) ∧
       ∀ idx, idx ∈ pd.toFinset → db.contains idx)
-    (n := ls.size)
     (start_state := ⟨(db₀, pd₀), by simp, by simp, h⟩)
     (step := fun i ⟨(db, pd), ih₁, ih₂, ih₃⟩ => do
       let l := ls[i]
@@ -1155,29 +1149,25 @@ def checkProofStep (step : CratStep) : CheckerM Unit :=
   | .prod idx x ls => addProd idx x ls
   | .sum idx x l₁ l₂ hints => addSum idx x l₁ l₂ hints
   | .root r => setRoot r
-
-def checkProof (cnf : ICnf) (nVars : Nat) (pf : Array CratStep) : Except CheckerError Unit := do
-  let st : State ← initial cnf nVars
-  let x : CheckerM Unit := do
-    for step in pf do
-      checkProofStep step
-    let _ ← checkFinalState
-  let _ ← x.run st
-  return ()
-
-def checkProofAndCount (cnf : ICnf) (nVars : Nat) (pf : Array CratStep) :
-    Except CheckerError Nat := do
-  let st : State ← initial cnf nVars
-  let x : CheckerM ILit := do
-    for step in pf do
-      checkProofStep step
-    let ⟨(_, _, r), _⟩ ← checkFinalState
-    return r
-  let (r, st) ← x.run st
-  if r.polarity = true then
-    return st.val.pog.count nVars r.var
+  
+/-- Check a CRAT proof and throw if it is invalid. If `count = True`, also return the model count
+of `cnf` over `nVars` variables. Otherwise return an unspecified number. -/
+def checkProof (cnf : ICnf) (nVars : Nat) (pf : Array CratStep) (count : Bool := False) :
+    Except String Nat := do
+  let mut st : State ← Except.mapError toString (initial cnf nVars)
+  for step in pf do
+    try
+      (_, st) ← Except.mapError toString (checkProofStep step |>.run st)
+    catch e =>
+      throw <| s!"error on line '{step.toDimacs}':\n{e}"
+  let ⟨(_, _, r), _⟩ ← Except.mapError toString (checkFinalState.run' st)
+  if count then
+    if r.polarity = true then
+      return st.val.pog.count nVars r.var
+    else
+      return 2^nVars - st.val.pog.count nVars r.var
   else
-    return 2^nVars - st.val.pog.count nVars r.var
+    return 0
 
 #exit
 
