@@ -37,7 +37,7 @@ theorem Bool.beq_or_bne [BEq α] (a a' : α) : a == a' ∨ a != a' :=
     . exact Or.inl rfl
 
 @[simp]
-theorem Bool.bne_eq_false [BEq α] {a a' : α} : (a != a') = false ↔ a == a' := by 
+theorem Bool.bne_eq_false [BEq α] {a a' : α} : (a != a') = false ↔ a == a' := by
   dsimp [bne]
   cases (a == a') <;> simp
 
@@ -83,7 +83,7 @@ theorem List.map_mapDep {γ : Type u} : (l : List α) → (f : (a : α) → a �
   | nil,      _, _ => rfl
   | cons a l, f, g => by
     -- https://www.youtube.com/watch?v=Hd2JgADY9d8
-    simp [map, mapDep, map_mapDep] 
+    simp [map, mapDep, map_mapDep]
 
 /-! Data.List.Lemmas -/
 
@@ -136,10 +136,10 @@ theorem find?_filter' (l : List α) (p q : α → Bool) (h : ∀ a, p a → !q a
 --     dsimp [filter, eraseP]
 --     split
 --     next _ hP => aesop
---     next _ hP =>  
+--     next _ hP =>
 --       cases (q x : Bool) with -- `split_ifs` doesn't work on `bif`
 --       | false => rw [cond_false, find?_cons_of_neg _ (by simp [hP]), ih]
---       | true => rw [cond_true] 
+--       | true => rw [cond_true]
 
 /-! foldl -/
 
@@ -157,7 +157,7 @@ end List
 
 theorem Array.get_of_mem_data {as : Array α} {a : α} : a ∈ as.data → ∃ (i : Fin as.size), as[i] = a :=
   List.get_of_mem
-  
+
 theorem Array.get_mem_data (as : Array α) (i : Fin as.size) : as[i] ∈ as.data := by
   simp [getElem_mem_data]
 
@@ -290,3 +290,20 @@ theorem Int.eq_zero_of_lt_neg_iff_lt (i : Int) : (0 < -i ↔ 0 < i) → i = 0 :=
   by_cases hLt : 0 < i
   . have := h.mpr hLt; linarith
   . have : ¬ 0 < -i := fun h₂ => hLt (h.mp h₂); linarith
+
+/-! Loop -/
+
+def loopM_with_invariant [Monad m] {State : Type _} (n : Nat)
+    (invariant : Nat → State → Prop)
+    (start_state : { st // invariant 0 st })
+    (step : (i : Fin n) → { st // invariant i st } → m { st // invariant (i+1) st }) :
+    m { st // invariant n st } :=
+  go n 0 (by rw [add_zero]) start_state
+where
+  go : (b : Nat) → (i : Nat) → b + i = n → { st // invariant i st } → m { st // invariant n st }
+    | 0, i, h, state =>
+      have : i = n := Nat.zero_add i ▸ h
+      return this ▸ state
+    | (b + 1), i, h, state => do
+      let v ← step ⟨i, by rw [← h]; linarith⟩ state
+      go b (i + 1) (by rw [← h]; ac_rfl) v
