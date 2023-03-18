@@ -336,7 +336,27 @@ that the implementation of arrays and hashmaps satisfy their internal descriptio
 and that, after parsing, the computation has the correct input formula.
 All of our specifications have been completely proved and verified relative to that.
 
-%% \subsection{Evaluation}
+\subsection{Evaluation}
 
-%% [TODO: Say something to establish that the procedure run in reasonable time and produce
-%% useful results; or maybe this goes in the next section?]
+\input{figure-check}
+
+We ran the \lean{} checker on the 80 benchmark problems for which the
+generated CRAT file had at most 10~million total clauses.  These are the
+same benchmarks used in evaluating the optimizations (Section
+\ref{app:experiment:optimize}).  Figure~\ref{fig:lean} shows the
+comparative performance of the \lean{} checker versus our unverified
+checker on the Y axis, with the total number of clauses on the X axis.
+
+As would be expected, the \lean{} checker consistently runs slower
+than the unverified checker.  Two of the benchmarks exceeded the time
+limit of 1000 seconds with the \lean{} checker.  Of those that
+completed, the ratio of the runtime for \lean{} versus the runtime for
+the unverified checker had a harmonic mean of 5.9.
+
+Importantly, however, it can be seen that both checkers show the same
+overall asymptotic performance.  The ratio of the two runtimes was
+less than $8.0$ for all but two very small benchmarks.  This seems like a
+reasonable price to pay for a rigorous guarantee of correctness.
+
+
+
