@@ -337,6 +337,7 @@ and that, after parsing, the computation has the correct input formula.
 All of our specifications have been completely proved and verified relative to that.
 
 \subsection{Evaluation}
+\label{app:lean:evaluation}
 
 \input{figure-check}
 
@@ -344,13 +345,13 @@ We ran the \lean{} checker on the 80 benchmark problems for which the
 generated CRAT file had at most 10~million total clauses.  These are the
 same benchmarks used in evaluating the optimizations (Section
 \ref{app:experiment:optimize}).  Figure~\ref{fig:lean} shows the
-comparative performance of the \lean{} checker versus our unverified
+comparative performance of the \lean{} checker versus our unverified prototype
 checker on the Y axis, with the total number of clauses on the X axis.
 
 As would be expected, the \lean{} checker consistently runs slower
-than the unverified checker.  All of the checks completed and confirmed the outcome of the unverified checker.
+than the prototype checker.  All of the checks completed and confirmed the outcome of the prototype checker.
 The ratio of the runtime for \lean{} versus the runtime for
-the unverified checker had a harmonic mean of $5.94$.
+the prototype checker had a harmonic mean of $5.94$.
 
 Importantly, however, it can be seen that both checkers show the same
 overall performance trends.  The ratio of the two runtimes was less
