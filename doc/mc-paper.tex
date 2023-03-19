@@ -557,12 +557,12 @@ Node $\nodeu$ can be labeled with $\boolnot$ only if $\outdegree(\nodeu) = 1$.
 It can be labeled with operation $\pand$ or $\por$ only if it satisfies the partitioning restriction for that operation.
 There is a unique {\em root node} $\noder$ such that $\indegree(\noder) = 0$.
 
-As can be seen, a POG is represents a partitioned-operation
+In essence, a POG represents a partitioned-operation
 formula with a sharing of common subformulas.  Indeed, every node in the graph can be viewed as a partitioned-operation formula, and so we write
 $\phi_{\nodeu}$ as the formula denoted by node $\nodeu$.
 Each such formula has a set of models, and we write $\modelset(\nodeu)$ as a shorthand for $\modelset(\phi_{\nodeu})$.
 
-We define the {\em size} of POG $P$, written $|P|$ to be the
+We define the {\em size} of POG $P$, written $|P|$, to be the
 the number of nodes labeled $\pand$ or $\por$ plus the number of edges from these nodes to their children.  Ring
 evaluation of $P$ can be performed with at most $|P|$ ring
 operations by traversing the graph from the terminal nodes up to
@@ -578,7 +578,7 @@ POGs generalize the d-DNNF graphs in two ways:
 %%  converting binary decision diagrams (BDDs) having complemented
 %%  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
 \item They allow arbitrary arguments to a $\por$ operation, as long as
-  they have disjoint models.  By contrast, each
+  these have disjoint models.  By contrast, each
   sum node $\nodeu$ in a d-DNNF must have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a {\em decision variable} $x$ such that
   any total assignment $\assign \in  \modelset(\nodeu_b)$ has $\assign(x)=b$, for $b \in \{0,1\}$.
 %%Our generalization is provided to allow an
@@ -611,7 +611,7 @@ occurs only when defining $\pand$ and $\por$ operations, as is
 described in Section~\ref{sect:crat}.  Clauses can also be added or
 deleted based on {\em implication redundancy}.  That is, when clause
 $C$ satisfies $\phi \imply C$ for formula $\phi$, then it can either
-be added $\phi$ to create the formula $\phi \cup \{C\}$ or it can be deleted
+be added to $\phi$ to create the formula $\phi \cup \{C\}$ or it can be deleted
 from $\phi \cup \{C\}$ to create $\phi$.
 
 We use {\em reverse unit propagation} (RUP) to certify
@@ -629,7 +629,7 @@ proves that $\bigwedge_{1\leq i \leq k} D_i \imply C$ by showing
 that the combination of the antecedents plus the negation of $C$ leads
 to a contradiction.  The negation of $C$ is the formula
 $\overline{\lit}_1 \land \overline{\lit}_2 \land \cdots \land
-\overline{\lit}_p$ having a CNF representation consisting of $p$ unit
+\overline{\lit}_p$, having a CNF representation consisting of $p$ unit
 clauses of the form $\obar{\lit}_i$ for $1 \leq i \leq p$.  A RUP
 check processes the clauses of the antecedent in sequence, inferring
 additional unit clauses.  In processing clause $D_i$, if all but one
@@ -826,7 +826,7 @@ and $\lit_{j}$ must
 be disjoint, for $1 \leq i < j \leq k$.  A product operation may have no arguments,
 representing Boolean constant $1$.  The only clause added to the proof will be
 the unit literal $v$.  A reference to literal $-v$ then provides a way
-to representing constant $0$.
+of representing constant $0$.
 
 The declaration of a {\em sum} operation, creating a node with operation $\por$, has the form:
 \begin{center}
@@ -884,10 +884,13 @@ At the completion of the proof, the following conditions must hold:
   addition, and this is a unit clause consisting of root literal $r$.
 \item All of the input clauses have been deleted.
 \end{enumerate}
-Let $\inputformula$ denote the input formula and $\pogformula$ represent the formula encoded by unit clause $r$ and the defining clauses for the POG nodes:
-$\pogformula = \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$.  We can write $\modelset(P)$ as a shorthand for $\modelset(\pogformula)$, recognizing that
+In other words, at the end of the proof it must hold that the active clauses be exactly those
+in $\pogformula = \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$, the formula consisting
+of unit clause $r$ and the defining clauses of the POG nodes. We can write
+$\modelset(P)$ as a shorthand for $\modelset(\pogformula)$, recognizing that
 any assignment to the input variables implicitly defines the assignments to the extension variables.
-The sequence of clause addition steps provide a {\em forward implication} proof that
+Let $\inputformula$ denote the input formula.
+The sequence of clause addition steps provides a {\em forward implication} proof that
 $\modelset(\inputformula) \subseteq \modelset(P)$.  That is, any total
 assignment $\assign$ satisfying the input formula must also satisfy
 the formula represented by the POG\@.
@@ -1167,8 +1170,7 @@ toolchain illustrated in Figure~\ref{fig:chain}.  One version,
 including a proof generator, proof checker, and ring evaluator for
 standard and weighted model counting, is designed to be fully
 scalable.  The other version, consisting of a proof checker and
-ring evaluator has been formally verified within the \lean{} proof
-system.
+ring evaluator has been formally verified within the \lean{} theorem prover.
 %% Our long-term goal is to have a toolchain suitable for use in a
 %% knowledge compiler competition, along the lines of the annual
 %% competitions for other automated reasoning tools.  (The results could be evaluated for correctness
