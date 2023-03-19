@@ -401,9 +401,9 @@ Overall, we can summarize the results as:
 Ran \lean{} checker on the benchmarks yielding at most $10^7$ clauses, with time limit of 1000 seconds.
 \begin{itemize}
 \item 80 total
-\item Had 2 that failed RUP check (need to investigate)
-\item One of them needs to be rerun (Very long generation time)
-\item Two timed out for \lean{}
+\item All ran to completion
+\item All but three ran within factor of $8\times$.  Outliers were small ones
+\item Harmonic mean = $5.94$.
 \end{itemize}
 
 \input{figure-check}

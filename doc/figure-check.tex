@@ -7,7 +7,7 @@
                               x post scale=2.4, y post scale=2.2,
                               xmode=log,xmin=1000,xmax=1e7, 
                               xtick={1000, 10000, 100000, 1000000, 10000000}, xticklabels={$10^3$,$10^4$,$10^5$,$10^6$,$10^7$},
-                              ymode=log, ymin=0.01, ymax=1900,
+                              ymode=log, ymin=0.01, ymax=1000,
                               ytick={0.01, 0.1,1.0,10,100,1000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}},
                               xlabel={CRAT Size (Total clauses)}, ylabel={Checking Time (seconds)},
             ]
@@ -18,8 +18,8 @@
       \scriptsize \textsf{Regular checker},
     }
 
-    \addplot[color=black,dashed] coordinates{(0.01,1500) (1e7,1500)};
-    \addplot[mark=none, color=lightblue] coordinates{(0.01,1000) (1e7,1000)};
+%    \addplot[color=black,dashed] coordinates{(0.01,1500) (1e7,1500)};
+%    \addplot[mark=none, color=lightblue] coordinates{(0.01,1000) (1e7,1000)};
           \end{axis}
 \end{tikzpicture}
 } % centering

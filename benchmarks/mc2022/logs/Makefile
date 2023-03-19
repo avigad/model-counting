@@ -74,6 +74,5 @@ data:
 #	$(INTERP) $(MERGE) -f errors-mice.csv time-ours.csv 1500 > time-mice-error.csv
 
 	$(INTERP) $(GRAB) "LCHECK LOG: Elapsed" *.lean_log > seconds-check-lean.csv
-	$(INTERP) $(MERGE) -f clauses-total.csv seconds-check.csv seconds-check-lean.csv \
-		| sed 's/1003.419/1500/g' | sed 's/1003.692/1500/g' | sed 's/301.135/1500/g' \
-		> time-check-regular-lean.csv
+	$(INTERP) $(MERGE) -f clauses-total.csv seconds-check.csv seconds-check-lean.csv > time-check-regular-lean.csv
+

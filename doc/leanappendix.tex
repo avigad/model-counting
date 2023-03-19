@@ -348,16 +348,16 @@ comparative performance of the \lean{} checker versus our unverified
 checker on the Y axis, with the total number of clauses on the X axis.
 
 As would be expected, the \lean{} checker consistently runs slower
-than the unverified checker.  Two of the benchmarks exceeded the time
-limit of 1000 seconds with the \lean{} checker, and one caused an internal error in \lean{}.
-Of those that
-completed, the ratio of the runtime for \lean{} versus the runtime for
-the unverified checker had a harmonic mean of 5.9.
+than the unverified checker.  All of the checks completed and confirmed the outcome of the unverified checker.
+The ratio of the runtime for \lean{} versus the runtime for
+the unverified checker had a harmonic mean of $5.94$.
 
 Importantly, however, it can be seen that both checkers show the same
-overall asymptotic performance.  The ratio of the two runtimes was
-less than $8.0$ for all but two very small benchmarks.  This seems like a
-reasonable price to pay for a rigorous guarantee of correctness.
+overall performance trends.  The ratio of the two runtimes was less
+than $8.0$ for all but three small benchmarks.  This seems like a
+reasonable price to pay for a rigorous guarantee of correctness, and
+we are confident that we can reduce this gap with more effort in
+optimizing the checker.
 
 
 
