@@ -860,11 +860,10 @@ The defining clauses for a product or sum
 operation uniquely define the value of its extension variable for any assignment of values to the argument variables.
 For the
 extension variable $u$ associated with any POG node $\nodeu$, we can therefore
-assume that any total assignment $\assign$ to the input variables will
-also assign a value to $u$ such that $\assign(u) =
-1$ if and only if $\assign \in \modelset(\nodeu)$.  For a POG with
-root literal $r$, we can define its set of models $\modelset(P)$ as
-the set of all total assignments $\assign$ such that $\assign(r) = 1$.
+prove that any total assignment $\assign$ to the input variables which
+also satisfies the POG definitions will
+assign a value to $u$ such that $\assign(u) =
+1$ if and only if $\assign \in \modelset(\nodeu)$.
 
 %% A CRAT proof follows the same general form as a QRAT dual
 %% proof~\cite{bryant:cade:2021}---one that ensures that each clause
@@ -889,12 +888,12 @@ At the completion of the proof, the following conditions must hold:
 \end{enumerate}
 In other words, at the end of the proof it must hold that the active clauses be exactly those
 in $\pogformula = \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$, the formula consisting
-of unit clause $r$ and the defining clauses of the POG nodes. We can write
-$\modelset(P)$ as a shorthand for $\modelset(\pogformula)$, recognizing that
-any assignment to the input variables implicitly defines the assignments to the extension variables.
+of unit clause $r$ and the defining clauses of the POG nodes. Recognizing that
+any assignment to the input variables implicitly defines the assignments to the extension variables,
+we can see that $\pogformula$ is the clausal encoding of $\phi_\noder$.
 Let $\inputformula$ denote the input formula.
 The sequence of clause addition steps provides a {\em forward implication} proof that
-$\modelset(\inputformula) \subseteq \modelset(P)$.  That is, any total
+$\modelset(\inputformula) \subseteq \modelset(\phi_\noder)$.  That is, any total
 assignment $\assign$ satisfying the input formula must also satisfy
 the formula represented by the POG\@.
 Conversely,
@@ -902,7 +901,7 @@ each proof step that deletes an input clause proves that any
 total assignment $\alpha$ that falsifies the clause must
 assign $\assign(r) = 0$.  Deleting all but the final asserted clause and all input clauses provides a {\em reverse implication} proof
 that
-$\modelset(P) \subseteq \modelset(\inputformula)$.
+$\modelset(\phi_\noder) \subseteq \modelset(\inputformula)$.
 
 Appendix~\ref{app:crat:example} shows the CRAT description for
 an input formula with five clauses, yielding a POG with five
@@ -936,9 +935,10 @@ of {\em literal} nodes corresponding to input variables and their negations, alo
 \subsection{Forward implication proof}
 
 For input formula $\inputformula$ and its translation into a POG $P$
-with root literal $r$, the most challenging part of the proof is to
-show that $\modelset(\inputformula) \subseteq \modelset(P)$, i.e.,
-that any total assignment $\alpha$ that is a model of $\inputformula$
+with root node $\noder$, the most challenging part of the proof is to
+show that $\modelset(\inputformula) \subseteq \modelset(\phi_\noder)$, i.e.,
+that any total assignment $\assign$ that is a model of $\inputformula$
+and the POG definition clauses
 will yield $\assign(r) = 1$, for root literal $r$.  This part of the
 proof consists of a series of clause assertions leading to one adding
 $r$ as a unit clause.  We have devised two methods of generating this
@@ -967,13 +967,13 @@ $\gamma$ as $\prov_{\passign}(\gamma, \psi) = \bigcup_{C \in \gamma} \prov_{\pas
 
 The monolithic approach
 takes advantage of the clausal representations of
-the input formula $\inputformula$ and the POG formula $\pogformula$.
+the input formula $\inputformula$ and the POG formula $\phi_\noder$.
 It can
-express the negation of $\pogformula$ as $\neg \pogformula = \bigcup_{\nodeu\in P} \simplify{\theta_{u}}{\{\obar{r}\}}$.
+express the negation of $\phi_\noder$ as $\neg \phi_\noder = \bigcup_{\nodeu\in P} \simplify{\theta_{u}}{\{\obar{r}\}}$.
 Forward implication
 will hold
-when $\inputformula \imply \pogformula$, or  equivalently,
-that the formula $\inputformula \land \neg \pogformula$
+when $\inputformula \imply \phi_\noder$, or  equivalently,
+that the formula $\inputformula \land \neg \phi_\noder$
 is unsatisfiable, where the
 conjunction can be expressed as the union
 of the two sets of clauses.  The proof generator writes the clauses to a file and invokes a proof-generating SAT solver.
@@ -1070,8 +1070,8 @@ a SAT solver to validate a literal.
 \subsection{Reverse implication proof}
 
 Completing the equivalence proof of input formula $\inputformula$ and its POG
-representation with root literal $r$ requires showing that
-$\modelset(P) \subseteq \modelset(\inputformula)$.  This is done in the
+representation with root node $\noder$ requires showing that
+$\modelset(\phi_\noder) \subseteq \modelset(\inputformula)$.  This is done in the
 CRAT framework by first deleting all asserted clauses, except for the
 final unit clause for root literal $r$, and then deleting all of the
 input clauses.  Suppose at some point in this process that we want to
@@ -1089,7 +1089,8 @@ Each input clause deletion can be done as a single RUP step.  The
 proof generator constructs the hint sequence from the defining
 clauses of the POG nodes via a single, bottom-up pass through the
 graph.  The RUP deletion proof for input clause $C$ effectively proves that any
-total assignment $\assign$ that does not satisfy $C$ will yield
+total assignment $\assign$ that satisfies the POG definition clauses
+but does not satisfy $C$ will yield
 $\assign(r) = 0$.  It starts with the set of literals
 $\{ \obar{\lit} \mid \lit \in C\}$, describing the required condition for
 assignment $\assign$ to falsify clause $C$.
