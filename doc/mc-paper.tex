@@ -965,12 +965,10 @@ $\gamma$ as $\prov_{\passign}(\gamma, \psi) = \bigcup_{C \in \gamma} \prov_{\pas
 The monolithic approach
 takes advantage of the clausal representations of
 the input formula $\inputformula$ and the POG formula $\phi_\noder$.
-It can
-express the negation of $\phi_\noder$ as $\neg \phi_\noder = \bigcup_{\nodeu\in P} \simplify{\theta_{u}}{\{\obar{r}\}}$.
-Forward implication
-will hold
-when $\inputformula \imply \phi_\noder$, or  equivalently,
-that the formula $\inputformula \land \neg \phi_\noder$
+We can express the negation of $\phi_\noder$ in clausal form as
+$\theta_{\obar{\noder}} = \bigcup_{\nodeu\in P} \simplify{\theta_{u}}{\{\obar{r}\}}$.
+Forward implication will hold when $\inputformula \imply \phi_\noder$, or  equivalently
+when the formula $\inputformula \land \theta_{\obar{\noder}}$
 is unsatisfiable, where the
 conjunction can be expressed as the union
 of the two sets of clauses.  The proof generator writes the clauses to a file and invokes a proof-generating SAT solver.
