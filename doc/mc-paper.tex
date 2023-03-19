@@ -179,8 +179,8 @@
 \begin{abstract}
 
 \emph{Knowledge compilation} is the process of converting a Boolean
-formula into a form that makes it possible to calculate associated
-values efficiently, such as the weighted or unweighted model
+formula into a form that makes it possible to efficiently calculate
+associated values, such as the weighted or unweighted model
 count. Existing knowledge compilers
 provide no guarantee that the representation they produce
 correctly represents the original formula, and therefore they cannot validate the generated counts.
@@ -195,7 +195,7 @@ We have developed a program that generates POG representations from
 the d-DNNF graphs produced by the state-of-the-art knowledge compiler
 \dfour, as well as checkable proofs that the output POGs
 are equivalent to the input CNF formulas.  We have also implemented an
-efficient checker for these proofs. Our tool chain
+efficient checker for these proofs. Our toolchain
 for generating and verifying POGs scales to all but the largest d-DNNF
 graphs produced by \dfour{} for formulas from a recent model counting
 competition. We also present a checker and a model counter for POGs that have
@@ -205,16 +205,16 @@ create the first formally verified toolchain for weighted and unweighted model c
 
 \section{Introduction}
 
-Modern Boolean satisfiability (SAT) solvers can
-find a satisfying assignment to a Boolean formula or generate a proof that no
+Given a Boolean formula $\phi$, modern Boolean satisfiability (SAT) solvers can
+find an assignment satisfying $\phi$ or generate a proof that no
 such assignment exists.  They have applications across a variety of
-domains, including computational mathematics, combinatorial
+domains including computational mathematics, combinatorial
 optimization, and the formal verification of hardware, software, and
 security protocols.  Some applications, however, require going
-beyond standard Boolean satisfiability.  For example, the {\em model
+beyond Boolean satisfiability.  For example, the {\em model
   counting problem} requires computing the number of satisfying
 assignments of a formula, including in cases where there are far too many
-to enumerate individually.  Model counting, in turn, has
+to enumerate individually.  Model counting has
 applications in artificial intelligence, computer security, and
 statistical sampling.  There are also many useful extensions of standard model counting,
 including {\em
@@ -222,27 +222,27 @@ including {\em
 each possible assignment, and the goal becomes to compute the sum of the weights
 of the satisfying assignments.
 
-Model counting is a challenging problem---more challenging that the
-already NP-hard problem of Boolean satisfiability.  Several
+Model counting is a challenging problem---more challenging than the
+already NP-hard Boolean satisfiability.  Several
 tractable variants of Boolean satisfiability, including 2-SAT, become
-intractable when the goal becomes model counting and not just
+intractable when the goal is to count models and not just determine
 satisfiability \cite{valiant:siam:1979}.  Nonetheless, a number of
-model counters have developed that scale to very large formulas, as
+model counters that scale to very large formulas have been developed, as
 witnessed by the progress in recent model counting competitions.
 
 One approach to model counting, known as {\em knowledge compilation},
 transforms the formula into a structured form for which model counting
-becomes straightforward.  For example, the {\em deterministic,
+is straightforward.  For example, the {\em deterministic,
   decomposable, negation normal form} (d-DNNF) introduced by
 Darwiche~\cite{darwiche:aaai:2002,darwiche:ecai:2004} represents a
 Boolean formula as a directed acyclic graph, with terminal nodes
 labeled by Boolean variables and their complements, and with each
-nonterminal node labeled by Boolean operation And or Or.  Restrictions
+nonterminal node labeled by a Boolean And/Or operation.  Restrictions
 are placed on the structure of the graph such that a count of the
 models can be computed by a single bottom-up traversal.
-Kimmig et al.\ present a very general framework, known as {\em
-  algebraic model counting}~\cite{kimmig:jal:2017}, describing
-properties of Boolean functions that can be efficiently computing from
+Kimmig et al.\ present a very general {\em
+  algebraic model counting}~\cite{kimmig:jal:2017} framework describing
+properties of Boolean functions that can be efficiently computed from
 a d-DNNF representation.  These include standard and weighted model
 counting, and much more.
 
@@ -253,19 +253,19 @@ formula.  By contrast, all modern SAT solvers can generate
 checkable proofs when they encounter unsatisfiable formulas.  The
 guarantee provided by a checkable certificate of correctness enables
 users of SAT solvers to fully trust their results.  Experience has also
-shown that having this capability gives SAT solver developers an ability to quickly
-detect and diagnose bugs in their programs, and this, in turn, has led
+shown that proof production capabilites allow SAT solver developers to quickly
+detect and diagnose bugs in their programs. This, in turn, has led
 to more reliable SAT solvers.
 
-In this paper, we present \emph{Partitioned Operation Graphs} (POGs),
-a generalization of the representations produce by current knowledge
-compilers, including d-DNNF\@.  We present the CRAT file format.
-It captures both the structure of a POG and a checkable proof
-that the POG is logically equivalent to a Boolean formula given in
-conjunctive normal form (CNF).  A proof consists of a sequence of
-clause addition and deletion steps, based on an extended resolution
-proof system~\cite{Tseitin:1983}.  We present a set of conditions that
-a CRAT file must satisfy to provide an equivalence proof.
+In this paper, we introduce \emph{Partitioned Operation Graphs} (POGs),
+a generalization of the representations produced by current knowledge
+compilers, including d-DNNF\@. To capture both the structure of a POG
+and a checkable proof of its logical equivalence to a Boolean formula in
+conjunctive normal form (CNF), we propose the CRAT file format. A CRAT
+proof consists of a sequence of clause addition and deletion steps,
+based on an extended resolution proof system~\cite{Tseitin:1983}.
+We establish a set of conditions that a CRAT file must satisfy in order to
+encode a well-formed POG and provide a valid equivalence proof.
 
 \begin{figure}
 \centering{
@@ -315,46 +315,42 @@ a CRAT file must satisfy to provide an equivalence proof.
 
 \end{tikzpicture}
 }
-\caption{Certifying Tool Chain.
-  The output of a standard knowledge compiler is converted into a combined graph/proof (CRAT) that can be independently checked and evaluated}
+\caption{Certifying toolchain.
+  The output of a standard knowledge compiler is converted into a combined graph/proof (CRAT)
+  which can be independently checked and evaluated}
 \label{fig:chain}
 \end{figure}
 
 
-Figure~\ref{fig:chain} illustrates the certifying knowledge compilation
-and (weighted) model counting tool chain that we have developed.  A
+Figure~\ref{fig:chain} illustrates our certifying knowledge compilation
+and (weighted) model counting toolchain.  A
 {\em proof generator} generates a CRAT description from a d-DNNF
 graph produced by \dfour{}, a state-of-the-art knowledge compiler.
 A {\em proof checker} then verifies that the combination of CNF and CRAT files
 satisfy our rules, and a {\em ring evaluator} can compute
 either a standard or weighted model count from the POG\@ representation.
-We evaluate the capabilities of this tool chain using
+We evaluate the capabilities of this toolchain using
 benchmark formulas from the 2022 standard and weighted model
 competitions.  Our tools are able to handle all but the largest d-DNNF
 graphs generated by \dfour{}.
-As the dashed box in Figure~\ref{fig:chain} indicates, this tool chain
-shifts the need for trustworthy code away from the complex and highly
+As the dashed box in Figure~\ref{fig:chain} indicates, this toolchain
+moves the root of trust away from the complex and highly
 optimized knowledge compiler to a relatively simple checker and
 evaluator.  Importantly, the proof generator need not be
-trusted---its errors will also be caught by the proof checker.
+trusted---its errors will be caught by the proof checker.
 
-To further enhance the trustworthiness of our toolchain, we have
-developed formally verified versions of the proof checker and ring
-evaluator in the \lean{} proof assistant~\cite{demoura:cade:2021}.  Running these two programs
-has the effect of formally verifying both the logical equivalence of
-the POG to the input formula and the correctness of the count.  In
-addition, the existence of a formally verified checker serves the
-important role of establishing the soundness of our proof framework.
-Our
-experience with developing a formally verified proof checker has shown
-us that, even within the well-understood framework of extended
-resolution, it can be challenging to formulate a full set of requirements to guarantee soundness.
-Our efforts to formalize the framework
-identified subtle details for some of the proof obligations.
+To ensure soundness of the abstract CRAT proof system, as well as correctness of its
+concrete implementation, we formally verified the proof system as well as versions
+of the proof checker and ring evaluator in the \lean{} proof assistant~\cite{demoura:cade:2021}.
+Running these two programs on a particular CRAT file gives assurance that the proof
+and the model count are correct. Our experience with developing a formally verified
+proof checker has shown that, even within the well-understood framework of extended
+resolution, it can be challenging to formulate a full set of requirements that guarantee soundness.
+In fact, subtle details in the partitioned sum rule were identified during this process.
 
 \section{Related Work}
 
-Having a SAT solver generate a proof of unsatisfiability has a long
+Generating proofs of unsatisfiability in SAT solvers has a long
 tradition~\cite{ZhangMalik} and has become widely accepted due to the
 formulation of clausal proof systems for which proofs can readily be
 generated and efficiently (and, in some cases, formally) checked
@@ -374,15 +370,15 @@ traces from d-DNNF graphs.
 %% They have not formally verified their
 %%proof framework or created a formally verified checker.
 
-Our tool chain is not directly
-comparable to theirs---they certify the output of a standard modeling
+Our toolchain is not directly
+comparable to theirs---they directly certify the output of a model counting
 program, while we certify the output of a knowledge compiler and then
-produce a certified standard or weighted model count.
+produce a certified model count.
 %% Their tool
 %% chain can be applied to some programs that are pure model counters,
 %%while ours can be applied to pure knowledge compilers.
 Nonetheless,
-we compare the performance of our tool chain to theirs as part of our
+we compare the performance of our toolchain to theirs as part of our
 experimental evaluation in Appendix~\ref{app:experiments}.
 
 We know of no other
@@ -561,12 +557,12 @@ Node $\nodeu$ can be labeled with $\boolnot$ only if $\outdegree(\nodeu) = 1$.
 It can be labeled with operation $\pand$ or $\por$ only if it satisfies the partitioning restriction for that operation.
 There is a unique {\em root node} $\noder$ such that $\indegree(\noder) = 0$.
 
-As can be seen, a POG is represents a partitioned-operation
+In essence, a POG represents a partitioned-operation
 formula with a sharing of common subformulas.  Indeed, every node in the graph can be viewed as a partitioned-operation formula, and so we write
 $\phi_{\nodeu}$ as the formula denoted by node $\nodeu$.
 Each such formula has a set of models, and we write $\modelset(\nodeu)$ as a shorthand for $\modelset(\phi_{\nodeu})$.
 
-We define the {\em size} of POG $P$, written $|P|$ to be the
+We define the {\em size} of POG $P$, written $|P|$, to be the
 the number of nodes labeled $\pand$ or $\por$ plus the number of edges from these nodes to their children.  Ring
 evaluation of $P$ can be performed with at most $|P|$ ring
 operations by traversing the graph from the terminal nodes up to
@@ -582,7 +578,7 @@ POGs generalize the d-DNNF graphs in two ways:
 %%  converting binary decision diagrams (BDDs) having complemented
 %%  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
 \item They allow arbitrary arguments to a $\por$ operation, as long as
-  they have disjoint models.  By contrast, each
+  these have disjoint models.  By contrast, each
   sum node $\nodeu$ in a d-DNNF must have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a {\em decision variable} $x$ such that
   any total assignment $\assign \in  \modelset(\nodeu_b)$ has $\assign(x)=b$, for $b \in \{0,1\}$.
 %%Our generalization is provided to allow an
@@ -615,7 +611,7 @@ occurs only when defining $\pand$ and $\por$ operations, as is
 described in Section~\ref{sect:crat}.  Clauses can also be added or
 deleted based on {\em implication redundancy}.  That is, when clause
 $C$ satisfies $\phi \imply C$ for formula $\phi$, then it can either
-be added $\phi$ to create the formula $\phi \cup \{C\}$ or it can be deleted
+be added to $\phi$ to create the formula $\phi \cup \{C\}$ or it can be deleted
 from $\phi \cup \{C\}$ to create $\phi$.
 
 We use {\em reverse unit propagation} (RUP) to certify
@@ -633,7 +629,7 @@ proves that $\bigwedge_{1\leq i \leq k} D_i \imply C$ by showing
 that the combination of the antecedents plus the negation of $C$ leads
 to a contradiction.  The negation of $C$ is the formula
 $\overline{\lit}_1 \land \overline{\lit}_2 \land \cdots \land
-\overline{\lit}_p$ having a CNF representation consisting of $p$ unit
+\overline{\lit}_p$, having a CNF representation consisting of $p$ unit
 clauses of the form $\obar{\lit}_i$ for $1 \leq i \leq p$.  A RUP
 check processes the clauses of the antecedent in sequence, inferring
 additional unit clauses.  In processing clause $D_i$, if all but one
@@ -830,7 +826,7 @@ and $\lit_{j}$ must
 be disjoint, for $1 \leq i < j \leq k$.  A product operation may have no arguments,
 representing Boolean constant $1$.  The only clause added to the proof will be
 the unit literal $v$.  A reference to literal $-v$ then provides a way
-to representing constant $0$.
+of representing constant $0$.
 
 The declaration of a {\em sum} operation, creating a node with operation $\por$, has the form:
 \begin{center}
@@ -888,10 +884,13 @@ At the completion of the proof, the following conditions must hold:
   addition, and this is a unit clause consisting of root literal $r$.
 \item All of the input clauses have been deleted.
 \end{enumerate}
-Let $\inputformula$ denote the input formula and $\pogformula$ represent the formula encoded by unit clause $r$ and the defining clauses for the POG nodes:
-$\pogformula = \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$.  We can write $\modelset(P)$ as a shorthand for $\modelset(\pogformula)$, recognizing that
+In other words, at the end of the proof it must hold that the active clauses be exactly those
+in $\pogformula = \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$, the formula consisting
+of unit clause $r$ and the defining clauses of the POG nodes. We can write
+$\modelset(P)$ as a shorthand for $\modelset(\pogformula)$, recognizing that
 any assignment to the input variables implicitly defines the assignments to the extension variables.
-The sequence of clause addition steps provide a {\em forward implication} proof that
+Let $\inputformula$ denote the input formula.
+The sequence of clause addition steps provides a {\em forward implication} proof that
 $\modelset(\inputformula) \subseteq \modelset(P)$.  That is, any total
 assignment $\assign$ satisfying the input formula must also satisfy
 the formula represented by the POG\@.
@@ -912,7 +911,7 @@ representation.
 \label{section:generating:crat}
 
 %%Figure~\ref{fig:chain} illustrates one method of generating a CRAT
-%%file from an input formula in conjunctive normal form.  Our tool chain
+%%file from an input formula in conjunctive normal form.  Our toolchain
 %%is based on the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017},
 %%but it would also work for other tools that use a top-down search
 %%strategy to generate a d-DNNF representation.
@@ -1171,8 +1170,7 @@ toolchain illustrated in Figure~\ref{fig:chain}.  One version,
 including a proof generator, proof checker, and ring evaluator for
 standard and weighted model counting, is designed to be fully
 scalable.  The other version, consisting of a proof checker and
-ring evaluator has been formally verified within the \lean{} proof
-system.
+ring evaluator has been formally verified within the \lean{} theorem prover.
 %% Our long-term goal is to have a toolchain suitable for use in a
 %% knowledge compiler competition, along the lines of the annual
 %% competitions for other automated reasoning tools.  (The results could be evaluated for correctness
