@@ -1,3 +1,7 @@
+/-
+Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+-/
 import ProofChecker.Data.Pog
 import ProofChecker.Count.PropForm
 
@@ -171,7 +175,7 @@ theorem count_eq' (pog : Pog) (nVars : Nat) (x : Var) (φ : PropForm Var) :
     pog.count nVars x = φ.countModels nVars := by intro h; rw [←h, count_eq_countModels]
 
 /-
-The weighted count function
+The ring evaluation function
 -/
 
 variable {R : Type} [CommRing R]
@@ -187,7 +191,7 @@ theorem conjProdW_eq_conjProdW' : @conjProdW R _ = @conjProdW' R _ := by
   apply funext; intro g
   rw [conjProdW, conjProdW', Array.foldr_eq_foldr_data, List.ofFn, Array.toList_eq]
 
-def toCountWeightArray (pog : Pog) (weight : Var → R) :
+def toRingEvalArray (pog : Pog) (weight : Var → R) :
     { A : Array R // A.size = pog.elts.size } :=
   aux pog.elts.size #[] (by rw [add_comm]; rfl)
 where
@@ -214,36 +218,36 @@ where
               if args[j].polarity then A[args[j].var.natPred] else 1 - A[args[j].var.natPred]
     aux n (A.push nextElt) (by rw [Array.size_push, h, add_assoc, add_comm 1])
 
-def countWeight (pog : Pog) (weight : Var → R) (x : Var) : R :=
+def ringEval (pog : Pog) (weight : Var → R) (x : Var) : R :=
   if h : x.natPred < pog.elts.size then
-    have : x.natPred < (pog.toCountWeightArray weight).1.size := by
-      rwa [(pog.toCountWeightArray weight).2]
-    (pog.toCountWeightArray weight).1[x.natPred]
+    have : x.natPred < (pog.toRingEvalArray weight).1.size := by
+      rwa [(pog.toRingEvalArray weight).2]
+    (pog.toRingEvalArray weight).1[x.natPred]
   else
-    PropForm.countWeight weight (ILit.mkPos x).toPropForm
+    PropForm.ringEval weight (ILit.mkPos x).toPropForm
 
-theorem countWeight_foldr_conj (weight : Var → R) (φs : List (PropForm Var)) :
-   PropForm.countWeight weight (List.foldr PropForm.conj PropForm.tr φs) =
+theorem ringEval_foldr_conj (weight : Var → R) (φs : List (PropForm Var)) :
+   PropForm.ringEval weight (List.foldr PropForm.conj PropForm.tr φs) =
       List.foldr (fun a b => a * b) 1
-        (φs.map (PropForm.countWeight weight)) := by
+        (φs.map (PropForm.ringEval weight)) := by
   induction φs
-  . simp [PropForm.countWeight]
+  . simp [PropForm.ringEval]
   . next φ φs ih =>
-    rw [List.foldr_cons, PropForm.countWeight, ih, List.map, List.foldr]
+    rw [List.foldr_cons, PropForm.ringEval, ih, List.map, List.foldr]
 
-theorem toCountWeightArray_spec (pog : Pog) (weight : Var → R) :
-  ∀ i : Fin (pog.toCountWeightArray weight).1.size,
-      (pog.toCountWeightArray weight).1[i] =
-        PropForm.countWeight weight (pog.toPropForm (.mkPos (succPNat i))) := by
+theorem toRingEvalArray_spec (pog : Pog) (weight : Var → R) :
+  ∀ i : Fin (pog.toRingEvalArray weight).1.size,
+      (pog.toRingEvalArray weight).1[i] =
+        PropForm.ringEval weight (pog.toPropForm (.mkPos (succPNat i))) := by
   apply aux
   rintro ⟨i, h⟩; contradiction
 where
   aux : (n : Nat) → (A : Array R) → (h : pog.elts.size = A.size + n) →
           (h' : (∀ i : Fin A.size, A[i] =
-            PropForm.countWeight weight (pog.toPropForm (.mkPos (succPNat i))))) →
-    ∀ i : Fin (Pog.toCountWeightArray.aux pog weight n A h).1.size,
-      (Pog.toCountWeightArray.aux pog weight n A h).1[i] =
-        PropForm.countWeight weight (pog.toPropForm (.mkPos (succPNat i)))
+            PropForm.ringEval weight (pog.toPropForm (.mkPos (succPNat i))))) →
+    ∀ i : Fin (Pog.toRingEvalArray.aux pog weight n A h).1.size,
+      (Pog.toRingEvalArray.aux pog weight n A h).1[i] =
+        PropForm.ringEval weight (pog.toPropForm (.mkPos (succPNat i)))
   | 0,     _, _, h' => h'
   | n + 1, A, h, h' => by
     have ASizeLt : A.size < pog.elts.size := by
@@ -261,7 +265,7 @@ where
       . next x _ hinv heq _ _ =>
         rw [toPropForm]
         simp only [ILit.var_mkPos, natPred_succPNat, PropForm.withPolarity_mkPos, dif_pos ASizeLt]
-        rw [toPropForm_aux_eq, heq, PropForm.countWeight]
+        rw [toPropForm_aux_eq, heq, PropForm.ringEval]
       . next x left right hleft hright hinv heq _ _ =>
         rw [toPropForm]
         simp only [ILit.var_mkPos, natPred_succPNat, PropForm.withPolarity_mkPos, dif_pos ASizeLt]
@@ -271,7 +275,7 @@ where
           dsimp at hinv; rwa [hinv, PNat.natPred_lt_natPred]
         have hl := h' ⟨_, hleft⟩; dsimp at hl; rw [hl]
         have hr := h' ⟨_, hright⟩; dsimp at hr; rw [hr]
-        rw [toPropForm_aux_eq, heq, PropForm.countWeight, PNat.succPNat_natPred,
+        rw [toPropForm_aux_eq, heq, PropForm.ringEval, PNat.succPNat_natPred,
           PNat.succPNat_natPred]
         split
         . next hlp =>
@@ -282,24 +286,24 @@ where
           . next hrnp =>
             rw [Bool.not_eq_true] at hrnp
             rw [ILit.mkPos_var_false _ hrnp, pog.toPropForm_of_polarity_eq_false _ hrnp,
-              PropForm.countWeight]
+              PropForm.ringEval]
         . next hlnp =>
           rw [Bool.not_eq_true] at hlnp
           rw [ILit.mkPos_var_false _ hlnp, pog.toPropForm_of_polarity_eq_false _ hlnp,
-              PropForm.countWeight]
+              PropForm.ringEval]
           split
           . next hrp =>
             rw [ILit.mkPos_var_true _ hrp]
           . next hrnp =>
             rw [Bool.not_eq_true] at hrnp
             rw [ILit.mkPos_var_false _ hrnp, pog.toPropForm_of_polarity_eq_false _ hrnp,
-              PropForm.countWeight]
+              PropForm.ringEval]
       . next x args hwf hinv heq _ _ =>
         rw [toPropForm]
         simp only [ILit.var_mkPos, natPred_succPNat, PropForm.withPolarity_mkPos, dif_pos ASizeLt]
         rw [toPropForm_aux_eq, heq]; dsimp
         rw [conjProdW_eq_conjProdW', conjProdW', PropForm.arrayConj, PropForm.listConj,
-          countWeight_foldr_conj]
+          ringEval_foldr_conj]
         apply congr_arg
         rw [←Array.toList_eq, ←List.ofFn, List.map_ofFn]
         apply congr_arg
@@ -317,22 +321,22 @@ where
         . next hlnp =>
           rw [Bool.not_eq_true] at hlnp
           rw [ILit.mkPos_var_false _ hlnp, pog.toPropForm_of_polarity_eq_false _ hlnp,
-              PropForm.countWeight]
+              PropForm.ringEval]
 
-theorem countWeight_eq_countWeight (pog : Pog) (weight : Var → R) (x : Var) :
-    pog.countWeight weight x = (pog.toPropForm (.mkPos x)).countWeight weight := by
-  rw [countWeight, toPropForm, ILit.var_mkPos]
+theorem ringEval_eq_ringEval (pog : Pog) (weight : Var → R) (x : Var) :
+    pog.ringEval weight x = (pog.toPropForm (.mkPos x)).ringEval weight := by
+  rw [ringEval, toPropForm, ILit.var_mkPos]
   split
   . next h =>
-    have h' := h; rw [←(pog.toCountWeightArray weight).2] at h'
-    have := pog.toCountWeightArray_spec weight ⟨_, h'⟩
+    have h' := h; rw [←(pog.toRingEvalArray weight).2] at h'
+    have := pog.toRingEvalArray_spec weight ⟨_, h'⟩
     dsimp at this; rw [PNat.succPNat_natPred] at this
     dsimp; rw [this, toPropForm, ILit.var_mkPos, dif_pos h]
   . next h => rfl
 
-theorem countWeight_eq' (pog : Pog) (weight : Var → R) (x : Var) (φ : PropForm Var) :
+theorem ringEval_eq' (pog : Pog) (weight : Var → R) (x : Var) (φ : PropForm Var) :
     pog.toPropForm (.mkPos x) = φ →
-    pog.countWeight weight x = φ.countWeight weight := by
-      intro h; rw [←h, countWeight_eq_countWeight]
+    pog.ringEval weight x = φ.ringEval weight := by
+      intro h; rw [←h, ringEval_eq_ringEval]
 
 end Pog

@@ -1,3 +1,7 @@
+/-
+Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+-/
 import Std.Data.Array.Basic
 
 import ProofChecker.Data.ClauseDb
@@ -627,7 +631,7 @@ theorem def_ext_correct {st : PreState} (H : st.WF) (st' : PreState) (x : Var) (
       rw [← hEq, hPog₂]
       exact hEquiv
   ⟨equiv, extend, uep, equiv_vars⟩
-  
+
 def addPogDefClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (ls : Array ILit) (f : ILit → IClause)
     (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
@@ -649,7 +653,7 @@ def addPogDefClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (step := fun i ⟨(db, pd), ih₁, ih₂, ih₃⟩ => do
       let l := ls[i]
       let ⟨st', hDb, hPd, h⟩ ← addPogDefClause db pd (idx+i+1) (f l) ih₃
-      have hEquiv : 
+      have hEquiv :
           PropForm.listConjTerm (ls.data.take (i + 1) |>.map fun l => (f l).toPropTerm) =
           PropForm.listConjTerm (ls.data.take i |>.map fun l => (f l).toPropTerm) ⊓
             IClause.toPropTerm (f l) := by
@@ -675,7 +679,7 @@ def addPogDefClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     simp only [List.take_length] at h₂
     simp [PropForm.arrayConjTerm_eq_listConjTerm_data, Function.comp, h₂]
   return ⟨out, hDb, hPd, h₃⟩
-  
+
 def addProdClauses (db₀ : ClauseDb ClauseIdx) (pd₀ : HashSet ClauseIdx)
     (idx : ClauseIdx) (x : Var) (ls : Array ILit)
     (h : ∀ idx, idx ∈ pd₀.toFinset → db₀.contains idx) :
@@ -1149,7 +1153,7 @@ def checkProofStep (step : CratStep) : CheckerM Unit :=
   | .prod idx x ls => addProd idx x ls
   | .sum idx x l₁ l₂ hints => addSum idx x l₁ l₂ hints
   | .root r => setRoot r
-  
+
 /-- Check a CRAT proof and throw if it is invalid. If `count = True`, also return the model count
 of `cnf` over `nVars` variables. Otherwise return an unspecified number. -/
 def checkProof (cnf : ICnf) (nVars : Nat) (pf : Array CratStep) (count : Bool := False) :
@@ -1169,8 +1173,7 @@ def checkProof (cnf : ICnf) (nVars : Nat) (pf : Array CratStep) (count : Bool :=
   else
     return 0
 
-#exit
-
+/-
 -- LATER: re-add tracing
 
 /-- Wraps a well-formed checker state with extra stuff for tracing and debugging it. -/
@@ -1202,3 +1205,4 @@ macro_rules
   | `(log! $interpStr) => `(log_ fun _ => s!$interpStr)
 
 end CheckerState
+-/

@@ -1,3 +1,7 @@
+/-
+Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+-/
 import Mathlib.Data.Finset.Powerset
 import Mathlib.Data.Finset.Card
 import Mathlib.Algebra.BigOperators.Ring
@@ -22,13 +26,13 @@ def countModels (nVars : Nat) : PropForm ν → Nat
   | impl _ _   => 0
   | biImpl _ _ => 0
 
-def countWeight {R : Type} [CommRing R] (weight : ν → R) : PropForm ν → R
+def ringEval {R : Type} [CommRing R] (weight : ν → R) : PropForm ν → R
   | tr         => 1
   | fls        => 0
   | var x      => weight x
-  | neg φ      => 1 - φ.countWeight weight
-  | disj φ ψ   => φ.countWeight weight + ψ.countWeight weight
-  | conj φ ψ   => φ.countWeight weight * ψ.countWeight weight
+  | neg φ      => 1 - φ.ringEval weight
+  | disj φ ψ   => φ.ringEval weight + ψ.ringEval weight
+  | conj φ ψ   => φ.ringEval weight * ψ.ringEval weight
   | impl _ _   => 0
   | biImpl _ _ => 0
 
@@ -465,7 +469,7 @@ variable {R : Type} [CommRing R]
 
 open BigOperators
 
-noncomputable def weightCount (weight : ν → R) (φ : PropForm ν) (s : Finset ν) : R :=
+noncomputable def weightSum (weight : ν → R) (φ : PropForm ν) (s : Finset ν) : R :=
   ∑ τ in φ.models s, ∏ x in s, if τ x then weight x else 1 - weight x
 
 theorem injective_models_set {φ : PropForm ν} {a : ν} {s : Finset ν} {b : Bool} (h' : a ∉ s) :
@@ -480,10 +484,10 @@ theorem injective_models_set {φ : PropForm ν} {a : ν} {s : Finset ν} {b : Bo
   . simp [PropAssignment.set_get_of_ne _ _ h] at this
     exact this
 
-theorem weightCount_insert (weight : ν → R) {φ : PropForm ν} {a : ν} {s : Finset ν}
+theorem weightSum_insert (weight : ν → R) {φ : PropForm ν} {a : ν} {s : Finset ν}
       (h : φ.vars ⊆ s) (h' : a ∉ s) :
-    weightCount weight φ (insert a s) = weightCount weight φ s := by
-  rw [weightCount, models_insert h h', Finset.sum_union (models_insert_Disjoint h')]
+    weightSum weight φ (insert a s) = weightSum weight φ s := by
+  rw [weightSum, models_insert h h', Finset.sum_union (models_insert_Disjoint h')]
   rw [Finset.sum_image (injective_models_set h'), ←Finset.sum_add_distrib]
   apply Finset.sum_congr rfl
   intro τ hτ; rw [mem_models] at hτ
@@ -496,9 +500,9 @@ theorem weightCount_insert (weight : ν → R) {φ : PropForm ν} {a : ν} {s : 
   apply congr_arg; apply congr_arg; apply Finset.prod_congr rfl
   intro x xs; rw [PropAssignment.set_get_of_ne]; rintro rfl; exact h' xs
 
-theorem weightCount_of_vars_subset (weight : ν → R) {φ : PropForm ν} {s : Finset ν}
-    (h : φ.vars ⊆ s) : weightCount weight φ s = weightCount weight φ φ.vars := by
-  suffices : ∀ t, φ.vars ∩ t = ∅ → weightCount weight φ φ.vars = weightCount weight φ (φ.vars ∪ t)
+theorem weightSum_of_vars_subset (weight : ν → R) {φ : PropForm ν} {s : Finset ν}
+    (h : φ.vars ⊆ s) : weightSum weight φ s = weightSum weight φ φ.vars := by
+  suffices : ∀ t, φ.vars ∩ t = ∅ → weightSum weight φ φ.vars = weightSum weight φ (φ.vars ∪ t)
   . specialize this (s \ φ.vars) (Finset.inter_sdiff_self _ _)
     rw [this, Finset.union_sdiff_of_subset h]
   intro t
@@ -506,7 +510,7 @@ theorem weightCount_of_vars_subset (weight : ν → R) {φ : PropForm ν} {s : F
   . next => simp
   . next a t anint ih =>
     intro hdisj
-    rw [weightCount, Finset.union_insert, weightCount_insert, ←ih]; rfl
+    rw [weightSum, Finset.union_insert, weightSum_insert, ←ih]; rfl
     . rw [←subset_empty, ←hdisj]; apply inter_subset_inter_left
       apply subset_insert
     . apply subset_union_left
@@ -517,35 +521,35 @@ theorem weightCount_of_vars_subset (weight : ν → R) {φ : PropForm ν} {s : F
     rw [←hdisj, mem_inter]
     exact ⟨ha, mem_insert_self _ _⟩
 
-theorem countWeight_eq_weightCount (weight : ν → R) {φ : PropForm ν} (hdec : φ.partitioned) :
-    φ.countWeight weight = φ.weightCount weight φ.vars := by
-  have weightCount_tr : weightCount weight tr (vars tr) = 1 := by
-    rw [weightCount, models_tr, vars, assignments_empty, sum_singleton, prod_empty]
+theorem ringEval_eq_weightSum (weight : ν → R) {φ : PropForm ν} (hdec : φ.partitioned) :
+    φ.ringEval weight = φ.weightSum weight φ.vars := by
+  have weightSum_tr : weightSum weight tr (vars tr) = 1 := by
+    rw [weightSum, models_tr, vars, assignments_empty, sum_singleton, prod_empty]
   induction φ
   case var x      =>
-    rw [countWeight, weightCount, vars, models_var (mem_singleton_self x), erase_singleton,
+    rw [ringEval, weightSum, vars, models_var (mem_singleton_self x), erase_singleton,
          assignments_empty, image_singleton, sum_singleton, prod_singleton,
          PropAssignment.set_get, if_pos rfl]
   case tr         =>
-    rw [countWeight, weightCount_tr]
+    rw [ringEval, weightSum_tr]
   case fls        =>
-    rw [countWeight, weightCount, models_fls, sum_empty]
+    rw [ringEval, weightSum, models_fls, sum_empty]
   case neg φ ih   =>
     rw [partitioned] at hdec
-    rw [countWeight, ih hdec, sub_eq_iff_eq_add, vars, weightCount, weightCount,
-        ←sum_union (models_neg_Disjoint _ _), models_neg, ←models_tr, ←weightCount,
-        weightCount_of_vars_subset, weightCount_tr]
+    rw [ringEval, ih hdec, sub_eq_iff_eq_add, vars, weightSum, weightSum,
+        ←sum_union (models_neg_Disjoint _ _), models_neg, ←models_tr, ←weightSum,
+        weightSum_of_vars_subset, weightSum_tr]
     simp [vars]
   case conj φ ψ ihφ ihψ =>
     rw [partitioned] at hdec
     have hDisj : Disjoint φ.vars ψ.vars := by
       rw [disjoint_iff_inter_eq_empty]; exact hdec.2.2
-    rw [countWeight, weightCount, models_conj hdec.2.2, ihφ hdec.1, ihψ hdec.2.1,
-        sum_image (InjOn_cond _ _ hdec.2.2), sum_product, weightCount, mul_comm,
+    rw [ringEval, weightSum, models_conj hdec.2.2, ihφ hdec.1, ihψ hdec.2.1,
+        sum_image (InjOn_cond _ _ hdec.2.2), sum_product, weightSum, mul_comm,
         mul_sum]
     apply sum_congr rfl
     intros τ _
-    rw [mul_comm, weightCount, mul_sum]
+    rw [mul_comm, weightSum, mul_sum]
     apply sum_congr rfl
     intros τ' _
     rw [vars, prod_union hDisj]
@@ -564,9 +568,9 @@ theorem countWeight_eq_weightCount (weight : ν → R) {φ : PropForm ν} (hdec 
     rw [partitioned] at hdec
     have h1 : vars φ ⊆ vars (φ.disj ψ) := subset_union_left _ _
     have h2 : vars ψ ⊆ vars (φ.disj ψ) := subset_union_right _ _
-    rw [countWeight, ihφ hdec.1, ihψ hdec.2.1, ←weightCount_of_vars_subset _ h1,
-      ←weightCount_of_vars_subset _ h2]
-    unfold weightCount
+    rw [ringEval, ihφ hdec.1, ihψ hdec.2.1, ←weightSum_of_vars_subset _ h1,
+      ←weightSum_of_vars_subset _ h2]
+    unfold weightSum
     rw [models_disj, sum_union (models_Disjoint _ hdec.2.2)]
   case impl  _    => rw [partitioned] at hdec; contradiction
   case biImpl _ _ => rw [partitioned] at hdec; contradiction
