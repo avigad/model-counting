@@ -1677,9 +1677,9 @@ Our experiments are designed to evaluate the following:
 \item  
 the effectiveness of some design choices and optimizations,
 \item
-the tradeoffs between the prototype and verified checker, and
+how the performance of our toolchain compares to that of the MICE model counter verifier,
 \item
-how the performance of our toolchain compares to that of the MICE model counter verifier.
+the tradeoffs between the prototype and verified checker.  These experiments are described in Section~\ref{app:lean:evaluation}.
 \end{itemize}
 
 \subsection{Experimental Setup}
@@ -1740,8 +1740,8 @@ CDCL solver to search the very sparse solution space.  \cadical{}
 generally outperforms the miniSAT-based solver used by \dfour{}.  At
 the other extreme, one problem that required only 19 seconds for
 \dfour{} required 8657 seconds to generate a proof and 45 seconds to
-check it.  This one particular benchmark appears to expose weak performance
-limitations by our implementation of BCP\@.  Overall the ratios
+check it.  This benchmark appears to stem from weak performance
+by our implementation of BCP\@.  Overall the ratios
 between the combined generation plus checking times versus the time
 for \dfour{} had a harmonic mean of 5.5.
 
@@ -1856,9 +1856,7 @@ We ran their tools on the 92 benchmark problems for
 which our toolchain requires at most 3000 seconds and retained
 the 84 data points for which at least one of the toolchains completes in under 1000 seconds.
 
-We encountered a significant number of errors running their tools.
-These seem mostly to be easily fixable, and we are currently
-supporting their debugging efforts.  At present, we can summarize the results as:
+We can summarize the results as:
 \begin{itemize}
 \item 84 total data points
 \item 76 were completed by both programs in under 1000 seconds
