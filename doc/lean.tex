@@ -77,14 +77,12 @@ def ringEval (weight : Var → R) : PropForm Var → R
 theorem ringEval_eq_weightSum (weight : Var → R) {φ : PropForm Var} :
     partitioned φ → ringEval weight φ = weightSum weight φ (vars φ)
 \end{lstlisting}
-
 To efficiently compute the ring evaluation of a formula represented by a POG node, we implemented
-\lstinline{Pog.ringEval}. We then proved that it matches the specification above:
+\lstinline{Pog.ringEval} and then proved that it matches the specification above:
 \begin{lstlisting}
 theorem ringEval_eq_ringEval (pog : Pog) (weight : Var → R) (x : Var) :
   pog.ringEval weight x = (pog.toPropForm x).ringEval weight
 \end{lstlisting}
-
 Applying this to the output of our verified CRAT proof checker, which we know to be partitioned
 and equivalent to the input formula $\inputformula$, we obtain a proof that our toolchain computes
 the correct ring evaluation of $\inputformula$.
