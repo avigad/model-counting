@@ -632,6 +632,14 @@ clause_block_t *clause_blocks = NULL;
 int clause_block_alloc = 0;
 int clause_block_count = 0;
 
+/*
+  For mutual exclusion proof of sum operation, must ensure that only
+  defining clauses are referenced in hints.  Keep track of ranges of
+  clause IDs that form hints as pair of ilist's
+ */
+ilist clause_defining_start_id = NULL;
+ilist clause_defining_end_id = NULL;
+
 /* Operations */
 void clause_init() {
     /* Allocate a single starting chunk */
@@ -650,6 +658,8 @@ void clause_init() {
     clause_blocks[clause_block_count-1].chunk = ilist_new(MIN_SIZE);
     clause_blocks[clause_block_count-1].offset = ilist_new(MIN_SIZE);
     clause_xvar_reference = ilist_new(MIN_SIZE);
+    clause_defining_start_id = ilist_new(MIN_SIZE);
+    clause_defining_end_id = ilist_new(MIN_SIZE);
 }
 
 /* Return -1, 0, or +1 depending on whether clause is below, within, or beyond block */
@@ -689,6 +699,51 @@ int *clause_locate(int cid) {
 	    return clause_locate_within(bid, cid);
     }
     return NULL;
+}
+
+/* Record range of defining clause IDs */
+void clause_add_defining(int start_cid, int end_cid) {
+    int len = ilist_length(clause_defining_start_id);
+    if (len == 0 || clause_defining_end_id[len-1] < start_cid - 1) {
+	clause_defining_start_id = ilist_push(clause_defining_start_id, start_cid);
+	clause_defining_end_id = ilist_push(clause_defining_end_id, end_cid);
+    } else {
+	clause_defining_end_id[len-1] = end_cid;
+    }
+}
+
+/* Return -1, 0, or +1 depending on whether clause ID is below,
+   within, or beyond indicated range */
+int clause_probe_range(int idx, int cid) {
+    int start_id = clause_defining_start_id[idx];
+    int end_id = clause_defining_end_id[idx];
+    if (cid < start_id)
+	return -1;
+    if (cid > end_id)
+	return +1;
+    return 0;
+}
+
+/* Is this the ID of a defining clause? */
+bool is_defining(int cid) {
+    int len = ilist_length(clause_defining_start_id);
+    if (len <= 0)
+	return false;
+    int ridx = len-1;
+    int lidx = 0;
+    while (lidx <= ridx) {
+	int idx = (lidx + ridx)/2;
+	int sense = clause_probe_range(idx, cid);
+	if (sense == 0)
+	    return true;
+	if (sense < 0) {
+	    ridx = idx-1;
+	} else { 
+	    // sense > 0
+	    lidx = idx + 1;
+	}
+    }
+    return false;
 }
 
 bool clause_delete(int cid) {
@@ -886,7 +941,7 @@ int rup_unit_prop(int cid) {
 }
 
 /* Run RUP on hints from file.  Assume already set up  */
-void rup_run(int tcid) {
+void rup_run(int tcid, bool defining_only) {
     bool conflict = false;
     int steps = 0;
     while (true) {
@@ -915,6 +970,8 @@ void rup_run(int tcid) {
 			       "RUP failure for clause %d.  Encountered conflict after processing %d hints.  Not at end of hints list\n", tcid, steps);
 	    }
 	    int cid = token_value;
+	    if (defining_only && !is_defining(cid)) 
+		err_printf(__cfunc__, "RUP for clause %d.  Hint %d is not from a defining clause\n", tcid, cid);
 	    int unit = rup_unit_prop(cid);
 	    steps ++;
 	    if (unit == RUP_CONFLICT)
@@ -1146,7 +1203,7 @@ void crat_add_clause(int cid) {
     if (one_sided)
 	rup_skip(cid);
     else
-	rup_run(cid);
+	rup_run(cid, false);
     token_confirm_eol();
     crat_assertion_count ++;
     info_printf(3, "Processed clause %d addition\n", cid);
@@ -1170,7 +1227,7 @@ void crat_delete_clause() {
     if (!deleted) 
 	err_printf(__cfunc__, "Could not delete clause %d.  Never defined or already deleted\n", cid);
     if (!tautology)
-	rup_run(cid);
+	rup_run(cid, false);
     token_find_eol();
     crat_assertion_deletion_count ++;
     info_printf(3, "Processed clause %d deletion\n", cid);
@@ -1242,6 +1299,7 @@ void crat_add_product(int cid) {
 	clause_add_literal(0);
 	finish_clause(cid+i+1);
     }
+    clause_add_defining(cid, cid+n+1);
     crat_operation_count ++;
     crat_operation_clause_count += (n+1);
     info_printf(3, "Processed product %d addition\n", nid);
@@ -1289,7 +1347,7 @@ void crat_add_sum(int cid) {
     lset_clear();
     lset_add_lit(node->children[0]);
     lset_add_lit(node->children[1]);
-    rup_run(cid);
+    rup_run(cid, true);
 
     token_confirm_eol();
     /* Add sum clause */
@@ -1308,7 +1366,7 @@ void crat_add_sum(int cid) {
 	clause_add_literal(0);
 	finish_clause(cid+i+1);
     }
-
+    clause_add_defining(cid, cid+n+1);
     crat_operation_count ++;
     crat_operation_clause_count += (n+1);
     info_printf(3, "Processed sum %d addition\n", nid);
