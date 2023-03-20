@@ -3,25 +3,30 @@
 
 We have implemented the rightmost two components of Figure~\ref{fig:chain}, namely the
 proof checker and both model and weighted model counters, in the \lean{} programming language
-and proof assistant [cite]. \lean{} implements a logical foundation in which expressions
+and proof assistant~\cite{demoura:cade:2021}. \lean{} implements a logical foundation in which expressions
 have a computational interpretation, and just as with other proof assistants like Isabelle and Coq,
 a function defined within the formal system can be compiled to efficient code.
 At the same time, we can state and prove claims about the function within the system, thereby
 verifying that the functions compute the intended results.
 
-Verifying our checker and the model counters in this way serves at least two purposes.
-When we run them on particular data sets, they provide high confidence
-that the particular results we obtain are correct.
-More broadly, however, our success also validates our general approach,
-showing, in particular, that the CRAT proof format is sound.
-Indeed, our formalization helped us discover a bug in our implementation
-of the informal proof checker: in the ``\emph{s}'' step described at the end of
-Subsection~\ref{subsection:syntax}, it is sound (and necessary) to allow defining
-clauses for the new operations in the proof of $\obar{\lit}_1 \lor \obar{\lit}_2$,
-but it is generally not sound to allow the input clauses or other added clauses.
-[NOTE: let's add this specification to the end of Section 6.1.]
-Our verified implementation of the checker tells us that the algorithm is sound and
-provides a reference for other implementations.
+Verifying our checker and the model counters in this way serves at
+least two purposes.  When we run them on particular data sets, they
+provide high confidence that the particular results we obtain are
+correct.  More broadly, however, our success also validates our
+general approach, showing, in particular, that the CRAT proof format
+is sound.  Indeed, our formalization helped us discover a bug in our
+prototype proof checker: the declaration a sum operation via the
+``\texttt{s}'' step (Section~\ref{subsection:syntax}) requires a hint
+consisting of a sequence of clause Ids that provide a RUP proof of the
+mutual exclusion condition $\obar{\lit}_1 \lor \obar{\lit}_2$.  It is
+sound (and necessary) to allow these Ids to be those of defining
+clauses for previous POG nodes, but, as we discovered, it is generally
+not sound to allow them to be for input clauses or other added
+clauses.  We therefore added the condition that only defining clauses
+could be included in the hint, and we implemented a test of this rule
+in our prototype checker.  Our verified implementation of the checker
+tells us that the algorithm is sound and provides a reference for
+other implementations.
 
 In this section, we describe the implementation in Lean and the specifications we have proved.
 \lean{}'s logical foundation describes a functional programming language with
