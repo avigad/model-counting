@@ -34,6 +34,38 @@ what exactly we have verified and what we currently trust.
 
 \subsection{Logical objects and operations}
 
+% This didn't fit in the main section:
+\iffalse
+We define the following representations for CNF formulas.
+A literal is represented as a nonzero integer, a clause is an array of literals,
+and a CNF formula is an array of clauses.
+\begin{lstlisting}
+def ILit := { i : Int // i ≠ 0 }
+abbrev IClause := Array ILit
+abbrev ICnf := Array IClause
+\end{lstlisting}
+We also define functions \lstinline{ILit.toPropForm}, \lstinline{IClause.toPropForm},
+and \lstinline{ICnf.toPropForm} to relate these to propositional formulas and their
+semantics.
+\fi
+
+% This didn't fit in the main section:
+\iffalse
+Each element of a POG  is either a variable, a binary disjunction (sum),
+or an arbitrary conjunction (product):
+\begin{lstlisting}
+inductive PogElt where
+  | var  : Var → PogElt
+  | disj : Var → ILit → ILit → PogElt
+  | conj : Var → Array ILit → PogElt
+\end{lstlisting}
+In the first case, the argument \lstinline{x} in the expression
+\lstinline{var x} is the index
+of the variable; in \lstinline{disj x left right} and \lstinline{conj x args}
+it is the definition number in the CRAT file. Note that representing edges as literals allows us to negate the arguments to \lstinline{disj} and \lstinline{conj}.
+A \lstinline{Pog} is then simply an array of \lstinline{PogElt}.
+\fi
+
 Our specifications are built on a generic library for the syntax and semantics of
 propositional logic. The data type of propositional formulas with variables indexed by
 a datatype \lstinline{ν} is defined inductively as follows:

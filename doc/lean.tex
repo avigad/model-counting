@@ -1,81 +1,69 @@
-\section{A Formally Verified CRAT Checker and POG Model Counter}
+\section{A Formally Verified Toolchain}
+\label{section:formally-verified-toolchain}
 
-We have implemented the rightmost two components of Figure~\ref{fig:chain}, namely the
-proof checker and both standard and weighted model counters, in the \lean{} programming language
-and proof assistant~\cite{demoura:cade:2021}.
-In this section, we briefly describe the functions we have implemented in Lean and
-the specifications we have proved.
-More information is provided in the Appendix~\ref{appendix:lean}.
+We set out to formally verify the system with two goals in mind: first, to ensure that the CRAT framework is mathematically
+sound; and second, to implement correct-by-construction proof checking and ring evaluation (the ``Trusted Code'' components of \cref{fig:chain}). These two goals are achieved with a single proof development in the \lean{} programming language~\cite{demoura:cade:2021}. Verification was greatly aided by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean} automated tactic. In this section, we briefly describe the functionality we implemented and what we proved about it. More information is provided in \cref{appendix:lean}.
 
-\subsection{The Proof Checker}
-\label{subsection:proof:checker}
+\vspace{1em}\noindent
+\textbf{Proof checking.} The goal of a CRAT proof is to construct a POG that is equivalent to the input CNF $\inputformula$. The checker begins by parsing the input formula, initializing the set of active clauses to $\theta \leftarrow \inputformula$, and the POG $P$ to an empty one. It then processes every step of the CRAT proof, either modifying its state by adding/deleting clauses in $\theta$ and adding nodes to $P$, or throwing an exception if a step is incorrect. Afterwards, it carries out the \textsc{final conditions} check of \cref{subsection:semantics}. Throughout the process, we maintain invariants which ensure that $P$ is partitioned and that a successful final check entails the logical equivalence of $\inputformula$ and $\phi_\noder$, where $\noder$ is the final POG root.
 
-Our specifications are built on a generic library for the syntax and semantics of
-propositional logic. We define the data type \lstinline{PropForm Var} of propositional
-formulas with variables \lstinline{Var}, which are positive natural numbers,
-corresponding to the indexing of variables in the CNF and CRAT files.
-It is convenient to take a truth assignment \lstinline{PropAssignment Var} to a function that
-assigns a Boolean value to every assignment, and later restrict attention to subsets of the
-variables.
+The specifications we use to state these invariants are built on a general theory of propositional logic, mirroring \cref{section:logical:foundations}. Following the DIMACS CNF convention, we define the data types \lstinline{Var} of variables being positive natural numbers, \lstinline{ILit} of literals being non-zero integers, and \lstinline{PropForm Var} of propositional formulas. Assignments of truth values are taken to be total functions \lstinline{PropAssignment Var := Var → Bool}. Enforcing totality is no limitation: instead of talking about two equal, partial assignments to a subset $X' \subseteq X$ of variables, we can more conveniently talk about two total assignments that agree on $X'$. We write \lstinline{σ ⊨ φ} when \lstinline{σ : PropAssignment Var} satisfies \lstinline{φ : PropForm Var}.
 
-We define the following representations for CNF formulas.
-A literal is represented as a nonzero integer, a clause is an array of literals,
-and a CNF formula is an array of clauses.
+The invariants refer to the checker state \lstinline{st} containing fields \lstinline{st.inputCnf} for $\inputformula$, \lstinline{st.clauseDb} for $\theta$, \lstinline{st.pog} for $P$, \lstinline{st.pogDefsForm} for the POG definitions formula $\bigwedge_{\nodeu\in P}\theta_u$, and \lstinline{st.allVars} for all variables (original and extension) added so far. For any $\nodeu\in P$, \lstinline{st.pog.toPropForm u} computes $\phi_\nodeu$. The first two invariants state that assignments to original variables extend uniquely to extension variables defining the POG nodes. In the formalization, we split this into two parts---extension and uniqueness:
 \begin{lstlisting}
-def ILit := { i : Int // i ≠ 0 }
-abbrev IClause := Array ILit
-abbrev ICnf := Array IClause
-\end{lstlisting}
-We also define functions \lstinline{ILit.toPropForm}, \lstinline{IClause.toPropForm},
-and \lstinline{ICnf.toPropForm} to relate these to propositional formulas and their
-semantics.
+/-- Any assignment satisfying φ₁ extends to φ₂ while preserving values on X. -/
+def extendsOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
+  ∀ (σ₁ : PropAssignment Var), σ₁ ⊨ φ₁ → ∃ σ₂, σ₁.agreeOn X σ₂ ∧ σ₂ ⊨ φ₂
 
-The goal of the proof checker is to construct a POG that is equivalent to the input CNF.
-Each element of a POG  is either a variable, a binary disjunction (sum),
-or an arbitrary conjunction (product):
-\begin{lstlisting}
-inductive PogElt where
-  | var  : Var → PogElt
-  | disj : Var → ILit → ILit → PogElt
-  | conj : Var → Array ILit → PogElt
+invariants.extends_pogDefsForm : extendsOver st.inputCnf.vars ⊤ st.pogDefsForm
+
+/-- Assignments satisfying φ are determined on Y by their values on X. -/
+def uniqueExt (X Y : Set Var) (φ : PropForm Var) :=
+  ∀ (σ₁ σ₂ : PropAssignment Var), σ₁ ⊨ φ → σ₂ ⊨ φ → σ₁.agreeOn X σ₂ →
+    σ₁.agreeOn Y σ₂
+
+invariants.uep_pogDefsForm : uniqueExt st.inputCnf.vars st.allVars st.pogDefsForm
 \end{lstlisting}
-In the first case, the argument \lstinline{x} in the expression
-\lstinline{var x} is the index
-of the variable; in \lstinline{disj x left right} and \lstinline{conj x args}
-it is the definition number in the CRAT file. Note that representing edges as literals allows us to negate the arguments to \lstinline{disj} and \lstinline{conj}.
-A \lstinline{Pog} is then simply an array of \lstinline{PogElt}.
-For each POG \lstinline{P} and literal \lstinline{l}, we define
-\lstinline{P.toPropForm l} to be the
-propositional formula that arises from interpreting \lstinline{l} as a propositional
-formula, unfolding all the defined conjunctions and disjunctions.
-A partitioned-operation formula, as defined in \cref{section:logical:foundations}, is expressed as:
+The next one guarantees that the set of solutions over the original variables is preserved:
+\begin{lstlisting}
+def equivalentOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
+  extendsOver X φ₁ φ₂ ∧ extendsOver X φ₂ φ₁
+
+invariants.equivalent_clauseDb : equivalentOver st.inputCnf.vars
+  st.inputCnf st.clauseDb
+\end{lstlisting}
+Finally, for every node $\nodeu\in P$ with corresponding literal $u$ we ensure that $\phi_\nodeu$ is partitioned (\cref{def:partitioned-operation-formula}) and relate $\phi_\nodeu$ to its clausal encoding $\theta_u \doteq u \wedge \bigwedge_{\nodev\in P}\theta_v$:
 \begin{lstlisting}
 def partitioned : PropForm Var → Prop
- | tr | fls | var _ => True
- | neg φ    => φ.partitioned
- | disj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ ∀ τ, ¬(φ.eval τ ∧ ψ.eval τ)
- | conj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ (φ.vars ∩ ψ.vars = ∅)
+  | tr | fls | var _ => True
+  | neg φ    => φ.partitioned
+  | disj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ ∀ τ, ¬(τ ⊨ φ ∧ τ ⊨ ψ)
+  | conj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ φ.vars ∩ ψ.vars = ∅
+ 
+invariants.partitioned : ∀ u : ILit, (st.pog.toPropForm u).partitioned
+
+invariants.equivalent_lits : ∀ u : ILit, equivalentOver st.inputCnf.vars
+    (u ∧ st.pogDefsForm) (st.pog.toPropForm x)
 \end{lstlisting}
+These invariants are maintained by valid CRAT proofs. Together with a few additional, omitted invariants
+which ensure the correctness of cached computations, they imply the soundness theorem for $P$ with root
+node $\noder$: the \textsc{final conditions} ensure that $\theta$ is logically equivalent to
+$\pogformula \doteq \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$
+(\lstinline{equivalent st.clauseDb (r ∧ st.pogDefsForm)}), and from the invariants we can prove that
+$\inputformula \iff \phi_\noder$ (\lstinline{equivalent st.inputCnf (st.pog.toPropForm r)}). 
+After certifying a proof, the checker can pass its in-memory POG representation to the ring evaluator.
 
-Our proof checker starts by parsing the CNF formula and storing it internally.
-It then processes and checks each rule of a CRAT proof, throwing an exception if
-the proof is not well-formed. We have proved that if the checker terminates successfully,
-it succeeds in constructing a POG that is partitioned and equivalent to that CNF. This is formalized as \lstinline{(pog.toPropForm r).partitioned ∧ inputCnf.toPropForm ≡ pog.toPropForm r}.
-
-\subsection{The Model Counters}
-\label{subsection:counting}
-
-We have formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem,
-\cref{def:ring_evaluation}, as follows:
+\vspace{1em}\noindent
+\textbf{Ring evaluation}. We formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem
+(\cref{def:ring_evaluation}) in a commutative ring \lstinline{R} as follows:
 \begin{lstlisting}
 def weightCount {R : Type} [CommRing R]
     (weight : Var → R) (φ : PropForm Var) (s : Finset Var) : R :=
   ∑ τ in models φ s, ∏ x in s, if τ x then weight x else 1 - weight x
 \end{lstlisting}
-Here \lstinline{R} is assumed to be a commutative ring.
-The counting scheme of Proposition~\ref{prop:ring:eval} for partitioned formulas is expressed as follows:
+The rules for efficient ring evaluation of partitioned formulas are expressed as:
 \begin{lstlisting}
- def ringEval (weight : Var → R) : PropForm Var → R
+def ringEval (weight : Var → R) : PropForm Var → R
   | tr       => 1
   | fls      => 0
   | var x    => weight x
@@ -83,30 +71,28 @@ The counting scheme of Proposition~\ref{prop:ring:eval} for partitioned formulas
   | disj φ ψ => ringEval weight φ + ringEval weight ψ
   | conj φ ψ => ringEval weight φ * ringEval weight ψ
 \end{lstlisting}
-Proposition~\ref{prop:ring:eval} is then formalized as follows:
+\Cref{prop:ring:eval} is then formalized as follows:
 \begin{lstlisting}
 theorem ringEval_eq_weightCount (weight : Var → R) {φ : PropForm Var} :
     partitioned φ → ringEval weight φ = weightCount weight φ (vars φ)
 \end{lstlisting}
 
-We have implemented an efficient function \lstinline{Pog.ringEval} to calculate the weighted model count
-for an arbitrary node of a Pog, and we have proved that it computes the function above on the
-associated formula:
+To efficiently compute the ring evaluation of a formula represented by a POG node, we implemented
+\lstinline{Pog.ringEval}. We then proved that it matches the specification above:
 \begin{lstlisting}
 theorem ringEval_eq_ringEval (pog : Pog) (weight : Var → R) (x : Var) :
-  pog.ringEval weight x = (pog.toPropForm (.mkPos x)).ringEval weight
+  pog.ringEval weight x = (pog.toPropForm x).ringEval weight
 \end{lstlisting}
-Here \lstinline{.mkPos x} denotes the positive literal for the variable \lstinline{x}.
-Applying this to the output of our verified CRAT proof checker,
-we obtain a proof that
-our toolchain computes the correct weighted model count of the input CNF.
 
-We have also implemented a separate procedure that directly carries out an integer
-calculation of the number of models.
-For partitioned formulas \lstinline{PropForm Var} whose
-variables are among a finite set \lstinline{s} of variables of cardinality \lstinline{numVars},
-we can count the number of models of the formula on the variables in \lstinline{s}
-recursively as follows:
+Applying this to the output of our verified CRAT proof checker which we know to be partitioned
+and equivalent to the input formula $\inputformula$, we obtain a proof that our toolchain computes
+the correct ring evaluation of $\inputformula$.
+
+\vspace{1em}\noindent
+\textbf{Model counting.} Finally, we established that ring evaluation with the appropriate weights
+corresponds to the standard model count. To this end we specified \lstinline{countModels}
+which directly carries out an integer calculation of the number of models over a set of variables
+of cardinality \lstinline{nVars}:
 \begin{lstlisting}
 def countModels (nVars : Nat) : PropForm Var → Nat
   | tr       => 2^nVars
@@ -116,11 +102,8 @@ def countModels (nVars : Nat) : PropForm Var → Nat
   | disj φ ψ => countModels nVars φ + countModels nVars ψ
   | conj φ ψ => countModels nVars φ * countModels nVars ψ / 2^nVars
 \end{lstlisting}
-We have implemented an efficient counting function for POGs and proved that
-it computes that same quantity on the corresponding formulas.
-Finally,
-we have proved that the calculation above really does
-return the number of models:
+We then formally proved that for a partitioned formula whose variables are among a finite set
+\lstinline{s}, this computation really does count the number of models over \lstinline{s}:
 \begin{lstlisting}
 theorem countModels_eq_card_models {φ : PropForm Var} {s : Finset Var} :
   vars φ ⊆ s → partitioned φ → countModels (card s) φ = card (models φ s)
