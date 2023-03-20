@@ -1,3 +1,7 @@
+/-
+Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+-/
 import ProofChecker.Model.PropVars
 
 /-! Reasoning about definitional extensions. -/
@@ -38,7 +42,7 @@ theorem equivalentOver_def_self {x : ν} {X : Set ν} (φ : PropTerm ν) :
     have : σ₁.agreeOn X τ := hAgree₁₂.trans hAgree
     have : σ₁ ⊨ φ := agreeOn_semVars (hAgree₁₂.subset hφ) |>.mpr h₂
     exact ⟨σ₁, by assumption, satisfies_conj.mpr (by simp (config := {zeta := false}) [this])⟩
-    
+
 theorem hasUniqueExtension_def_ext {X : Set ν} (x : ν) (φ ψ : PropTerm ν) :
     ↑ψ.semVars ⊆ X → hasUniqueExtension X (insert x X) (φ ⊓ .biImpl (.var x) ψ) := by
   intro hψ σ₁ σ₂ h₁ h₂ hAgree
@@ -64,7 +68,7 @@ theorem equivalentOver_disj_def_ext {x : ν} {X : Set ν} (φ φ₁ φ₂ : Prop
   simp [sup_assoc, inf_assoc, disj_def_eq]
   have := Finset.coe_subset.mpr (semVars_disj φ₁ φ₂)
   apply equivalentOver_def_ext _ _ hφ (subset_trans this (by simp [*])) hMem
-  
+
 -- TODO: bigConj_def_eq
 
 end PropTerm

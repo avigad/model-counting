@@ -1,3 +1,7 @@
+/-
+Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+-/
 import ProofChecker.Model.PropForm
 import ProofChecker.Model.PropVars
 
@@ -216,14 +220,14 @@ theorem all_true (db : ClauseDb α) (p : α → IClause → Bool) :
     simp only [Bool.and_assoc]
     rw [Bool.and_comm (p _ _)]
   simp_all
-  
+
 theorem all_of_all_true (db : ClauseDb α) (p : α → IClause → Bool) :
     (∀ idx C, db.getClause idx = some C → p idx C) → db.all p := by
   dsimp [all, fold, getClause]
   intro
   apply db.clauses.foldRecOn (C := fun b => b = true) (hInit := rfl)
   simp_all
-  
+
 /-! `any` -/
 
 theorem any_true (db : ClauseDb α) (p : α → IClause → Bool) :
@@ -510,7 +514,7 @@ inductive UnitPropResultDep {α : Type} [BEq α] [Hashable α]
   | hintNotUnit (idx : α) (C : IClause) (σ : PartPropAssignment)
   /-- The hint index `idx` points at a nonexistent clause. -/
  | hintNonexistent (idx : α)
-  
+
 /-- Check whether the given clause is a unit and return the unit literal if so. Otherwise fail.
 Note that repeating a literal as in (l ∨ l ∨ l) is allowed and counts as a unit. -/
 def checkIsUnit (C₀ : IClause) : Option { l : ILit // l.toPropTerm = C₀.toPropTerm } := do
@@ -549,7 +553,7 @@ def checkIsUnit (C₀ : IClause) : Option { l : ILit // l.toPropTerm = C₀.toPr
         hI ▸ h₂ i i.isLt
       aesop (add norm IClause.satisfies_iff)⟩
   | none,   _  => none
-  
+
 /-- Propagate units starting from the given assignment. The clauses in `hints` are expected
 to become unit in the order provided. Return the extended assignment, or `none` if a contradiction
 was found. See `unitPropWithHintsDep` for a certified version. -/
@@ -575,7 +579,7 @@ def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints 
             IClause.reduce_eq_some _ _ _ hRed
           exact le_trans hDbσ₀ this
         return .contradiction this
-      | some C' => 
+      | some C' =>
         let some ⟨u, hU⟩ := checkIsUnit C'
           | return .hintNotUnit hint C σ.val
         have : db.toPropTermSub (· ∈ hints.data) ⊓ σ₀.toPropTerm ≤

@@ -1,3 +1,7 @@
+/-
+Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+-/
 import Mathlib.Data.Finset.Basic
 
 import ProofChecker.Data.HashMap.Extra
@@ -46,7 +50,7 @@ theorem toFinset_sub (s : HashSet α) (a : α) : a ∈ s.toFinset → s.contains
   intro _ a _ ih hFind hMem
   cases hMem with
   | inl h =>
-    apply HashMap.contains_iff _ _ |>.mpr 
+    apply HashMap.contains_iff _ _ |>.mpr
     exact h ▸ ⟨_, hFind⟩
   | inr h => exact ih h
 
