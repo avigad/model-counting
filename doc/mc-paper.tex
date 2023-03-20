@@ -1666,7 +1666,7 @@ In this example, adding the lemma increases the proof length, but that
 is only because it is such a simple formula.
 
 
-
+\input{leanappendix}
 
 \section{Detailed Experimental Results}
 \label{app:experiments}
@@ -1678,9 +1678,9 @@ Our experiments are designed to evaluate the following:
 \item  
 the effectiveness of some design choices and optimizations,
 \item
-how the performance of our toolchain compares to that of the MICE model counter verifier,
+the comparative performance of the prototype and verified checkers, and
 \item
-the tradeoffs between the prototype and verified checker.  These experiments are described in Section~\ref{app:lean:evaluation}.
+how the performance of our toolchain compares to that of the MICE model counter verifier.
 \end{itemize}
 
 \subsection{Experimental Setup}
@@ -1844,6 +1844,33 @@ take longer, but in one case ran $3.9\times$ faster.
 Overall, it is clear that these two optimizations are worthwhile, and
 sometimes critical, to success for some benchmarks.
 
+\subsection{Evaluation of the Verified Checker}
+\label{app:lean:evaluation}
+
+\input{figure-check}
+
+We ran the \lean{} checker on the 80 benchmark problems for which the
+generated CRAT file had at most 10~million total clauses.  These are the
+same benchmarks used in evaluating the optimizations (Section
+\ref{app:experiment:optimize}).
+All of the checks completed and confirmed the outcome of the prototype checker.
+
+Figure~\ref{fig:lean} shows the
+performance of both the \lean{} checker and the prototype
+checker on the Y axis, as functions of the total number of clauses on the X axis.
+As would be expected, the \lean{} checker consistently runs slower
+than the prototype checker.  
+The ratio of the runtime for \lean{} versus the runtime for
+the prototype checker had a harmonic mean of $5.94$.
+
+Importantly, however, it can be seen that both checkers show the same
+overall performance trends.  The ratio of the two runtimes was less
+than $8.0$ for all but three small benchmarks.  This seems like a
+reasonable price to pay for a rigorous guarantee of correctness, and
+we are confident that we can reduce this gap with more effort in
+optimizing the verified checker.
+
+
 \subsection{Comparison with MICE Framework}
 
 To compare the performance of our toolchain versus that of
@@ -1882,6 +1909,6 @@ tree.  They lack an optimization analogous to lemmas.
 We have not tried the MICE toolchain on larger benchmarks, but we
 suspect it would encounter significant scaling limitations.
 
-\input{leanappendix}
+
 
 \end{document}
