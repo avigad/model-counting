@@ -442,7 +442,7 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
   literals within a clause.  A clause consisting of a single literal is referred to as a {\em unit} clause and the literal as a {\em unit} literal.
 This literal must be assigned value $1$ by any satisfying assignment of the formula.
 
-\begin{definition}[Partitioned-Operation Formula]
+\begin{definition}[Partitioned-Operation Formula]\label{def:partitioned-operation-formula}
   A {\em partitioned-operation formula}
  satisfies the following for all product and sum operations:
       \begin{enumerate}
@@ -855,6 +855,7 @@ will be the extension variable representing the root of a graph.
 %input variable.
 
 \subsection{Semantics}
+\label{subsection:semantics}
 
 The defining clauses for a product or sum
 operation uniquely define the value of its extension variable for any assignment of values to the argument variables.
@@ -880,7 +881,7 @@ The sequence of operator declarations, asserted clauses, and
 clause deletions represents a systematic transformation of the input formula
 into a POG formula.  Validating all of these steps serves to prove that the
 POG is logically equivalent to the input formula.
-At the completion of the proof, the following conditions must hold:
+At the completion of the proof, the following \textsc{final conditions} must hold:
 \begin{enumerate}
 \item There is exactly one remaining clause that was added via RUP
   addition, and this is a unit clause consisting of root literal $r$.
