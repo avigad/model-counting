@@ -1508,9 +1508,9 @@ $\lit_1, \lit_2, \ldots, \lit_m$ that cannot be validated by BCP and defines a
 product node $\nodev$ having these literals as children.  The goal
 then becomes to prove that any total assignment must yield 1 for extension
 variable $v$.  A single call to the solver can generate this proof by invoking it on the formula
-  $\simplify{\psi}{\passign} \cup \simplify{\theta_{\nodev}}{\{ \obar{v} \}}$ to show that is unsatisfiable.
-  The proof steps can be mapped back into clause addition steps in the CRAT file, using as hints the
-  input clauses and the defining clauses for $\nodev$.
+  $\simplify{\psi}{\passign} \cup \simplify{\theta_{v}}{\{ \obar{v} \}}$, which should be unsatisfiable.
+  The proof steps can be mapped back into clause addition steps in the CRAT file, incorporating the 
+  input clauses and the defining clauses for $\nodev$ into the hints.
 
 
 \subsection{Lemmas}
@@ -1531,7 +1531,7 @@ for which the subgraph with root $\nodeu$ is its POG representation.
 The proof generator can exploit the sharing of subgraphs
 by constructing and proving a {\em lemma} for each node
 $\nodeu$ having $\indegree(\nodeu) > 1$.  This proof shows that any
-total assignment $\assign$ that satisfies formula $\gamma_{\nodeu}$ must yield
+total assignment $\assign$ that satisfies formula $\gamma_{\nodeu}$ and the defining clauses for the POG must yield
 $\assign(u) = 1$.  This lemma is then invoked for every node having
 $\nodeu$ as a child.
 As a result, the generator will make recursive calls during a call to $\validate$ only once for each node in the POG\@.
