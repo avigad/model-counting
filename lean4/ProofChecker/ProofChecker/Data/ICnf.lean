@@ -36,6 +36,9 @@ def mkNeg (x : Var) : ILit :=
 
 def mk (x : Var) (p : Bool) : ILit :=
   if p then mkPos x else mkNeg x
+  
+instance : Coe Var ILit :=
+  ⟨mkPos⟩
 
 def var (l : ILit) : Var :=
   ⟨Int.natAbs l.val, Int.natAbs_pos.mpr l.property⟩

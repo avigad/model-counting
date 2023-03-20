@@ -135,13 +135,13 @@ structure PreState.WF (st : PreState) : Prop where
   /-- Variable dependencies are correctly stored in `depVars`. -/
   depVars_pog : ∀ (x : Var) (D : HashSet Var), st.depVars.find? x = some D →
     -- NOTE: can strengthen to eq if needed
-    (st.pog.toPropForm (.mkPos x)).vars ⊆ D.toFinset
+    (st.pog.toPropForm x).vars ⊆ D.toFinset
 
   /-- Every formula in the POG forest is partitioned.
 
   For literals not defining anything in the forest this still holds by fiat because
   `st.pog.toPropForm l = l.toPropForm`. -/
-  partitioned : ∀ x : Var, (st.pog.toPropForm (.mkPos x)).partitioned
+  partitioned : ∀ x : Var, (st.pog.toPropForm x).partitioned
 
   /-- `depVars` contains all variables that influence the clause database. Contrapositive:
   if a variable is not in `depVars` then it does not influence the clause database so can be
@@ -154,7 +154,7 @@ structure PreState.WF (st : PreState) : Prop where
 
   /-- Every formula in the POG forest lives over the original variables. -/
   pog_vars : ∀ x : Var, x ∈ st.allVars →
-    (st.pog.toPropForm (.mkPos x)).vars ⊆ st.inputCnf.vars.toFinset
+    (st.pog.toPropForm x).vars ⊆ st.inputCnf.vars.toFinset
 
   /-- The clause database is equivalent to the original formula over original variables. -/
   equivalent_clauseDb : equivalentOver st.inputCnf.vars.toFinset
@@ -170,9 +170,9 @@ structure PreState.WF (st : PreState) : Prop where
 
   /-- In the context of the POG defining clauses, every variable is s-equivalent over original
   variables to what it defines in the POG forest. -/
-  -- TODO: need `x ∈ st.graph.allVars` as precondition?
+  -- TODO: could this be weakened to `extendsOver` and still go through?
   equivalent_lits : ∀ x : Var, equivalentOver st.inputCnf.vars.toFinset
-    (.var x ⊓ st.pogDefsTerm) ⟦st.pog.toPropForm (.mkPos x)⟧
+    (.var x ⊓ st.pogDefsTerm) ⟦st.pog.toPropForm x⟧
 
 theorem PreState.WF.depVars_pog' {st : PreState} (hWf : st.WF) (l : ILit) (D : HashSet Var) :
     st.depVars.find? l.var = some D → (st.pog.toPropForm l).vars ⊆ D.toFinset :=
