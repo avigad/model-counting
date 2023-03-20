@@ -558,7 +558,7 @@ Node $\nodeu$ is said to be {\em nonterminal} if $\outdegree(\nodeu) > 0$.
 A nonterminal node is labeled by one of the three Boolean operations: $\boolnot$, $\pand$ or $\por$.
 Node $\nodeu$ can be labeled with $\boolnot$ only if $\outdegree(\nodeu) = 1$.
 It can be labeled with operation $\pand$ or $\por$ only if it satisfies the partitioning restriction for that operation.
-There is a unique {\em root node} $\noder$ such that $\indegree(\noder) = 0$.
+Every POG must have a designated {\em root node} $\noder$.
 
 In essence, a POG represents a partitioned-operation
 formula with a sharing of common subformulas.  Indeed, every node in the graph can be viewed as a partitioned-operation formula, and so we write
