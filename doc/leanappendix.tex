@@ -33,7 +33,7 @@ When thinking about the formal verification, it is helpful to distinguish betwee
 the data structures that play a role in the code that is
 executed and the definitions that serve as a mathematical reference,
 allowing us to state our specifications and prove that they are met.
-Our representation of CNF formulas is among the former:
+Among the former is our representation of CNF formulas:
 a literal is represented as a nonzero integer, a clause is an array of literals,
 and a CNF formula is an array of clauses.
 \begin{lstlisting}
@@ -54,10 +54,11 @@ inductive PogElt where
 \end{lstlisting}
 In the first case, the argument \lstinline{x} in the expression
 \lstinline{var x} is the index
-of the variable; in \lstinline{disj x left right} and \lstinline{conj x args}
-it is the definition number in the CRAT file. Note that representing edges as literals allows us to negate the arguments to \lstinline{disj} and \lstinline{conj}.
+of an original variable; in \lstinline{disj x left right} and \lstinline{conj x args}
+it is an extension variable appearing in the CRAT file. Note that representing edges as literals
+allows us to negate the arguments to \lstinline{disj} and \lstinline{conj}.
 A \lstinline{Pog} is then an array of \lstinline{PogElt}
-that is well founded in the sense that each element depends only on prior elements
+that is well-founded in the sense that each element depends only on prior elements
 in the array.
 
 On the mathematical side, we define propositional formulas and
@@ -65,12 +66,12 @@ their semantics in the usual way.
 Functions \lstinline{ILit.toPropForm}, \lstinline{IClause.toPropForm},
 \lstinline{ICnf.toPropForm}, and \lstinline{Pog.toPropForm}
 relate our data structures to propositional formulas and their semantics.
-For example, given a literal \lstinline{l}, \lstinline{Pog.toPropForm P l}
-denotes the (unnegated or negated) interpretation of the node of the POG
-\lstinline{P} specified by \lstinline{l} as a propositional formula over the
+For example, given a literal \lstinline{u}, \lstinline{Pog.toPropForm P u}
+denotes the (unnegated or negated) interpretation of the node corresponding to \lstinline{u} in the POG
+\lstinline{P} as a propositional formula $\phi_\nodeu/\neg\phi_\nodeu$ over the
 original variables.
 Lean provides us with convenient ``anonymous projector'' notation that allows
-us to write \lstinline{P.toPropForm l} instead of \lstinline{Pog.toPropForm P l}
+us to write \lstinline{P.toPropForm u} instead of \lstinline{Pog.toPropForm P u}
 when \lstinline{P} has type \lstinline{Pog},
 \lstinline{C.toPropForm} instead of \lstinline{IClause.toPropForm C} when \lstinline{C}
 has type \lstinline{IClause}, etc.
@@ -78,36 +79,30 @@ has type \lstinline{IClause}, etc.
 In order to reason about the behavior of the checker, we found it important to work
 with propositional formulas modulo logical equivalence, a structure known in logic
 as the \emph{Lindenbaum--Tarski algebra}.
-We defined the quotient and lifted the boolean operations and the entailment
+We defined the quotient and lifted the Boolean operations and the entailment
 relation to this new type. The advantage is that equivalent formulas give
-rise to equal elements in the quotient, which
-made is much easier to prove equivalences involving complicated expressions,
-since it enabled us to calculate with the associated
-elements of the quotient and substitute one for another when the corresponding formulas are equivalent. This gave rise to auxiliary challenges, however.
+rise to equal elements in the quotient.
+This makes it much easier to prove equivalences involving complicated expressions,
+since it enables us to substitute elements of the quotient for others even when the corresponding
+formulas are merely equivalent but not equal. This gave rise to auxiliary challenges, however.
 For example, it is no longer straightforward to say that an element of the quotient ``depends'' on a variable,
-since equivalent formulas can have difference variables.
-Instead, we made use of a semantic notion of dependence, in which an element of the
-quotient depends on a variable if and only if for some truth assignment its value
+since equivalent formulas can have different variables---consider $x \vee \neg x$ and $\top$.
+Instead, we made use of a semantic notion of dependence, in which an element $\phi$ of the
+quotient depends on a variable if and only if for some truth assignment the value of $\phi$
 changes when the assignment to that variable is flipped.
 
 \subsection{Trust}
 
-In this subsection, we clarify what has been verified and what has been trusted.
-Recall that our first step is to parse a CRAT file to read in the initial CNF formula
-and the CRAT proof. We do not verify this step.
-If one is only interested in obtaining a model count or a weighted model count,
-there is no strong need to verify the parsing of the proof,
-because if the checker succeeds in constructing an equivalent POG,
-it does not really matter whether the proof was the one the user intended.
-But it would be nice to have reassurance that the CNF formula that serves
-as input to our verified checker matches the one described in the file.
-An easy and standard way of addressing this is to print out the CNF formula
-after parsing it and then do a {\tt diff} with the original input.
-This involves trusting only the correctness of the print procedure and {\tt diff}.
-Similarly, if one wants to establish the correctness of the POG contained in the CRAT file,
-one can print out the POG that is constructed by the checker and compare.
+In this subsection, we clarify what has been verified and what has to be trusted.
+Recall that our first step is to parse CNF and CRAT files in order to read in the initial
+formula and the proof. We do not verify this step. Instead, the verified checker exposes
+flags \verb+--print-cnf+ and \verb+--print-crat+ which reprint the consumed formula or proof,
+respectively. Comparing this to the actual files using {\tt diff} provides an easy way of ensuring
+that what was parsed matches their contents. This involves trusting only the correctness of the
+print procedure and {\tt diff}. Similarly, if one wants to establish the correctness of the POG
+contained in the CRAT file, one can print out the POG that is constructed by the checker and compare.
 
-Lean's code extraction replaces calculations with natural numbers and integers with
+Lean's code extraction replaces calculations on natural numbers and integers with
 efficient but unverified arbitrary precision versions.
 Lean also uses an efficient implementation of arrays; within the
 formal system, these are defined in terms of lists, but code extraction replaces them
@@ -119,10 +114,9 @@ In particular, we make use of a fold operation whose verification is not yet com
 Thus our proofs depend on the assumption that the fold operation has the
 expected properties.
 
-In sum, in addition to trusting Lean's foundation and kernel checker,
+In summary, in addition to trusting Lean's foundation and kernel checker,
 we also have to trust that code extraction respects that foundation,
-that the implementation of arrays and the fold operation for hashmaps
-satisfy their internal descriptions,
-and that, after parsing, the computation has the correct input formula.
-All of our specifications have been completely proved and verified relative to that.
+that the implementation of the fold operation for hashmaps satisfies its description,
+and that, after parsing, the computation uses the correct input formula.
+All of our specifications have been completely proven and verified relative to these assumptions.
 
