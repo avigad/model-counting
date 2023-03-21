@@ -257,7 +257,7 @@ shown that proof production capabilites allow SAT solver developers to quickly
 detect and diagnose bugs in their programs. This, in turn, has led
 to more reliable SAT solvers.
 
-This paper introduces \emph{Partitioned Operation Graphs} (POGs),
+This paper introduces \emph{Partitioned-Operation Graphs} (POGs),
 a generalization of the representations produced by current knowledge
 compilers. To capture both the structure of a POG
 and a checkable proof of its logical equivalence to a Boolean formula in
@@ -597,25 +597,26 @@ A proof in our framework takes the form of a sequence of clause addition
 and deletion steps, with each step preserving the set of solutions to
 the original formula.
 The status of the proof at any step is represented as
-a set of {\em active} clauses $\phi$, i.e., those that
+a set of {\em active} clauses $\theta$, i.e., those that
 have been added but not yet deleted.
 Our framework is based
 on {\em extended} resolution~\cite{Tseitin:1983}, where proof
 steps can introduce new {\em extension variables} encoding Boolean formulas over input and prior extension variables.
 Let $Z$
-denote the set of extension variables occuring in formula $\phi$.
+denote the set of extension variables occuring in formula $\theta$.
 Starting with input formula $\inputformula$,
 the proof must maintain the invariant that
-$\inputformula \ifandonlyif \exists Z\,\phi$.
+$\inputformula \ifandonlyif \exists Z\,\theta$. We write $\theta_\text{foo}$ for
+clausal encodings possibly using extension variables, and $\phi_\text{bar}$ for formulas that do not.
 
 Clauses can be added in two different ways.  One is when they serve as
 the {\em defining clauses} for an extension variable.  This form
 occurs only when defining $\pand$ and $\por$ operations, as is
 described in Section~\ref{sect:crat}.  Clauses can also be added or
 deleted based on {\em implication redundancy}.  That is, when clause
-$C$ satisfies $\phi \imply C$ for formula $\phi$, then it can either
-be added to $\phi$ to create the formula $\phi \cup \{C\}$ or it can be deleted
-from $\phi \cup \{C\}$ to create $\phi$.
+$C$ satisfies $\theta \imply C$ for formula $\theta$, then it can either
+be added to $\theta$ to create the formula $\theta \cup \{C\}$ or it can be deleted
+from $\theta \cup \{C\}$ to create $\theta$.
 
 We use {\em reverse unit propagation} (RUP) to certify
 implication redundancy when adding or deleting
@@ -625,8 +626,8 @@ is the core rule supported by standard
 proof checkers~\cite{RAT,wetzler14_drattrim} for propositional logic. It provides a simple and efficient
 way to check a sequence of applications of the resolution proof rule~\cite{robinson-1965}.
 Let $C = \{\lit_1, \lit_2, \ldots,\lit_p\}$ be a clause to be
-proved redundant with respect to formula $\phi$.  Let $D_1, D_2, \ldots, D_k$ be a sequence of supporting
-{\em antecedent} clauses, such that each $D_i$ is in $\phi$.
+proved redundant with respect to formula $\theta$.  Let $D_1, D_2, \ldots, D_k$ be a sequence of supporting
+{\em antecedent} clauses, such that each $D_i$ is in $\theta$.
 A RUP step
 proves that $\bigwedge_{1\leq i \leq k} D_i \imply C$ by showing
 that the combination of the antecedents plus the negation of $C$ leads
@@ -900,7 +901,7 @@ the formula represented by the POG\@.
 Conversely,
 each proof step that deletes an input clause proves that any
 total assignment $\alpha$ that falsifies the clause must
-assign $\assign(r) = 0$.  Deleting all but the final asserted clause and all input clauses provides a {\em reverse implication} proof
+falsify $\phi_\noder$.  Deleting all but the final asserted clause and all input clauses provides a {\em reverse implication} proof
 that
 $\modelset(\phi_\noder) \subseteq \modelset(\inputformula)$.
 
