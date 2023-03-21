@@ -178,29 +178,30 @@
 
 \begin{abstract}
 
-\emph{Knowledge compilation} is the process of converting a Boolean
-formula into a form that makes it possible to efficiently calculate
-associated values, such as the weighted or unweighted model
-count. Existing knowledge compilers
-provide no guarantee that the representation they produce
-correctly represents the original formula, and therefore they cannot validate the generated counts.
+Computing certain properties of Boolean formulas, such as their weighted or unweighted model count,
+is intractable on general representations. It can become tractable when formulas are expressed in a
+special form, such as d-DNNF. \emph{Knowledge compilation} is the process of converting a formula
+into such a form. Existing knowledge compilers provide no guarantee that their output correctly
+represents the original formula, and therefore they cannot validate the resulting model counts.
 
-We present \emph{Partitioned Operation Graphs} (POGs), a generalization
+We present \emph{Partitioned-Operation Graphs} (POGs), a generalization
 of the representations used by existing knowledge compilers.
-We have designed a proof framework that can prove the equivalence of a
+We have designed CRAT, a proof framework that can prove the equivalence of a
 POG representation with a Boolean formula in conjunctive normal form (CNF),
 the standard input format for SAT solvers and model counting tools.
 
 We have developed a program that generates POG representations from
 the d-DNNF graphs produced by the state-of-the-art knowledge compiler
-\dfour, as well as checkable proofs that the output POGs
-are equivalent to the input CNF formulas.  We have also implemented an
+\dfour{}, as well as checkable CRAT proofs certifying that the output POGs
+are equivalent to the input CNF formulas. We have implemented an
 efficient checker for these proofs. Our toolchain
 for generating and verifying POGs scales to all but the largest d-DNNF
 graphs produced by \dfour{} for formulas from a recent model counting
-competition. We also present a checker and a model counter for POGs that have
-been formally verified in the \lean{} proof assistant.  These programs both prove the soundness of our proof framework and
-create the first formally verified toolchain for weighted and unweighted model counting.
+competition. Additionally, we have developed a formally verified CRAT
+checker and model counter for POGs in the \lean{} proof assistant.
+In doing so, we proved the soundness of our proof framework. These programs
+comprise the first formally verified toolchain for weighted and unweighted
+model counting.
 \end{abstract}
 
 \section{Introduction}
@@ -606,8 +607,9 @@ Let $Z$
 denote the set of extension variables occuring in formula $\theta$.
 Starting with input formula $\inputformula$,
 the proof must maintain the invariant that
-$\inputformula \ifandonlyif \exists Z\,\theta$. We write $\theta_\text{foo}$ for
-clausal encodings possibly using extension variables, and $\phi_\text{bar}$ for formulas that do not.
+$\inputformula \ifandonlyif \exists Z\,\theta$. We write (subscripted) $\theta$ for
+clausal encoding formulas possibly using extension variables, and (subscripted) $\phi$ for formulas
+that do not.
 
 Clauses can be added in two different ways.  One is when they serve as
 the {\em defining clauses} for an extension variable.  This form

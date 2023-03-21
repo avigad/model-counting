@@ -14,7 +14,6 @@ The invariants refer to the checker state \lstinline{st} with fields \lstinline{
 /-- Any assignment satisfying φ₁ extends to φ₂ while preserving values on X. -/
 def extendsOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
   ∀ (σ₁ : PropAssignment Var), σ₁ ⊨ φ₁ → ∃ σ₂, σ₁.agreeOn X σ₂ ∧ σ₂ ⊨ φ₂
-
 /-- Assignments satisfying φ are determined on Y by their values on X. -/
 def uniqueExt (X Y : Set Var) (φ : PropForm Var) :=
   ∀ (σ₁ σ₂ : PropAssignment Var), σ₁ ⊨ φ → σ₂ ⊨ φ → σ₁.agreeOn X σ₂ →
