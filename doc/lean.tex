@@ -9,19 +9,18 @@ sound; and second, to implement correct-by-construction proof checking and ring 
 
 The specifications we use to state these invariants are built on a general theory of propositional logic, mirroring \cref{section:logical:foundations}. Following the DIMACS CNF convention, we define the data types \lstinline{Var} of variables being positive natural numbers, \lstinline{ILit} of literals being non-zero integers, and \lstinline{PropForm Var} of propositional formulas. Assignments of truth values are taken to be total functions \lstinline{PropAssignment Var := Var → Bool}. Requiring totality is not a limitation: instead of talking about two equal, partial assignments to a subset $X' \subseteq X$ of variables, we can more conveniently talk about two total assignments that agree on $X'$. We write \lstinline{σ ⊨ φ} when \lstinline{σ : PropAssignment Var} satisfies \lstinline{φ : PropForm Var}.
 
-The invariants refer to the checker state \lstinline{st} with fields \lstinline{st.inputCnf} for $\inputformula$, \lstinline{st.clauseDb} for $\theta$, \lstinline{st.pog} for $P$, \lstinline{st.pogDefsForm} for the POG definitions formula $\bigwedge_{\nodeu\in P}\theta_u$, and \lstinline{st.allVars} for all variables (original and extension) added so far. For any $\nodeu\in P$, \lstinline{st.pog.toPropForm u} computes $\phi_\nodeu$. The first two invariants state that assignments to original variables extend uniquely to extension variables defining the POG nodes. In the formalization, we split this into two parts, namely, extension and uniqueness:
+The invariants refer to the checker state \lstinline{st} with fields \lstinline{st.inputCnf} for $\inputformula$, \lstinline{st.clauseDb} for $\theta$, \lstinline{st.pog} for $P$, \lstinline{st.pogDefsForm} for the POG definitions formula $\bigwedge_{\nodeu\in P}\theta_u$, and \lstinline{st.allVars} for all variables (original and extension) added so far. For any $\nodeu\in P$, \lstinline{st.pog.toPropForm u} computes $\phi_\nodeu$. The first two invariants state that assignments to original variables extend uniquely to extension variables defining the POG nodes. In the formalization, we split this into extension and uniqueness:
 \begin{lstlisting}
 /-- Any assignment satisfying φ₁ extends to φ₂ while preserving values on X. -/
 def extendsOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
   ∀ (σ₁ : PropAssignment Var), σ₁ ⊨ φ₁ → ∃ σ₂, σ₁.agreeOn X σ₂ ∧ σ₂ ⊨ φ₂
-
-invariants.extends_pogDefsForm : extendsOver st.inputCnf.vars ⊤ st.pogDefsForm
 
 /-- Assignments satisfying φ are determined on Y by their values on X. -/
 def uniqueExt (X Y : Set Var) (φ : PropForm Var) :=
   ∀ (σ₁ σ₂ : PropAssignment Var), σ₁ ⊨ φ → σ₂ ⊨ φ → σ₁.agreeOn X σ₂ →
     σ₁.agreeOn Y σ₂
 
+invariants.extends_pogDefsForm : extendsOver st.inputCnf.vars ⊤ st.pogDefsForm
 invariants.uep_pogDefsForm : uniqueExt st.inputCnf.vars st.allVars st.pogDefsForm
 \end{lstlisting}
 The next one guarantees that the set of solutions over the original variables is preserved:
@@ -29,8 +28,7 @@ The next one guarantees that the set of solutions over the original variables is
 def equivalentOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
   extendsOver X φ₁ φ₂ ∧ extendsOver X φ₂ φ₁
 
-invariants.equivalent_clauseDb : equivalentOver st.inputCnf.vars
-  st.inputCnf st.clauseDb
+invariants.equivInput : equivalentOver st.inputCnf.vars st.inputCnf st.clauseDb
 \end{lstlisting}
 Finally, for every node $\nodeu\in P$ with corresponding literal $u$ we ensure that $\phi_\nodeu$ is partitioned (\cref{def:partitioned-operation-formula}) and relate $\phi_\nodeu$ to its clausal encoding $\theta_u \doteq u \wedge \bigwedge_{\nodev\in P}\theta_v$:
 \begin{lstlisting}
@@ -41,7 +39,6 @@ def partitioned : PropForm Var → Prop
   | conj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ φ.vars ∩ ψ.vars = ∅
 
 invariants.partitioned : ∀ u : ILit, (st.pog.toPropForm u).partitioned
-
 invariants.equivalent_lits : ∀ u : ILit, equivalentOver st.inputCnf.vars
     (u ∧ st.pogDefsForm) (st.pog.toPropForm x)
 \end{lstlisting}
@@ -109,4 +106,5 @@ theorem countModels_eq_card_models {φ : PropForm Var} {s : Finset Var} :
   vars φ ⊆ s → partitioned φ → countModels (card s) φ = card (models φ s)
 \end{lstlisting}
 In particular, taking \lstinline{s} to be exactly the variables of \lstinline{φ},
-we have that the number of models on its variables is \lstinline{countModels φ (card (vars φ))}.
+we have that the number of models of \lstinline{φ} on its variables is
+\lstinline{countModels φ (card (vars φ))}.
