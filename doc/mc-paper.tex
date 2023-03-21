@@ -388,8 +388,7 @@ we compare the performance of our toolchain to theirs as part of our
 experimental evaluation in Appendix~\ref{app:experiments}.
 
 We know of no other
-work addressing the question of certifying the output of a knowledge
-compiler.
+work on certifying the output of a knowledge compiler.
 
 \section{Logical Foundations}
 \label{section:logical:foundations}
@@ -425,12 +424,12 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
     and $\modelset(x) = \{\assign \in \uassign | \assign(x)=1\}$.
   \item For formula $\phi$, its {\em negation}, written $\boolnot \phi$ is a Boolean formula,
     with $\dependencyset(\boolnot \phi) = \dependencyset(\phi)$ and $\modelset(\boolnot \phi) = \uassign - \modelset(\phi)$.
-  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em product} $\phi = \bigwedge_{i=1 \leq i \leq k} \phi_i$ is a Boolean formula, with
-      $\dependencyset(\phi) = \bigcup_{i=1 \leq i \leq k} \dependencyset(\phi_i)$ and
-      $\modelset(\phi) = \bigcap_{i=1 \leq i \leq k} \modelset(\phi_i)$.
-  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em sum} $\phi = \bigvee_{i=1 \leq i \leq k} \phi_i$ is a Boolean formula, with
-      $\dependencyset(\phi) = \bigcup_{i=1 \leq i \leq k} \dependencyset(\phi_i)$ and
-      $\modelset(\phi) = \bigcup_{i=1 \leq i \leq k} \modelset(\phi_i)$.
+  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em product} $\phi = \bigwedge_{1 \leq i \leq k} \phi_i$ is a Boolean formula, with
+      $\dependencyset(\phi) = \bigcup_{1 \leq i \leq k} \dependencyset(\phi_i)$ and
+      $\modelset(\phi) = \bigcap_{1 \leq i \leq k} \modelset(\phi_i)$.
+  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em sum} $\phi = \bigvee_{1 \leq i \leq k} \phi_i$ is a Boolean formula, with
+      $\dependencyset(\phi) = \bigcup_{1 \leq i \leq k} \dependencyset(\phi_i)$ and
+      $\modelset(\phi) = \bigcup_{1 \leq i \leq k} \modelset(\phi_i)$.
   \end{enumerate}
 \label{def:boolean}
 \end{definition}
@@ -438,8 +437,8 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
 
   We highlight two special classes of Boolean formulas.  A formula is
   in {\em negation normal form} when negation is applied only to variables.  A
-  formula is in {\em conjunctive normal form} (CNF) when 1) it is in
-  negation normal form, and 2) sum is applied only to literals.  A CNF
+  formula is in {\em conjunctive normal form} (CNF) when i) it is in
+  negation normal form, and ii) sum is applied only to literals.  A CNF
   formula can be represented as a set of {\em clauses}, each of which is a
   set of literals.  Each clause represents the sum of the
   literals, and the formula is the product of its clauses.  We use
@@ -452,9 +451,9 @@ This literal must be assigned value $1$ by any satisfying assignment of the form
  satisfies the following for all product and sum operations:
       \begin{enumerate}
       \item The arguments to each product must have disjoint dependency sets.  That is, operation
-        $\bigwedge_{i=1 \leq i \leq k} \phi_i$ requires $\dependencyset(\phi_i) \cap \dependencyset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
+        $\bigwedge_{1 \leq i \leq k} \phi_i$ requires $\dependencyset(\phi_i) \cap \dependencyset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
       \item The arguments to each sum must have disjoint models.  That is, operation
-        $\bigvee_{i=1 \leq i \leq k} \phi_i$ requires $\modelset(\phi_i) \cap \modelset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
+        $\bigvee_{1 \leq i \leq k} \phi_i$ requires $\modelset(\phi_i) \cap \modelset(\phi_j) = \emptyset$ for $1 \leq i < j \leq k$.
       \end{enumerate}
 \end{definition}
      We let $\pand$ and $\por$ denote the product and sum operations in a partitioned-operation formula.
@@ -480,9 +479,9 @@ We write $a - b$ as a shorthand for $a + -b$.
 \begin{definition}[Ring Evaluation Problem]
 \label{def:ring_evaluation}
   For commutative ring $\ring$, a {\em ring weight function} associates a value $w(x) \in \dset$ with
-  every variable $x \in \varset$.  We then define $w(\obar{x})$ to equal $\mulident-w(x)$.
+  every variable $x \in \varset$.  We then define $w(\obar{x}) \doteq \mulident-w(x)$.
 
-  For Boolean formula $\phi$, and ring weight function $w$, the {\em ring evaluation problem} is to compute:
+  For Boolean formula $\phi$ and ring weight function $w$, the {\em ring evaluation problem} computes
   \begin{eqnarray}
     \rep(\phi, w) & = & \sum_{\alpha \in \modelset(\phi)} \;\; \prod_{\lit \in \alpha} w(\ell) \label{eqn:rep}
   \end{eqnarray}
@@ -524,6 +523,8 @@ the probability that $\rep(\phi_1, w) \not = \rep(\phi_2, w)$ will be at
 least $\left(1-\frac{1}{m}\right)^n \geq \left(1-\frac{1}{2n}\right)^n > 1/2$.
 Function hashing can therefore be used as part of a
 randomized algorithm for equivalence testing~\cite{blum:ipl:1980}.
+For example, it can compare different runs on a single formula,
+either from different compilers or from a single compiler with different configuration parameters.
 
 %We compare ring evaluation to algebraic model counting in Section~\ref{sect:future}.
 
@@ -539,15 +540,9 @@ Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the fo
 \textstyle
 \rep(\boolnot \phi,\; w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
 \textstyle
-\scalebox{1.2}{\rep}\left(\Pand_{i=1 \leq i \leq k} \phi_i,\; w \right) &=& \prod_{i=1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:product} \\
+\scalebox{1.2}{\rep}\left(\Pand_{1 \leq i \leq k} \phi_i,\; w \right) &=& \prod_{1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:product} \\
 \textstyle
-\scalebox{1.2}{\rep}\left(\Por_{i=1 \leq i \leq k} \phi_i,\; w\right) &=& \sum_{i=1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:sum}
-%% V2
-%\rep(\boolnot \phi, w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
-%\rep\left(\phi_1, w \pand \dots \pand \phi_k, w \right) &=& \prod_{i=1..k} \rep(\phi_i, w) \label{eqn:ring:product} \\
-%\rep\left(\phi_1, w \por \dots \por \phi_k, w \right) &=& \sum_{i=1..k} \rep(\phi_i, w) \label{eqn:ring:sum}
-%\rep\left(\Pand_{i=1 \leq i \leq k} \phi_i, w \right) &=& \prod_{i=1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:product} \\
-%\rep\left(\Por_{i=1 \leq i \leq k} \phi_i, w\right) &=& \sum_{i=1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:sum}
+\scalebox{1.2}{\rep}\left(\Por_{1 \leq i \leq k} \phi_i,\; w\right) &=& \sum_{1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:sum}
 \end{eqnarray}
 \end{proposition}
 As is described in \cref{section:formally-verified-toolchain}, we have proved these three equations using \lean{}.
@@ -563,7 +558,7 @@ Node $\nodeu$ is said to be {\em nonterminal} if $\outdegree(\nodeu) > 0$.
 A nonterminal node is labeled by one of the three Boolean operations: $\boolnot$, $\pand$ or $\por$.
 Node $\nodeu$ can be labeled with $\boolnot$ only if $\outdegree(\nodeu) = 1$.
 It can be labeled with operation $\pand$ or $\por$ only if it satisfies the partitioning restriction for that operation.
-Every POG must have a designated {\em root node} $\noder$.
+Every POG has a designated {\em root node} $\noder$.
 
 In essence, a POG represents a partitioned-operation
 formula with a sharing of common subformulas.  Indeed, every node in the graph can be viewed as a partitioned-operation formula, and so we write
@@ -1163,9 +1158,9 @@ versions of input clauses.
 The key idea is to introduce product nodes to encode (via DeMorgan's
 Laws) the simplified clauses and have these serve as lemma arguments.
 
-The combination of these two optimization guarantees that 1) each call
+The combination of these two optimization guarantees that i) each call
 to $\validate$ for a product node will cause at most one invocation of
-the SAT solver, and 2) each call to $\validate$ for any node $\nodeu$
+the SAT solver, and ii) each call to $\validate$ for any node $\nodeu$
 will cause further recursive calls only once.  Our experimental
 results (Appendix~\ref{app:experiments}) shows that these
 optimizations yield substantial benefits.
@@ -1294,7 +1289,7 @@ generator and checker could improve their performance and capacity substantially
 
 %% Each node $\nodeu$ in an $SDD$ has children $p_1, p_2, \ldots, p_k$ and
 %% $s_1, s_2, \ldots p_k$, where the Boolean formula $\phi(\nodeu)$ associated
-%% with the node is defined recursively as $\phi(\nodeu) = \bigwedge_{i=1 \leq i \leq k}
+%% with the node is defined recursively as $\phi(\nodeu) = \bigwedge_{1 \leq i \leq k}
 %% [\phi(p_i) \land \phi(s_i)]$.  Moreover, each children $p_i$ and $p_j$
 %% such that $1 \leq i < j \leq k$ must satisfy $\modelset(\phi(p_i))
 %% \cap \modelset(\phi(p_j)) = \emptyset$, and for every $p_i$ and $s_j$
