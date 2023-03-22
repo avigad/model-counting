@@ -178,26 +178,26 @@
 
 \begin{abstract}
 
-Computing certain properties of Boolean formulas, such as their weighted or unweighted model count,
+Computing many useful properties of Boolean formulas, such as their weighted or unweighted model count,
 is intractable on general representations. It can become tractable when formulas are expressed in a
-special form, such as d-DNNF. \emph{Knowledge compilation} is the process of converting a formula
+special form, such as a deterministic,
+  decomposable, negation normal form (d-DNNF) graph.
+\emph{Knowledge compilation} is the process of converting a formula
 into such a form. Existing knowledge compilers provide no guarantee that their output correctly
-represents the original formula, and therefore they cannot validate the resulting model counts.
+represents the original formula, and therefore they cannot validate the model counts.
 
 We present \emph{Partitioned-Operation Graphs} (POGs), a generalization
 of the representations used by existing knowledge compilers.
-We have designed CRAT, a proof framework that can prove the equivalence of a
-POG representation with a Boolean formula in conjunctive normal form (CNF),
-the standard input format for SAT solvers and model counting tools.
+We have designed  CPOG, a framework that can express proofs of equivalence between a
+POG  and a Boolean formula in conjunctive normal form (CNF).
 
 We have developed a program that generates POG representations from
 the d-DNNF graphs produced by the state-of-the-art knowledge compiler
-\dfour{}, as well as checkable CRAT proofs certifying that the output POGs
-are equivalent to the input CNF formulas. We have implemented an
-efficient checker for these proofs. Our toolchain
+\dfour{}, as well as checkable CPOG proofs certifying that the output POGs
+are equivalent to the input CNF formulas.  Our toolchain
 for generating and verifying POGs scales to all but the largest d-DNNF
 graphs produced by \dfour{} for formulas from a recent model counting
-competition. Additionally, we have developed a formally verified CRAT
+competition. Additionally, we have developed a formally verified CPOG
 checker and model counter for POGs in the \lean{} proof assistant.
 In doing so, we proved the soundness of our proof framework. These programs
 comprise the first formally verified toolchain for weighted and unweighted
@@ -262,10 +262,10 @@ This paper introduces \emph{Partitioned-Operation Graphs} (POGs),
 a generalization of the representations produced by current knowledge
 compilers. To capture both the structure of a POG
 and a checkable proof of its logical equivalence to a Boolean formula in
-conjunctive normal form (CNF), we propose the CRAT file format. A CRAT
+conjunctive normal form (CNF), we propose the CPOG (for ``checkable'' POG) file format. A CPOG
 proof consists of a sequence of clause addition and deletion steps,
 based on an extended resolution proof system~\cite{Tseitin:1983}.
-We establish a set of conditions that a CRAT file must satisfy in order to
+We establish a set of conditions that a CPOG file must satisfy in order to
 encode a well-formed POG and provide a valid equivalence proof.
 
 \begin{figure}
@@ -302,10 +302,10 @@ encode a well-formed POG and provide a valid equivalence proof.
   \draw[thick] (20,12) [-latex] -- (28,12);
   \node [above] at (24,12) {\texttt{.ddnnf}};
 
-  %% CRAT
+  %% CPOG
   \draw[thick] (40,12) [-latex] -- (50,12);
   \draw[thick] (44,12) -- (44,4) [-latex] -- (50,4);
-  \node [above] at (44,12) {\texttt{.crat}};
+  \node [above] at (44,12) {\texttt{.cpog}};
 
   %% OK/Not
   \draw[thick] (62,14) [-latex] -- (66,14) ;
@@ -317,7 +317,7 @@ encode a well-formed POG and provide a valid equivalence proof.
 \end{tikzpicture}
 }
 \caption{Certifying toolchain.
-  The output of a standard knowledge compiler is converted into a combined graph/proof (CRAT)
+  The output of a standard knowledge compiler is converted into a combined graph/proof (CPOG)
   which can be independently checked and evaluated}
 \label{fig:chain}
 \end{figure}
@@ -326,8 +326,8 @@ Figure~\ref{fig:chain} illustrates our certifying knowledge
 compilation and model counting toolchain.  Starting with
 input formula $\inputformula$, the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017}
 generates a d-DNNF representation, and the {\em proof
-  generator} uses this to generate a CRAT file.
-The {\em proof checker} verifies the equivalence of the CNF and CRAT representations.
+  generator} uses this to generate a CPOG file.
+The {\em proof checker} verifies the equivalence of the CNF and CPOG representations.
 The {\em ring evaluator} computes
 a standard or weighted model count from the POG\@ representation.
 As the dashed box in Figure~\ref{fig:chain} indicates, this toolchain
@@ -336,10 +336,10 @@ optimized knowledge compiler to a relatively simple checker and
 evaluator.  Importantly, the proof generator need not be
 trusted---its errors will be caught by the proof checker.
 
-To ensure soundness of the abstract CRAT proof system, as well as correctness of its
+To ensure soundness of the abstract CPOG proof system, as well as correctness of its
 concrete implementation, we formally verified the proof system as well as versions
 of the proof checker and ring evaluator in the \lean{} proof assistant~\cite{demoura:cade:2021}.
-Running these two programs on a particular CRAT file gives assurance that the proof
+Running these two programs on a particular CPOG file gives assurance that the proof
 and the model count are correct. Our experience with developing a formally verified
 proof checker has shown that, even within the well-understood framework of extended
 resolution, it can be challenging to formulate a full set of requirements that guarantee soundness.
@@ -364,7 +364,7 @@ The associated proofs add clauses while preserving satisfiability until the empt
 By contrast, our proofs construct a new propositional formula, and we must verify both that it
 is partitioned and that it is equivalent to the input formula.
 This requires verifying additional proof steps, including clause deletion steps, and subtle invariants, as described in
-Sections~\ref{sect:crat} and \ref{section:formally-verified-toolchain}.
+Sections~\ref{sect:cpog} and \ref{section:formally-verified-toolchain}.
 
 Fichte, Hecher, and Roland~\cite{fichte:sat:2022} devised the MICE
 proof framework for model counting programs.  Their proof rules are
@@ -594,6 +594,12 @@ POGs generalize the d-DNNF graphs in two ways:
 
 \section{Clausal Proof Framework}
 
+We write (possibly subscripted) $\theta$ for
+formulas encoded as clauses, possibly with extension variables.
+We write (possibly subscripted)
+$\phi$ for formulas
+that use no extension variables.
+
 A proof in our framework takes the form of a sequence of clause addition
 and deletion steps, with each step preserving the set of solutions to
 the original formula.
@@ -607,14 +613,12 @@ Let $Z$
 denote the set of extension variables occuring in formula $\theta$.
 Starting with input formula $\inputformula$,
 the proof must maintain the invariant that
-$\inputformula \ifandonlyif \exists Z\,\theta$. We write (subscripted) $\theta$ for
-clausal encoding formulas possibly using extension variables, and (subscripted) $\phi$ for formulas
-that do not.
+$\inputformula \ifandonlyif \exists Z\,\theta$.
 
 Clauses can be added in two different ways.  One is when they serve as
 the {\em defining clauses} for an extension variable.  This form
 occurs only when defining $\pand$ and $\por$ operations, as is
-described in Section~\ref{sect:crat}.  Clauses can also be added or
+described in Section~\ref{sect:cpog}.  Clauses can also be added or
 deleted based on {\em implication redundancy}.  That is, when clause
 $C$ satisfies $\theta \imply C$ for formula $\theta$, then it can either
 be added to $\theta$ to create the formula $\theta \cup \{C\}$ or it can be deleted
@@ -650,12 +654,12 @@ Compared to the proofs of unsatisfiability generated by SAT solvers,
 ours have important differences.  Most
 significantly, each proof step must preserve the set of solutions with respect to the input variables.
 By contrast, an unsatisfiability proof need only guarantee that
-no proof step cause a satisfiable set of clauses to become
+no proof step causes a satisfiable set of clauses to become
 unsatisfiable.  As a consequence, our proofs must justify clause deletions as well as clause additions.
 
 
-\section{The CRAT POG Representation and Proof System}
-\label{sect:crat}
+\section{The CPOG POG Representation and Proof System}
+\label{sect:cpog}
 
 
 %% The proof system is based on extended
@@ -694,13 +698,13 @@ unsatisfiable.  As a consequence, our proofs must justify clause deletions as we
 %% As is shown in Figure~\ref{fig:chain}
 %% two programs are involved in producing a certified compilation of a formula:
 %% \begin{itemize}
-%% \item The {\em proof generator} produces a CRAT file that both defines the POG and gives a proof that the POG is logically equivalent to the input formula.
+%% \item The {\em proof generator} produces a CPOG file that both defines the POG and gives a proof that the POG is logically equivalent to the input formula.
 %% As the figure indicates, the generator starts with the output of another knowledge compiler, such as one generating a d-DNNF representation of the formula.
 %% \item The {\em proof checker} ensures that all of the proof conditions are satisfied.
 %% \end{itemize}
 %% >>>>>>> 9c1793da858d00e5d4022d6d33c009848ba2083b
 
-A CRAT file provides both a declaration of a POG, as well as a checkable
+A CPOG file provides both a declaration of a POG, as well as a checkable
 proof that a Boolean formula, given in conjunctive normal
 form, is logically equivalent to the POG\@.
 The proof format draws its inspiration from the LRAT~\cite{lrat} and
@@ -738,8 +742,8 @@ implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clau
 \label{subsection:syntax}
 
 \begin{table}
-  \caption{CRAT Step Types.  $C$: clause identifier, $L$: literal, $V$: variable}
-  \label{tab:crat:syntax}
+  \caption{CPOG Step Types.  $C$: clause identifier, $L$: literal, $V$: variable}
+  \label{tab:cpog:syntax}
 \centering{
   \begin{tabular}{lllll}
     \toprule
@@ -757,7 +761,7 @@ implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clau
   }
 \end{table}
 
-Table~\ref{tab:crat:syntax} shows the declarations that can occur in a CRAT file.
+Table~\ref{tab:cpog:syntax} shows the declarations that can occur in a CPOG file.
 %% The checker is provided with the input formula as a separate file.
 As with other clausal proof formats, a variable is
 represented by a positive integer $v$, with the first ones being input
@@ -869,9 +873,9 @@ also satisfies the POG definitions will
 assign a value to $u$ such that $\assign(u) =
 1$ if and only if $\assign \in \modelset(\nodeu)$.
 
-%% A CRAT proof follows the same general form as a QRAT dual
+%% A CPOG proof follows the same general form as a QRAT dual
 %% proof~\cite{bryant:cade:2021}---one that ensures that each clause
-%% addition and each clause deletion preserves equivalence.  With CRAT,
+%% addition and each clause deletion preserves equivalence.  With CPOG,
 %% however, clauses are defined both explicitly and implicitly.  Starting
 %% with the set of input clauses, the proof consists of a sequence of
 %% steps that both add and delete clauses.  Each addition must be truth
@@ -907,16 +911,16 @@ falsify $\phi_\noder$.  Deleting all but the final asserted clause and all input
 that
 $\modelset(\phi_\noder) \subseteq \modelset(\inputformula)$.
 
-Appendix~\ref{app:crat:example} shows the CRAT description for
+Appendix~\ref{app:cpog:example} shows the CPOG description for
 an input formula with five clauses, yielding a POG with five
 nonterminal nodes.  It explains how the clause addition and deletion
 steps yield a proof of equivalence between the input formula and its POG
 representation.
 
-\section{Generating CRAT from d-DNNF}
-\label{section:generating:crat}
+\section{Generating CPOG from d-DNNF}
+\label{section:generating:cpog}
 
-%%Figure~\ref{fig:chain} illustrates one method of generating a CRAT
+%%Figure~\ref{fig:chain} illustrates one method of generating a CPOG
 %%file from an input formula in conjunctive normal form.  Our toolchain
 %%is based on the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017},
 %%but it would also work for other tools that use a top-down search
@@ -979,7 +983,7 @@ when the formula $\inputformula \land \theta_{\obar{\noder}}$
 is unsatisfiable, where the
 conjunction can be expressed as the union
 of the two sets of clauses.  The proof generator writes the clauses to a file and invokes a proof-generating SAT solver.
-For each clause $C$ in the unsatisfiability proof, it adds clause $\{r\} \cup C$ to the CRAT proof, and so the empty clause in the proof becomes the unit clause $\{r\}$.
+For each clause $C$ in the unsatisfiability proof, it adds clause $\{r\} \cup C$ to the CPOG proof, and so the empty clause in the proof becomes the unit clause $\{r\}$.
 Our experimental results show
 that this approach can be very effective and generates short proofs
 for smaller problems, but it does not scale well enough for routine
@@ -1046,7 +1050,7 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
   $\simplify{\psi}{\passign \cup \{\obar{\lit}\}}$ is unsatisfiable.  We
   do so by writing the formula to a file, invoking a proof-generating
   SAT solver, and then converting the generated unsatisfiability proof
-  into a sequence of clause additions in the CRAT file.
+  into a sequence of clause additions in the CPOG file.
 \item For a single nonterminal child ($k = 1$), we recursively call
   $\validate \left(\nodeu_1, \passign \cup \bigcup_{\lit \in L} \lit, \psi\right)$.
 \item For multiple nonterminal children ($k > 1$),
@@ -1075,7 +1079,7 @@ a SAT solver to validate a literal.
 Completing the equivalence proof of input formula $\inputformula$ and its POG
 representation with root node $\noder$ requires showing that
 $\modelset(\phi_\noder) \subseteq \modelset(\inputformula)$.  This is done in the
-CRAT framework by first deleting all asserted clauses, except for the
+CPOG framework by first deleting all asserted clauses, except for the
 final unit clause for root literal $r$, and then deleting all of the
 input clauses.
 %%  Suppose at some point in this process that we want to
@@ -1143,7 +1147,7 @@ all of these literals together.  It defines product node $\nodev$
 having the literals as children.  The goal then becomes to prove that
 any total assignment must yield 1 for extension variable $v$.  Calling
 a solver with $v$ set to 0 yields an unsatisfiability proof that can
-be mapped back to a sequence of clause additions in the CRAT file validating
+be mapped back to a sequence of clause additions in the CPOG file validating
 all of the literals.
 
 {\em Lemmas:} Our formulation of $\validate$ requires each call at a
@@ -1176,7 +1180,7 @@ optimizations yield substantial benefits.
 We have implemented versions of the three programs that, along with
 the \dfour{} knowledge compiler, form the toolchain illustrated in
 Figure~\ref{fig:chain}\footnote{All tools, along with a set of 
-benchmark problems are available at \url{https://github.com/rebryant/crat}}.  The proof generator is the same in both
+benchmark problems are available at \url{https://github.com/rebryant/cpog}}.  The proof generator is the same in both
 cases, since it need not be trusted.
 Our {\em verified}
 versions of the proof checker and ring evaluator have been formally
@@ -1200,7 +1204,7 @@ verified version is further optimized.
 
 Our proof generator is written in C/C++ and uses
 \cadical{}~\cite{biere-cadical-2019} as its SAT solver.  To convert
-proof steps back into hinted CRAT clause additions, the generator can
+proof steps back into hinted CPOG clause additions, the generator can
 use either its own RUP proof generator, or it can invoke
 \dtrim{}~\cite{RAT}.  The latter yields shorter proofs and scales well
 to large proofs, but each invocation has a high startup cost.  We
@@ -1269,10 +1273,10 @@ Running the verified proof checker in \lean{} showed the same scaling
 with respect to the proof size as did the prototype checker, but it
 required, on average, around 5.9 times longer.
 
-Finally, the runtimes for the MICE toolchain versus our CRAT toolchain
+Finally, the runtimes for the MICE toolchain versus our CPOG toolchain
 showed little correlation, reflecting the fact that the two solve
 different problems and use different approaches.  In general,
-our CRAT toolchain showed better scaling, in part due to its ability
+our CPOG toolchain showed better scaling, in part due to its ability
 to control the recursion through lemmas.
 
 \section{Conclusions}
@@ -1311,8 +1315,8 @@ generator and checker could improve their performance and capacity substantially
 
 \appendix
 
-\section{CRAT Example}
-\label{app:crat:example}
+\section{CPOG Example}
+\label{app:cpog:example}
 
 \begin{figure}
 \begin{minipage}{0.58\textwidth}
@@ -1332,7 +1336,7 @@ generator and checker could improve their performance and capacity substantially
 (C) POG Declaration\\[1.2ex]
 \begin{tabular}{llll}
 \toprule
-\makebox[5mm]{ID} & \multicolumn{2}{l}{CRAT line} & Explanation \\
+\makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line} & Explanation \\
 \midrule
 6 & \texttt{p 5 -3 -4} & \texttt{0} & $p_5 = \obar{x}_3 \pand \obar{x}_4$ \\
 9 & \texttt{p 6 3 4} & \texttt{0} & $p_6 = x_3 \pand x_4$ \\
@@ -1384,7 +1388,7 @@ generator and checker could improve their performance and capacity substantially
 \end{tabular}
 \end{minipage}
 \begin{minipage}{0.49\textwidth}
-(E) CRAT Assertions\\[1.2ex]
+(E) CPOG Assertions\\[1.2ex]
 \begin{tabular}{llllll}
 \toprule
 \makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hint} & Explanation \\
@@ -1407,7 +1411,7 @@ generator and checker could improve their performance and capacity substantially
 (F) Input Clause Deletions\\[1.2ex]
 \begin{tabular}{lllll}
   \toprule
- \multicolumn{3}{l}{CRAT line} & Explanation\\
+ \multicolumn{3}{l}{CPOG line} & Explanation\\
 \midrule
  \texttt{d 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
  \texttt{d 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
@@ -1417,19 +1421,19 @@ generator and checker could improve their performance and capacity substantially
 \bottomrule
 \end{tabular}
 \end{minipage}
-\caption{Example formula (A), its POG representation (B), and its CRAT proof (C), (E), and (F)}
+\caption{Example formula (A), its POG representation (B), and its CPOG proof (C), (E), and (F)}
 \label{fig:eg4:all}
 \end{figure}
 
 Figure \ref{fig:eg4:all} illustrates an example formula and shows how
-the CRAT file declares its POG representation.  The input formula (A)
+the CPOG file declares its POG representation.  The input formula (A)
 consists of five clauses over variables $x_1$, $x_2$, $x_3$, and
 $x_4$.  The generated POG (B) has six nonterminal nodes representing
 four products and two sums.  We name these by the node
 type (product $\nodep$ or sum $\nodes$), subscripted by the ID of the
 extension variable.
 % We denote the extension variable for nodes $\nodep_i$ and $\nodes_j$ as $p_i$ and $s_j$, respectively.
-  The first part of the CRAT file (C) declares
+  The first part of the CPOG file (C) declares
 these nodes using clause IDs that increment by three or four,
 depending on whether the node has two children or three.  The last two
 nonzero values in the sum declarations are the hint providing the
@@ -1437,11 +1441,11 @@ required mutual exclusion proof.
 
 \subsection{Node Declarations}
 
-We step through portions of the file to provide a better understanding of the CRAT proof framework.
+We step through portions of the file to provide a better understanding of the CPOG proof framework.
 Figure
 \ref{fig:eg4:all}(D) shows the defining clauses that are implicitly
 defined by the POG operation declarations.  These do not appear in the
-CRAT file.  Referring back to the declarations of the sum nodes in
+CPOG file.  Referring back to the declarations of the sum nodes in
 Figure \ref{fig:eg4:all}(C), we can see that the declaration of node
 $\nodes_7$ had clause IDs 7 and 10 as the hint.  We can see in Figure
 \ref{fig:eg4:all}(A) that these two clauses form a RUP proof for the clause
@@ -1517,7 +1521,7 @@ product node $\nodev$ having these literals as children.  The goal
 then becomes to prove that any total assignment must yield 1 for extension
 variable $v$.  A single call to the solver can generate this proof by invoking it on the formula
   $\simplify{\psi}{\passign} \cup \simplify{\theta_{v}}{\{ \obar{v} \}}$, which should be unsatisfiable.
-  The proof steps can be mapped back into clause addition steps in the CRAT file, incorporating the
+  The proof steps can be mapped back into clause addition steps in the CPOG file, incorporating the
   input clauses and the defining clauses for $\nodev$ into the hints.
 
 
@@ -1545,10 +1549,10 @@ $\nodeu$ as a child.
 As a result, the generator will make recursive calls during a call to $\validate$ only once for each node in the POG\@.
 
 The challenge for implementing this strategy is to find a way to
-represent the clauses for the simplified formula $\gamma_{\nodeu}$ in the CRAT file.  Some may be
+represent the clauses for the simplified formula $\gamma_{\nodeu}$ in the CPOG file.  Some may be
 unaltered input clauses, and these can be used directly.  Others,
 however will be clauses that do not appear in the input formula.  We
-implement these by adding POG product nodes to the CRAT file to create
+implement these by adding POG product nodes to the CPOG file to create
 the appropriate clauses.  Consider an {\em argument} clause
 $C \in \gamma_{\nodeu}$ with $C = \lit_1 \lor \lit_2 \lor \cdots \lor \lit_k$.  If we
 define product node $\nodev$ with arguments
@@ -1595,7 +1599,7 @@ but any subsequent call can simply reuse the lemma proved by the first call.
 (A) Additional nodes\\[1.0em]
 \begin{tabular}{llll}
 \toprule
-\makebox[5mm]{ID} & \multicolumn{2}{l}{CRAT line} & Explanation \\
+\makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line} & Explanation \\
 \midrule
 25 & \texttt{p 11 -3 4} & \texttt{0} & $v_{11} = \obar{x}_3 \pand {x}_4$ \\
 28 & \texttt{p 12  3 -4} & \texttt{0} & $v_{12} = {x}_3 \pand \obar{x}_4$ \\
@@ -1617,7 +1621,7 @@ but any subsequent call can simply reuse the lemma proved by the first call.
 \bottomrule
 \end{tabular}
 \\[1.0em]
-(C) CRAT Assertions\\[1.0em]
+(C) CPOG Assertions\\[1.0em]
 \begin{tabular}{llllll}
 \toprule
 \makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hint} & Explanation \\
@@ -1681,7 +1685,7 @@ is only because it is such a simple formula.
 Our experiments are designed to evaluate the following:
 \begin{itemize}
 \item
-  whether or toolchain can handle challenging benchmark problems,
+  whether our toolchain can handle challenging benchmark problems,
 \item
 the effectiveness of some design choices and optimizations,
 \item
@@ -1734,7 +1738,7 @@ generation to 10,000 seconds.  We ran the programs to generate and check
 one-sided proofs for the graphs, again with a time limit of 10,000
 seconds for proof generation.
 
-Figure~\ref{fig:d4:crat} summarizes our results in terms of the time
+Figure~\ref{fig:d4:cpog} summarizes our results in terms of the time
 required by \dfour{} (X axis) versus the sum of the times for the
 proof generator and checker (Y axis).
 We were able to complete a full validation for 108 of the 124
@@ -1857,7 +1861,7 @@ sometimes critical, to success for some benchmarks.
 \input{figure-check}
 
 We ran the \lean{} checker on the 80 benchmark problems for which the
-generated CRAT file had at most 10~million total clauses.  These are the
+generated CPOG file had at most 10~million total clauses.  These are the
 same benchmarks used in evaluating the optimizations (Section
 \ref{app:experiment:optimize}).
 All of the checks completed and confirmed the outcome of the prototype checker.
@@ -1882,7 +1886,7 @@ optimizing the verified checker.
 
 To compare the performance of our toolchain versus that of
 MICE~\cite{fichte:sat:2022}, we consider how the combination of proof
-generation, proof checking, and ring evaluation in the CRAT toolchain compares to the time to
+generation, proof checking, and ring evaluation in the CPOG toolchain compares to the time to
 run their proof generator \progname{nnf2trace} and checker
 \progname{sharptrace}.  We add the time for ring evaluation on our
 side, since their checker provides a count, although only an
@@ -1895,12 +1899,12 @@ We can summarize the results as:
 \begin{itemize}
 \item 84 total data points
 \item 76 were completed by both programs in under 1000 seconds
-\item Of those 21 were faster with MICE, 55 with CRAT
-\item 7 completed with CRAT under 1000 seconds but exceeded that threshold for MICE
-\item 1 completed with MICE under 1000 seconds but exceeded that threshold for CRAT
+\item Of those 21 were faster with MICE, 55 with CPOG
+\item 7 completed with CPOG under 1000 seconds but exceeded that threshold for MICE
+\item 1 completed with MICE under 1000 seconds but exceeded that threshold for CPOG
 \end{itemize}
 
-\input{figure-mice-crat} The detailed results are shown in
+\input{figure-mice-cpog} The detailed results are shown in
 Figure~\ref{fig:mice}.  As can be seen, the comparative runtimes are
 highly variable, reflecting the fact that the two toolchains differ
 fundamentally in their objectives and their approaches.

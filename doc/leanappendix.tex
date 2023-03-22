@@ -55,7 +55,7 @@ inductive PogElt where
 In the first case, the argument \lstinline{x} in the expression
 \lstinline{var x} is the index
 of an original variable; in \lstinline{disj x left right} and \lstinline{conj x args}
-it is an extension variable appearing in the CRAT file. Note that representing edges as literals
+it is an extension variable appearing in the CPOG file. Note that representing edges as literals
 allows us to negate the arguments to \lstinline{disj} and \lstinline{conj}.
 A \lstinline{Pog} is then an array of \lstinline{PogElt}
 that is well-founded in the sense that each element depends only on prior elements
@@ -94,13 +94,13 @@ changes when the assignment to that variable is flipped.
 \subsection{Trust}
 
 In this subsection, we clarify what has been verified and what has to be trusted.
-Recall that our first step is to parse CNF and CRAT files in order to read in the initial
+Recall that our first step is to parse CNF and CPOG files in order to read in the initial
 formula and the proof. We do not verify this step. Instead, the verified checker exposes
-flags \verb+--print-cnf+ and \verb+--print-crat+ which reprint the consumed formula or proof,
+flags \verb+--print-cnf+ and \verb+--print-cpog+ which reprint the consumed formula or proof,
 respectively. Comparing this to the actual files using {\tt diff} provides an easy way of ensuring
 that what was parsed matches their contents. This involves trusting only the correctness of the
 print procedure and {\tt diff}. Similarly, if one wants to establish the correctness of the POG
-contained in the CRAT file, one can print out the POG that is constructed by the checker and compare.
+contained in the CPOG file, one can print out the POG that is constructed by the checker and compare.
 
 Lean's code extraction replaces calculations on natural numbers and integers with
 efficient but unverified arbitrary precision versions.

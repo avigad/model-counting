@@ -1,11 +1,11 @@
 \section{A Formally Verified Toolchain}
 \label{section:formally-verified-toolchain}
 
-We set out to formally verify the system with two goals in mind: first, to ensure that the CRAT framework is mathematically
+We set out to formally verify the system with two goals in mind: first, to ensure that the CPOG framework is mathematically
 sound; and second, to implement correct-by-construction proof checking and ring evaluation (the ``Trusted Code'' components of \cref{fig:chain}). These two goals are achieved with a single proof development in the \lean{} programming language~\cite{demoura:cade:2021}. Verification was greatly aided by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean} automated tactic. In this section, we briefly describe the functionality we implemented and what we proved about it. More information is provided in \cref{appendix:lean}.
 
 \vspace{1em}\noindent
-\textbf{Proof checking.} The goal of a CRAT proof is to construct a POG that is equivalent to the input CNF $\inputformula$. The checker begins by parsing the input formula, initializing the set of active clauses to $\theta \leftarrow \inputformula$, and initializing the POG $P$ to an empty one. It then processes every step of the CRAT proof, either modifying its state by adding/deleting clauses in $\theta$ and adding nodes to $P$, or throwing an exception if a step is incorrect. Afterwards, it carries out the \textsc{final conditions} check of \cref{subsection:semantics}. Throughout the process, we maintain invariants which ensure that $P$ is partitioned and that a successful final check entails the logical equivalence of $\inputformula$ and $\phi_\noder$, where $\noder$ is the final POG root.
+\textbf{Proof checking.} The goal of a CPOG proof is to construct a POG that is equivalent to the input CNF $\inputformula$. The checker begins by parsing the input formula, initializing the set of active clauses to $\theta \leftarrow \inputformula$, and initializing the POG $P$ to an empty one. It then processes every step of the CPOG proof, either modifying its state by adding/deleting clauses in $\theta$ and adding nodes to $P$, or throwing an exception if a step is incorrect. Afterwards, it carries out the \textsc{final conditions} check of \cref{subsection:semantics}. Throughout the process, we maintain invariants which ensure that $P$ is partitioned and that a successful final check entails the logical equivalence of $\inputformula$ and $\phi_\noder$, where $\noder$ is the final POG root.
 
 The specifications we use to state these invariants are built on a general theory of propositional logic, mirroring \cref{section:logical:foundations}. Following the DIMACS CNF convention, we define the data types \lstinline{Var} of variables being positive natural numbers, \lstinline{ILit} of literals being non-zero integers, and \lstinline{PropForm Var} of propositional formulas. Assignments of truth values are taken to be total functions \lstinline{PropAssignment Var := Var → Bool}. Requiring totality is not a limitation: instead of talking about two equal, partial assignments to a subset $X' \subseteq X$ of variables, we can more conveniently talk about two total assignments that agree on $X'$. We write \lstinline{σ ⊨ φ} when \lstinline{σ : PropAssignment Var} satisfies \lstinline{φ : PropForm Var}.
 
@@ -41,7 +41,7 @@ invariants.partitioned : ∀ u : ILit, (st.pog.toPropForm u).partitioned
 invariants.equivalent_lits : ∀ u : ILit, equivalentOver st.inputCnf.vars
     (u ∧ st.pogDefsForm) (st.pog.toPropForm x)
 \end{lstlisting}
-These are maintained by valid CRAT proofs. Together with a few additional invariants
+These are maintained by valid CPOG proofs. Together with a few additional invariants
 that ensure the correctness of cached computations, they imply the soundness theorem for $P$ with root
 node $\noder$: the \textsc{final conditions} ensure that $\theta$ is logically equivalent to
 $\pogformula \doteq \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$
@@ -79,7 +79,7 @@ To efficiently compute the ring evaluation of a formula represented by a POG nod
 theorem ringEval_eq_ringEval (pog : Pog) (weight : Var → R) (x : Var) :
   pog.ringEval weight x = (pog.toPropForm x).ringEval weight
 \end{lstlisting}
-Applying this to the output of our verified CRAT proof checker, which we know to be partitioned
+Applying this to the output of our verified CPOG proof checker, which we know to be partitioned
 and equivalent to the input formula $\inputformula$, we obtain a proof that our toolchain computes
 the correct ring evaluation of $\inputformula$.
 

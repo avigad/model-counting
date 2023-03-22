@@ -189,7 +189,7 @@
        \item For 124 instances, Min = 304, Median = 848,784, Mean = 93,107,937, Max = 2,761,457,765
        \end{itemize}
      \end{itemize}
-   \item Ran program {\sc d2p} to generate CRAT file for maximum of 10,000 seconds
+   \item Ran program {\sc d2p} to generate CPOG file for maximum of 10,000 seconds
      \begin{itemize}
      \item Completed for 108 instances
      \item Exceeded clause limit for 1 instance (Our programs represent a clause ID as a 32-bit signed value)
@@ -197,16 +197,16 @@
      \item Timed out for 14 instances
      \item Was able to do one-sided verification for 9 of these.
      \end{itemize}
-   \item For completed CRAT files, ran {\sc crat-check} CRAT checker
+   \item For completed CPOG files, ran {\sc cpog-check} CPOG checker
      \begin{itemize}
-     \item Tests all conditions for correct CRAT
+     \item Tests all conditions for correct CPOG
      \item Most time spent performing RUP checks for clause addition and deletion
      \item Completed successfully for all 108 instances
      \item Time generally faster than {\sc d2p}. (min = 0.005, max = 1.4, harmonic mean = 0.10)
      \end{itemize}
 \end{enumerate}
 
-\section*{Time to Generate and Validate CRAT}
+\section*{Time to Generate and Validate CPOG}
 
 \begin{itemize}
 \item Min 0.01, Average 1318.3, Max 13,144.8, Median 71.64
@@ -245,7 +245,7 @@
 \label{fig:generate:d4:log}
 \end{figure}
 
-\section*{Generated CRAT Files}
+\section*{Generated CPOG Files}
 
 \begin{itemize}
 \item Proof Clauses: Min 554, Median 1,719,245, Average 45,001,945, Max 770,382,773
@@ -272,7 +272,7 @@
 
 \section*{Benefits of Optimizations}
 
-Two optimizations were implemented within the CRAT framework:
+Two optimizations were implemented within the CPOG framework:
 \begin{description}
 \item[Lemmas:] Nodes with indegree greater than one were validated with separate lemmas, avoiding the possibly exponential expansion of the POG into a tree during the proof construction.
 
@@ -291,7 +291,7 @@ Two optimizations were implemented within the CRAT framework:
 We conducted a set of experiments using the 80 benchmark instances for
 which the total number of proof clauses when both optimizations are
 performed was limited to $10^7$.  We then made three additional runs
-of the CRAT generator and checker, with each of the two optimizations
+of the CPOG generator and checker, with each of the two optimizations
 disabled individually and in combination.  Figures
 \ref{fig:optimized:partially-optimized}--\ref{fig:optimized:unoptimized} illustrates the effect of the two
 optimizations.  Each set of points shows the number of clauses when
@@ -320,7 +320,7 @@ more than $10^8$ proof clauses without lemmas.
 \end{itemize}
 
 The time performance is less dramatic, but still significant.
-Comparing the sum of CRAT generation and checking times for each of
+Comparing the sum of CPOG generation and checking times for each of
 the four combinations of options, we get the following times relative
 to the one with both optimizations enabled:
 \begin{description}
@@ -329,7 +329,7 @@ to the one with both optimizations enabled:
 \item[Without either optimization:] Min 0.91, Max 41.97, Harmonic mean 2.19
 \end{description}
 
-Here is another way to summarize the impact on the combined time to generate and validate the CRAT file:
+Here is another way to summarize the impact on the combined time to generate and validate the CPOG file:
 \begin{itemize}
 \item Of the 80 benchmark problems evaluated, and comparing with both
   optimizations disabled, 40 had the time reduced by at least a factor of 2
@@ -356,7 +356,7 @@ Compare both runtimes and total number of clauses for structured vs. monolithic:
 
 \section{Comparison with MICE}
 
-\input{figure-mice-crat}
+\input{figure-mice-cpog}
 
 
 For comparison, we also ran the MICE tool chain for certifying model
@@ -377,7 +377,7 @@ the authors, but they were unable to fix them on short notice.
 
 In the figure, red dots indicate cases where neither program had an
 error, but it possibly timed out.  The time-out cases are shown along
-the upper edge (MICE) or the righthand edge (CRAT).
+the upper edge (MICE) or the righthand edge (CPOG).
 
 As can be seen, there is not a strong correlation between the program
 runtimes.  This is, in part, because the two tools perform different
@@ -390,9 +390,9 @@ Overall, we can summarize the results as:
 \begin{itemize}
 \item 84 total data points
 \item 76 were completed by both programs in under 1000 seconds
-\item Of those 21 were faster with MICE, 55 with CRAT
-\item 7 completed with CRAT under 1000 seconds but exceeded that threshold for MICE
-\item 1 completed with MICE under 1000 seconds but exceeded that threshold for CRAT
+\item Of those 21 were faster with MICE, 55 with CPOG
+\item 7 completed with CPOG under 1000 seconds but exceeded that threshold for MICE
+\item 1 completed with MICE under 1000 seconds but exceeded that threshold for CPOG
 \end{itemize}
 
 
