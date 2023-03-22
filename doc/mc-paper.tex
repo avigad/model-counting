@@ -180,8 +180,8 @@
 
 Computing many useful properties of Boolean formulas, such as their weighted or unweighted model count,
 is intractable on general representations. It can become tractable when formulas are expressed in a
-special form, such as a deterministic,
-  decomposable, negation normal form (d-DNNF) graph.
+special form, such as the deterministic,
+decomposable, negation normal form (d-DNNF)\@.
 \emph{Knowledge compilation} is the process of converting a formula
 into such a form. Existing knowledge compilers provide no guarantee that their output correctly
 represents the original formula, and therefore they cannot validate the model counts.
@@ -260,13 +260,14 @@ to more reliable SAT solvers.
 
 This paper introduces \emph{Partitioned-Operation Graphs} (POGs),
 a generalization of the representations produced by current knowledge
-compilers. To capture both the structure of a POG
+compilers. The CPOG (for ``checkable'' POG) file format then
+captures both the structure of a POG
 and a checkable proof of its logical equivalence to a Boolean formula in
-conjunctive normal form (CNF), we propose the CPOG (for ``checkable'' POG) file format. A CPOG
+conjunctive normal form (CNF).  A CPOG
 proof consists of a sequence of clause addition and deletion steps,
 based on an extended resolution proof system~\cite{Tseitin:1983}.
-We establish a set of conditions that a CPOG file must satisfy in order to
-encode a well-formed POG and provide a valid equivalence proof.
+We establish a set of conditions that, when satisified by a CPOG file, guarantee that it
+encodes a well-formed POG and provides a valid equivalence proof.
 
 \begin{figure}
 \centering{
