@@ -14,7 +14,7 @@ def usage(name):
     print("Usage: %s [-h] [-1] [-f] [-s n|g|c] [-m] [-L] [-G] [-F] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
-    print("  -s n|g|c Stop after NNF generation, CRAT generation (g) or proof check (c)")
+    print("  -s n|g|c Stop after NNF generation, CPOG generation (g) or proof check (c)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -m       Monolithic mode: Do validation with single call to SAT solver")
     print("  -L       Expand each node, rather than using lemmas")
@@ -40,18 +40,18 @@ homePath = "/Users/bryant/repos"
 d4Path = homePath + "/d4"
 d4Program = d4Path + "/d4"
 
-genHome = homePath + "/model-counting/crat/ddnnf2pog"
-genProgram = genHome + "/d2p"
+genHome = homePath + "/model-counting/cpog/generator"
+genProgram = genHome + "/cpog-generate"
 
-checkHome = homePath + "/model-counting/crat/checker"
-checkProgram = checkHome + "/crat-check"
+checkHome = homePath + "/model-counting/cpog/checker"
+checkProgram = checkHome + "/cpog-check"
 
 leanHome = homePath + "/model-counting/lean4"
 leanCheckProgram = leanHome + "/ProofChecker/build/bin/checker"
 
 interpreter = "python3"
-countHome = homePath + "/model-counting/crat/prototype"
-countProgram = countHome + "/crat_counter.py"
+countHome = homePath + "/model-counting/cpog/counter"
+countProgram = countHome + "/cpog-count.py"
 
 timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 1000, "LCHECK" : 4000, "COUNT" : 4000 }
 
@@ -141,11 +141,11 @@ def runD4(root, home, logFile, force):
 def runPartialGen(root, home, logFile, force):
     cnfName = home + "/" + root + ".cnf"
     nnfName = home + "/" + root + ".nnf"
-    cratName = home + "/" + root + ".crat"
-    cmd = [genProgram, "-p", cnfName, nnfName, cratName]
+    cpogName = home + "/" + root + ".cpog"
+    cmd = [genProgram, "-p", cnfName, nnfName, cpogName]
     ok = runProgram("GEN", root, cmd, logFile)
-    if not ok and os.path.exists(cratName):
-        os.remove(cratName)
+    if not ok and os.path.exists(cpogName):
+        os.remove(cpogName)
     return ok
 
 
@@ -153,8 +153,8 @@ def runGen(root, home, logFile, force):
     extraLogName = "d2p.log"
     cnfName = home + "/" + root + ".cnf"
     nnfName = home + "/" + root + ".nnf"
-    cratName = home + "/" + root + ".crat"
-    if not force and os.path.exists(cratName):
+    cpogName = home + "/" + root + ".cpog"
+    if not force and os.path.exists(cpogName):
         return True
     cmd = [genProgram]
     if oneSided:
@@ -165,36 +165,36 @@ def runGen(root, home, logFile, force):
         cmd += ['-e']
     if not group:
         cmd += ['-s']
-    cmd += ["-C", str(clauseLimit), "-L", extraLogName, cnfName, nnfName, cratName]
+    cmd += ["-C", str(clauseLimit), "-L", extraLogName, cnfName, nnfName, cpogName]
     ok = runProgram("GEN", root, cmd, logFile, extraLogName = extraLogName)
-    checkFile("GEN", cratName, logFile)
-    if not ok and os.path.exists(cratName):
-        os.remove(cratName)
+    checkFile("GEN", cpogName, logFile)
+    if not ok and os.path.exists(cpogName):
+        os.remove(cpogName)
     return ok
 
 def runCheck(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
-    cratName = home + "/" + root + ".crat"
+    cpogName = home + "/" + root + ".cpog"
     cmd = [checkProgram]
     if oneSided:
         cmd += ['-1']
-    cmd += [cnfName, cratName]
+    cmd += [cnfName, cpogName]
     ok =  runProgram("FCHECK", root, cmd, logFile)
     return ok
 
 def runLeanCheck(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
-    cratName = home + "/" + root + ".crat"
+    cpogName = home + "/" + root + ".cpog"
     cmd = [leanCheckProgram]
-    cmd += [cnfName, cratName]
+    cmd += [cnfName, cpogName]
     ok =  runProgram("LCHECK", root, cmd, logFile)
     return ok
 
 
 def runCount(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
-    cratName = home + "/" + root + ".crat"
-    cmd = [interpreter, countProgram, "-i", cnfName, "-p", cratName]
+    cpogName = home + "/" + root + ".cpog"
+    cmd = [interpreter, countProgram, "-i", cnfName, "-p", cpogName]
     ok = runProgram("COUNT", root, cmd, logFile)
     return ok
 
