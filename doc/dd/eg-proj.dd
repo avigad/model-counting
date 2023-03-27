@@ -1,0 +1,28 @@
+# Project example post-projection
+# Operators
+n s8   150 300 l=$\lor^{\textsf{p}}$
+n s7    50 200 l=$\lor^{\textsf{p}}$
+n p6   250 200 l=$\land^{\textsf{p}}$
+n p5   100 100 l=$\land^{\textsf{p}}$
+# Leaves
+n x3a      0 125 e=fillcolor f=fillcolor l=$x_3$
+n x1a     50  25 e=fillcolor f=fillcolor l=$x_1$
+n x2a    100  25 e=fillcolor f=fillcolor l=$x_2$
+n x3b    150  25 e=fillcolor f=fillcolor l=$x_3$
+n x1b    200 125 e=fillcolor f=fillcolor l=$x_1$
+n x2b    300 125 e=fillcolor f=fillcolor l=$x_2$
+# Edges
+e s8 s7 m=b
+e s8 p6
+e s7 x3a m=b
+e s7 p5
+e p6 x1b
+e p6 x2b
+e p5 x1a
+e p5 x2a
+e p5 x3b
+# Labels
+t s8 $\mathbf{s}_8$ p=r off=0
+t s7 $\mathbf{s}_7$ p=r off=0
+t p5 $\mathbf{p}_5$ p=r off=0
+t p6 $\mathbf{p}_6$ p=r off=0

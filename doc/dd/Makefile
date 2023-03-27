@@ -2,7 +2,7 @@ GDIR = .
 GEN = $(GDIR)/ddgen.py
 SCALE=50pt
 
-tex: eg4.tex
+tex: eg4.tex eg-proj.tex eg-preproj.tex eg-proj-skolemize.tex
 
 c3.tex: c3.dd
 	$(GEN) -i c3.dd -o c3.tex -u $(SCALE)
@@ -59,6 +59,28 @@ eg4-eval.tex: eg4-eval.dd
 eg4-eval-doc.pdf: eg4-eval.dd
 	$(GEN) -w -i eg4-eval.dd -o eg4-eval-doc.tex -u $(SCALE)
 	pdflatex eg4-eval-doc.tex
+
+eg-proj.tex: eg-proj.dd
+	$(GEN) -i eg-proj.dd -o eg-proj.tex -u $(SCALE)
+
+eg-proj-doc.pdf: eg-proj.dd
+	$(GEN) -w -i eg-proj.dd -o eg-proj-doc.tex -u $(SCALE)
+	pdflatex eg-proj-doc.tex
+
+eg-preproj.tex: eg-preproj.dd
+	$(GEN) -i eg-preproj.dd -o eg-preproj.tex -u $(SCALE)
+
+eg-preproj-doc.pdf: eg-preproj.dd
+	$(GEN) -w -i eg-preproj.dd -o eg-preproj-doc.tex -u $(SCALE)
+	pdflatex eg-preproj-doc.tex
+
+eg-proj-skolemize.tex: eg-proj-skolemize.dd
+	$(GEN) -i eg-proj-skolemize.dd -o eg-proj-skolemize.tex -u $(SCALE)
+
+eg-proj-skolemize-doc.pdf: eg-proj-skolemize.dd
+	$(GEN) -w -i eg-proj-skolemize.dd -o eg-proj-skolemize-doc.tex -u $(SCALE)
+	pdflatex eg-proj-skolemize-doc.tex
+
 
 
 clean:

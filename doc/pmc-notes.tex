@@ -1,0 +1,338 @@
+\documentclass[letterpaper,USenglish,cleveref, autoref, thm-restate]{lipics-v2021}
+%This is a template for producing LIPIcs articles.
+%See lipics-v2021-authors-guidelines.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling autoref support, use "autoref"
+%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
+%for enabling thm-restate support, use "thm-restate"
+%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
+%for producing a PDF according the PDF/A standard, add "pdfa"
+
+%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\newcommand{\pand}{\mathbin{\land^{\sf p}}}
+\newcommand{\por}{\mathbin{\lor^{\sf p}}}
+\DeclareMathOperator*{\Pand}{\bigwedge^{\sf p}}
+\DeclareMathOperator*{\Por}{\bigvee^{\sf p}}
+\newcommand{\boolnot}{\neg}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\oneminus}{{\sim}}
+\newcommand{\lit}{\ell}
+
+\newcommand{\dvarset}{X}
+\newcommand{\avarset}{Y}
+\newcommand{\exvarset}{Z}
+\newcommand{\dependencyset}{{\cal D}}
+\newcommand{\litset}{{\cal L}}
+\newcommand{\ring}{{\cal R}}
+\newcommand{\dset}{{\cal A}}
+\newcommand{\rep}{\textbf{R}}
+\newcommand{\drep}{\textbf{R}_D}
+\newcommand{\radd}{+}
+\newcommand{\rmul}{\times}
+\newcommand{\addident}{\textbf{0}}
+\newcommand{\mulident}{\textbf{1}}
+\newcommand{\imply}{\Rightarrow}
+\newcommand{\ifandonlyif}{\Leftrightarrow}
+%\newcommand{\drational}{\mathbb{Q}_{2,5}}
+\newcommand{\drational}{\textbf{Q}_{2,5}}
+
+\newcommand{\dassign}{\alpha}
+\newcommand{\aassign}{\beta}
+\newcommand{\acombine}{\!\cdot\!}
+\newcommand{\passign}{\rho}
+\newcommand{\lassign}{\beta}
+\newcommand{\skolem}{\sigma}
+\newcommand{\uassign}{{\cal U}}
+\newcommand{\udassign}{\uassign_X}
+\newcommand{\uaassign}{\uassign_Y}
+\newcommand{\modelset}{{\cal M}}
+\newcommand{\dmodelset}{{\cal M_{D}}}
+
+\newcommand{\indegree}{\textrm{indegree}}
+\newcommand{\outdegree}{\textrm{outdegree}}
+\newcommand{\validate}{\textsf{validate}}
+\newcommand{\prov}{\textrm{Prov}}
+\newcommand{\inputformula}{\phi_I}
+\newcommand{\pogformula}{\theta_P}
+
+\newcommand{\makenode}[1]{\mathbf{#1}}
+\newcommand{\nodeu}{\makenode{u}}
+\newcommand{\nodev}{\makenode{v}}
+\newcommand{\nodes}{\makenode{s}}
+\newcommand{\nodep}{\makenode{p}}
+\newcommand{\noder}{\makenode{r}}
+
+\newcommand{\simplify}[2]{#1|_{#2}}
+
+\newcommand{\progname}[1]{\textsc{#1}}
+\newcommand{\dfour}{\progname{D4}}
+\newcommand{\Dfour}{\progname{D4}}
+\newcommand{\cadical}{\progname{CaDiCal}}
+\newcommand{\dtrim}{\progname{drat-trim}}
+\newcommand{\lean}{Lean~4}
+
+\definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
+\definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
+\definecolor{clearyellow}{rgb}{0.964706, 0.745098, 0}
+\definecolor{clearorange}{rgb}{0.917647, 0.462745, 0}
+\definecolor{mildgray}{rgb}{0.54902, 0.509804, 0.47451}
+\definecolor{softblue}{rgb}{0.643137, 0.858824, 0.909804}
+\definecolor{bluegray}{rgb}{0.141176, 0.313725, 0.603922}
+\definecolor{lightgreen}{rgb}{0.709804, 0.741176, 0}
+\definecolor{darkgreen}{rgb}{0.152941, 0.576471, 0.172549}
+\definecolor{redpurple}{rgb}{0.835294, 0, 0.196078}
+\definecolor{midblue}{rgb}{0, 0.592157, 0.662745}
+\definecolor{clearpurple}{rgb}{0.67451, 0.0784314, 0.352941}
+\definecolor{browngreen}{rgb}{0.333333, 0.313725, 0.145098}
+\definecolor{darkestpurple}{rgb}{0.396078, 0.113725, 0.196078}
+\definecolor{greypurple}{rgb}{0.294118, 0.219608, 0.298039}
+\definecolor{darkturquoise}{rgb}{0, 0.239216, 0.298039}
+\definecolor{darkbrown}{rgb}{0.305882, 0.211765, 0.160784}
+\definecolor{midgreen}{rgb}{0.560784, 0.6, 0.243137}
+\definecolor{darkred}{rgb}{0.576471, 0.152941, 0.172549}
+\definecolor{darkpurple}{rgb}{0.313725, 0.027451, 0.470588}
+\definecolor{darkestblue}{rgb}{0, 0.156863, 0.333333}
+\definecolor{lightpurple}{rgb}{0.776471, 0.690196, 0.737255}
+\definecolor{softgreen}{rgb}{0.733333, 0.772549, 0.572549}
+\definecolor{offwhite}{rgb}{0.839216, 0.823529, 0.768627}
+\definecolor{medgreen}{rgb}{0.15, 0.6, 0.15}
+
+% Lean code:
+\usepackage{listings}
+%\definecolor{keywordcolor}{rgb}{0.7, 0.1, 0.1}   % red
+\definecolor{keywordcolor}{rgb}{0.0, 0.1, 0.6}   % blue
+\definecolor{tacticcolor}{rgb}{0.0, 0.1, 0.6}    % blue
+\definecolor{commentcolor}{rgb}{0.4, 0.4, 0.4}   % grey
+\definecolor{symbolcolor}{rgb}{0.0, 0.1, 0.6}    % blue
+\definecolor{sortcolor}{rgb}{0.1, 0.5, 0.1}      % green
+\definecolor{attributecolor}{rgb}{0.7, 0.1, 0.1} % red
+\def\lstlanguagefiles{lstlean.tex}
+% set default language
+\lstset{language=lean, xleftmargin=1em}
+\lstset{backgroundcolor=\color{white}}
+
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{Notes on \\ Certified Projected Knowledge Compilation \\ \today }
+
+\titlerunning{Projected Knowledge Compilation}
+
+\author{Randal E. Bryant}{Computer Science Department, Carnegie Mellon University, Pittsburgh, PA 15213 USA}{Randy.Bryant@cs.cmu.edu}{https://orcid.org/0000-0001-5024-6613}{Supported by NSF grant CCF-2108521}
+\author{Wojciech Nawrocki}{Department of Philosophy, Carnegie Mellon University}{wjnawrocki@cmu.edu}{https://orcid.org/0000-0002-8839-0618}{Hoskinson Center for Formal Mathematics}
+\author{Jeremy Avigad}{Department of Philosophy, Carnegie Mellon University}{avigad@cmu.edu}{https://orcid.org/0000-0003-1275-315X}{Hoskinson Center for Formal Mathematics}
+\author{Marijn J. H. Heule}{Computer Science Department, Carnegie Mellon University}{marijn@cmu.edu}{https://orcid.org/0000-0002-5587-8801}{Supported by NSF grant CCF-2108521}
+
+\authorrunning{R. E. Bryant et al.} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+%\Copyright{Jane Open Access and Joan R. Public} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+%\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10003752.10003790.10003794</concept_id>
+       <concept_desc>Theory of computation~Automated reasoning</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Automated reasoning}
+
+
+%\keywords{Dummy keyword} %TODO mandatory; please add comma-separated list of keywords
+\keywords{Propositional model counting, Proof checking}
+
+%\category{} %optional, e.g. invited paper
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+%\nolinenumbers %uncomment to disable line numbering
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\EventEditors{John Q. Open and Joan R. Access}
+%\EventNoEds{2}
+%\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+%\EventShortTitle{CVIT 2016}
+%\EventAcronym{CVIT}
+%\EventYear{2016}
+%\EventDate{December 24--27, 2016}
+%\EventLocation{Little Whinging, United Kingdom}
+%\EventLogo{}
+%\SeriesVolume{42}
+%\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+\maketitle
+
+\section{Notation}
+
+\subsection{Data Model}
+
+The set of Boolean variables is divided into two sets: {\em data} variables
+$\dvarset$ and {\em auxiliary} variables $\avarset$.  We use separate
+assignments for the two sets of variables:
+$\dassign \colon \dvarset \rightarrow \{0,1\}$
+ and
+ $\aassign \colon \avarset \rightarrow \{0,1\}$, and the symbol $\acombine$ to combine the two assignments:
+ $\dassign\acombine\aassign \colon \dvarset\cup\avarset \rightarrow \{0,1\}$.
+We let $\udassign$, $\uaassign$, and $\uassign$ denote the set of all
+possible assignments to the data variables, auxiliary variables, and
+all variables, respectively.  From this, we can see that
+$\uassign = \udassign \times \uaassign$.
+
+For Boolean formula $\phi$ over the variables $\dvarset$ and
+$\avarset$, the set of {\em models}, written $\modelset(\phi)$
+consists of those assignments $\dassign \acombine \aassign$ that
+satisfy the formula.  The set of {\em data models}, written $\dmodelset(\phi)$ is defined as:
+\begin{eqnarray}
+\dmodelset(\phi) & \doteq & \{ \dassign \in \udassign | \exists \aassign \in \uaassign \; \dassign\acombine\aassign \in \modelset(\phi) \} \label{eqn:dmodelset}
+\end{eqnarray}
+
+\subsection{Data Ring Evaluation}
+
+  For commutative ring $\ring$, a {\em ring weight function} associates a value $w(x) \in \dset$ with
+  every data variable $x \in \dvarset$.  We then define $w(\obar{x}) \doteq \mulident-w(x)$.
+
+  For Boolean formula $\phi$ over data variables $\dvarset$ and auxiliary variables $\avarset$, and ring weight function $w$, the {\em data ring evaluation problem} computes
+  \begin{eqnarray}
+    \drep(\phi, w) & = & \sum_{\alpha \in \dmodelset(\phi)} \;\; \prod_{\lit \in \alpha} w(\ell) \label{eqn:rep}
+  \end{eqnarray}
+
+
+The goal of {\em projected knowledge compilation} is to generate a
+representation of an input formula $\inputformula$ such that data ring
+evaluation can be performed in polynomial time with respect to the
+size of the representation.
+
+\subsection{Skolem Formulas}
+
+One method of instantiating the existential quantifier
+(\ref{eqn:dmodelset}) is to provide formulas that compute an
+assignment $\aassign$ for each possible $\dassign$.  For $y \in
+\avarset$, define a {\em Skolem formula} $\skolem_y$ as a Boolean
+formula over $\dvarset$.  It implicitly defines a function
+$\skolem_y \colon \udassign \rightarrow \{0,1\}$.  Combining these functions for all $y \in
+\avarset$ then defines a function $\skolem \colon \udassign
+\rightarrow \uaassign$, where $\skolem(\dassign)$ gives the assignment
+$\aassign$ such that $\aassign(y) = \skolem_y(\dassign)$.
+
+A {\em valid Skolemization} of formula $\phi$ is then a set of Skolem formulas $\skolem_y$
+such that every data assignment $\dassign\in \dmodelset(\phi)$ is extended by $\skolem$ to become a model of $\phi$, i.e.,
+$\dassign \acombine \skolem(\dassign) \in \modelset(\phi)$.
+
+\section{Example Formula}
+
+Consider an encoding of the formula $(x_1 \land x_2) \lor x_3$ using
+encoding variable $y$.  A full {\em Tseitin} encoding of $y
+\leftrightarrow (x_1 \land x_2)$ requires three clauses, but we can
+use a Plaisted-Greenbaum encoding in this context, encoding just $y
+\rightarrow (x_1 \land x_2)$, represented by the clauses
+$x_1 \lor \obar{y}$ and $x_2 \lor \obar{y}$.  We then encode the disujunction
+with the clause $x_3 \lor y$.  The DIMACS representation is then as follows (using variable 4 to represent $y$):
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\makebox[5mm]{ID} & \makebox[15mm]{Clauses} & \\
+\midrule
+1 & \texttt{1 -4} & \texttt{0} \\
+2 & \texttt{2 -4} & \texttt{0} \\
+3 & \texttt{3  4} & \texttt{0}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}
+  \begin{minipage}{0.48\textwidth}
+    (A) POG representation of $\inputformula$ \\[1.2ex]
+    \input{dd/eg-preproj}
+  \end{minipage}
+  \begin{minipage}{0.48\textwidth}
+  \end{minipage}
+
+  \begin{minipage}{0.48\textwidth}
+    (B) After projecting variable $y$ \\[1.2ex]
+    \input{dd/eg-proj}
+  \end{minipage}
+  \begin{minipage}{0.48\textwidth}
+    (C) Replace $y$ by Skolem formula $x_1 \land x_2$ \\[1.2ex]
+    \input{dd/eg-proj-skolemize}
+  \end{minipage}
+  \caption{POG Representation of formula (A), and two ways of representing projections (B) and (C).
+  A black dot on an edge denotes Boolean negation.}
+  \label{fig:eg-proj}
+\end{figure}
+
+Figure \ref{fig:eg-proj}(A) shows the POG representation of the
+example formula, derived from the d-DNNF representation produced by
+\dfour{}.  We can see that \dfour{} split on variable $y$ at the top level, with the representation of
+$\obar{y} \land \inputformula$ on the left and 
+$y \land \inputformula$ on the right.
+
+Figure \ref{fig:eg-proj}(B) shows the result of a method for projecting out variable
+$y$ by computing the intersection of the sets of data models for
+$\aassign(y) = 0$ and $\aassign(y) = 1$.  For this example, these are
+given by the formula $x_1 \land x_2 \land x_3$, represented by POG
+node $\nodep_5$.  Using DeMorgan's Laws, we can use a sum node to
+``subtract'' these models from those given by
+$\simplify{\inputformula}{\obar{y}}$, so that the top-level sum
+$\nodes_8$ satisfies the disjoint-model requirement.
+
+Figure \ref{fig:eg-proj}(C) shows the result of replacing $y$ by the
+Skolem formula
+$\skolem_y = x_1 \land x_2$.  In that case node
+$\nodep_6$ of (A) becomes simply $x_1 \land x_2$, and this can be used
+to replace $\obar{y}$ as a child of node $\nodep_5$.
+
+Observe that both POGs (B) and (C) use an exclusion term so that the formula
+on the left encodes those assignments satisfying $x_3 \land \neg (x_1 \land x_2)$.
+
+\section{Research Questions}
+
+\begin{itemize}
+\item Algorithm to generate projection of POG over set of auxiliary variables $\avarset$
+  \begin{itemize}
+  \item Assume have clausal representation $\gamma_{\nodeu}$ for each node $\nodeu$.
+  \item Assume can call \dfour{} as subroutine to derive POG representing shared models (could blow up)
+  \item Assume POG derived from \dfour{} in NNF
+  \end{itemize}
+\item Algorithm to find Skolem formulas
+  \begin{itemize}
+  \item Easy if $y$ encoded as Tseitin variable
+  \item Probably OK if $y$ encoded using some variant of Greenbaum-Plaisted
+  \item Unclear how to solve in general
+  \end{itemize}
+\item Algorithm for forward implication proof
+  \begin{itemize}
+  \item Can use existing proof infrastructure
+  \item Use SAT solver to generate proofs of mutual exclusion and implication
+  \end{itemize}
+\item Reverse implication proof
+  \begin{itemize}
+  \item Need new proof rule(s).  Projected formula allows arbitrary assignment $\aassign$.
+  \item Skolem formulas might be helpful
+  \item Need to show that these form valid Skolemization
+  \end{itemize}
+\end{itemize}
+
+
+\end{document}
