@@ -1,0 +1,31 @@
+Updated 27 March 2023
+
+* Improve existing version
+
+  - Tuning
+    + Hybrid monolithic/structural proof
+    + 2-literal watch in BCP
+    + Profiling
+
+  - Better external support programs
+    + LRAT-generating CaDiCal
+
+  - Parallelism
+    + Divide and conquer
+
+* Benchmarking
+
+  - Run private benchmarks
+  - Allow longer runtimes
+  - Move onto Starexec
+
+* Enhanced capabilities
+  - Projection
+    + Synthesize Skolem formulas
+    + Derive projected formula
+
+* Integration
+
+  - Modify D4 to generate POG
+  - Modify D4 to project
+  
