@@ -49,8 +49,11 @@ bool q25_valid(q25_ptr q);
 /* Is it zero */
 bool q25_is_zero(q25_ptr q);
 
-/* Are two numbers equal */
-bool q25_equal(q25_ptr q1, q25_ptr q2);
+/* 
+   Compare two numbers.  Return -1 (q1<q2), 0 (q1=q2), or +1 (q1>q2)
+   Return -2 if either invalid
+*/
+int q25_compare(q25_ptr q1, q25_ptr q2);
 
 /* Addition */
 q25_ptr q25_add(q25_ptr q1, q25_ptr q2);

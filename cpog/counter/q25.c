@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "q25.h"
 
 /*
@@ -32,8 +33,12 @@
 bool initialized = false;
 /* Per-number components */
 static q25_t working_val[DCOUNT];
-static unsigned *digit_buffer[DCOUNT];
+static uint32_t *digit_buffer[DCOUNT];
 static unsigned digit_allocated[DCOUNT];
+
+/* Lookup table for powers */
+static uint32_t power2[Q25_DIGITS+1];
+static uint32_t power5[Q25_DIGITS+1];
 
 /* 
    Static function prototypes.
@@ -63,6 +68,15 @@ static void q25_init() {
 	working_val[id].pwr2 = 0;
 	working_val[id].pwr5 = 0;
 	working_val[id].dcount = 1;
+    }
+    int i;
+    uint64_t p2 = 1;
+    uint64_t p5 = 1;
+    for (i = 0; i <= Q25_DIGITS; i++) {
+	power2[i] = p2;
+	p2 *= 2;
+	power5[i] = p5;
+	p5 *= 5;
     }
 }
 
@@ -99,10 +113,18 @@ static void q25_check(int id, unsigned dcount) {
     digit_buffer[id] = realloc(digit_buffer[id], digit_allocated[id] * sizeof(uint32_t));
 }
 
+// Clear specified number of digits in workspace.  And set as length
+static void q25_clear_digits(int id, unsigned len) {
+    q25_check(id, len);
+    memset(digit_buffer[WID], 0, len * sizeof(uint32_t));
+    working_val[id].dcount = len;
+}
+
+
 // Divide by a number < RADIX
 // Assume dividend is valid and nonzero, and divisor is nonzero
 // Return remainder
-static uint32_t q25_div(int id, uint32_t divisor) {
+static uint32_t q25_div_word(int id, uint32_t divisor) {
     if (divisor == 1)
 	return 0;
     uint64_t upper = 0;
@@ -128,7 +150,7 @@ static void q25_reduce_multiple(int id, uint32_t p2, uint32_t p5, uint32_t n) {
 	    pwr ++;
 	    scale *= n;
 	}
-	q25_div(id, scale);
+	q25_div_word(id, scale);
 	working_val[id].pwr2 += p2*pwr;
 	working_val[id].pwr5 += p5*pwr;
     }
@@ -203,6 +225,68 @@ static q25_ptr q25_build(int id) {
     memcpy(result->digit, working_val[id].digit, working_val[id].dcount * sizeof(uint32_t));
     return result;
 }
+
+// Multiply by a number < RADIX
+// Assume multiplier is nonzero
+static void q25_mul_word(int id, uint32_t multiplier) {
+    q25_check(id, working_val[id].dcount+1);
+    if (multiplier == 1)
+	return;
+    uint64_t upper = 0;
+    int d;
+    for (d = 0 ; d < working_val[id].dcount; d++) {
+	uint64_t ndigit = upper + (uint64_t) multiplier * digit_buffer[id][d];
+	digit_buffer[id][d] = ndigit % Q25_RADIX;
+	upper = ndigit / Q25_RADIX;
+    }
+    // See if upper digit set to 0
+    if (upper > 0) {
+	working_val[id].dcount = upper;
+	working_val[id].dcount++;
+    }
+}
+
+// Scale number by power of 2, 5, or 10
+static void q25_scale_digits(int id, unsigned n, int pwr) {
+    int p;
+    working_val[id].pwr2 -= pwr;
+    working_val[id].pwr5 -= pwr;
+    uint32_t multiplier = 1;
+    if (n%2 == 0)
+	multiplier = power2[Q25_DIGITS];
+    if (n%5 == 0)
+	multiplier *= power5[Q25_DIGITS];
+    while (pwr > Q25_DIGITS) {
+	q25_mul_word(id, multiplier);
+	pwr -= Q25_DIGITS;
+    }
+    multiplier = 1;
+    if (n%2 == 0)
+	multiplier = power2[pwr];
+    if (n%5 == 0)
+	multiplier *= power5[pwr];
+    q25_mul_word(id, multiplier);
+}
+
+/* 
+   Compare two working numbers.  Return -1 (q1<q2), 0 (q1=q2), or +1 (q1>q2)
+   Return -2 if either invalid
+*/
+int q25_compare_working_magnitude(int id1, int id2) {
+    if (working_val[id1].dcount < working_val[id2].dcount)
+	return -1;
+    if (working_val[id1].dcount > working_val[id2].dcount)
+	return 1;
+    int d;
+    for (d = working_val[id1].dcount-1; d >= 0; d--) {
+	if (digit_buffer[id1][d] < digit_buffer[id2][d])
+	    return -1;
+	if (digit_buffer[id1][d] > digit_buffer[id2][d])
+	    return 1;
+    }
+    return 0;
+}
+
 
 /**** Externally visible functions ****/
 
@@ -284,27 +368,96 @@ bool q25_is_zero(q25_ptr q) {
     return q->valid && q->dcount == 0 && q->digit[0] == 0;
 }
 
-bool q25_equal(q25_ptr q1, q25_ptr q2) {
+/* 
+   Compare two numbers.  Return -1 (q1<q2), 0 (q1=q2), or +1 (q1>q2)
+   Return -2 if either invalid
+*/
+int q25_compare(q25_ptr q1, q25_ptr q2) {
     if (q1->valid != q2->valid)
-	return false;
-    if (q1->negative != q2->negative)
-	return false;
-    if (q1->dcount != q2->dcount)
-	return false;
-    int d;
-    for (d = 0; d < q1->dcount ; d++) {
-	if (q1->digit[d] != q2->digit[d])
-	    return false;
+	return -2;
+    if (q1->negative && !q2->negative)
+	return -1;
+    if (!q1->negative && q2->negative)
+	return 1;
+    if (q1->negative) {
+	// Swap two, so that can compare digits
+	q25_ptr qt = q1; q1 = q2; q2 = qt;
     }
-    return true;
+    if (q1->dcount < q2->dcount)
+	return -1;
+    if (q1->dcount > q2->dcount)
+	return 1;
+    int d;
+    for (d = q1->dcount-1; d >= 0; d--) {
+	if (q1->digit[d] < q2->digit[d])
+	    return -1;
+	if (q1->digit[d] > q2->digit[d])
+	    return 1;
+    }
+    return 0;
 }
 
 
 q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
-    /* Must move arguments into working area */
-    q25_work(0, q1);
-    q25_work(1, q2);
-    return q25_build(0);
+    /* Must move arguments into working area.  Build result with id 0 */
+    q25_work(1, q1);
+    q25_work(2, q2);
+    int diff2 = working_val[1].pwr2 - working_val[2].pwr2;
+    if (diff2 > 0) {
+	q25_scale_digits(2, 2, diff2);
+    } else if (diff2 < 0) {
+	q25_scale_digits(1, 2, -diff2);
+    }
+    int diff5 = working_val[1].pwr5 - working_val[2].pwr5;
+    if (diff5 > 0) {
+	q25_scale_digits(2, 5, diff5);
+    } else if (diff5 < 0) {
+	q25_scale_digits(1, 5, -diff5);
+    }
+    if (working_val[1].negative == working_val[2].negative) {
+	unsigned ndcount = working_val[1].dcount;
+	if (working_val[2].dcount > ndcount)
+	    ndcount = working_val[2].dcount;
+	ndcount += 1;
+	q25_set(WID, 0);
+	working_val[WID].negative = working_val[1].negative;
+	q25_clear_digits(WID, ndcount);
+	uint32_t carry = 0;
+	int d;
+	for (d = 0; d < ndcount; d++) {
+	    uint64_t digit = carry;
+	    if (d < working_val[1].dcount)
+		digit += digit_buffer[1][d];
+	    if (d < working_val[2].dcount)
+		digit += digit_buffer[2][d];
+	    digit_buffer[WID][d] = digit % Q25_RADIX;
+	    carry = digit / Q25_RADIX;
+	}
+    } else {
+	int diff = q25_compare_working_magnitude(1, 2);
+	q25_set(WID, 0);
+	if (diff != 0) {
+	    int tid = diff < 0 ? 2 : 1;
+	    int bid = diff < 0 ? 1 : 2;
+	    working_val[WID].negative = working_val[tid].negative;
+	    q25_clear_digits(WID, working_val[tid].dcount);
+	    int32_t borrow = 0;
+	    int d;
+	    for (d = 0; d < working_val[tid].dcount; d++) {
+		int64_t digit = -borrow;
+		digit += digit_buffer[tid][d];
+		if (d < working_val[bid].dcount)
+		    digit -= digit_buffer[bid][d];
+		if (digit < 0) {
+		    digit += Q25_RADIX;
+		    borrow = 1;
+		} else 
+		    borrow = 0;
+		digit_buffer[WID][d] = digit;
+	    }
+	}
+    }
+    return q25_build(WID);
 }
 
 q25_ptr q25_mul(q25_ptr q1, q25_ptr q2) {
@@ -320,9 +473,7 @@ q25_ptr q25_mul(q25_ptr q1, q25_ptr q2) {
     working_val[WID].pwr5 = q1->pwr5 + q2->pwr5;
     // Clear out space for the product
     unsigned len = q1->dcount + q2->dcount + 1;
-    q25_check(WID, len);
-    memset(digit_buffer[WID], 0, len * sizeof(uint32_t));
-    working_val[WID].dcount = len;
+    q25_clear_digits(WID, len);
     // Make sure q1 is longer
     if (q1->dcount < q2->dcount) {
 	q25_ptr qt = q1; q1 = q2; q2 = qt;
@@ -342,7 +493,108 @@ q25_ptr q25_mul(q25_ptr q1, q25_ptr q2) {
 }
 
 q25_ptr q25_read(FILE *infile) {
+    /* Fill up digit buffer in reverse order */
+    int d = 0;
+    q25_check(1, d+1);
+    digit_buffer[1][d] = 0;
+    bool negative = false;
+    int pwr10 = 0;
+    bool got_point = false;
+    /* Number of base 10 digits read */
+    int n10 = 0;
+    bool first = true;
+    while (true) {
+	int c = fgetc(infile);
+	if (c == '-') {
+	    if (first)
+		negative = true;
+	    else {
+		ungetc(c, infile);
+		break;
+	    }
+	} else if (c == '.') {
+	    if (got_point) {
+		ungetc(c, infile);
+		break;
+	    } else
+		got_point = true;
+	} else if (isdigit(c)) {
+	    n10++;
+	    if (got_point)
+		pwr10--;
+	    if (n10 > Q25_DIGITS && (n10-1) % Q25_DIGITS == 0) {
+		// Time to start new word
+		d++;
+		q25_check(1, d+1);
+		digit_buffer[1][d] = 0;
+	    }
+	    unsigned dig = c - '0';
+	    digit_buffer[1][d] = 10 * digit_buffer[1][d] + dig;
+	} else {
+	    ungetc(c, infile);
+	    break;
+	}
+	first = false;
+    }
+    bool valid = n10 > 0;
+    if (valid) {
+	// See if there's an exponent
+	int c = fgetc(infile);
+	if (c == 'e') {
+	    // Deal with exponent
+	    bool exp_negative = false;
+	    int nexp = 0;
+	    unsigned exponent = 0;
+	    bool exp_first = true;
+	    while (true) {
+		c = fgetc(infile);
+		if (c == '-') {
+		    if (exp_first)
+			exp_negative = true;
+		    else {
+			ungetc(c, infile);
+			valid = false;
+			break;
+		    }
+		} else if (isdigit(c)) {
+		    nexp++;
+		    unsigned dig = c - '0';
+		    exponent = 10 * exponent + dig;
+		} else {
+		    ungetc(c, infile);
+		    break;
+		}
+		exp_first = false;
+	    }
+	    valid = valid && nexp > 0;
+	    pwr10 += nexp;
+	} else
+	    ungetc(c, infile);
+    }
+    if (!valid) {
+	q25_set(WID, 0);
+	working_val[WID].valid = false;
+	return q25_build(WID);
+    }
     q25_set(WID, 0);
+    working_val[WID].negative = negative;
+    // Reverse the digits
+    unsigned dcount = (n10 + Q25_DIGITS-1) / Q25_DIGITS;
+    q25_check(WID, dcount);
+    for (d = 0; d < dcount; d++) {
+	digit_buffer[WID][d] = digit_buffer[1][dcount - 1 - d];
+    }
+    // Now could have a problem with the bottom word
+    // Slide up to top and let the canonizer fix things
+    unsigned extra_count = n10 % Q25_DIGITS;
+    if (extra_count > 0) {
+	unsigned scale = Q25_DIGITS-extra_count;
+	unsigned multiplier = power2[scale] * power5[scale];
+	digit_buffer[WID][d] *= multiplier;
+	pwr10 -= scale;
+    }
+    working_val[WID].pwr2 = pwr10;
+    working_val[WID].pwr5 = pwr10;
     return q25_build(WID);
 }
 
