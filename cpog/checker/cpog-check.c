@@ -34,8 +34,8 @@
 
 void usage(char *name) {
     printf("Usage: %s [-h] [-v VERB] [-1] FILE.cnf [FILE.cpog]\n", name);
-    printf(" -h VERB      Print this message\n");
-    printf(" -v           Set verbosity level\n");
+    printf(" -h           Print this message\n");
+    printf(" -v VERB      Set verbosity level\n");
     printf(" -1           Perform one-sided check (don't verify assertions)\n");
     printf("    FILE.cnf  Input CNF file\n");
     printf("    FILE.cpog Input CPOG file\n");
