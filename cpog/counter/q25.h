@@ -29,6 +29,7 @@ void q25_free(q25_ptr q);
 /* Convert numbers to q25 form */
 q25_ptr q25_from_64(int64_t x);
 q25_ptr q25_from_32(int32_t x);
+q25_ptr q25_invalid();
 
 /* Scale by powers of 2 & 5 */
 q25_ptr q25_scale(q25_ptr q, int32_t p2, int32_t p5);
@@ -66,3 +67,10 @@ q25_ptr q25_read(FILE *infile);
 
 /* Write to file */
 void q25_write(q25_ptr q, FILE *outfile);
+
+/* Show value in terms of its representation */
+void q25_show(q25_ptr q, FILE *outfile);
+
+/* Try converting to int64_t.  Indicate success / failure */
+/* Fails if number out of range, or nonintegral */
+bool get_int64(q25_ptr q, int64_t *ip);

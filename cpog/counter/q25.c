@@ -39,6 +39,7 @@ static unsigned digit_allocated[DCOUNT];
 /* Lookup table for powers */
 static uint32_t power2[Q25_DIGITS+1];
 static uint32_t power5[Q25_DIGITS+1];
+static uint32_t power10[Q25_DIGITS+1];
 
 /* 
    Static function prototypes.
@@ -73,6 +74,7 @@ static void q25_init() {
     uint64_t p2 = 1;
     uint64_t p5 = 1;
     for (i = 0; i <= Q25_DIGITS; i++) {
+	power10[i] = p2 * p5;
 	power2[i] = p2;
 	p2 *= 2;
 	power5[i] = p5;
@@ -99,7 +101,7 @@ static void q25_work(int id, q25_ptr q) {
     working_val[id].dcount = q->dcount;
     working_val[id].pwr2 = q->pwr2;
     working_val[id].pwr5 = q->pwr5;
-    memcpy(digit_buffer, working_val[id].digit, working_val[id].dcount * sizeof(uint32_t));
+    memcpy(digit_buffer[id], q->digit, working_val[id].dcount * sizeof(uint32_t));
 }
 
 // Make sure enough digits in working space
@@ -222,7 +224,7 @@ static q25_ptr q25_build(int id) {
     result->dcount = working_val[id].dcount;
     result->pwr2 = working_val[id].pwr2;
     result->pwr5 = working_val[id].pwr5;
-    memcpy(result->digit, working_val[id].digit, working_val[id].dcount * sizeof(uint32_t));
+    memcpy(result->digit, digit_buffer[id], working_val[id].dcount * sizeof(uint32_t));
     return result;
 }
 
@@ -247,24 +249,18 @@ static void q25_mul_word(int id, uint32_t multiplier) {
 }
 
 // Scale number by power of 2, 5, or 10
-static void q25_scale_digits(int id, unsigned n, int pwr) {
+static void q25_scale_digits(int id, bool p2, int pwr) {
     int p;
-    working_val[id].pwr2 -= pwr;
-    working_val[id].pwr5 -= pwr;
-    uint32_t multiplier = 1;
-    if (n%2 == 0)
-	multiplier = power2[Q25_DIGITS];
-    if (n%5 == 0)
-	multiplier *= power5[Q25_DIGITS];
+    if (p2)
+	working_val[id].pwr2 -= pwr;
+    else
+	working_val[id].pwr5 -= pwr;
+    uint32_t multiplier = p2 ? power2[Q25_DIGITS] : power5[Q25_DIGITS];
     while (pwr > Q25_DIGITS) {
 	q25_mul_word(id, multiplier);
 	pwr -= Q25_DIGITS;
     }
-    multiplier = 1;
-    if (n%2 == 0)
-	multiplier = power2[pwr];
-    if (n%5 == 0)
-	multiplier *= power5[pwr];
+    multiplier = p2 ? power2[pwr] : power5[pwr];
     q25_mul_word(id, multiplier);
 }
 
@@ -272,7 +268,7 @@ static void q25_scale_digits(int id, unsigned n, int pwr) {
    Compare two working numbers.  Return -1 (q1<q2), 0 (q1=q2), or +1 (q1>q2)
    Return -2 if either invalid
 */
-int q25_compare_working_magnitude(int id1, int id2) {
+static int q25_compare_working_magnitude(int id1, int id2) {
     if (working_val[id1].dcount < working_val[id2].dcount)
 	return -1;
     if (working_val[id1].dcount > working_val[id2].dcount)
@@ -285,6 +281,43 @@ int q25_compare_working_magnitude(int id1, int id2) {
 	    return 1;
     }
     return 0;
+}
+
+/* How many decimal digits are in representation? */
+static int q25_length10(int id) {
+    if (!working_val[id].valid)
+	return -1;
+    int n10 = (working_val[id].dcount-1) * Q25_DIGITS;
+    uint32_t word = digit_buffer[id][working_val[id].dcount-1];
+    while (word > 0) {
+	n10++;
+	word = word/10;
+    }
+    return n10;
+}
+
+/* Get individual decimal digit */
+static unsigned q25_get_digit10(int id, int index) {
+    int digit = index / Q25_DIGITS;
+    int offset = index % Q25_DIGITS;
+    uint32_t power = power10[offset];
+    if (digit < 0 || digit >= working_val[id].dcount)
+	return 0;
+    uint32_t word = digit_buffer[id][digit];
+    return (word / power) % 10;
+}
+
+/* Show internal representation */
+static void q25_show_internal(int id, FILE *outfile) {
+    if (!working_val[id].valid)
+	fprintf(outfile, "INVALID");
+    fprintf(outfile, "[%c,p2=%d,p5=%d", working_val[id].negative ? '-' : '+', working_val[id].pwr2, working_val[id].pwr5);
+    int d;
+    for (d = working_val[id].dcount-1; d >= 0; d--) {
+	fprintf(outfile, "|");
+	fprintf(outfile, "%u", digit_buffer[id][d]);
+    }
+    fprintf(outfile, "]");
 }
 
 
@@ -333,6 +366,13 @@ q25_ptr q25_from_32(int32_t x) {
     }
     return q25_build(WID);
 }
+
+q25_ptr q25_invalid() {
+    q25_set(WID, 0);
+    working_val[WID].valid = false;
+    return q25_build(WID);
+}
+
 
 q25_ptr q25_scale(q25_ptr q, int32_t p2, int32_t p5) {
     q25_work(WID, q);
@@ -404,15 +444,15 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
     q25_work(2, q2);
     int diff2 = working_val[1].pwr2 - working_val[2].pwr2;
     if (diff2 > 0) {
-	q25_scale_digits(2, 2, diff2);
+	q25_scale_digits(2, true, diff2);
     } else if (diff2 < 0) {
-	q25_scale_digits(1, 2, -diff2);
+	q25_scale_digits(1, true, -diff2);
     }
     int diff5 = working_val[1].pwr5 - working_val[2].pwr5;
     if (diff5 > 0) {
-	q25_scale_digits(2, 5, diff5);
+	q25_scale_digits(2, false, diff5);
     } else if (diff5 < 0) {
-	q25_scale_digits(1, 5, -diff5);
+	q25_scale_digits(1, false, -diff5);
     }
     if (working_val[1].negative == working_val[2].negative) {
 	unsigned ndcount = working_val[1].dcount;
@@ -506,8 +546,11 @@ q25_ptr q25_read(FILE *infile) {
     while (true) {
 	int c = fgetc(infile);
 	if (c == '-') {
-	    if (first)
+	    if (first) {
 		negative = true;
+		first = false;
+		continue;
+	    }
 	    else {
 		ungetc(c, infile);
 		break;
@@ -544,7 +587,7 @@ q25_ptr q25_read(FILE *infile) {
 	    // Deal with exponent
 	    bool exp_negative = false;
 	    int nexp = 0;
-	    unsigned exponent = 0;
+	    int exponent = 0;
 	    bool exp_first = true;
 	    while (true) {
 		c = fgetc(infile);
@@ -567,7 +610,9 @@ q25_ptr q25_read(FILE *infile) {
 		exp_first = false;
 	    }
 	    valid = valid && nexp > 0;
-	    pwr10 += nexp;
+	    if (exp_negative)
+		exponent = -exponent;
+	    pwr10 += exponent;
 	} else
 	    ungetc(c, infile);
     }
@@ -589,8 +634,8 @@ q25_ptr q25_read(FILE *infile) {
     unsigned extra_count = n10 % Q25_DIGITS;
     if (extra_count > 0) {
 	unsigned scale = Q25_DIGITS-extra_count;
-	unsigned multiplier = power2[scale] * power5[scale];
-	digit_buffer[WID][d] *= multiplier;
+	unsigned multiplier = power10[scale];
+	digit_buffer[WID][dcount-1] *= multiplier;
 	pwr10 -= scale;
     }
     working_val[WID].pwr2 = pwr10;
@@ -599,5 +644,96 @@ q25_ptr q25_read(FILE *infile) {
 }
 
 void q25_write(q25_ptr q, FILE *outfile) {
+    if (!q->valid) {
+	fprintf(outfile, "INVALID");
+	return;
+    }
+    if (q->dcount == 1 && q->digit[0] == 0) {
+	fprintf(outfile, "0");
+	return;
+    }    
+    // Print the sign
+    if (q->negative)
+	fputc('-', outfile);
     q25_work(WID, q);
+
+    // Git rid of negative powers
+    int diff = working_val[WID].pwr2 - working_val[WID].pwr5;
+    if (diff > 0) {
+	q25_scale_digits(WID, true, diff);
+    } else if (diff < 0) {
+	q25_scale_digits(WID, false, -diff);
+    }
+    int n10 = q25_length10(WID);
+    int p10 = working_val[WID].pwr2;
+    int i;
+    if (p10 >= 0) {
+	for (i = n10-1; i >= 0; i--) {
+	    int d10 = q25_get_digit10(WID, i);
+	    char d = '0' + d10;
+	    fputc(d, outfile);
+	}
+	while (p10-- > 0)
+	    fputc('0', outfile);
+    } else if (-p10 >= n10) {
+	fputc('0', outfile);
+	fputc('.', outfile);
+	while (-p10 > n10) {
+	    fputc('0', outfile);
+	    p10++;
+	}
+	for (i = n10-1; i >= 0; i--) {
+	    int d10 = q25_get_digit10(WID, i);
+	    char d = '0' + d10;
+	    fputc(d, outfile);
+	}
+    } else {
+	for (i = n10-1; i >= 0; i--) {
+	    int d10 = q25_get_digit10(WID, i);
+	    char d = '0' + d10;
+	    fputc(d, outfile);
+	    if (i == -p10)
+		fputc('.', outfile);
+	}
+    }
 }
+
+/* Show value in terms of its representation */
+void q25_show(q25_ptr q, FILE *outfile) {
+    q25_work(WID, q);
+    q25_show_internal(WID, outfile);
+}
+
+/* Try converting to int64_t.  Indicate success / failure */
+bool get_int64(q25_ptr q, int64_t *ip) {
+    if (!q->valid || q->pwr2 < 0 || q->pwr5 < 0)
+	return false;
+    if (q->negative) {
+	q25_ptr qmin = q25_from_64(INT64_MIN);
+	if (q25_compare(q, qmin) < 0)
+	    return false;
+    } else {
+	q25_ptr qmax = q25_from_64(INT64_MAX);
+	if (q25_compare(q, qmax) > 0)
+	    return false;
+    }
+    int64_t val = 0;
+    int d;
+    if (q->negative) {
+	for (d = q->dcount-1; d >= 0; d--) {
+	    val = val * Q25_RADIX + -q->digit[d];
+	}
+    } else {
+	for (d = q->dcount-1; d >= 0; d--) {
+	    val = val * Q25_RADIX + q->digit[d];
+	}
+    }
+    int i;
+    for (i = 0; i < q->pwr2; i++)
+	val *= 2;
+    for (i = 0; i < q->pwr5; i++)
+	val *= 5;
+    *ip = val;
+    return true;
+}
+
