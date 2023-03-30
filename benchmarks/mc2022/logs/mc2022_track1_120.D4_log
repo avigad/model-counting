@@ -1,0 +1,120 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_120.cnf -dDNNF -out=./mc2022_track1_120.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 4131
+c Number of clauses: 10101
+c Number of literals: 21933
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -311 
+c top 5: -311 -356 
+c top 5: -311 -356 -346 
+c top 5: -311 -356 -346 -365 
+c unitLits 1048577 4194308 Bytes
+c unitLits 2097153 8388612 Bytes
+c top 5: -311 -356 -346 365 
+c unitLits 3145729 12582916 Bytes
+c unitLits 4194305 16777220 Bytes
+c      16384 |       6.35 |         28 |       8196 |          0 |        583 |    3442716 |    3450900 |          0 |       8195 |          42 |          0 | 
+c top 5: -311 -356 346 
+c top 5: -311 -356 346 -365 
+c unitLits 5242881 20971524 Bytes
+c unitLits 6291457 25165828 Bytes
+c unitLits 7340033 29360132 Bytes
+c top 5: -311 -356 346 365 
+c      32768 |      12.93 |         65 |      16394 |          0 |        603 |    6787203 |    6803577 |          0 |      16391 |          65 |          0 | 
+c unitLits 8388609 33554436 Bytes
+c top 5: -311 356 
+c top 5: -311 356 -346 
+c top 5: -311 356 -346 -335 
+c unitLits 9437185 37748740 Bytes
+c unitLits 10485761 41943044 Bytes
+c top 5: -311 356 -346 335 
+c      49152 |      19.60 |        127 |      24594 |          2 |        624 |   10203365 |   10227918 |          0 |      24587 |         102 |          0 | 
+c unitLits 11534337 46137348 Bytes
+c unitLits 12582913 50331652 Bytes
+c top 5: -311 356 346 
+c top 5: -311 356 346 -302 
+c unitLits 13631489 54525956 Bytes
+c      65536 |      26.50 |        196 |      32785 |          4 |        640 |   13450635 |   13483378 |          0 |      32777 |         121 |          0 | 
+c top 5: -311 356 346 302 
+c unitLits 14680065 58720260 Bytes
+c top 5: 311 
+c top 5: 311 -356 
+c top 5: 311 -356 -346 
+c top 5: 311 -356 -346 -335 
+c unitLits 15728641 62914564 Bytes
+c unitLits 16777217 67108868 Bytes
+c top 5: 311 -356 -346 335 
+c unitLits 17825793 71303172 Bytes
+c      81920 |      33.21 |        274 |      40976 |          6 |        657 |   16973189 |   17014127 |          0 |      40968 |         140 |          0 | 
+c top 5: 311 -356 346 
+c top 5: 311 -356 346 -335 
+c unitLits 18874369 75497476 Bytes
+c top 5: 311 -356 346 335 
+c unitLits 19922945 79691780 Bytes
+c top 5: 311 356 
+c top 5: 311 356 -346 
+c top 5: 311 356 -346 -335 
+c unitLits 20971521 83886084 Bytes
+c      98304 |      40.01 |        342 |      49167 |          8 |        669 |   20284819 |   20333965 |          0 |      49156 |         161 |          0 | 
+c top 5: 311 356 -346 335 
+c top 5: 311 356 346 
+c top 5: 311 356 346 -335 
+c unitLits 22020097 88080388 Bytes
+c top 5: 311 356 346 335 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 104543
+c Number of split formula: 10
+c Number of decision node: 52271
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 5
+c Number of backbone calls: 0
+c Number of partitioner calls: 168
+c Average number of assigned literal to obtain decomposable AND nodes: 3783.40/4131
+c Minimum number of assigned variable where a decomposable AND appeared: 3680
+c 
+c [33mGraph Information[0m
+c Number of nodes: 21492008
+c Number of edges: 21544284
+c 
+c [1m[34mCache Information[0m
+c Memory used: 673 MB
+c
+c Number of positive hit: 375
+c Number of negative hit: 52282
+c Number of reduceCall: 0
+c
+c Final time: 42.854487
+c 
+s 0.000000
+D4 LOG: Elapsed time = 45.101 seconds
+D4 OUTCOME: normal
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2022_track1_120.cnf ./mc2022_track1_120.nnf ./mc2022_track1_120.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time = 0.00.  Read input file with 4131 variables and 10101 clauses
+c Read D4 NNF file with 156844 nodes (52290 explicit) and 104564 edges
+c Compressed POG has 79926 nodes, root literal 84057, and 21562782 defining clauses
+c GEN: Time = 4.91.  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 4.971 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 50.073 seconds
+OVERALL OUTCOME: normal

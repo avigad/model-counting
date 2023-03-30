@@ -215,9 +215,9 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     if useLean:
         extension = "lean_" + extension
     if stopD4:
-        extension = ".D4_" + extension
+        extension = "D4_" + extension
     if stopGen:
-        extension = ".d2p_" + extension
+        extension = "d2p_" + extension
     logName = root + "." + extension
     if not force and os.path.exists(logName):
             print("Already have file %s.  Skipping benchmark" % logName)

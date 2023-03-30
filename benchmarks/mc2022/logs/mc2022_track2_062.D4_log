@@ -1,0 +1,183 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_062.cnf -dDNNF -out=./mc2022_track2_062.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 1836
+c Number of clauses: 5394
+c Number of literals: 13786
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -80 
+c top 5: -80 -72 
+c top 5: -80 -72 -68 
+c top 5: -80 -72 -68 -66 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -80 -72 -68 66 
+c top 5: -80 -72 68 
+c top 5: -80 -72 68 -70 
+c top 5: -80 -72 68 70 
+c top 5: -80 72 
+c top 5: -80 72 -76 
+c top 5: -80 72 -76 -74 
+c top 5: -80 72 -76 74 
+c top 5: -80 72 76 
+c top 5: -80 72 76 -78 
+c top 5: -80 72 76 78 
+c top 5: 80 
+c top 5: 80 -88 
+c top 5: 80 -88 -84 
+c top 5: 80 -88 -84 -82 
+c top 5: 80 -88 -84 82 
+c top 5: 80 -88 84 
+c top 5: 80 -88 84 -86 
+c top 5: 80 -88 84 86 
+c top 5: 80 88 
+c top 5: 80 88 -92 
+c top 5: 80 88 -92 -90 
+c top 5: 80 88 -92 90 
+c top 5: 80 88 92 
+c top 5: 80 88 92 -94 
+c top 5: 80 88 92 94 
+c top 5: -119 
+c top 5: -119 -115 
+c top 5: -119 -115 -113 
+c top 5: -119 -115 113 
+c top 5: -119 115 
+c top 5: -119 115 -117 
+c top 5: -119 115 117 
+c top 5: 119 
+c top 5: 119 -123 
+c top 5: 119 -123 -121 
+c top 5: 119 -123 121 
+c top 5: 119 123 
+c top 5: 119 123 -125 
+c top 5: 119 123 125 
+c top 5: -150 
+c top 5: -150 -146 
+c top 5: -150 -146 -144 
+c top 5: -150 -146 144 
+c top 5: -150 146 
+c top 5: -150 146 -148 
+c top 5: -150 146 148 
+c top 5: 150 
+c top 5: 150 -154 
+c top 5: 150 -154 -152 
+c top 5: 150 -154 152 
+c top 5: 150 154 
+c top 5: 150 154 -156 
+c top 5: 150 154 156 
+c top 5: -253 
+c top 5: -253 -237 
+c top 5: -253 -237 -229 
+c top 5: -253 -237 -229 -225 
+c top 5: -253 -237 -229 225 
+c top 5: -253 -237 229 
+c top 5: -253 -237 229 -233 
+c top 5: -253 -237 229 233 
+c top 5: -253 237 
+c top 5: -253 237 -245 
+c top 5: -253 237 -245 -241 
+c top 5: -253 237 -245 241 
+c top 5: -253 237 245 
+c top 5: -253 237 245 -249 
+c top 5: -253 237 245 249 
+c top 5: 253 
+c top 5: 253 -269 
+c top 5: 253 -269 -261 
+c top 5: 253 -269 -261 -257 
+c top 5: 253 -269 -261 257 
+c top 5: 253 -269 261 
+c top 5: 253 -269 261 -265 
+c top 5: 253 -269 261 265 
+c top 5: 253 269 
+c top 5: 253 269 -277 
+c top 5: 253 269 -277 -273 
+c top 5: 253 269 -277 273 
+c top 5: 253 269 277 
+c top 5: 253 269 277 -281 
+c top 5: 253 269 277 281 
+c top 5: -286 
+c top 5: -286 -1011 
+c top 5: -286 -1011 -954 
+c top 5: -286 -1011 -954 -981 
+c      16384 |       1.32 |       4019 |       8303 |       1709 |        563 |     818497 |     827522 |          0 |       8204 |        1320 |          0 | 
+c top 5: -286 -1011 954 
+c top 5: -286 -1011 954 -1024 
+c unitLits 2097153 8388612 Bytes
+c top 5: -286 -1011 954 1024 
+c top 5: -286 1011 
+c top 5: -286 1011 -954 
+c top 5: -286 1011 -954 -1024 
+c      32768 |       3.35 |       8534 |      16522 |       4391 |        577 |    1759357 |    1777920 |          0 |      16391 |        3093 |          0 | 
+c top 5: -286 1011 -954 1024 
+c top 5: -286 1011 954 
+c top 5: -286 1011 954 -1024 
+c unitLits 3145729 12582916 Bytes
+c top 5: -286 1011 954 1024 
+c top 5: 286 
+c top 5: 286 -954 
+c top 5: 286 -954 -981 
+c top 5: 286 -954 -981 -1011 
+c      49152 |       5.37 |      13037 |      24792 |       6841 |        578 |    2645586 |    2673560 |          0 |      24589 |        4628 |          0 | 
+c top 5: 286 -954 -981 1011 
+c unitLits 4194305 16777220 Bytes
+c      65536 |       7.28 |      17337 |      33018 |       9392 |        582 |    3494119 |    3531565 |          0 |      32772 |        6241 |          0 | 
+c top 5: 286 954 
+c top 5: 286 954 -981 
+c top 5: 286 954 -981 -987 
+c unitLits 5242881 20971524 Bytes
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 77333
+c Number of split formula: 11102
+c Number of decision node: 38666
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 5549
+c Number of backbone calls: 0
+c Number of partitioner calls: 7341
+c Average number of assigned literal to obtain decomposable AND nodes: 948.03/1836
+c Minimum number of assigned variable where a decomposable AND appeared: 33
+c 
+c [33mGraph Information[0m
+c Number of nodes: 4174745
+c Number of edges: 4218964
+c 
+c [1m[34mCache Information[0m
+c Memory used: 586 MB
+c
+c Number of positive hit: 19914
+c Number of negative hit: 38933
+c Number of reduceCall: 0
+c
+c Final time: 8.859842
+c 
+s 0.000000
+D4 LOG: Elapsed time = 9.432 seconds
+D4 OUTCOME: normal
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2022_track2_062.cnf ./mc2022_track2_062.nnf ./mc2022_track2_062.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time = 0.00.  Read input file with 1836 variables and 5394 clauses
+c Read D4 NNF file with 122085 nodes (44485 explicit) and 88702 edges
+c Compressed POG has 113207 nodes, root literal 115043, and 4372298 defining clauses
+c GEN: Time = 1.05.  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 1.063 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 10.496 seconds
+OVERALL OUTCOME: normal

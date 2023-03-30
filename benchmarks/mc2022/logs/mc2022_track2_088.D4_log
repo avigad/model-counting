@@ -1,0 +1,125 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_088.cnf -dDNNF -out=./mc2022_track2_088.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 192958
+c Number of clauses: 499409
+c Number of literals: 1097815
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -28998 
+c top 5: -28998 -13170 
+c top 5: -28998 -13170 -13152 
+c top 5: -28998 -13170 -13152 35952 
+c unitLits 1048577 4194308 Bytes
+c top 5: -28998 -13170 13152 
+c top 5: -28998 -13170 13152 4497 
+c top 5: -28998 -13170 13152 4497 
+c top 5: 28998 
+c top 5: 28998 35787 
+c top 5: 28998 35787 -2713 
+c top 5: 28998 35787 -2713 -2953 
+c top 5: 28998 35787 -2713 2953 
+c top 5: 28998 35787 2713 
+c top 5: -134992 
+c top 5: -134992 -190284 
+c top 5: -134992 -190284 -134912 
+c top 5: -134992 -190284 -134912 -19457 
+c top 5: -134992 -190284 -134912 19457 
+c top 5: -134992 190284 
+c top 5: -134992 190284 -44534 
+c top 5: -134992 190284 -44534 -44552 
+c unitLits 2097153 8388612 Bytes
+c top 5: -134992 190284 -44534 44552 
+c top 5: -134992 190284 44534 
+c top 5: -134992 190284 44534 -19457 
+c top 5: -134992 190284 44534 19457 
+c unitLits 3145729 12582916 Bytes
+c top 5: -18724 
+c top 5: -18724 -3533 
+c top 5: -18724 -3533 -3509 
+c top 5: -18724 -3533 -3509 -18664 
+c top 5: -18724 -3533 -3509 -18664 
+c top 5: -18724 -3533 -3509 18664 
+c top 5: -18724 -3533 3509 
+c top 5: -18724 -3533 3509 -3507 
+c top 5: -18724 -3533 3509 3507 
+c top 5: -18724 -3533 3509 
+c top 5: -18724 -3533 3509 -3619 
+c top 5: -18724 -3533 3509 3619 
+c top 5: -18724 3533 
+c top 5: -18724 3533 -3509 
+c top 5: -18724 3533 -3509 -18664 
+c top 5: -18724 3533 -3509 18664 
+c top 5: -18724 3533 3509 
+c top 5: -18724 3533 3509 -3507 
+c top 5: -18724 3533 3509 3507 
+c top 5: 18724 
+c top 5: 18724 -3553 
+c top 5: 18724 -3553 -3533 
+c top 5: 18724 -3553 -3533 -3509 
+c top 5: 18724 -3553 -3533 3509 
+c top 5: 18724 -3553 3533 
+c top 5: 18724 -3553 3533 -3509 
+c top 5: 18724 -3553 3533 3509 
+c top 5: 18724 3553 
+c top 5: 18724 3553 -3533 
+c top 5: 18724 3553 -3533 -18696 
+c top 5: 18724 3553 -3533 18696 
+c top 5: 18724 3553 3533 
+c top 5: 18724 3553 3533 -3569 
+c top 5: 18724 3553 3533 3569 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 12733
+c Number of split formula: 2817
+c Number of decision node: 6366
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 1377
+c Number of backbone calls: 0
+c Number of partitioner calls: 678
+c Average number of assigned literal to obtain decomposable AND nodes: 185156.35/192958
+c Minimum number of assigned variable where a decomposable AND appeared: 166290
+c 
+c [33mGraph Information[0m
+c Number of nodes: 2219902
+c Number of edges: 2227708
+c 
+c [1m[34mCache Information[0m
+c Memory used: 856 MB
+c
+c Number of positive hit: 3334
+c Number of negative hit: 6377
+c Number of reduceCall: 0
+c
+c Final time: 5.399145
+c 
+s 0.000000
+D4 LOG: Elapsed time = 23.285 seconds
+D4 OUTCOME: normal
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2022_track2_088.cnf ./mc2022_track2_088.nnf ./mc2022_track2_088.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time = 0.32.  Read input file with 192958 variables and 499409 clauses
+c Read D4 NNF file with 20501 nodes (7757 explicit) and 15561 edges
+c Compressed POG has 19777 nodes, root literal 212735, and 2391713 defining clauses
+c GEN: Time = 1.95.  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 1.999 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 25.284 seconds
+OVERALL OUTCOME: normal
