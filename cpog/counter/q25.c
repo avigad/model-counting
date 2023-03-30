@@ -13,12 +13,15 @@
    Must fit into uint32_t
 */
 
-//#define Q25_DIGITS 9
-//#define Q25_RADIX (1000*1000*1000)
+#define DEBUG 0
+
+#define Q25_DIGITS 9
+#define Q25_RADIX (1000*1000*1000)
 
 // Stress test
-#define Q25_DIGITS 3
-#define Q25_RADIX (1000)
+//#define Q25_DIGITS 3
+//#define Q25_RADIX (1000)
+
 
 /*
   Maintain working area for building digit representations.
@@ -237,7 +240,9 @@ static q25_ptr q25_build(int id) {
 // Multiply by a number < RADIX
 // Assume multiplier is nonzero
 static void q25_mul_word(int id, uint32_t multiplier) {
+#if DEBUG
     printf("  Multiplying by %u\n", multiplier);
+#endif
     q25_check(id, working_val[id].dcount+1);
     if (multiplier == 1)
 	return;
@@ -449,11 +454,13 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
     /* Must move arguments into working area.  Build result with id 0 */
     q25_work(1, q1);
     q25_work(2, q2);
+#if DEBUG
     printf("  Working argument 1:");
     q25_show_internal(1, stdout);
     printf("\n  Working argument 2:");
     q25_show_internal(2, stdout);
     printf("\n");
+#endif
     int diff2 = working_val[1].pwr2 - working_val[2].pwr2;
     if (diff2 > 0) {
 	q25_scale_digits(1, true, diff2);
@@ -466,11 +473,13 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
     } else if (diff5 < 0) {
 	q25_scale_digits(2, false, -diff5);
     }
+#if DEBUG
     printf("  Scaled working argument 1:");
     q25_show_internal(1, stdout);
     printf("\n  Scaled working argument 2:");
     q25_show_internal(2, stdout);
     printf("\n");
+#endif
     if (working_val[1].negative == working_val[2].negative) {
 	unsigned ndcount = working_val[1].dcount;
 	if (working_val[2].dcount > ndcount)
@@ -517,9 +526,11 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
 	    }
 	}
     }
+#if DEBUG
     printf("  Working Sum:");
     q25_show_internal(WID, stdout);
     printf("\n");
+#endif
     return q25_build(WID);
 }
 
@@ -664,9 +675,11 @@ q25_ptr q25_read(FILE *infile) {
     working_val[WID].dcount = dcount;
     working_val[WID].pwr2 = pwr10;
     working_val[WID].pwr5 = pwr10;
+#if DEBUG
     printf("  Read value before canonizing: ");
     q25_show_internal(WID, stdout);
     printf("\n");
+#endif
     return q25_build(WID);
 }
 
@@ -691,9 +704,11 @@ void q25_write(q25_ptr q, FILE *outfile) {
     } else if (diff < 0) {
 	q25_scale_digits(WID, false, -diff);
     }
+#if DEBUG
     printf("  Scaled for printing: ");
     q25_show_internal(WID, stdout);
     printf("\n");
+#endif
     int n10 = q25_length10(WID);
     int p10 = working_val[WID].pwr2;
     int i;

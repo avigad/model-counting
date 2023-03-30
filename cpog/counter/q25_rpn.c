@@ -99,6 +99,37 @@ q25_ptr do_power5(q25_ptr q) {
     return result;
 }
 
+q25_ptr do_factorial(q25_ptr q) {
+    int64_t n;
+    bool ok = get_int64(q, &n);
+    if (!ok) {
+	if (verblevel >= 1) {
+	    printf("WARNING: Could not extract integer from representation ");
+	    q25_show(q, stdout);
+	    printf("\n");
+	}
+	return q25_invalid();
+    }
+    int in = (int) n;
+    if (verblevel >= 3) {
+	printf("  Extracted integer %d from representation ", in);
+	q25_show(q, stdout);
+	printf("\n");
+    }
+    q25_ptr fact = q25_from_32(1);
+    int i;
+    for (i = 2; i <= in; i++) {
+	q25_ptr qi = q25_from_32(i);
+	q25_ptr nfact = q25_mul(fact, qi);
+	q25_free(qi);
+	q25_free(fact);
+	fact = nfact;
+    }
+    show_result(fact, "Factorial");
+    return fact;
+}
+
+
 q25_ptr do_reciprocal(q25_ptr q) {
     q25_ptr result = q25_recip(q);
     show_result(result, "Reciprocal");
@@ -213,6 +244,13 @@ bool do_line() {
 		return false;
 	    q1 = result_stack[--stack_count];
 	    q = do_reciprocal(q1);
+	    result_stack[stack_count++] = q;
+	    break;
+	case '!':
+	    if (!stack_ok(1))
+		return false;
+	    q1 = result_stack[--stack_count];
+	    q = do_factorial(q1);
 	    result_stack[stack_count++] = q;
 	    break;
 	case '+':
