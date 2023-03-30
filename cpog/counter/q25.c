@@ -12,8 +12,13 @@
    Number of decimal digits in word.
    Must fit into uint32_t
 */
-#define Q25_DIGITS 9
-#define Q25_RADIX (1000*1000*1000)
+
+//#define Q25_DIGITS 9
+//#define Q25_RADIX (1000*1000*1000)
+
+// Stress test
+#define Q25_DIGITS 3
+#define Q25_RADIX (1000)
 
 /*
   Maintain working area for building digit representations.
@@ -52,6 +57,7 @@ static void q25_canonize(int id);
 static void q25_set(int id, uint32_t x);
 // Make sure enough digits in working space
 static void q25_check(int id, unsigned dcount);
+static void q25_show_internal(int id, FILE *outfile);
 
 /* Static functions */
 
@@ -231,6 +237,7 @@ static q25_ptr q25_build(int id) {
 // Multiply by a number < RADIX
 // Assume multiplier is nonzero
 static void q25_mul_word(int id, uint32_t multiplier) {
+    printf("  Multiplying by %u\n", multiplier);
     q25_check(id, working_val[id].dcount+1);
     if (multiplier == 1)
 	return;
@@ -243,7 +250,7 @@ static void q25_mul_word(int id, uint32_t multiplier) {
     }
     // See if upper digit set to 0
     if (upper > 0) {
-	working_val[id].dcount = upper;
+	digit_buffer[id][d] = upper;
 	working_val[id].dcount++;
     }
 }
@@ -442,18 +449,28 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
     /* Must move arguments into working area.  Build result with id 0 */
     q25_work(1, q1);
     q25_work(2, q2);
+    printf("  Working argument 1:");
+    q25_show_internal(1, stdout);
+    printf("\n  Working argument 2:");
+    q25_show_internal(2, stdout);
+    printf("\n");
     int diff2 = working_val[1].pwr2 - working_val[2].pwr2;
     if (diff2 > 0) {
-	q25_scale_digits(2, true, diff2);
+	q25_scale_digits(1, true, diff2);
     } else if (diff2 < 0) {
-	q25_scale_digits(1, true, -diff2);
+	q25_scale_digits(2, true, -diff2);
     }
     int diff5 = working_val[1].pwr5 - working_val[2].pwr5;
     if (diff5 > 0) {
-	q25_scale_digits(2, false, diff5);
+	q25_scale_digits(1, false, diff5);
     } else if (diff5 < 0) {
-	q25_scale_digits(1, false, -diff5);
+	q25_scale_digits(2, false, -diff5);
     }
+    printf("  Scaled working argument 1:");
+    q25_show_internal(1, stdout);
+    printf("\n  Scaled working argument 2:");
+    q25_show_internal(2, stdout);
+    printf("\n");
     if (working_val[1].negative == working_val[2].negative) {
 	unsigned ndcount = working_val[1].dcount;
 	if (working_val[2].dcount > ndcount)
@@ -461,6 +478,9 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
 	ndcount += 1;
 	q25_set(WID, 0);
 	working_val[WID].negative = working_val[1].negative;
+	working_val[WID].pwr2 = working_val[1].pwr2;
+	working_val[WID].pwr5 = working_val[1].pwr5;
+	working_val[WID].dcount = ndcount;
 	q25_clear_digits(WID, ndcount);
 	uint32_t carry = 0;
 	int d;
@@ -497,6 +517,9 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
 	    }
 	}
     }
+    printf("  Working Sum:");
+    q25_show_internal(WID, stdout);
+    printf("\n");
     return q25_build(WID);
 }
 
@@ -635,11 +658,15 @@ q25_ptr q25_read(FILE *infile) {
     if (extra_count > 0) {
 	unsigned scale = Q25_DIGITS-extra_count;
 	unsigned multiplier = power10[scale];
-	digit_buffer[WID][dcount-1] *= multiplier;
+	digit_buffer[WID][0] *= multiplier;
 	pwr10 -= scale;
     }
+    working_val[WID].dcount = dcount;
     working_val[WID].pwr2 = pwr10;
     working_val[WID].pwr5 = pwr10;
+    printf("  Read value before canonizing: ");
+    q25_show_internal(WID, stdout);
+    printf("\n");
     return q25_build(WID);
 }
 
@@ -664,6 +691,9 @@ void q25_write(q25_ptr q, FILE *outfile) {
     } else if (diff < 0) {
 	q25_scale_digits(WID, false, -diff);
     }
+    printf("  Scaled for printing: ");
+    q25_show_internal(WID, stdout);
+    printf("\n");
     int n10 = q25_length10(WID);
     int p10 = working_val[WID].pwr2;
     int i;
