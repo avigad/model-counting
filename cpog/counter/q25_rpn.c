@@ -2,17 +2,17 @@
 
 /* 
    Unary operators:
-   ~: Negation
-   !: Factorial
-   /: Reciprocal
-   f: Power of 5
-   t: Power of 2
-   F: Fibonacci
+   ~ Negation
+   ! Factorial
+   / Reciprocal
+   f Power of 5
+   t Power of 2
+   : Compare.  Returns -1 (less), 0 (equal), or 1 (greater)
 
    Binary operators:
-   +: Addition
-   *: Multiplication
-   B: Binomial coefficient
+   + Addition
+   * Multiplication
+
 
  */
 
@@ -149,6 +149,13 @@ q25_ptr do_add(q25_ptr q1, q25_ptr q2) {
     return result;
 }
 
+q25_ptr do_compare(q25_ptr q1, q25_ptr q2) {
+    int comp = q25_compare(q1, q2);
+    q25_ptr result = q25_from_32((int32_t) comp);
+    show_result(result, "Comparison");
+    return result;
+}
+
 q25_ptr result_stack[1000];
 int stack_count = 0;
 
@@ -251,6 +258,14 @@ bool do_line() {
 		return false;
 	    q1 = result_stack[--stack_count];
 	    q = do_factorial(q1);
+	    result_stack[stack_count++] = q;
+	    break;
+	case ':':
+	    if (!stack_ok(2))
+		return false;
+	    q2 = result_stack[--stack_count];
+	    q1 = result_stack[--stack_count];
+	    q = do_compare(q1, q2);
 	    result_stack[stack_count++] = q;
 	    break;
 	case '+':

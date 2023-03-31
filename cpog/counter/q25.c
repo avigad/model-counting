@@ -277,7 +277,9 @@ static void q25_scale_digits(int id, bool p2, int pwr) {
 }
 
 /* 
-   Compare two working numbers.  Return -1 (q1<q2), 0 (q1=q2), or +1 (q1>q2)
+   Compare two working numbers.
+   Must have already been scaled so that both numbers have same values for pwr2 & pwr5
+   Return -1 (q1<q2), 0 (q1=q2), or +1 (q1>q2)
    Return -2 if either invalid
 */
 static int q25_compare_working_magnitude(int id1, int id2) {
@@ -435,18 +437,22 @@ int q25_compare(q25_ptr q1, q25_ptr q2) {
 	// Swap two, so that can compare digits
 	q25_ptr qt = q1; q1 = q2; q2 = qt;
     }
-    if (q1->dcount < q2->dcount)
-	return -1;
-    if (q1->dcount > q2->dcount)
-	return 1;
-    int d;
-    for (d = q1->dcount-1; d >= 0; d--) {
-	if (q1->digit[d] < q2->digit[d])
-	    return -1;
-	if (q1->digit[d] > q2->digit[d])
-	    return 1;
+    /* Must move arguments into working area so that can scale */
+    q25_work(1, q1);
+    q25_work(2, q2);
+    int diff2 = working_val[1].pwr2 - working_val[2].pwr2;
+    if (diff2 > 0) {
+	q25_scale_digits(1, true, diff2);
+    } else if (diff2 < 0) {
+	q25_scale_digits(2, true, -diff2);
     }
-    return 0;
+    int diff5 = working_val[1].pwr5 - working_val[2].pwr5;
+    if (diff5 > 0) {
+	q25_scale_digits(1, false, diff5);
+    } else if (diff5 < 0) {
+	q25_scale_digits(2, false, -diff5);
+    }
+    return q25_compare_working_magnitude(1, 2);
 }
 
 
@@ -697,7 +703,7 @@ void q25_write(q25_ptr q, FILE *outfile) {
 	fputc('-', outfile);
     q25_work(WID, q);
 
-    // Git rid of negative powers
+    // Scale so that pwr2 = pwr5
     int diff = working_val[WID].pwr2 - working_val[WID].pwr5;
     if (diff > 0) {
 	q25_scale_digits(WID, true, diff);
