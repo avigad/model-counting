@@ -492,6 +492,7 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
 	    ndcount = working_val[2].dcount;
 	ndcount += 1;
 	q25_set(WID, 0);
+	q25_check(WID, ndcount);
 	working_val[WID].negative = working_val[1].negative;
 	working_val[WID].pwr2 = working_val[1].pwr2;
 	working_val[WID].pwr5 = working_val[1].pwr5;
@@ -515,6 +516,10 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
 	    int tid = diff < 0 ? 2 : 1;
 	    int bid = diff < 0 ? 1 : 2;
 	    working_val[WID].negative = working_val[tid].negative;
+	    working_val[WID].pwr2 = working_val[1].pwr2;
+	    working_val[WID].pwr5 = working_val[1].pwr5;
+	    working_val[WID].dcount = working_val[tid].dcount;
+	    q25_check(WID, working_val[tid].dcount);
 	    q25_clear_digits(WID, working_val[tid].dcount);
 	    int32_t borrow = 0;
 	    int d;
