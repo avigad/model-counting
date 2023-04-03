@@ -1456,7 +1456,7 @@ void cpog_read(char *fname) {
 	    cpog_add_clause(cid);
 	else if (strcmp(token_last, "r") == 0)
 	    cpog_read_root();
-	else if (strcmp(token_last, "dc") == 0)
+	else if (strcmp(token_last, "dc") == 0 || strcmp(token_last, "d") == 0)
 	    cpog_delete_clause();
  	else if (strcmp(token_last, "p") == 0)
 	    cpog_add_product(cid);
