@@ -1579,7 +1579,8 @@ bool cnf_read_weights(char *fname) {
 		if (ok)
 		    found_wmc = true;
 	    }
-	    token_find_eol();
+	    if (token != TOK_EOL)
+		token_find_eol();
 	} else if (token_last[0] == 'p') {
 	    if (found_wmc) {
 		token_find_eol();
@@ -1616,7 +1617,8 @@ bool cnf_read_weights(char *fname) {
 	    ok = ok && token == TOK_INT;
 	    ok = ok && skip_space();
 	    if (!ok) {
-		token_find_eol();
+		if (token != TOK_EOL)
+		    token_find_eol();
 		continue;
 	    }
 	    int lit = token_value;
@@ -1677,7 +1679,7 @@ bool cnf_read_weights(char *fname) {
     }
     free(positive_weights);
     free(negative_weights);
-    data_printf(1, "Read weights from CNF file\n", input_variable_count, input_clause_count);
+    data_printf(2, "Read weights from CNF file\n", input_variable_count, input_clause_count);
     return true;
 }
 
