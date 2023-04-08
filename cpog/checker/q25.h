@@ -26,6 +26,9 @@ typedef struct {
 
 void q25_free(q25_ptr q);
 
+/* Make a fresh copy of number */
+q25_ptr q25_copy(q25_ptr q);
+
 /* Convert numbers to q25 form */
 q25_ptr q25_from_64(int64_t x);
 q25_ptr q25_from_32(int32_t x);
@@ -45,10 +48,13 @@ q25_ptr q25_negate(q25_ptr q);
 q25_ptr q25_recip(q25_ptr q);
 
 /* Is it valid */
-bool q25_valid(q25_ptr q);
+bool q25_is_valid(q25_ptr q);
 
 /* Is it zero */
 bool q25_is_zero(q25_ptr q);
+
+/* Is it one */
+bool q25_is_one(q25_ptr q);
 
 /* 
    Compare two numbers.  Return -1 (q1<q2), 0 (q1=q2), or +1 (q1>q2)
@@ -58,6 +64,9 @@ int q25_compare(q25_ptr q1, q25_ptr q2);
 
 /* Addition */
 q25_ptr q25_add(q25_ptr q1, q25_ptr q2);
+
+/* Compute 1-x */
+q25_ptr q25_one_minus(q25_ptr q);
 
 /* Multiplication */
 q25_ptr q25_mul(q25_ptr q1, q25_ptr q2);

@@ -387,6 +387,10 @@ q25_ptr q25_invalid() {
     return q25_build(WID);
 }
 
+q25_ptr q25_copy(q25_ptr q) {
+    q25_work(WID, q);
+    return q25_build(WID);
+}
 
 q25_ptr q25_scale(q25_ptr q, int32_t p2, int32_t p5) {
     q25_work(WID, q);
@@ -414,13 +418,19 @@ q25_ptr q25_recip(q25_ptr q) {
     return q25_build(WID);
 }
 
-bool q25_valid(q25_ptr q) {
+bool q25_is_valid(q25_ptr q) {
     return q->valid;
 }
 
 bool q25_is_zero(q25_ptr q) {
-    return q->valid && q->dcount == 0 && q->digit[0] == 0;
+    return q->valid && q->dcount == 1 && q->digit[0] == 0;
 }
+
+bool q25_is_one(q25_ptr q) {
+    return q->valid && q->dcount == 1 && q->digit[0] == 1 
+	&& q->pwr2 == 0 && q->pwr5 == 0;
+}
+
 
 /* 
    Compare two numbers.  Return -1 (q1<q2), 0 (q1=q2), or +1 (q1>q2)
@@ -545,11 +555,23 @@ q25_ptr q25_add(q25_ptr q1, q25_ptr q2) {
     return q25_build(WID);
 }
 
+q25_ptr q25_one_minus(q25_ptr q) {
+    q25_ptr one = q25_from_32(1);
+    if (q25_is_zero(q))
+	return one;
+    /* Hack.  Temporarily negate argument */
+    q->negative = !q->negative;
+    q25_ptr sum = q25_add(one, q);
+    q->negative = !q->negative;
+    q25_free(one);
+    return sum;
+}
+
 q25_ptr q25_mul(q25_ptr q1, q25_ptr q2) {
     if (q25_is_zero(q1) || !q1->valid)
-	return q1;
+	return q25_copy(q1);
     if (q25_is_zero(q2) || !q2->valid)
-	return q2;
+	return q25_copy(q2);
     q25_set(WID, 0);
     // Figure out sign
     working_val[WID].negative = (q1->negative != q2->negative);
@@ -703,7 +725,7 @@ void q25_write(q25_ptr q, FILE *outfile) {
 	fprintf(outfile, "0");
 	return;
     }    
-    // Print the sign
+
     if (q->negative)
 	fputc('-', outfile);
     q25_work(WID, q);
