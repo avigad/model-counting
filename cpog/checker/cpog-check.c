@@ -1525,8 +1525,6 @@ q25_ptr ring_evaluate(q25_ptr *input_weights) {
 		q25_free(cval);
 	    val = nval;
 	}
-	if (np->ring_value != NULL) 
-	    q25_free(np->ring_value);
 	np->ring_value = val;
 	if (verb_level >= 3) {
 	    info_printf(3, "Ring value for node %d: ", np->id);
@@ -1534,7 +1532,13 @@ q25_ptr ring_evaluate(q25_ptr *input_weights) {
 	    printf("\n");
 	}
     }
-    return q25_copy(val);
+    val = q25_copy(val);
+    for (id = input_variable_count+1; id <= declared_root; id++) {
+	node_t *np = node_find(id);
+	q25_free(np->ring_value);
+	np->ring_value = NULL;
+    }
+    return val;
 }
 
 q25_ptr count_regular() {
