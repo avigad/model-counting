@@ -1057,7 +1057,7 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
   SAT solver, and then converting the generated unsatisfiability proof
   into a sequence of clause additions in the CPOG file.
 \item For a single nonterminal child ($k = 1$), we recursively call
-  $\validate \left(\nodeu_1, \passign \cup \bigcup_{\lit \in L} \lit, \psi\right)$.
+  $\validate \left(\nodeu_1, \passign \cup L, \psi\right)$.
 \item For multiple nonterminal children ($k > 1$),
   it must be the case that the clauses in
   $\gamma = \simplify{\psi}{\passign}$ can be partitioned into $k$ subsets
@@ -1067,7 +1067,7 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
   literals.
   For each $i$ such that $1 \leq i \leq k$, let $\psi_i = \prov_{\passign}(\gamma_i, \psi)$, i.e., those input clauses in $\psi$ that, when simplified, became clause partition $\gamma_i$.
   We recursively call
-  $\validate \left(\nodeu_i, \passign \cup \bigcup_{\lit \in L} \lit, \psi_i\right)$.
+  $\validate \left(\nodeu_i, \passign \cup L, \psi_i\right)$.
 \end{enumerate}
   We then generate the target clause for node $\nodeu$,
 creating the hint by combining the results from the BCP and SAT calls for
