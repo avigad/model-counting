@@ -1045,10 +1045,10 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
 (see Table~\ref{tab:defining}(B))
   to generate the target clause for $\nodeu$.
 \item If $\nodeu$ is a product node, then we can divide its children
-  into a set of literal nodes $L$ and a set of nonterminal nodes $\nodeu_1, \nodeu_2, \ldots, \nodeu_k$.
+  into a set of literal nodes $\lambda$ and a set of nonterminal nodes $\nodeu_1, \nodeu_2, \ldots, \nodeu_k$.
   \begin{enumerate}
     \item For each literal
-  $\lit \in L$, we must prove that any total assignment $\alpha$, such that
+  $\lit \in \lambda$, we must prove that any total assignment $\alpha$, such that
   $\passign \subset \alpha$ has $\alpha(\lit) = 1$.  In some
   cases, this can be done by simple Boolean constraint propagation (BCP).
   In other cases, we must prove that the formula
@@ -1057,7 +1057,7 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
   SAT solver, and then converting the generated unsatisfiability proof
   into a sequence of clause additions in the CPOG file.
 \item For a single nonterminal child ($k = 1$), we recursively call
-  $\validate \left(\nodeu_1, \passign \cup L, \psi\right)$.
+  $\validate \left(\nodeu_1, \passign \cup \lambda, \psi\right)$.
 \item For multiple nonterminal children ($k > 1$),
   it must be the case that the clauses in
   $\gamma = \simplify{\psi}{\passign}$ can be partitioned into $k$ subsets
@@ -1067,7 +1067,7 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
   literals.
   For each $i$ such that $1 \leq i \leq k$, let $\psi_i = \prov_{\passign}(\gamma_i, \psi)$, i.e., those input clauses in $\psi$ that, when simplified, became clause partition $\gamma_i$.
   We recursively call
-  $\validate \left(\nodeu_i, \passign \cup L, \psi_i\right)$.
+  $\validate \left(\nodeu_i, \passign \cup \lambda, \psi_i\right)$.
 \end{enumerate}
   We then generate the target clause for node $\nodeu$,
 creating the hint by combining the results from the BCP and SAT calls for
@@ -1145,7 +1145,7 @@ Appendix~\ref{app:optimizations} provides more details.
 
 {\em Literal Grouping:} A single recursive step of $\validate$ can encounter product nodes
 having many---tens or even hundreds---of literals as children.  The
-earlier formulation of $\validate$ considers each literal $\lit \in L$
+earlier formulation of $\validate$ considers each literal $\lit \in \lambda$
 separately, calling a SAT solver for every literal that cannot be
 validated with BCP\@.  Literal grouping handles
 all of these literals together.  It defines product node $\nodev$
@@ -1518,7 +1518,7 @@ of the POG representation.
 
 A single recursive step of $\validate$ can encounter product nodes
 having many literals as children.  The naive formulation of $\validate$
-considers each literal $\lit \in L$ separately.
+considers each literal $\lit \in \lambda$ separately.
 Literal grouping allows all literals to be validated with a single call to a SAT solver.
 It collects those literals
 $\lit_1, \lit_2, \ldots, \lit_m$ that cannot be validated by BCP and defines a
