@@ -2,19 +2,31 @@
 \centering{%
 \begin{tikzpicture}[scale = 0.70]
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10},
-                              x post scale=1.8, y post scale=2.15,
-                              xmode=log,xmin=100,xmax=1000000000, 
-                              xtick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, xticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$}                              ymode=log, ymin=100, ymax=1000000000, 
-                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+      legend style={at={(0.92,0.28)}},
+      legend cell align={left},
+                              x post scale=1.9, y post scale=2.10,
+                              xmode=log,xmin=100,xmax=1e10, 
+                              xtick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 1e10}, 
+                              xticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$, $10^{10}$},
+                              ymode=log, ymin=100, ymax=2000000000, 
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000},
+                              yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
                               xlabel={Defining Clauses}, ylabel={Proof Clauses},
-%                              title={D4 Defining Clause Generation}
             ]
+    \input{data-formatted/defining+total}
+    \input{data-formatted/clauses-defining-onesided}
+    \input{data-formatted/clauses-defining-failure}
+    \legend{
+      \scriptsize \textsf{Full validation},
+      \scriptsize \textsf{One-sided validation},
+      \scriptsize \textsf{No validation},
+    }
     \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,1000) (1e8,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,10000) (1e7,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,100000) (1e6,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,1000000) (1e5,1e9)};
-    \input{data-formatted/defining+total}
+    \addplot[color=black,dashed] coordinates{(1e2,1.5e9) (1e10,1.5e9)};
     \node[left] at (axis cs: 900,1200) {$1\times$};
     \node[left] at (axis cs: 900,12000) {$10\times$};
     \node[left] at (axis cs: 900,120000) {$100\times$};

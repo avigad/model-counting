@@ -24,6 +24,8 @@ rdata:
 	cp -p $(LDATA)/time-d4-verify-onesided-only.csv $(SRCDATA)
 	cp -p $(LDATA)/time-d4-failure.csv $(SRCDATA)
 	cp -p $(LDATA)/defining+total.csv $(SRCDATA)
+	cp -p $(LDATA)/clauses-defining-onesided.csv $(SRCDATA)
+	cp -p $(LDATA)/clauses-defining-failure.csv $(SRCDATA)
 	cp -p $(LDATA)/times.csv $(SRCDATA)
 	cp -p $(LDATA)/clauses-lemma-nolemma.csv $(SRCDATA)
 	cp -p $(LDATA)/clauses-nosplit-split.csv $(SRCDATA)
@@ -47,6 +49,10 @@ pdata:
 		< $(SRCDATA)/time+defining-failure.csv > data-formatted/time+defining-failure.tex
 	$(DGEN) -X 2 -Y 5 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/time-d4-verify.csv > data-formatted/time-d4-verify.tex
+	$(DGEN) -x 3000000000 -X 2 -y 5000000000 -Y 5 -O "only marks, color=bluegray, mark=square*, mark options={scale=0.8}, opacity=0.7" \
+		< $(SRCDATA)/clauses-defining-onesided.csv > data-formatted/clauses-defining-onesided.tex
+	$(DGEN) -x 3000000000 -X 2 -y 5000000000 -Y 4 -O "only marks, color=darkgreen, mark=diamond*, mark options={scale=1.1}, opacity=0.7" \
+		< $(SRCDATA)/clauses-defining-failure.csv > data-formatted/clauses-defining-failure.tex
 #	$(DGEN) -X 2 -Y 5 -O "only marks, color=bluegray, mark=square*,  mark options={scale=0.8}, opacity=0.7" \
 #		< $(SRCDATA)/time-d4-verify-onesided.csv > data-formatted/time-d4-verify-onesided.tex
 	$(DGEN) -X 2 -Y 6 -O "only marks, color=bluegray, mark=square*,  mark options={scale=0.8}, opacity=0.7" \
