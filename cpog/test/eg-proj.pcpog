@@ -29,10 +29,6 @@ c Justify node N6_AND, assuming literal 4
 c Justify node N7_OR
 16 a 4 7 0 12 14 0
 17 a 7 0 16 13 15 0
-c Delete all but final asserted clause
-dc 16 12 14 0 
-dc 15 1 2 7 0 
-dc 14 3 4 0 
 
 c Operation N8_AND
 18 p 8 1 2 3 0
@@ -60,14 +56,19 @@ c 28: -11 -9 10 0
 c 29: 11   9 0
 c 30: 11 -10 0
 c Justify node N10_AND, assuming literal 4
-31 a 10 -4 0 1 2 25 0
+31 a 10 -4 0 15 9 10 25 0
 c Justify ~N9_AND, assuming literal -4 & !N10_AND
-32 a -9 4 10 0 3 22 19 20 25 0
+32 a -9 4 10 0 14 6 22 19 20 25 0
 c Justify root node S11_OR
 33 a 11 0 29 30 31 32 0
 c Delete asserted clauses
-d 32  3 22 19 20 25 0
-d 31  1 2 25 0
+d 32 14 6 22 19 20 25 0
+d 31 15 9 10 25 0
+
+c Delete all but final asserted clause
+dc 16 12 14 0 
+dc 15 1 2 7 0 
+dc 14 3 4 0 
 
 c Delete input clauses
 dc 1 17 5 9 11 0 
