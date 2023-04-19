@@ -62,10 +62,10 @@ c Justify ~N9_AND, assuming literal -4 & !N10_AND
 c Justify root node S11_OR
 33 a 11 0 29 30 31 32 0
 c Delete asserted clauses
-d 32 14 6 22 19 20 25 0
-d 31 15 9 10 25 0
+dc 32 14 6 22 19 20 25 0
+dc 31 15 9 10 25 0
 
-c Delete all but final asserted clause
+c Delete clauses from justification of N7_OR
 dc 16 12 14 0 
 dc 15 1 2 7 0 
 dc 14 3 4 0 
@@ -75,10 +75,36 @@ dc 1 17 5 9 11 0
 dc 2 17 5 10 11 0 
 dc 3 17 6 8 11 0 
 
-c Here's where things are tricky.
-c The goal is to delete clause #17 (unit clause for 7)
-c based on the presence of clause #33 (unit clause for 11)
-c BUT, there's a discrepancy when x1=1, x2=1, x3=0, x4=0
-c This will give N11=1, but N7=0
-c On the other hand, assignment x1=1, x2=1, x3=0, x4=1 
-c has the same assignment for the data variables and gives N11 = N7 = 1
+c C1: y --> p10
+34 a -4 10 0 17 5 11 9 10 25 0
+c y & p10 --> s7
+35 a -4 -10 7 0 26 27 7 13 0
+c y --> s7
+36 a -4 7 0 34 35 0
+
+c C0: ~y --> x3
+37 a 4 3 0 17 6 8 11 0
+c ~y & x3 --> s7
+38 a 4 -3 7 0 4 12 0
+c ~y --> s7
+39 a 4 7 0 37 38 0
+
+c Delete [s7]
+dc 17 36 39 0
+
+c Delete helper clauses
+dc 39 37 38 0
+dc 38 4 12 0
+dc 36 34 35 0
+dc 35 26 27 7 13 0
+
+c Delete operations
+do 7
+do 5
+do 6
+
+c Combine C1 & C0
+40 a 10 3 0 34 37 0
+c Here we could delete 34 & 37 by existential elimination
+
+dc 40 33 28 23 0
