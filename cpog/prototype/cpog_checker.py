@@ -108,7 +108,7 @@ def resolve(lits1, lits2):
                 incr2 = True
             else:
                 return None
-        elif -abs(l1) < -abs(l2):
+        elif -abs(h1) < -abs(h2):
             result.append(h1)
             incr1 = True
         else:
@@ -118,8 +118,8 @@ def resolve(lits1, lits2):
             lits1 = lits1[1:]
         if incr2:
             lits2 = lits2[1:]
-    result.append(lits1)
-    result.append(lits2)
+    result += lits1
+    result += lits2
     if resVar is None:
         return None
     return tuple(result)
@@ -310,7 +310,7 @@ class P52:
 class CnfReader():
     file = None
     weights = None
-    projectionVariables = set([])
+    showVariables = None
     clauses = []
     # List of input variables.
     nvar = 0
@@ -321,7 +321,7 @@ class CnfReader():
         self.failed = False
         self.errorMessage = ""
         self.weights = None
-        self.projectionVariables = set([])
+        self.showVariables = None
         try:
             self.file = open(fname, 'r')
         except Exception:
@@ -335,30 +335,64 @@ class CnfReader():
         self.failed = True
         self.errorMessage = msg
 
+    def processWeight(self, fields):
+        try:
+            lit = int(fields[3])
+        except:
+            msg = "Couldn't parse '%s' as literal" % fields[3]
+            self.fail(msg)
+            return
+        try:
+            wt = P52().parse(fields[4])
+        except Exception as ex:
+            msg = "Couldn't extract weight from '%s' (%s)" % (fields[4], str(ex))
+            self.fail(msg)
+            return
+        if lit > 0:
+            self.weights[lit] = wt
+        elif -lit in self.weights:
+            pwt = self.weights[-lit]
+            if wt.add(pwt) != P52(1):
+                msg = "Noncomplementary weights: w(%d) = %s, w(%d) = %s" % (-lit, pwt.render(), lit, wt.render())
+                self.fail(msg)
+                return
+
+
+    def processShow(self, fields):
+        for s in fields[3:-1]:
+            try:
+                var = int(s)
+            except:
+                msg = "Couldn't parse '%s' as number" % s
+                self.fail(msg)
+                return
+            if var < 1 or var > self.nvar:
+                msg = "Invalid input variable %d" % var
+                self.fail(msg)
+                return
+            self.showVariables.add(var)
+
     # See if there's anything interesting in the comment
     def processComment(self, line):
-        if self.weights is None:
-            if self.nvar > 0:
-                # Already past point where weight header will show up
-                return
+        if self.nvar == 0:
             fields = line.split()
-            if len(fields) == 3 and fields[1] == 't' and fields[2] == 'wmc':
+            if self.weights is None and len(fields) == 3 and fields[1] == 't' and fields[2] in ['wmc', 'pwmc']:
                 self.weights = {}
+            if len(fields) == 3 and fields[1] == 't' and fields[2] in ['pmc', 'pwmc']:
+                self.showVariables = set([])
         else:
             fields = line.split()
-            if len(fields) == 6 and fields[1] == 'p' and fields[2] == 'weight':
-                lit = int(fields[3])
-                wt = P52().parse(fields[4])
-                if lit > 0:
-                    self.weights[lit] = wt
-                elif -lit in self.weights:
-                    pwt = self.weights[-lit]
-                    if wt.add(pwt) != P52(1):
-                        msg = "Noncomplementary weights: w(%d) = %s, w(%d) = %s" % (-lit, pwt.render(), lit, wt.render())
-                        self.fail(msg)
-                        return
-                
+            if self.weights is not None and len(fields) == 6 and fields[1] == 'p' and fields[2] == 'weight':
+                self.processWeight(fields)
+            if self.showVariables is not None and len(fields) >= 3 and fields[1] == 'p' and fields[2] == 'show':
+                self.processShow(fields)
 
+
+    def projectionVariables(self):
+        if self.showVariables is None:
+            return set([])
+        allVars = set([v for v in range(1, self.nvar+1)])
+        return allVars - self.showVariables
 
     def readCnf(self):
         self.nvar = 0
@@ -894,25 +928,28 @@ class OperationManager:
         return (True, "")
 
     def deleteVariable(self, projVar, resolventIds):
-        if projVar not in self.projectionVariables:
+        if projVar not in self.cmgr.projectionVariables:
             return (False, "Variable %d not a projection variable" % projVar)
-        self.projectionVariables.remove(projVar)
+        self.cmgr.projectionVariables.remove(projVar)
         # Compute all resolvents:
         trueResolvents = []
-        for pcid in self.literalSetDict[projVar]:
-            plits, msg = self.findClause(pcid)
+        deleteIds = []
+        for pcid in self.cmgr.literalSetDict[projVar]:
+            plits, msg = self.cmgr.findClause(pcid)
             if plits is None:
                 continue
-            self.deleteClause(pcid)
-            for ncid in self.clauseSetDict[-projVar]:
-                nlits, msg = self.findClause(ncid)
+            deleteIds.append(pcid)
+            for ncid in self.cmgr.literalSetDict[-projVar]:
+                nlits, msg = self.cmgr.findClause(ncid)
                 if nlits is None:
                     continue
-                self.deleteClause(ncid)
+                deleteIds.append(ncid)
                 resolvent = resolve(plits, nlits)
                 if resolvent is not None:
                     trueResolvents.append(resolvent)
-        expectedResolvents = [self.findClause(id) for id in resolventIds]
+        for id in deleteIds:
+            self.cmgr.deleteClause(id)
+        expectedResolvents = [self.cmgr.findClause(id)[0] for id in resolventIds]
         expectedResolvents = [lits for lits in expectedResolvents if lits is not None]
         ok = True
         msg = ""
@@ -996,13 +1033,13 @@ class Prover:
     def __init__(self, creader, verbose = False, laxMode = False, requireHintsMode=False, countMode=False, cpogWriter=None):
         self.verbose = verbose
         self.lineNumber = 0
-        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode, requireHintsMode, countMode, creader.projectionVariables)
+        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode, requireHintsMode, countMode, creader.projectionVariables())
         self.omgr = OperationManager(self.cmgr, creader.nvar)
         self.countMode = countMode
         self.cpogWriter = cpogWriter
         self.failed = False
         self.subsetOK = False
-        self.ruleCounters = { 'i' : 0, 'r' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0 }
+        self.ruleCounters = { 'i' : 0, 'r' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0, 'dv' : 0 }
 
         id = 0
         for clause in creader.clauses:
@@ -1256,12 +1293,12 @@ class Prover:
         except:
             self.flagError("Invalid operand '%s' to variable deletion" % rest[0])
             return
-        (resolvents, rest) = self.findList(rest, starOk = False)
+        (resolvents, rest) = self.findList(rest[1:], starOk = False)
         if self.failed:
             return
         (ok, msg) = self.omgr.deleteVariable(projVar, resolvents)
         if not ok:
-            self.flagError("Could not delete operation %d: %s" % (outVar, msg))
+            self.flagError("Could not delete operation %d: %s" % (projVar, msg))
 
 
     def failProof(self, reason):
