@@ -21,20 +21,20 @@
 ########################################################################################
 
 
-# Checker for CRAT POG.
+# Checker for CPOG.
 import sys
 import getopt
 import datetime
 
 def usage(name):
-    print("Usage: %s [-v] [-L] [-C] [-H] -i FILE.cnf -p FILE.crat [-w W1:W2:...:Wn] [-o FILE.crat]" % name)
+    print("Usage: %s [-v] [-L] [-C] [-H] -i FILE.cnf -p FILE.cpog [-w W1:W2:...:Wn] [-o FILE.cpog]" % name)
     print("   -v VLEVEL    Set verbosity level (0-3)")
     print("   -L           Lax mode: Don't attempt validation of *'ed hints")
-    print("   -C           Count-only mode.  Don't check logial operations")
+    print("   -C           Count-only mode.  Don't check logical operations")
     print("   -H           Hints-required mode: Don't allow *'ed hints")
     print("   -w WEIGHTS   Provide colon-separated set of input weights.")
     print("                Each should be between 0 and 100 (will be scaled by 1/100)")
-    print("   -o FILE.crat Produce CRAT output file with all hints present")
+    print("   -o FILE.cpog Produce CPOG output file with all hints present")
 
 
 ######################################################################################
@@ -46,7 +46,7 @@ earlyRup = True
 
 
 ######################################################################################
-# CRAT Syntax
+# CPOG Syntax
 ######################################################################################
 # Notation
 #  Id: Clause Id
@@ -58,10 +58,11 @@ earlyRup = True
 
 #     r Lit                  -- Declare root literal
 # Id  a [Lit*] 0    HINT 0   -- RUP clause addition
-#    dc Id          HINT 0   -- RUP clause deletion
+#    dc Id          HINT 0   -- RUP clause deletion (can also use 'd')
 # Id  p Var Lit*         0   -- And operation
 # Id  a Var Lit Lit HINT 0   -- Or operation
 #    do Var                  -- Operation deletion
+#    dv Var Id+          0   -- Delete projection variable.  Provide IDs of all resolvents
 
 ######################################################################################
 
@@ -86,8 +87,43 @@ def cleanClause(literalList):
         if slist[i-1] == -slist[i]:
             return None
         nlist.append(slist[i])
-    return nlist
+    return tuple(nlist)
 
+def resolve(lits1, lits2):
+    resVar = None
+    result = []
+    while len(lits1) > 0 and len(lits2) > 0:
+        h1 = lits1[0]
+        h2 = lits2[0]
+        incr1 = False
+        incr2 = False
+        if h1 == h2:
+            result.append(h1)
+            incr1 = True
+            incr2 = True
+        elif h1 == -h2:
+            if resVar is None:
+                resVar = abs(h1)
+                incr1 = True
+                incr2 = True
+            else:
+                return None
+        elif -abs(l1) < -abs(l2):
+            result.append(h1)
+            incr1 = True
+        else:
+            result.append(h2)
+            incr2 = True
+        if incr1:
+            lits1 = lits1[1:]
+        if incr2:
+            lits2 = lits2[1:]
+    result.append(lits1)
+    result.append(lits2)
+    if resVar is None:
+        return None
+    return tuple(result)
+            
 def regularClause(clause):
     return clause is not None
 
@@ -274,6 +310,7 @@ class P52:
 class CnfReader():
     file = None
     weights = None
+    projectionVariables = set([])
     clauses = []
     # List of input variables.
     nvar = 0
@@ -284,6 +321,7 @@ class CnfReader():
         self.failed = False
         self.errorMessage = ""
         self.weights = None
+        self.projectionVariables = set([])
         try:
             self.file = open(fname, 'r')
         except Exception:
@@ -419,29 +457,20 @@ class Writer:
         self.outfile.close()
         self.outfile = None
 
-class CratWriter(Writer):
+class CpogWriter(Writer):
     variableCount = 0
-    clauseDict = []
     stepCount = 0
 
     def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
         Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
         self.variableCount = variableCount
         self.stepCount = len(clauseList)
-        self.clauseDict = {}
         if verbLevel >= 2 and len(clauseList) > 0:
             self.doComment("Input clauses")
         for s in range(1, len(clauseList)+1):
             lits = clauseList[s-1]
             if verbLevel >= 2:
                 self.doLine([s, 'i'] + lits + [0])
-            self.addClause(s, lits)
-
-    def addClause(self, step, lits):
-        self.clauseDict[step] = lits
-
-    def deleteClause(self, step):
-        del self.clauseDict[step]
 
     def doLine(self, items):
         slist = [str(i) for i in items]
@@ -458,13 +487,11 @@ class CratWriter(Writer):
 
         self.doLine([s, 'p', v] + args + [0])
         cpos = [v] + [-i for i in args]
-        self.addClause(s, cpos)
         if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
             slist = [str(lit) for lit in cpos]
             self.doComment("%d a %s 0" % (s, " ".join(slist)))
         for idx in range(len(args)):
-            self.addClause(s+idx, [-v, args[idx]])
             if self.verbLevel >= 2:
                 self.doComment("%d a %d %d 0" % (s+1+idx, -v, args[idx]))
         self.stepCount += len(args)
@@ -478,9 +505,6 @@ class CratWriter(Writer):
         v = self.variableCount if xvar is None else xvar
         s = self.stepCount if id is None else id
         self.doLine([s, 's', v, i1, i2] + hints + [0])
-        self.addClause(s, [-v, i1, i2])
-        self.addClause(s+1, [v, -i1])        
-        self.addClause(s+2, [v, -i2])
         if self.verbLevel >= 2:
             self.doComment("Implicit declarations:")
             self.doComment("%d a %d %d %d 0" % (s, -v, i1, i2))
@@ -493,20 +517,18 @@ class CratWriter(Writer):
         self.stepCount += 1
         s = self.stepCount if id is None else id
         self.doLine([s, 'a'] + lits + [0] + hints + [0])
-        self.addClause(s, lits)
         return s
         
     def doDeleteClause(self, id, hints=None):
         if hints is None:
             hints = ['*']
         self.doLine(['dc', id] + hints + [0])
-        self.deleteClause(id)
 
     def doDeleteOperation(self, exvar, clauseId):
         self.doLine(['do', exvar])
-        for i in range(3):
-            self.deleteClause(clauseId+i)
         
+    def doDeleteVariable(self, pvar, resolvents):
+        self.doLine(['dv', pvar] + resolvents + [0])
         
     def finish(self):
         print("CHECKER: c File '%s' has %d variables and %d steps" % (self.fname, self.variableCount, self.stepCount))
@@ -517,6 +539,8 @@ class CratWriter(Writer):
 class ClauseManager:
     # Number of input clauses
     inputClauseCount = 0
+    # Set of projection Variables
+    projectionVariables = set([])
     # Mapping from Id to clause.  Deleted clauses represented by None
     clauseDict = {}
     # Ids of clauses used in defining operations
@@ -525,7 +549,7 @@ class ClauseManager:
     unitClauseSet = set([])
     # For each literal, count of clauses containing it
     literalCountDict = {}
-    # For each literal, set of clauses containing it (only in verbose mode)
+    # For each literal, set of clauses containing it (only in verbose mode, or for projection variables)
     literalSetDict = {}
     # Track whether have empty clause
     addedEmpty = False
@@ -549,13 +573,14 @@ class ClauseManager:
     countMode = False
     uncheckedCount = 0
 
-    def __init__(self, clauseCount, verbose, laxMode, requireHintsMode, countMode):
+    def __init__(self, clauseCount, verbose, laxMode, requireHintsMode, countMode, projectionVariables):
         self.inputClauseCount = clauseCount
         self.verbose = verbose
         self.laxMode = laxMode
         self.requireHintsMode = requireHintsMode
         self.uncheckedCount = 0
         self.countMode = countMode
+        self.projectionVariables = projectionVariables
         self.clauseDict = {}
         self.definingClauseSet = set([])
         self.unitClauseSet = set([])
@@ -602,11 +627,11 @@ class ClauseManager:
         for lit in clause:
             if lit in self.literalCountDict:
                 self.literalCountDict[lit] += 1
-                if self.verbose:
+                if self.verbose or abs(lit) in self.projectionVariables:
                     self.literalSetDict[lit].add(id)
             else:
                 self.literalCountDict[lit] = 1
-                if self.verbose:
+                if self.verbose or abs(lit) in self.projectionVariables:
                     self.literalSetDict[lit] = set([id])
         return (True, "")
         
@@ -624,7 +649,7 @@ class ClauseManager:
             self.liveClauseSet.remove(id)
         for lit in clause:
             self.literalCountDict[lit] -= 1
-            if self.verbose:
+            if lit in self.literalSetDict:
                 self.literalSetDict[lit].remove(id)
         return (True, "")
         
@@ -772,6 +797,8 @@ class ClauseManager:
             return (False, "No root found")
         if self.declaredRoot is not None and self.declaredRoot != self.root:
             return (False, "Declared root %d does not match literal %d in final unit clause" % (self.declaredRoot, self.root))
+        if len(self.projectionVariables) > 0:
+            return (False, "Have not deleted projection variables %s" % str(list(self.projectionVariables)))
         return (True, "")
 
 class OperationManager:
@@ -866,6 +893,50 @@ class OperationManager:
         del self.dependencySetDict[outVar]
         return (True, "")
 
+    def deleteVariable(self, projVar, resolventIds):
+        if projVar not in self.projectionVariables:
+            return (False, "Variable %d not a projection variable" % projVar)
+        self.projectionVariables.remove(projVar)
+        # Compute all resolvents:
+        trueResolvents = []
+        for pcid in self.literalSetDict[projVar]:
+            plits, msg = self.findClause(pcid)
+            if plits is None:
+                continue
+            self.deleteClause(pcid)
+            for ncid in self.clauseSetDict[-projVar]:
+                nlits, msg = self.findClause(ncid)
+                if nlits is None:
+                    continue
+                self.deleteClause(ncid)
+                resolvent = resolve(plits, nlits)
+                if resolvent is not None:
+                    trueResolvents.append(resolvent)
+        expectedResolvents = [self.findClause(id) for id in resolventIds]
+        expectedResolvents = [lits for lits in expectedResolvents if lits is not None]
+        ok = True
+        msg = ""
+        if len(expectedResolvents) != len(trueResolvents):
+            ok = False
+            msg = "Expected %d resolvents of variable %d.  Found %d" % (len(expectedResolvents), projVar, len(trueResolvents))
+        if ok:
+            trueResolvents.sort()
+            expectedResolvents.sort()
+            for (tlits, elits) in zip(trueResolvents, expectedResolvents):
+                if not testClauseEquality(tlits, elits):
+                    ok = False
+                    msg = "Mismatch between expected and actual resolvents of variable %d" % projVar
+                    break
+        if self.verbose or not ok:
+            print("CHECKER: Expected resolvents of projection variable %d" % projVar)
+            for elits in expectedResolvents:
+                print("    %s" % str(elits))
+        if not ok:
+            print("CHECKER: Actual resolvents of projection variable %d" % projVar)
+            for tlits in trueResolvents:
+                print("    %s" % str(tlits))
+        return (ok, msg)
+
     def pnumCount(self, root, weights, finalScale = None):
         for outVar in sorted(self.operationDict.keys()):
             entry = self.operationDict[outVar]
@@ -918,17 +989,17 @@ class Prover:
     omgr = None
     failed = False
     countMode = False
-    # Make copy of CRAT file with hints
-    cratWriter = None
+    # Make copy of CPOG file with hints
+    cpogWriter = None
 
 
-    def __init__(self, creader, verbose = False, laxMode = False, requireHintsMode=False, countMode=False, cratWriter=None):
+    def __init__(self, creader, verbose = False, laxMode = False, requireHintsMode=False, countMode=False, cpogWriter=None):
         self.verbose = verbose
         self.lineNumber = 0
-        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode, requireHintsMode, countMode)
+        self.cmgr = ClauseManager(len(creader.clauses), verbose, laxMode, requireHintsMode, countMode, creader.projectionVariables)
         self.omgr = OperationManager(self.cmgr, creader.nvar)
         self.countMode = countMode
-        self.cratWriter = cratWriter
+        self.cpogWriter = cpogWriter
         self.failed = False
         self.subsetOK = False
         self.ruleCounters = { 'i' : 0, 'r' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0 }
@@ -988,7 +1059,7 @@ class Prover:
             if len(fields) == 0 or fields[0][0] == 'c':
                 continue
             id = None
-            if fields[0] not in ['dc', 'do', 'r']:
+            if fields[0] not in ['dc', 'd', 'do', 'dv', 'r']:
                 try:
                     id = int(fields[0])
                 except:
@@ -1003,7 +1074,7 @@ class Prover:
                 self.doInput(id, rest)
             elif cmd == 'a':
                 self.doAddRup(id, rest)
-            elif cmd == 'dc':
+            elif cmd == 'dc' or cmd == 'd':
                 self.doDeleteRup(id, rest)
             elif cmd == 'r':
                 self.doDeclareRoot(id, rest)
@@ -1013,6 +1084,8 @@ class Prover:
                 self.doSum(id, rest)
             elif cmd == 'do':
                 self.doDeleteOperation(id, rest)
+            elif cmd == 'dv':
+                self.doDeleteVariable(id, rest)
             else:
                 self.invalidCommand(cmd)
             if self.failed:
@@ -1069,8 +1142,8 @@ class Prover:
         (ok, msg) = self.cmgr.addClause(clause, id)
         if not ok:
             self.flagError("Couldn't add clause #%d: %s" % (id, msg))
-        if self.cratWriter is not None:
-            self.cratWriter.doClause(lits, hints, id = id)
+        if self.cpogWriter is not None:
+            self.cpogWriter.doClause(lits, hints, id = id)
 
     def doDeleteRup(self, id, rest):
         if len(rest) < 1:
@@ -1100,8 +1173,8 @@ class Prover:
         if not ok:
             self.flagError("Couldn't delete clause #%d: %s" % (id, msg))
             return
-        if self.cratWriter is not None:
-            self.cratWriter.doDeleteClause(id, hints)
+        if self.cpogWriter is not None:
+            self.cpogWriter.doDeleteClause(id, hints)
         
     def doDeclareRoot(self, id, rest):
         if len(rest) != 1:
@@ -1131,8 +1204,8 @@ class Prover:
         (ok, msg) = self.omgr.addOperation(self.omgr.conjunction, args[0], args[1:], id)
         if not ok:
             self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
-        if self.cratWriter is not None:
-            self.cratWriter.doAnd(args[1:], xvar=args[0], id=id)
+        if self.cpogWriter is not None:
+            self.cpogWriter.doAnd(args[1:], xvar=args[0], id=id)
 
     def doSum(self, id, rest):
         if len(rest) < 3:
@@ -1158,8 +1231,8 @@ class Prover:
         if not ok:
             self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
             return
-        if self.cratWriter is not None:
-            self.cratWriter.doOr(args[1], args[2], hints = hints, xvar=args[0], id=id)
+        if self.cpogWriter is not None:
+            self.cpogWriter.doOr(args[1], args[2], hints = hints, xvar=args[0], id=id)
 
     def doDeleteOperation(self, id, rest):
         if len(rest) != 1:
@@ -1173,6 +1246,23 @@ class Prover:
         (ok, msg) = self.omgr.deleteOperation(outVar)
         if not ok:
             self.flagError("Could not delete operation %d: %s" % (outVar, msg))
+
+    def doDeleteVariable(self, id, rest):
+        if len(rest) <= 2:
+            self.flagError("Must specify projection variable and list of resolvents for variable deletion")
+            return
+        try:
+            projVar = int(rest[0])
+        except:
+            self.flagError("Invalid operand '%s' to variable deletion" % rest[0])
+            return
+        (resolvents, rest) = self.findList(rest, starOk = False)
+        if self.failed:
+            return
+        (ok, msg) = self.omgr.deleteVariable(projVar, resolvents)
+        if not ok:
+            self.flagError("Could not delete operation %d: %s" % (outVar, msg))
+
 
     def failProof(self, reason):
         self.failed = True
@@ -1213,7 +1303,7 @@ class Prover:
 def run(name, args):
     cnfName = None
     proofName = None
-    cratName = None
+    cpogName = None
     verbLevel = 1
     laxMode = False
     requireHintsMode = False
@@ -1237,7 +1327,7 @@ def run(name, args):
         elif opt == '-p':
             proofName = val
         elif opt == '-o':
-            cratName = val
+            cpogName = val
         elif opt == '-w':
             wlist = val.split(":")
             try:
@@ -1269,10 +1359,10 @@ def run(name, args):
         print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
         return
     verbose = verbLevel > 1
-    cratWriter = None
-    if cratName is not None:
-        cratWriter = CratWriter(creader.nvar, creader.clauses, cratName, verbLevel)
-    prover = Prover(creader, verbose, laxMode, requireHintsMode, countMode, cratWriter)
+    cpogWriter = None
+    if cpogName is not None:
+        cpogWriter = CpogWriter(creader.nvar, creader.clauses, cpogName, verbLevel)
+    prover = Prover(creader, verbose, laxMode, requireHintsMode, countMode, cpogWriter)
     prover.prove(proofName)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
