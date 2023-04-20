@@ -105,6 +105,6 @@ do 6
 
 c Combine C1 & C0
 40 a 10 3 0 34 37 0
-c Here we could delete 34 & 37 by existential elimination
-
+c Delete input variable 4 and clauses 34 & 37 by existential elimination
+dv 4 40 0
 dc 40 33 28 23 0
