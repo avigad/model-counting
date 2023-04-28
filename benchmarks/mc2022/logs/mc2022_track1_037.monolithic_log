@@ -1,5 +1,244 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -m -C 2147483647 -L d2p.log ./mc2022_track1_037.cnf ./mc2022_track1_037.nnf ./mc2022_track1_037.crat
-GEN LOG: Time limit 10000 seconds
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_037.cnf -dDNNF -out=./mc2022_track1_037.nnf
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 781
+c Number of clauses: 1776
+c Number of literals: 4148
+c Preproc options: 
+c
+c Preproc time: 0.000302
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -96 
+c top 5: -96 -158 
+c top 5: -96 -158 -173 
+c top 5: -96 -158 -173 -181 
+c unitLits 1048577 4194308 Bytes
+c top 5: -96 -158 -173 -181 
+c top 5: -96 -158 -173 181 
+c top 5: -96 -158 -173 181 
+c top 5: -96 -158 -173 
+c top 5: -96 -158 -173 -88 
+c top 5: -96 -158 -173 88 
+c top 5: -96 -158 -173 88 
+c top 5: -96 -158 173 
+c top 5: -96 -158 173 -72 
+c top 5: -96 -158 173 72 
+c top 5: -96 -158 173 72 
+c top 5: -96 -158 173 
+c top 5: -96 -158 173 -93 
+c top 5: -96 -158 173 93 
+c top 5: -96 -158 
+c top 5: -96 -158 -141 
+c top 5: -96 -158 -141 -105 
+c top 5: -96 -158 -141 105 
+c top 5: -96 -158 -141 
+c top 5: -96 -158 -141 -120 
+c freeVariables 1048577
+c top 5: -96 -158 -141 120 
+c top 5: -96 -158 -141 120 
+c top 5: -96 -158 141 
+c top 5: -96 -158 141 -105 
+c top 5: -96 -158 141 105 
+c top 5: -96 -158 141 
+c top 5: -96 -158 141 -133 
+c top 5: -96 -158 141 -133 
+c top 5: -96 -158 141 133 
+c top 5: -96 158 
+c top 5: -96 158 -173 
+c top 5: -96 158 -173 -88 
+c top 5: -96 158 -173 88 
+c top 5: -96 158 173 
+c top 5: -96 158 173 -88 
+c top 5: -96 158 
+c top 5: -96 158 -19 
+c top 5: -96 158 
+c top 5: -96 158 -112 
+c top 5: -96 158 -112 -142 
+c top 5: -96 158 -112 142 
+c top 5: -96 158 -112 142 
+c top 5: -96 158 112 
+c top 5: -96 158 112 -104 
+c top 5: -96 158 112 104 
+c top 5: -96 158 112 
+c top 5: -96 158 112 -119 
+c top 5: -96 158 112 119 
+c top 5: 96 
+c top 5: 96 -173 
+c top 5: 96 -173 -88 
+c top 5: 96 -173 -88 -166 
+c top 5: 96 -173 -88 166 
+c top 5: 96 -173 88 
+c top 5: 96 -173 88 -91 
+c top 5: 96 -173 88 91 
+c top 5: 96 173 
+c top 5: 96 173 -87 
+c top 5: 96 173 -87 -88 
+c top 5: 96 173 87 
+c top 5: 96 173 87 -91 
+c top 5: 96 
+c top 5: 96 -112 
+c top 5: 96 -112 -142 
+c top 5: 96 -112 -142 -104 
+c top 5: 96 -112 -142 104 
+c top 5: 96 -112 142 
+c top 5: 96 -112 142 -103 
+c top 5: 96 -112 142 103 
+c top 5: 96 112 
+c top 5: 96 112 -103 
+c top 5: 96 112 -103 -150 
+c top 5: 96 112 103 
+c top 5: -238 
+c top 5: -238 -328 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 
+c top 5: -238 -328 -419 -231 
+c top 5: -238 -328 -419 231 
+c top 5: -238 328 
+c top 5: -238 328 -419 
+c top 5: -238 328 -419 -336 
+c top 5: -238 328 -419 336 
+c top 5: -238 328 419 
+c top 5: -238 328 419 -335 
+c top 5: -238 328 419 335 
+c top 5: 238 
+c top 5: 238 -246 
+c top 5: 238 -246 -267 
+c top 5: 238 -246 -267 -242 
+c top 5: 238 -246 -267 242 
+c top 5: 238 -246 267 
+c top 5: 238 -246 267 242 
+c top 5: 238 246 
+c top 5: 238 246 -250 
+c top 5: 238 246 -250 247 
+c top 5: 238 246 250 
+c top 5: 238 246 250 -252 
+c top 5: 238 246 250 252 
+c top 5: -592 
+c top 5: -592 -749 
+c top 5: -592 -749 -608 
+c top 5: -592 -749 -608 -765 
+c top 5: -592 -749 -608 -765 
+c top 5: -592 -749 -608 765 
+c top 5: -592 -749 -608 765 
+c top 5: -592 -749 608 
+c top 5: -592 -749 608 -765 
+c top 5: -592 -749 608 -765 
+c top 5: -592 -749 608 765 
+c top 5: -592 -749 608 765 
+c top 5: -592 -749 
+c top 5: -592 -749 -462 
+c top 5: -592 -749 -462 -578 
+c top 5: -592 -749 -462 578 
+c top 5: -592 -749 462 
+c top 5: -592 -749 462 -705 
+c      16384 |       0.16 |      17024 |       8196 |      18494 |        571 |     112067 |     131051 |          0 |       8196 |        2673 |          0 | 
+c top 5: -592 -749 462 705 
+c top 5: -592 749 
+c top 5: -592 749 -608 
+c top 5: -592 749 -608 -765 
+c top 5: -592 749 -608 765 
+c top 5: -592 749 608 
+c top 5: -592 749 608 -765 
+c top 5: -592 749 608 765 
+c top 5: -592 749 
+c top 5: -592 749 -547 
+c top 5: -592 749 -547 -733 
+c top 5: -592 749 -547 733 
+c top 5: -592 749 547 
+c top 5: -592 749 547 -733 
+c top 5: -592 749 547 -733 
+c top 5: -592 749 547 733 
+c top 5: -592 749 547 733 
+c top 5: 592 
+c top 5: 592 -749 
+c top 5: 592 -749 -608 
+c top 5: 592 -749 -608 -765 
+c top 5: 592 -749 -608 765 
+c top 5: 592 -749 608 
+c top 5: 592 -749 608 -765 
+c top 5: 592 -749 608 765 
+c top 5: 592 -749 
+c top 5: 592 -749 -576 
+c top 5: 592 -749 -576 -704 
+c top 5: 592 -749 -576 704 
+c top 5: 592 -749 -576 704 
+c top 5: 592 -749 576 
+c top 5: 592 -749 576 -704 
+c top 5: 592 -749 576 704 
+c top 5: 592 -749 576 704 
+c top 5: 592 749 
+c top 5: 592 749 -608 
+c top 5: 592 749 -608 -765 
+c top 5: 592 749 -608 765 
+c top 5: 592 749 608 
+c top 5: 592 749 608 -765 
+c top 5: 592 749 608 765 
+c top 5: 592 749 
+c top 5: 592 749 -576 
+c top 5: 592 749 -576 -733 
+c top 5: 592 749 -576 733 
+c top 5: 592 749 576 
+c top 5: 592 749 576 -733 
+c top 5: 592 749 576 733 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 31851
+c Number of split formula: 37861
+c Number of decision node: 15925
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 16005
+c Number of backbone calls: 0
+c Number of partitioner calls: 5502
+c Average number of assigned literal to obtain decomposable AND nodes: 50.00/781
+c Minimum number of assigned variable where a decomposable AND appeared: 8
+c 
+c [33mGraph Information[0m
+c Number of nodes: 225047
+c Number of edges: 262828
+c 
+c [1m[34mCache Information[0m
+c Memory used: 571 MB
+c
+c Number of positive hit: 35110
+c Number of negative hit: 15925
+c Number of reduceCall: 0
+c
+c Final time: 0.330716
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.484 seconds
+D4 OUTCOME: normal
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -m -C 2147483647 -L d2p.log ./mc2022_track1_037.cnf ./mc2022_track1_037.nnf ./mc2022_track1_037.cpog
+GEN LOG: Time limit 1000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
 c GEN:   Use lemmas:      yes
@@ -13,8 +252,8 @@ c GEN: Time = 0.00.  Read input file with 781 variables and 1776 clauses
 c Read D4 NNF file with 63784 nodes (31933 explicit) and 69712 edges
 c Compressed POG has 63709 nodes, root literal 64490, and 355617 defining clauses
 c GEN: Time = 0.15.  Generated POG representation
-c GEN: Time = 49.36.  Deleted asserted clauses
-c GEN: Time = 52.19.  Deleted input clauses
+c GEN: Time = 63.38.  Deleted asserted clauses
+c GEN: Time = 66.41.  Deleted input clauses
 c GEN: Formula
 c GEN:    input variables: 781
 c GEN:    input clauses  : 1776
@@ -54,27 +293,23 @@ c GEN:    lemma application    : 0
 c GEN:    monolithic proof     : 383903
 c GEN:    clause TOTAL         : 739521
 c GEN: Time
-c GEN:   SAT execution  : 46.81
-c GEN:   other execution: 5.55
-c GEN:   time TOTAL     : 52.36
-GEN LOG: Elapsed time = 52.460 seconds
+c GEN:   SAT execution  : 61.07
+c GEN:   other execution: 5.35
+c GEN:   time TOTAL     : 66.42
+GEN LOG: Elapsed time = 66.432 seconds
 GEN OUTCOME: normal
-GEN: LOG: size ./mc2022_track1_037.crat 833293 lines 104314460 bytes
-FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track1_037.cnf ./mc2022_track1_037.crat
-FCHECK LOG: Time limit 10000 seconds
-FCHECK: Read CNF file with 781 variables and 1776 clauses
-FCHECK: Read CRAT file with 63709 operations,  383904 asserted + 355617 defining = 739521 clauses
-FCHECK: Deleted 385679 input and asserted clauses
-FCHECK: Final root literal 64490
-FCHECK: FULL-PROOF SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 3.026
-FCHECK LOG: Elapsed time = 3.029 seconds
+GEN: LOG: size ./mc2022_track1_037.cpog 833293 lines 104314460 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track1_037.cnf ./mc2022_track1_037.cpog
+FCHECK LOG: Time limit 1000 seconds
+CHECK: Read CNF file with 781 variables and 1776 clauses
+CHECK: Read CPOG file with 63709 operations,  383904 asserted + 355617 defining = 739521 clauses
+CHECK: Deleted 385679 input and asserted clauses
+CHECK: Final root literal 64490
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 261545906067383009253732022824600705687237029358521548800
+CHECK: Time to compute model counts: 0.023
+CHECK: Elapsed seconds: 3.467
+FCHECK LOG: Elapsed time = 3.497 seconds
 FCHECK OUTCOME: normal
-COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track1_037.cnf -p ./mc2022_track1_037.crat
-COUNT LOG: Time limit 4000 seconds
-COUNTER: Elapsed time for count: 0.13 seconds
-COUNTER: Unweighted count = 261545906067383009253732022824600705687237029358521548800
-COUNT LOG: Elapsed time = 0.568 seconds
-COUNT OUTCOME: normal
-OVERALL LOG: Elapsed time = 56.231 seconds
+OVERALL LOG: Elapsed time = 70.596 seconds
 OVERALL OUTCOME: normal

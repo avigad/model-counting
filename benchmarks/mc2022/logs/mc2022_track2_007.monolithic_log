@@ -1,4 +1,91 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -m -C 2147483647 -L d2p.log ./mc2022_track2_007.cnf ./mc2022_track2_007.nnf ./mc2022_track2_007.crat
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_007.cnf -dDNNF -out=./mc2022_track2_007.nnf
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 140
+c Number of clauses: 360
+c Number of literals: 920
+c Preproc options: 
+c
+c Preproc time: 0.000184
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -2 
+c top 5: -2 -69 
+c top 5: -2 -69 -67 
+c top 5: -2 -69 -67 -27 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -2 -69 -67 -27 
+c top 5: -2 -69 -67 27 
+c top 5: -2 -69 67 
+c top 5: -2 -69 67 -50 
+c top 5: -2 -69 67 50 
+c top 5: -2 69 
+c top 5: -2 69 -50 
+c top 5: -2 69 -50 -67 
+c top 5: -2 69 -50 67 
+c top 5: -2 69 50 
+c top 5: -2 69 50 -67 
+c top 5: -2 69 50 67 
+c top 5: 2 
+c top 5: 2 -50 
+c top 5: 2 -50 -27 
+c top 5: 2 -50 -27 -60 
+c top 5: 2 -50 -27 60 
+c top 5: 2 -50 27 
+c top 5: 2 -50 27 -46 
+c top 5: 2 -50 27 46 
+c top 5: 2 50 
+c top 5: 2 50 -27 
+c top 5: 2 50 -27 -60 
+c top 5: 2 50 -27 60 
+c top 5: 2 50 27 
+c top 5: 2 50 27 -46 
+c top 5: 2 50 27 46 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 15861
+c Number of split formula: 24308
+c Number of decision node: 7930
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 10706
+c Number of backbone calls: 0
+c Number of partitioner calls: 3256
+c Average number of assigned literal to obtain decomposable AND nodes: 72.37/140
+c Minimum number of assigned variable where a decomposable AND appeared: 46
+c 
+c [33mGraph Information[0m
+c Number of nodes: 61669
+c Number of edges: 83201
+c 
+c [1m[34mCache Information[0m
+c Memory used: 561 MB
+c
+c Number of positive hit: 20892
+c Number of negative hit: 7930
+c Number of reduceCall: 0
+c
+c Final time: 0.264410
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.414 seconds
+D4 OUTCOME: normal
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -m -C 2147483647 -L d2p.log ./mc2022_track2_007.cnf ./mc2022_track2_007.nnf ./mc2022_track2_007.cpog
 GEN LOG: Time limit 1000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
@@ -12,9 +99,9 @@ c GEN:   BCP limit:       1
 c GEN: Time = 0.00.  Read input file with 140 variables and 360 clauses
 c Read D4 NNF file with 34499 nodes (18638 explicit) and 40169 edges
 c Compressed POG has 34466 nodes, root literal 34606, and 132891 defining clauses
-c GEN: Time = 0.07.  Generated POG representation
-c GEN: Time = 3.84.  Deleted asserted clauses
-c GEN: Time = 4.11.  Deleted input clauses
+c GEN: Time = 0.12.  Generated POG representation
+c GEN: Time = 7.74.  Deleted asserted clauses
+c GEN: Time = 8.24.  Deleted input clauses
 c GEN: Formula
 c GEN:    input variables: 140
 c GEN:    input clauses  : 360
@@ -54,28 +141,24 @@ c GEN:    lemma application    : 0
 c GEN:    monolithic proof     : 99234
 c GEN:    clause TOTAL         : 232150
 c GEN: Time
-c GEN:   SAT execution  : 3.40
-c GEN:   other execution: 0.88
-c GEN:   time TOTAL     : 4.28
-GEN LOG: Elapsed time = 4.360 seconds
+c GEN:   SAT execution  : 6.92
+c GEN:   other execution: 1.33
+c GEN:   time TOTAL     : 8.25
+GEN LOG: Elapsed time = 8.265 seconds
 GEN OUTCOME: normal
-GEN: LOG: size ./mc2022_track2_007.crat 233344 lines 23232660 bytes
-FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track2_007.cnf ./mc2022_track2_007.crat
-FCHECK LOG: Time limit 10000 seconds
-FCHECK: Read CNF file with 140 variables and 360 clauses
-FCHECK: Read CRAT file with 34466 operations,  99259 asserted + 132891 defining = 232150 clauses
-FCHECK: Deleted 99618 input and asserted clauses
-FCHECK: Final root literal 34606
-FCHECK: FULL-PROOF SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 0.659
-FCHECK LOG: Elapsed time = 0.662 seconds
+GEN: LOG: size ./mc2022_track2_007.cpog 233344 lines 23232660 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track2_007.cnf ./mc2022_track2_007.cpog
+FCHECK LOG: Time limit 1000 seconds
+CHECK: Read CNF file with 140 variables and 360 clauses
+CHECK: Read CPOG file with 34466 operations,  99259 asserted + 132891 defining = 232150 clauses
+CHECK: Deleted 99618 input and asserted clauses
+CHECK: Final root literal 34606
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 24739011624960
+CHECK: Weighted model count = 0.26762614698164722747516311181551625359495580020517026536646868703581656731757284569000609556360363894557120949112636513749121647712708364470239808579818660158700084740658598115117088399244237406313762782033825264720230232604896663423135682032844442139661200679492759700995240309367713342271586429224496488598323111371846003924171024440009707320160271109323943484461710881672195490936406824936558119449226568701871871358700267897145055231069215968646646825438302901050758282242068220533630347336119661104180880683520068467150672183913090714029091400234344707510054295488529967809560069977849296289171252594394705154679822144496158117467046240437051717781306185880942308325398157913298662433226291584652935516634411537236657526274215011389115944753703347085788898837729984790884654371296024106053215070810882094082128266592008714279600751508948114409520837158211341491845118324780029317046252819104733780115924707562485916910877097167656110381865654278048117577939769231007039228208502100873934838125635179511830047769229251277943399968363011158210087439070564267345634874628243456
+CHECK: Time to compute model counts: 0.055
+CHECK: Elapsed seconds: 1.398
+FCHECK LOG: Elapsed time = 1.402 seconds
 FCHECK OUTCOME: normal
-COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track2_007.cnf -p ./mc2022_track2_007.crat
-COUNT LOG: Time limit 4000 seconds
-Obtained weights from CNF file
-COUNTER: Elapsed time for count: 0.06 seconds
-COUNTER: Weighted count = 0.26762614698164722747516311181551625359495580020517026536646868703581656731757284569000609556360363894557120949112636513749121647712708364470239808579818660158700084740658598115117088399244237406313762782033825264720230232604896663423135682032844442139661200679492759700995240309367713342271586429224496488598323111371846003924171024440009707320160271109323943484461710881672195490936406824936558119449226568701871871358700267897145055231069215968646646825438302901050758282242068220533630347336119661104180880683520068467150672183913090714029091400234344707510054295488529967809560069977849296289171252594394705154679822144496158117467046240437051717781306185880942308325398157913298662433226291584652935516634411537236657526274215011389115944753703347085788898837729984790884654371296024106053215070810882094082128266592008714279600751508948114409520837158211341491845118324780029317046252819104733780115924707562485916910877097167656110381865654278048117577939769231007039228208502100873934838125635179511830047769229251277943399968363011158210087439070564267345634874628243456
-COUNT LOG: Elapsed time = 0.197 seconds
-COUNT OUTCOME: normal
-OVERALL LOG: Elapsed time = 5.264 seconds
+OVERALL LOG: Elapsed time = 10.167 seconds
 OVERALL OUTCOME: normal
