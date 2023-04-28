@@ -1,0 +1,80 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_153.cnf -dDNNF -out=./mc2022_track1_153pre.nnf -preproc=backbone+vivification+occElimination
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 300
+c Number of clauses: 1400
+c Number of literals: 4200
+c Preproc options: backbone+vivification+occElimination
+c Run Backbone
+c Run Vivification
+c Run Occurrence Elimination
+c
+c Preproc time: 349.908382
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 7
+c Number of split formula: 3
+c Number of decision node: 3
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 1
+c Number of backbone calls: 0
+c Number of partitioner calls: 0
+c Average number of assigned literal to obtain decomposable AND nodes: 287.00/300
+c Minimum number of assigned variable where a decomposable AND appeared: 287
+c 
+c [33mGraph Information[0m
+c Number of nodes: 15
+c Number of edges: 20
+c 
+c [1m[34mCache Information[0m
+c Memory used: 588 MB
+c
+c Number of positive hit: 0
+c Number of negative hit: 3
+c Number of reduceCall: 0
+c
+c Final time: 0.000061
+c 
+s 0.000000
+D4 LOG: Elapsed time = 349.922 seconds
+D4 OUTCOME: normal
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -m -C 2147483647 -L d2p.log ./mc2022_track1_153.cnf ./mc2022_track1_153pre.nnf ./mc2022_track1_153.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN: Time = 0.00.  Read input file with 300 variables and 1400 clauses
+c Read D4 NNF file with 13 nodes (6 explicit) and 10 edges
+c Compressed POG has 10 nodes, root literal 310, and 317 defining clauses
+c GEN: Time = 0.00.  Generated POG representation
+GEN ERROR: Timeout after 1000 seconds
+GEN LOG: Elapsed time = 1000.157 seconds
+GEN OUTCOME: Timeout
+GEN: LOG: size ./mc2022_track1_153.cpog 0 lines 0 bytes
+OVERALL LOG: Elapsed time = 1350.079 seconds
+OVERALL OUTCOME: failed

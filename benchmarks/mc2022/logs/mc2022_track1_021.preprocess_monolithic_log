@@ -1,0 +1,378 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_021.cnf -dDNNF -out=./mc2022_track1_021pre.nnf -preproc=backbone+vivification+occElimination
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 586
+c Number of clauses: 1189
+c Number of literals: 2781
+c Preproc options: backbone+vivification+occElimination
+c Run Backbone
+c Run Vivification
+c Run Occurrence Elimination
+c
+c Preproc time: 0.004460
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -48 
+c top 5: -48 -40 
+c top 5: -48 -40 -36 
+c top 5: -48 -40 -36 -34 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -48 -40 -36 34 
+c top 5: -48 -40 36 
+c top 5: -48 -40 36 -38 
+c top 5: -48 -40 36 38 
+c top 5: -48 40 
+c top 5: -48 40 -44 
+c top 5: -48 40 -44 -42 
+c top 5: -48 40 -44 42 
+c top 5: -48 40 44 
+c top 5: -48 40 44 -46 
+c top 5: -48 40 44 46 
+c top 5: 48 
+c top 5: 48 -56 
+c top 5: 48 -56 -52 
+c top 5: 48 -56 -52 -50 
+c top 5: 48 -56 -52 50 
+c top 5: 48 -56 52 
+c top 5: 48 -56 52 -54 
+c top 5: 48 -56 52 54 
+c top 5: 48 56 
+c top 5: 48 56 -60 
+c top 5: 48 56 -60 -58 
+c top 5: 48 56 -60 58 
+c top 5: 48 56 60 
+c top 5: 48 56 60 -62 
+c top 5: 48 56 60 62 
+c top 5: -110 
+c top 5: -110 -305 
+c top 5: -110 -305 -226 
+c top 5: -110 -305 -226 -320 
+c top 5: -110 -305 -226 -320 
+c top 5: -110 -305 -226 320 
+c top 5: -110 -305 -226 320 
+c top 5: -110 -305 -226 320 
+c top 5: -110 -305 226 
+c top 5: -110 -305 226 -327 
+c top 5: -110 -305 226 327 
+c top 5: -110 -305 226 
+c top 5: -110 -305 226 -147 
+c top 5: -110 -305 226 147 
+c top 5: -110 -305 
+c top 5: -110 -305 -103 
+c top 5: -110 -305 -103 -168 
+c top 5: -110 -305 -103 168 
+c top 5: -110 -305 103 
+c top 5: -110 -305 103 -289 
+c top 5: -110 -305 103 -289 
+c top 5: -110 -305 103 289 
+c top 5: -110 -305 103 289 
+c top 5: -110 305 
+c top 5: -110 305 -319 
+c top 5: -110 305 -319 -335 
+c top 5: -110 305 -319 -335 
+c top 5: -110 305 -319 335 
+c top 5: -110 305 -319 
+c top 5: -110 305 -319 -311 
+c top 5: -110 305 -319 -311 
+c top 5: -110 305 -319 311 
+c top 5: -110 305 -319 311 
+c top 5: -110 305 319 
+c top 5: -110 305 319 -335 
+c top 5: -110 305 319 335 
+c top 5: -110 305 319 
+c top 5: -110 305 319 -235 
+c top 5: -110 305 319 235 
+c top 5: -110 305 319 235 
+c top 5: -110 305 
+c top 5: -110 305 -102 
+c top 5: -110 305 -102 -256 
+c top 5: -110 305 -102 256 
+c top 5: -110 305 -102 256 
+c top 5: -110 305 102 
+c top 5: -110 305 102 -256 
+c top 5: -110 305 102 256 
+c top 5: -110 305 102 256 
+c top 5: 110 
+c top 5: 110 -305 
+c top 5: 110 -305 -118 
+c top 5: 110 -305 -118 -139 
+c top 5: 110 -305 -118 139 
+c top 5: 110 -305 118 
+c top 5: 110 -305 118 -319 
+c top 5: 110 -305 118 319 
+c top 5: 110 -305 118 319 
+c top 5: 110 305 
+c top 5: 110 305 -118 
+c top 5: 110 305 -118 -319 
+c top 5: 110 305 -118 319 
+c top 5: 110 305 
+c top 5: 110 305 -99 
+c top 5: 110 305 -99 -263 
+c top 5: 110 305 -99 263 
+c top 5: 110 305 99 
+c top 5: 110 305 99 -263 
+c top 5: 110 305 99 263 
+c top 5: -492 
+c top 5: -492 -508 
+c top 5: -492 -508 -408 
+c top 5: -492 -508 -408 -515 
+c top 5: -492 -508 -408 -515 
+c top 5: -492 -508 -408 515 
+c top 5: -492 -508 -408 515 
+c top 5: -492 -508 -408 515 
+c top 5: -492 -508 408 
+c top 5: -492 -508 408 -515 
+c top 5: -492 -508 
+c top 5: -492 -508 -500 
+c top 5: -492 -508 -500 -504 
+c top 5: -492 -508 -500 -504 
+c top 5: -492 -508 -500 504 
+c top 5: -492 -508 -500 504 
+c top 5: -492 -508 -500 
+c top 5: -492 -508 -500 -496 
+c top 5: -492 -508 -500 -496 
+c top 5: -492 -508 -500 496 
+c top 5: -492 -508 -500 496 
+c top 5: -492 -508 500 
+c top 5: -492 -508 500 -504 
+c top 5: -492 -508 500 -504 
+c top 5: -492 -508 500 504 
+c top 5: -492 -508 500 
+c top 5: -492 -508 500 -428 
+c top 5: -492 -508 500 428 
+c top 5: -492 508 
+c top 5: -492 508 -516 
+c top 5: -492 508 -516 -512 
+c top 5: -492 508 -516 -512 
+c top 5: -492 508 -516 512 
+c top 5: -492 508 -516 512 
+c top 5: -492 508 516 
+c top 5: -492 508 
+c top 5: -492 508 -424 
+c top 5: -492 508 -424 -499 
+c top 5: -492 508 -424 499 
+c top 5: -492 508 -424 499 
+c top 5: -492 508 424 
+c top 5: -492 508 424 -499 
+c top 5: -492 508 424 499 
+c top 5: -492 
+c top 5: -492 -447 
+c top 5: -492 -447 -477 
+c top 5: -492 -447 -477 -439 
+c top 5: -492 -447 -477 439 
+c top 5: -492 -447 -477 439 
+c top 5: -492 -447 -477 
+c top 5: -492 -447 -477 -468 
+c top 5: -492 -447 -477 -468 
+c top 5: -492 -447 -477 468 
+c top 5: -492 -447 -477 468 
+c top 5: -492 -447 477 
+c top 5: -492 -447 477 -439 
+c top 5: -492 -447 477 439 
+c top 5: -492 -447 477 
+c top 5: -492 -447 477 -362 
+c top 5: -492 -447 477 
+c top 5: -492 -447 477 -455 
+c top 5: -492 -447 477 455 
+c top 5: -492 -447 477 455 
+c top 5: -492 447 
+c top 5: -492 447 -439 
+c top 5: -492 447 -439 -485 
+c top 5: -492 447 -439 485 
+c top 5: -492 447 439 
+c top 5: -492 447 439 -442 
+c top 5: -492 447 439 442 
+c top 5: -492 447 
+c top 5: -492 447 -470 
+c top 5: -492 447 -470 -473 
+c top 5: -492 447 -470 
+c top 5: -492 447 -470 -455 
+c top 5: -492 447 470 
+c top 5: -492 447 470 -450 
+c top 5: -492 447 470 450 
+c top 5: -492 447 470 
+c top 5: 492 
+c top 5: 492 -508 
+c top 5: 492 -508 -500 
+c top 5: 492 -508 -500 -420 
+c top 5: 492 -508 -500 
+c top 5: 492 -508 -500 -496 
+c top 5: 492 -508 -500 -496 
+c top 5: 492 -508 -500 496 
+c top 5: 492 -508 500 
+c top 5: 492 508 
+c top 5: 492 508 -424 
+c top 5: 492 508 -424 499 
+c top 5: 492 508 424 
+c top 5: 492 508 424 -499 
+c top 5: 492 
+c top 5: 492 -476 
+c top 5: 492 -476 -440 
+c top 5: 492 -476 -440 -483 
+c top 5: 492 -476 -440 -483 
+c top 5: 492 -476 -440 483 
+c top 5: 492 -476 -440 483 
+c top 5: 492 -476 440 
+c top 5: 492 -476 440 -483 
+c top 5: 492 -476 
+c top 5: 492 -476 -468 
+c top 5: 492 -476 -468 -452 
+c top 5: 492 -476 468 
+c top 5: 492 476 
+c top 5: 492 476 -440 
+c top 5: 492 476 -440 -483 
+c top 5: 492 476 -440 483 
+c top 5: 492 476 440 
+c top 5: 492 476 440 -483 
+c top 5: -571 
+c top 5: -571 -564 
+c top 5: -571 -564 -560 
+c top 5: -571 -564 -560 -562 
+c top 5: -571 -564 -560 -562 
+c top 5: -571 -564 -560 
+c top 5: -571 -564 -560 -558 
+c top 5: -571 -564 -560 -558 
+c top 5: -571 -564 560 
+c top 5: -571 564 
+c top 5: -571 564 -567 
+c top 5: -571 564 -567 565 
+c top 5: -571 564 567 
+c top 5: -571 564 567 -569 
+c top 5: -571 564 567 569 
+c top 5: -571 564 
+c top 5: -571 564 -560 
+c top 5: -571 564 -560 561 
+c top 5: 571 
+c top 5: 571 -578 
+c top 5: 571 -578 -574 
+c top 5: 571 -578 -574 572 
+c top 5: 571 -578 574 
+c top 5: 571 -578 574 -576 
+c top 5: 571 -578 574 576 
+c top 5: 571 578 
+c top 5: 571 578 -582 
+c top 5: 571 578 -582 -580 
+c top 5: 571 578 -582 580 
+c top 5: 571 578 582 
+c top 5: 571 578 582 -584 
+c top 5: 571 578 582 584 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 4513
+c Number of split formula: 2518
+c Number of decision node: 2256
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 1150
+c Number of backbone calls: 0
+c Number of partitioner calls: 501
+c Average number of assigned literal to obtain decomposable AND nodes: 62.72/586
+c Minimum number of assigned variable where a decomposable AND appeared: 5
+c 
+c [33mGraph Information[0m
+c Number of nodes: 26526
+c Number of edges: 30150
+c 
+c [1m[34mCache Information[0m
+c Memory used: 561 MB
+c
+c Number of positive hit: 2340
+c Number of negative hit: 2256
+c Number of reduceCall: 0
+c
+c Final time: 0.037016
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.067 seconds
+D4 OUTCOME: normal
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -m -C 2147483647 -L d2p.log ./mc2022_track1_021.cnf ./mc2022_track1_021pre.nnf ./mc2022_track1_021.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: yes
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN: Time = 0.00.  Read input file with 586 variables and 1189 clauses
+c Read D4 NNF file with 7922 nodes (3409 explicit) and 7031 edges
+c Compressed POG has 7837 nodes, root literal 8423, and 41099 defining clauses
+c GEN: Time = 0.02.  Generated POG representation
+c GEN: Time = 0.88.  Deleted asserted clauses
+c GEN: Time = 1.10.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 586
+c GEN:    input clauses  : 1189
+c GEN: POG nodes
+c GEN:    product   : 5619
+c GEN:    sum       : 2217
+c GEN:    node TOTAL: 7836
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 0
+c GEN:    product/SAT: 0
+c GEN:    sum        : 0
+c GEN:    visit TOTAL: 0
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (1 instances)
+c GEN:    PROBLEM TOTAL : 42288
+c GEN:    PROBLEM MIN   : 42288
+c GEN:    PROBLEM AVG   : 42288.00
+c GEN:    PROBLEM MAX   : 42288
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 27227
+c GEN:    PROOF MIN   : 27227
+c GEN:    PROOF AVG   : 27227.00
+c GEN:    PROOF MAX   : 27227
+c GEN: Clauses
+c GEN:    POG definition       : 41099
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 0
+c GEN:    sum justification    : 0
+c GEN:    literal justification: 0
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 27227
+c GEN:    clause TOTAL         : 68326
+c GEN: Time
+c GEN:   SAT execution  : 0.74
+c GEN:   other execution: 0.36
+c GEN:   time TOTAL     : 1.11
+GEN LOG: Elapsed time = 1.121 seconds
+GEN OUTCOME: normal
+GEN: LOG: size ./mc2022_track1_021.cpog 63480 lines 6065067 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track1_021.cnf ./mc2022_track1_021.cpog
+FCHECK LOG: Time limit 1000 seconds
+CHECK: Read CNF file with 586 variables and 1189 clauses
+CHECK: Read CPOG file with 7837 operations,  27227 asserted + 41099 defining = 68326 clauses
+CHECK: Deleted 28415 input and asserted clauses
+CHECK: Final root literal 8423
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 784637825987894704862177297051569632016580688841015296000
+CHECK: Time to compute model counts: 0.003
+CHECK: Elapsed seconds: 0.187
+FCHECK LOG: Elapsed time = 0.189 seconds
+FCHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 1.391 seconds
+OVERALL OUTCOME: normal
