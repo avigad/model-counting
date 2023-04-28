@@ -11,12 +11,13 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-f] [-s n|g|c] [-m] [-L] [-G] [-F] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-f] [-s n|g|c] [-m] [-p] [-L] [-G] [-F] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -s n|g|c Stop after NNF generation, CPOG generation (g) or proof check (c)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -m       Monolithic mode: Do validation with single call to SAT solver")
+    print("  -p       Preprocess (within D4).  Should then use monolithic mode for CPOG generation")
     print("  -L       Expand each node, rather than using lemmas")
     print("  -G       Prove each literal separately, rather than grouping into single proof")
     print("  -F       Run Lean checker to formally check")
@@ -31,6 +32,7 @@ standardTimeLimit = 60
 
 oneSided = False
 monolithic = False
+preprocess = False
 useLemma = True
 group = True
 useLean = False
@@ -126,13 +128,21 @@ def runProgram(prefix, root, commandList, logFile, extraLogName = None):
     logFile.write(result)
     return ok
 
+def nnfNamer(root, home):
+    if preprocess:
+        return home + "/" + root + "pre.nnf"
+    else:
+        return home + "/" + root + ".nnf"
+
 # Only run D4 if don't yet have .nnf file
 def runD4(root, home, logFile, force):
     cnfName = home + "/" + root + ".cnf"
-    nnfName = home + "/" + root + ".nnf"
+    nnfName = nnfNamer(root, home)
     if not force and os.path.exists(nnfName):
         return True
     cmd = [d4Program, cnfName, "-dDNNF", "-out=" + nnfName]
+    if preprocess:
+        cmd += ["-preproc=backbone+vivification+occElimination"]
     ok = runProgram("D4", root, cmd, logFile)
     if not ok and os.path.exists(nnfName):
         os.remove(nnfName)
@@ -140,7 +150,7 @@ def runD4(root, home, logFile, force):
 
 def runPartialGen(root, home, logFile, force):
     cnfName = home + "/" + root + ".cnf"
-    nnfName = home + "/" + root + ".nnf"
+    nnfName = nnfNamer(root, home)
     cpogName = home + "/" + root + ".cpog"
     cmd = [genProgram, "-p", cnfName, nnfName, cpogName]
     ok = runProgram("GEN", root, cmd, logFile)
@@ -152,7 +162,7 @@ def runPartialGen(root, home, logFile, force):
 def runGen(root, home, logFile, force):
     extraLogName = "d2p.log"
     cnfName = home + "/" + root + ".cnf"
-    nnfName = home + "/" + root + ".nnf"
+    nnfName = nnfNamer(root, home)
     cpogName = home + "/" + root + ".cpog"
     if not force and os.path.exists(cpogName):
         return True
@@ -208,6 +218,8 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
         extension = "onesided_" + extension
     if monolithic:
         extension = "monolithic_" + extension
+    if preprocess:
+        extension = "preprocess_" + extension
     if not useLemma:
         extension = "nolemma_" + extension
     if not group:
@@ -253,6 +265,7 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     result += "%s OUTCOME: %s\n" % (prefix, outcome)
     print("%s. %s OUTCOME: %s" % (root, prefix, outcome))
     print("%s. %s Elapsed time: %.3f seconds" % (root, prefix, seconds))
+    print("%s. %s Logfile at %s" % (root, prefix, logName))
     logFile.write(result)
     logFile.close()
 
@@ -271,13 +284,13 @@ def runBatch(home, fileList, stopD4, stopGen, stopCheck, force):
         runSequence(r, home, stopD4, stopGen, stopCheck, force)
 
 def run(name, args):
-    global useLemma, group, oneSided, monolithic, useLean
+    global useLemma, group, oneSided, monolithic, useLean, preprocess
     home = "."
     stopD4 = False
     stopGen = False
     stopCheck = False
     force = False
-    optList, args = getopt.getopt(args, "hf1mLGFs:")
+    optList, args = getopt.getopt(args, "hf1mpLGFs:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -288,6 +301,8 @@ def run(name, args):
             oneSided = True
         elif opt == '-m':
             monolithic = True
+        elif opt == '-p':
+            preprocess = True
         elif opt == '-L':
             useLemma = False
         elif opt == '-G':
