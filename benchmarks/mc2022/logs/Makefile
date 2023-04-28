@@ -62,6 +62,19 @@ data:
 	$(INTERP) $(MERGE) -f time-structured.csv timeouts-monolithic.csv 1500 > time-structured+monolithic_timeout.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-monolithic.csv > clauses-total-structured+monolithic.csv
 
+	$(INTERP) $(GRAB) "OVERALL LOG: Elapsed" *.preprocess_monolithic_log > seconds-overall-preprocess-monolithic.csv
+	$(INTERP) $(GRAB) "ERROR: Timeout" *.preprocess_monolithic_log > timeouts-overall-preprocess-monolithic.csv
+	$(INTERP) $(GRAB) "clause TOTAL" *.preprocess_monolithic_log > clauses-total-preprocess-monolithic.csv
+	$(INTERP) $(GRAB) "OVERALL LOG: Elapsed" *.monolithic_log > seconds-overall-monolithic.csv
+	$(INTERP) $(GRAB) "ERROR: Timeout" *.monolithic_log > timeouts-overall-monolithic.csv
+	$(INTERP) $(MERGE) -f seconds-overall-preprocess-monolithic.csv clauses-total-preprocess-monolithic.csv \
+		> time-overall-preprocess-monolithic.csv
+	$(INTERP) $(MERGE) -f seconds-overall-monolithic.csv clauses-total-monolithic.csv \
+		> time-overall-monolithic.csv
+	$(INTERP) $(MERGE) -f time-overall-monolithic.csv time-overall-preprocess-monolithic.csv > time-std+preprocess.csv
+	$(INTERP) $(MERGE) -f time-overall-monolithic.csv timeouts-overall-preprocess-monolithic.csv 1500 > time-std+timeout-preprocess.csv
+	$(INTERP) $(MERGE) -f timeouts-overall-monolithic.csv 1500 time-overall-preprocess-monolithic.csv > timeout-std+time-preprocess.csv
+	$(INTERP) $(MERGE) -f clauses-total-monolithic.csv clauses-total-preprocess-monolithic.csv > clauses-total-std+preprocess.csv
 
 	$(INTERP) $(GRAB) "root model" *.mice_log > models-mice.csv
 	$(INTERP) $(GRAB) "N2T ERROR: Timeout" *.mice_log > timeouts-mice.csv
