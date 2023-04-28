@@ -1,0 +1,34 @@
+We wish to thank the reviewers for their helpful comments.  We will first respond to the most important items overall and then to ones by specific reviewers
+
+DETERMINISTIC vs. DECISION
+We will be more careful about the distinctions between these two flavors of DNNFs.  Our proof framework supports DETERMINISTIC, although our current proof generator relies on the inputs being in DECISION form.  We will clarify this.
+
+PRIOR WORK
+It was a major oversight on our part not to have cited the work by Capelli et al. AAAI-21.  This is, of course, very relevant.  Looking in detail at the conditions they check, it can be seen that we do much of the same work in our proof generator.  The main difference is that we then emit information as lines in a well-defined, formally-verified clausal proof framework.
+
+We have been unable to locate a copy of their checker online.  If we can find one, we’ll do a comparison of runtimes and proof sizes.  D4 can emit a DRAT version of its conflict clauses.  At the very least, we will measure the sizes and checking times for these.
+
+GENERALITY
+Although we present results only for results from D4, we have also successfully used it on the results from DSHARP.  We have found that DSHARP lags far behind D4 in terms of both time and the size of the generated result.  Our proof framework is sufficiently general to handle SDDs.  We will list that as future work.
+
+Your reviews sparked us to consider whether we could deal with formulas that have been preprocessed using equivalence-preserving transformations.  We were able to modify the source code of D4 to get it to perform preprocessing (it was disabled) and are collecting data now.  The structured approach does not work, but the monolithic approach works fine.  We will present data on this.  We do not believe the CD4 program is able to generate end-to-end proofs of this form.
+
+REVIEWER#1
+
+Your suggestions on how to make the presentation more clear are helpful.  The flow is not ideal, in part because we had to move so much information to the appendix to stay within the page limit
+
+REVIEWER#2
+
+Thank you for notifying us about prior work on d-Ds.  These are exactly what we mean by POGs, and we will include citations.
+
+Regarding a proof of correctness.  We will work to make it easier to read the portions of the Lean presentation.  We feel that the value of a formal proof in Lean far exceeds what we could express with an informal proof.
+
+Regarding the question of whether the SAT solver could introduce extension variables.  We do not allow this, for exactly the reason you mention.  The only extension variables are those encoding the AND and OR operations.
+
+Your observation about the reverse implication proofs being tractable is noted.  We see from the Capelli paper that Darwiche had already observed this, and we will cite that.  For a practitioner, we feel that a one-sided proof would be better than nothing.
+
+
+
+
+
+
