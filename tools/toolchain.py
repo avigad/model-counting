@@ -55,7 +55,7 @@ interpreter = "python3"
 countHome = homePath + "/model-counting/cpog/counter"
 countProgram = countHome + "/cpog-count.py"
 
-timeLimits = { "D4" : 1000, "GEN" : 1000, "FCHECK" : 1000, "LCHECK" : 1000, "COUNT" : 1000 }
+timeLimits = { "D4" : 4000, "GEN" : 1000, "FCHECK" : 1000, "LCHECK" : 1000, "COUNT" : 1000 }
 #timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 1000, "LCHECK" : 4000, "COUNT" : 4000 }
 
 clauseLimit = (1 << 31) - 1
