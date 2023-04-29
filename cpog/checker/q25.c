@@ -120,7 +120,7 @@ static void q25_check(int id, unsigned dcount) {
 	return;
     digit_allocated[id] *= 2;
     if (dcount > digit_allocated[id])
-	digit_allocated[2] = dcount;
+	digit_allocated[id] = dcount;
     digit_buffer[id] = realloc(digit_buffer[id], digit_allocated[id] * sizeof(uint32_t));
 }
 

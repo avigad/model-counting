@@ -1,5 +1,7 @@
 CC=gcc
-CFLAGS=-O3 -g -Wno-nullability-completeness
+OPT=-O3
+
+CFLAGS= $(OPT) -g -Wno-nullability-completeness
 
 check: cpog-check
 
