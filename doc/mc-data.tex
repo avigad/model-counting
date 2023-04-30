@@ -293,7 +293,7 @@ which the total number of proof clauses when both optimizations are
 performed was limited to $10^7$.  We then made three additional runs
 of the CPOG generator and checker, with each of the two optimizations
 disabled individually and in combination.  Figures
-\ref{fig:optimized:partially-optimized}--\ref{fig:optimized:unoptimized} illustrates the effect of the two
+\ref{fig:optimized:partially-optimized}--\ref{fig:optimized:lessoptimized} illustrates the effect of the two
 optimizations.  Each set of points shows the number of clauses when
 both optimizations are performed for the $X$ value and the number with
 one or both of these optimizations disabled as the $Y$ value.
@@ -343,15 +343,43 @@ Here is another way to summarize the impact on the combined time to generate and
 
 \input{figure-clauses-monolithic}
 
-Ran all benchmarks for which generation + checking could complete in 1000 seconds.  Total = 82.  All completed in less than 1000 seconds with structured.
+Ran all benchmarks for which generation + checking could complete in 1000 seconds.  Total = 83.  All completed in less than 1000 seconds with structured.
 Compare both runtimes and total number of clauses for structured vs. monolithic:
 \begin{itemize}
 \item Structured complete 83.
-\item Monolithic completed  70,timed out on 13.
-\item Of the 70 completed, 23 were faster with monolithic, 37 were slower (min ratio = 0.015, max ratio = 9.66, hmean = 0.40)
-\item Of the 70 completed, 60 had fewer total clauses with monolithic, 10 had more (min ratio = 0.07, max ratio = 1.09, hmean = 0.49)
+\item Monolithic completed  69,timed out on 14.
+\item Of the 69 completed, 19 were faster with monolithic, 50 were slower (min ratio = 0.013, max ratio = 18.97, hmean = 0.41)
+\item Of the 69 completed, 59 had fewer total clauses with monolithic, 10 had more (min ratio = 0.07, max ratio = 1.09, hmean = 0.49)
 \end{itemize}
 
+\section{Preprocessing}
+
+\input{figure-runtime-preprocess}
+\input{figure-clauses-preprocess}
+
+Use preprocessor in D4.  Enable its three preprocessing methods
+(backbone, vivification, occElimination), all of which preserve
+equivalence.  Cannot use structured mode for forward implication
+proof, since modified clauses do not decompose in the way anticipated.
+
+Run same 83 benchmarks used to compare monolithic vs. structured mode.
+Incorporate time to run D4 into evaluation, since differs according to
+how D4 runs.
+
+Runtime results:
+\begin{itemize}
+\item Monolithic without preprocessing completes 68  of then with an overall time less than 1000 seconds.  (One less than when only consider generation and checking).
+\item Monolithic with prepreprocessing completes these plus one more (not the same as previously excluded)
+\item Of the 68, 53 run faster with preprocessing and 15 run slower (mininum ratio 0.04, maximum ratio 1.65, harmonic mean 0.38)
+\item Shifts only slightly when don't count D4 time.  Both complete 69 benchmarks. 56 faster, 13 slower (minimum ratio 0.04, maximum ratio 1.49, harmonic mean 0.37)
+\end{itemize}
+
+Clause results:
+\begin{itemize}
+\item Consider the 68 cases that completed for both with overall time less than 1000 seconds.
+\item 27 had more clauses without preprocessing, 19 were identical, and 22 had less.
+\item Min = 0.43, Max = 4.57, Harmonic mean = 0.98
+\end{itemize}
 
 
 \section{Comparison with MICE}

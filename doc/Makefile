@@ -37,6 +37,10 @@ rdata:
 	cp -p $(LDATA)/time-structured+monolithic_timeout.csv $(SRCDATA)
 	cp -p $(LDATA)/clauses-total-structured+monolithic.csv $(SRCDATA)
 	cp -p $(LDATA)/time-check-regular-lean.csv $(SRCDATA)
+	cp -p $(LDATA)/time-overall-monolithic+preprocess.csv $(SRCDATA)
+	cp -p $(LDATA)/timeout-overall-monolithic+time-preprocess.csv $(SRCDATA)
+	cp -p $(LDATA)/clauses-total-monolithic+preprocess.csv $(SRCDATA)
+
 
 pdata:
 	rm -rf data-formatted
@@ -79,6 +83,12 @@ pdata:
 		< $(SRCDATA)/time-structured+monolithic_timeout.csv > data-formatted/time-structured+monolithic_timeout.tex
 	$(DGEN) -X 2 -Y 3 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/clauses-total-structured+monolithic.csv > data-formatted/clauses-total-structured+monolithic.tex
+	$(DGEN) -X 2 -Y 4 -x 1000 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
+		< $(SRCDATA)/time-overall-monolithic+preprocess.csv > data-formatted/time-monolithic+preprocess.tex
+	$(DGEN) -X 3 -Y 4 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
+		< $(SRCDATA)/timeout-overall-monolithic+time-preprocess.csv > data-formatted/timeout-monolithic+time-preprocess.tex
+	$(DGEN) -X 2 -Y 3 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
+		< $(SRCDATA)/clauses-total-monolithic+preprocess.csv > data-formatted/clauses-total-monolithic+preprocess.tex
 	$(DGEN) -X 2 -Y 3 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/time-check-regular-lean.csv > data-formatted/time-check-regular.tex
 	$(DGEN) -X 2 -Y 4 -O "only marks, color=bluegray, mark=square*, mark options={scale=0.8}, opacity=0.7" \
