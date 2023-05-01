@@ -30,7 +30,7 @@
 #define KISSAT  2
 
 #ifndef SOLVER
-#define SOLVER KISSAT
+#define SOLVER CADICAL
 #endif
 
 // Enable/disable more info in file comments
