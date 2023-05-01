@@ -337,6 +337,7 @@ int main(int argc, char *const argv[]) {
 	lprintf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
 	lprintf("%s   Clause limit:    %d\n", prefix, clause_limit);
 	lprintf("%s   BCP limit:       %d\n", prefix, bcp_limit);
+	lprintf("%s   Solver:          %s\n", prefix, SOLVER == CADICAL ? "cadical" : "kissat");
     }
     int return_code = 0;
     try {

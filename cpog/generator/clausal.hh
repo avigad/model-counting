@@ -25,6 +25,14 @@
 
 #pragma once
 
+// SOLVER options
+#define CADICAL 1
+#define KISSAT  2
+
+#ifndef SOLVER
+#define SOLVER KISSAT
+#endif
+
 // Enable/disable more info in file comments
 #ifndef DEBUG
 #define DEBUG 0

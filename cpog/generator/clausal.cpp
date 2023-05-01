@@ -595,7 +595,11 @@ bool Cnf_reduced::run_solver() {
     report(3, "Wrote file with %d clauses to %s\n", clause_count(), fname);
     
     double start = tod();
+#if SOLVER == CADICAL
     snprintf(cmd, 150, "cadical --unsat -q --no-binary %s -", fname);
+#else
+    snprintf(cmd, 150, "kissat --unsat -q --no-binary %s -", fname);
+#endif
     FILE *sfile = popen(cmd, "r");
     if (sfile == NULL) {
 	err(true, "Couldn't execute command '%s'\n", cmd);
@@ -674,8 +678,11 @@ bool Cnf_reduced::run_hinting_solver() {
     file_names.push_back(lratname);
 
     double start = tod();
+#if SOLVER == CADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
-    //snprintf(cmd, 350, "cadical --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
+#else
+    snprintf(cmd, 350, "kissat --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
+#endif
     int rc = system(cmd);
     incr_timer(TIME_SAT, tod()-start);
     if (rc != 0)
@@ -2202,7 +2209,11 @@ int Cnf_reasoner::monolithic_validate_root(int root_literal) {
     fclose(cnf_out);
     
     double start = tod();
+#if SOLVER == CADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnf_name, cnf_name, lrat_name);
+#else
+    snprintf(cmd, 350, "kissat --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnf_name, cnf_name, lrat_name);
+#endif
     int rc = system(cmd);
     incr_timer(TIME_SAT, tod()-start);
     if (rc != 0) {
