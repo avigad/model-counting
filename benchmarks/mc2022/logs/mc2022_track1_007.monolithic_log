@@ -1,108 +1,5 @@
-D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_007.cnf -dDNNF -out=./mc2022_track1_007.nnf
-D4 LOG: Time limit 1000 seconds
-c [33mBenchmark Information[0m
-c Number of variables: 200
-c Number of clauses: 539
-c Number of literals: 1339
-c Preproc options: 
-c
-c Preproc time: 0.000143
-c Integer mode 
-c
-c [1m[32mOption list [0m
-c Caching: 1
-c Reduce cache procedure level: 20
-c Strategy for Reducing the cache: 0
-c Cache representation: CL
-c Part of the formula that is cached: NT
-c Variable heuristic: VSADS
-c Phase heuristic: TRUE
-c Partitioning heuristic: CB + graph reduction + equivalence simplication
-c
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c top 5: -90 
-c top 5: -90 -69 
-c top 5: -90 -69 -8 
-c unitLits 1048577 4194308 Bytes
-c top 5: -90 -69 -8 
-c top 5: -90 -69 -8 -26 
-c top 5: -90 -69 -8 26 
-c top 5: -90 -69 -8 
-c top 5: -90 -69 -8 -35 
-c freeVariables 1048577
-c top 5: -90 -69 -8 35 
-c top 5: -90 -69 8 
-c top 5: -90 -69 8 
-c top 5: -90 -69 8 -57 
-c top 5: -90 -69 8 57 
-c top 5: -90 -69 8 
-c top 5: -90 -69 8 -38 
-c top 5: -90 -69 
-c top 5: -90 -69 -98 
-c top 5: -90 -69 -98 -51 
-c top 5: -90 -69 -98 -51 
-c top 5: -90 -69 -98 51 
-c top 5: -90 -69 -98 
-c top 5: -90 -69 -98 
-c top 5: -90 -69 98 
-c top 5: -90 -69 98 
-c top 5: -90 -69 98 
-c top 5: -90 69 
-c top 5: -90 69 -26 
-c top 5: -90 69 26 
-c top 5: -90 69 26 -35 
-c top 5: -90 69 
-c top 5: -90 69 -98 
-c top 5: -90 69 98 
-c top 5: -90 69 98 -36 
-c top 5: -90 69 98 36 
-c top 5: -90 69 98 
-c top 5: 90 
-c top 5: 90 -69 
-c top 5: 90 -69 -98 
-c top 5: 90 -69 -98 -51 
-c top 5: 90 -69 -98 51 
-c top 5: 90 -69 -98 
-c top 5: 90 -69 98 
-c top 5: 90 -69 98 
-c top 5: 90 69 
-c top 5: 90 69 -98 
-c top 5: 90 69 98 
-c top 5: 114 
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c
-c [1m[31mStatistics [0m
-c [33mCompilation Information[0m
-c Number of compiled node: 175
-c Number of split formula: 113
-c Number of decision node: 87
-c Number of node built on domain constraints: 0
-c Number of decomposable AND nodes: 47
-c Number of backbone calls: 0
-c Number of partitioner calls: 15
-c Average number of assigned literal to obtain decomposable AND nodes: 136.23/200
-c Minimum number of assigned variable where a decomposable AND appeared: 125
-c 
-c [33mGraph Information[0m
-c Number of nodes: 630
-c Number of edges: 783
-c 
-c [1m[34mCache Information[0m
-c Memory used: 561 MB
-c
-c Number of positive hit: 67
-c Number of negative hit: 87
-c Number of reduceCall: 0
-c
-c Final time: 0.000949
-c 
-s 0.000000
-D4 LOG: Elapsed time = 0.014 seconds
-D4 OUTCOME: normal
 GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -m -C 2147483647 -L d2p.log ./mc2022_track1_007.cnf ./mc2022_track1_007.nnf ./mc2022_track1_007.cpog
-GEN LOG: Time limit 1000 seconds
+GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
 c GEN:   Use lemmas:      yes
@@ -112,6 +9,7 @@ c GEN:   Monolithic mode: yes
 c GEN:   DRAT threshold:  1000
 c GEN:   Clause limit:    2147483647
 c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
 c GEN: Time = 0.00.  Read input file with 200 variables and 539 clauses
 c Read D4 NNF file with 311 nodes (136 explicit) and 288 edges
 c Compressed POG has 304 nodes, root literal 504, and 1295 defining clauses
@@ -164,16 +62,17 @@ GEN LOG: Elapsed time = 0.047 seconds
 GEN OUTCOME: normal
 GEN: LOG: size ./mc2022_track1_007.cpog 1449 lines 99148 bytes
 FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track1_007.cnf ./mc2022_track1_007.cpog
-FCHECK LOG: Time limit 1000 seconds
+FCHECK LOG: Time limit 10000 seconds
 CHECK: Read CNF file with 200 variables and 539 clauses
 CHECK: Read CPOG file with 304 operations,  303 asserted + 1295 defining = 1598 clauses
 CHECK: Deleted 841 input and asserted clauses
 CHECK: Final root literal 504
 CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+Root ID = 504
 CHECK: Regular model count = 3321888768
 CHECK: Time to compute model counts: 0.000
 CHECK: Elapsed seconds: 0.004
 FCHECK LOG: Elapsed time = 0.006 seconds
 FCHECK OUTCOME: normal
-OVERALL LOG: Elapsed time = 0.068 seconds
+OVERALL LOG: Elapsed time = 0.054 seconds
 OVERALL OUTCOME: normal
