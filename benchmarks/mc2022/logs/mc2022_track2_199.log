@@ -1,29 +1,32 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -C 2000000000 -L d2p.log ./mc2022_track2_199.cnf ./mc2022_track2_199.nnf ./mc2022_track2_199.crat
-GEN LOG: Time limit 9000 seconds
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -C 2147483647 -L d2p.log ./mc2022_track2_199.cnf ./mc2022_track2_199.nnf ./mc2022_track2_199.cpog
+GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
 c GEN:   Use lemmas:      yes
 c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
 c GEN:   DRAT threshold:  1000
-c GEN:   Clause limit:    2000000000
+c GEN:   Clause limit:    2147483647
 c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
 c GEN: Time = 0.01.  Read input file with 2701 variables and 29534 clauses
 c Read D4 NNF file with 404595 nodes (202389 explicit) and 523567 edges
 c Compressed POG has 396459 nodes, root literal 399160, and 8493275 defining clauses
-c GEN: Time = 2.50.  Generated POG representation
-c Time = 87.95.  Justifications of 39645 nodes completed.  9993033 total clauses
-c Time = 213.38.  Justifications of 79290 nodes completed.  11908272 total clauses
-c Time = 370.50.  Justifications of 118935 nodes completed.  14269193 total clauses
-c Time = 639.56.  Justifications of 158580 nodes completed.  17788774 total clauses
-c Time = 921.75.  Justifications of 198225 nodes completed.  21112738 total clauses
-c Time = 1175.56.  Justifications of 237870 nodes completed.  24554436 total clauses
-c Time = 1426.50.  Justifications of 277515 nodes completed.  27974457 total clauses
-c Time = 1735.73.  Justifications of 317160 nodes completed.  31806211 total clauses
-c Time = 2186.18.  Justifications of 356805 nodes completed.  36852590 total clauses
-c Time = 2739.13.  Justifications of 396450 nodes completed.  41872772 total clauses
-c Time = 2739.30.  Justifications of 396493 nodes, including root, completed.  41873679 total clauses
-c GEN: Time = 2754.36.  Deleted asserted clauses
-c GEN: Time = 3866.95.  Deleted input clauses
+c GEN: Time = 2.35.  Generated POG representation
+c Time = 85.22.  Justifications of 39645 nodes completed.  9993033 total clauses.  2623 SAT calls
+c Time = 211.01.  Justifications of 79290 nodes completed.  11908272 total clauses.  5185 SAT calls
+c Time = 370.45.  Justifications of 118935 nodes completed.  14269193 total clauses.  7529 SAT calls
+c Time = 638.13.  Justifications of 158580 nodes completed.  17788774 total clauses.  11456 SAT calls
+c Time = 920.53.  Justifications of 198225 nodes completed.  21112738 total clauses.  15778 SAT calls
+c Time = 1173.80.  Justifications of 237870 nodes completed.  24554436 total clauses.  19339 SAT calls
+c Time = 1424.57.  Justifications of 277515 nodes completed.  27974457 total clauses.  24112 SAT calls
+c Time = 1734.78.  Justifications of 317160 nodes completed.  31806211 total clauses.  28011 SAT calls
+c Time = 2188.72.  Justifications of 356805 nodes completed.  36852590 total clauses.  33526 SAT calls
+c Time = 2749.67.  Justifications of 396450 nodes completed.  41872772 total clauses.  40681 SAT calls
+c Time = 2749.84.  Justifications of 396493 nodes, including root, completed.  41873679 total clauses
+c GEN: Time = 2765.50.  Deleted asserted clauses
+c GEN: Time = 3879.07.  Deleted input clauses
 c GEN: Formula
 c GEN:    input variables: 2701
 c GEN:    input clauses  : 29534
@@ -60,29 +63,29 @@ c GEN:    product justification: 299316
 c GEN:    sum justification    : 194078
 c GEN:    literal justification: 29574123
 c GEN:    lemma application    : 1526499
+c GEN:    monolithic proof     : 0
 c GEN:    clause TOTAL         : 41873955
 c GEN: Time
-c GEN:   SAT execution  : 1023.08
-c GEN:   other execution: 2843.90
-c GEN:   time TOTAL     : 3866.97
-GEN LOG: Elapsed time = 3867.331 seconds
+c GEN:   SAT execution  : 1022.01
+c GEN:   other execution: 2857.08
+c GEN:   time TOTAL     : 3879.09
+GEN LOG: Elapsed time = 3879.404 seconds
 GEN OUTCOME: normal
-FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track2_199.cnf ./mc2022_track2_199.crat
-FCHECK LOG: Time limit 9000 seconds
-FCHECK: Read CNF file with 2701 variables and 29534 clauses
-FCHECK: Read CRAT file with 412108 operations,  31593740 asserted + 10279939 defining = 41873679 clauses
-FCHECK: Deleted 31623273 input and asserted clauses
-FCHECK: Final root literal 399160
-FCHECK: SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 441.108
-FCHECK LOG: Elapsed time = 441.234 seconds
+GEN: LOG: size ./mc2022_track2_199.cpog 63629122 lines 14841974659 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track2_199.cnf ./mc2022_track2_199.cpog
+FCHECK LOG: Time limit 10000 seconds
+CHECK: Read CNF file with 2701 variables and 29534 clauses
+CHECK: Read CPOG file with 412108 operations,  31593740 asserted + 10279939 defining = 41873679 clauses
+CHECK: Deleted 31623273 input and asserted clauses
+CHECK: Final root literal 399160
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+Root ID = 399160
+CHECK: Regular model count = 724152621485436659540387630662916505600
+Root ID = 399160
+CHECK: Weighted model count = 0.0083128644110281353035438154999241378241033914140773242038707138549559483298168061082833446562290191650390625
+CHECK: Time to compute model counts: 1.404
+CHECK: Elapsed seconds: 427.921
+FCHECK LOG: Elapsed time = 428.047 seconds
 FCHECK OUTCOME: normal
-COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track2_199.cnf -p ./mc2022_track2_199.crat
-COUNT LOG: Time limit 3600 seconds
-Obtained weights from CNF file
-COUNTER: Elapsed time for count: 1.59 seconds
-COUNTER: Weighted count = 0.0083128644110281353035438154999241378241033914140773242038707138549559483298168061082833446562290191650390625
-COUNT LOG: Elapsed time = 17.508 seconds
-COUNT OUTCOME: normal
-OVERALL LOG: Elapsed time = 4326.073 seconds
+OVERALL LOG: Elapsed time = 4323.319 seconds
 OVERALL OUTCOME: normal

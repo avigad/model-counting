@@ -1,29 +1,32 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -C 2147483647 -L d2p.log ./mc2022_track2_179.cnf ./mc2022_track2_179.nnf ./mc2022_track2_179.crat
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -C 2147483647 -L d2p.log ./mc2022_track2_179.cnf ./mc2022_track2_179.nnf ./mc2022_track2_179.cpog
 GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
 c GEN:   Use lemmas:      yes
 c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
 c GEN:   DRAT threshold:  1000
 c GEN:   Clause limit:    2147483647
 c GEN:   BCP limit:       1
-c GEN: Time = 0.02.  Read input file with 480 variables and 2046 clauses
+c GEN:   Solver:          cadical
+c GEN: Time = 0.00.  Read input file with 480 variables and 2046 clauses
 c Read D4 NNF file with 166148 nodes (65432 explicit) and 143130 edges
 c Compressed POG has 110096 nodes, root literal 110576, and 2295530 defining clauses
-c GEN: Time = 0.76.  Generated POG representation
-c Time = 333.45.  Justifications of 11009 nodes completed.  8086107 total clauses
-c Time = 748.75.  Justifications of 22018 nodes completed.  15582462 total clauses
-c Time = 1153.36.  Justifications of 33027 nodes completed.  22912628 total clauses
-c Time = 1321.65.  Justifications of 44036 nodes completed.  25926860 total clauses
-c Time = 1984.49.  Justifications of 55045 nodes completed.  37585356 total clauses
-c Time = 2491.83.  Justifications of 66054 nodes completed.  46495627 total clauses
-c Time = 3005.82.  Justifications of 77063 nodes completed.  55376594 total clauses
-c Time = 3662.71.  Justifications of 88072 nodes completed.  66529756 total clauses
-c Time = 4096.51.  Justifications of 99081 nodes completed.  74364693 total clauses
-c Time = 4471.59.  Justifications of 110090 nodes completed.  81043277 total clauses
-c Time = 4476.97.  Justifications of 110313 nodes, including root, completed.  81147431 total clauses
-c GEN: Time = 4620.83.  Deleted asserted clauses
-c GEN: Time = 4648.60.  Deleted input clauses
+c GEN: Time = 0.65.  Generated POG representation
+c Time = 325.20.  Justifications of 11009 nodes completed.  8086107 total clauses.  2991 SAT calls
+c Time = 726.62.  Justifications of 22018 nodes completed.  15582462 total clauses.  6996 SAT calls
+c Time = 1129.00.  Justifications of 33027 nodes completed.  22912628 total clauses.  10773 SAT calls
+c Time = 1296.58.  Justifications of 44036 nodes completed.  25926860 total clauses.  14042 SAT calls
+c Time = 1947.47.  Justifications of 55045 nodes completed.  37585356 total clauses.  18613 SAT calls
+c Time = 2468.15.  Justifications of 66054 nodes completed.  46495627 total clauses.  22759 SAT calls
+c Time = 2978.47.  Justifications of 77063 nodes completed.  55376594 total clauses.  27491 SAT calls
+c Time = 3640.07.  Justifications of 88072 nodes completed.  66529756 total clauses.  31814 SAT calls
+c Time = 4090.52.  Justifications of 99081 nodes completed.  74364693 total clauses.  36102 SAT calls
+c Time = 4475.56.  Justifications of 110090 nodes completed.  81043277 total clauses.  39869 SAT calls
+c Time = 4481.18.  Justifications of 110313 nodes, including root, completed.  81147431 total clauses
+c GEN: Time = 4626.15.  Deleted asserted clauses
+c GEN: Time = 4653.32.  Deleted input clauses
 c GEN: Formula
 c GEN:    input variables: 480
 c GEN:    input clauses  : 2046
@@ -60,29 +63,29 @@ c GEN:    product justification: 87826
 c GEN:    sum justification    : 44676
 c GEN:    literal justification: 76747269
 c GEN:    lemma application    : 374787
+c GEN:    monolithic proof     : 0
 c GEN:    clause TOTAL         : 81147729
 c GEN: Time
-c GEN:   SAT execution  : 2986.37
-c GEN:   other execution: 1662.26
-c GEN:   time TOTAL     : 4648.64
-GEN LOG: Elapsed time = 4654.738 seconds
+c GEN:   SAT execution  : 2988.99
+c GEN:   other execution: 1664.36
+c GEN:   time TOTAL     : 4653.35
+GEN LOG: Elapsed time = 4653.740 seconds
 GEN OUTCOME: normal
-FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track2_179.cnf ./mc2022_track2_179.crat
+GEN: LOG: size ./mc2022_track2_179.cpog 154650046 lines 42412869857 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track2_179.cnf ./mc2022_track2_179.cpog
 FCHECK LOG: Time limit 10000 seconds
-FCHECK: Read CNF file with 480 variables and 2046 clauses
-FCHECK: Read CRAT file with 139480 operations,  77254260 asserted + 3893171 defining = 81147431 clauses
-FCHECK: Deleted 77256305 input and asserted clauses
-FCHECK: Final root literal 110576
-FCHECK: SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 1219.684
-FCHECK LOG: Elapsed time = 1219.796 seconds
+CHECK: Read CNF file with 480 variables and 2046 clauses
+CHECK: Read CPOG file with 139480 operations,  77254260 asserted + 3893171 defining = 81147431 clauses
+CHECK: Deleted 77256305 input and asserted clauses
+CHECK: Final root literal 110576
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+Root ID = 110576
+CHECK: Regular model count = 73957599
+Root ID = 110576
+CHECK: Weighted model count = 0.0000000000000000000000000000000000000000506038427264895638084627695827112880765903170470042289867113191189156880307894147141833940395372337661683559417724609375
+CHECK: Time to compute model counts: 0.466
+CHECK: Elapsed seconds: 1218.529
+FCHECK LOG: Elapsed time = 1218.643 seconds
 FCHECK OUTCOME: normal
-COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track2_179.cnf -p ./mc2022_track2_179.crat
-COUNT LOG: Time limit 4000 seconds
-Obtained weights from CNF file
-COUNTER: Elapsed time for count: 0.44 seconds
-COUNTER: Weighted count = 0.0000000000000000000000000000000000000000506038427264895638084627695827112880765903170470042289867113191189156880307894147141833940395372337661683559417724609375
-COUNT LOG: Elapsed time = 4.014 seconds
-COUNT OUTCOME: normal
-OVERALL LOG: Elapsed time = 5878.589 seconds
+OVERALL LOG: Elapsed time = 5928.069 seconds
 OVERALL OUTCOME: normal
