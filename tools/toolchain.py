@@ -11,7 +11,7 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-f] [-s n|g|c] [-m] [-p] [-L] [-G] [-F] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-f] [-s n|g|c] [-m] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -s n|g|c Stop after NNF generation, CPOG generation (g) or proof check (c)")
@@ -21,6 +21,7 @@ def usage(name):
     print("  -L       Expand each node, rather than using lemmas")
     print("  -G       Prove each literal separately, rather than grouping into single proof")
     print("  -F       Run Lean checker to formally check")
+    print("  -t TIME  Limit time for generator")
     print("  EXT      Can be any extension for wild-card matching (e.g., cnf, nnf)")
 
 # Blocking file.  If present in directory, won't proceed.  Recheck every sleepTime seconds
@@ -61,6 +62,10 @@ timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 10000, "LCHECK" : 10000, "
 clauseLimit = (1 << 31) - 1
 
 commentChar = 'c'
+
+def setTimeLimit(t):
+    global timeLimits
+    timeLimits["GEN"] = t
 
 def waitWhileBlocked():
     first = True
@@ -292,7 +297,7 @@ def run(name, args):
     # Don't need to run separate counter anymore
     stopCheck = True
     force = False
-    optList, args = getopt.getopt(args, "hf1mpLGFs:")
+    optList, args = getopt.getopt(args, "hf1mpLGFs:t:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -322,6 +327,8 @@ def run(name, args):
                 print("Unknown stopping condition '%s'" % val)
                 usage(name)
                 return
+        elif opt == '-t':
+            setTimeLimit(int(val))
         else:
             print("Unknown option '%s'" % opt)
             usage(name)

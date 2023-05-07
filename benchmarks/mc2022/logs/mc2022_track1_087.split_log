@@ -1,81 +1,15 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -s -C 2147483647 -L d2p.log ./mc2022_track1_087.cnf ./mc2022_track1_087.nnf ./mc2022_track1_087.crat
-GEN LOG: Time limit 10000 seconds
-c GEN: Program options
-c GEN:   Multi-literal:   no
-c GEN:   Use lemmas:      yes
-c GEN:   Delete files:    yes
-c GEN:   DRAT threshold:  1000
-c GEN:   Clause limit:    2147483647
-c GEN:   BCP limit:       1
-c GEN: Time = 0.00.  Read input file with 2646 variables and 7345 clauses
-c Read D4 NNF file with 5285 nodes (2006 explicit) and 4621 edges
-c Compressed POG has 4938 nodes, root literal 7584, and 82194 defining clauses
-c GEN: Time = 0.05.  Generated POG representation
-c Time = 0.17.  Justifications of 1000 nodes completed.  93379 total clauses
-c Time = 0.62.  Justifications of 2000 nodes completed.  114980 total clauses
-c Time = 1.13.  Justifications of 3000 nodes completed.  146659 total clauses
-c Time = 1.66.  Justifications of 4000 nodes completed.  184801 total clauses
-c Time = 2.77.  Justifications of 4938 nodes, including root, completed.  250895 total clauses
-c GEN: Time = 2.84.  Deleted asserted clauses
-c GEN: Time = 5.67.  Deleted input clauses
-c GEN: Formula
-c GEN:    input variables: 2646
-c GEN:    input clauses  : 7345
-c GEN: POG nodes
-c GEN:    product   : 3468
-c GEN:    sum       : 1469
-c GEN:    node TOTAL: 4937
-c GEN: Other nodes
-c GEN:    aux product: 1436
-c GEN: Node visits
-c GEN:    product/BCP: 3414
-c GEN:    product/SAT: 55
-c GEN:    sum        : 1469
-c GEN:    visit TOTAL: 4938
-c GEN: Lemmas
-c GEN:    definitions : 246
-c GEN:    applications: 1472
-c GEN:    duplicates  : 0
-c GEN:    merged args : 4
-c GEN: SAT Problem Clause Counts (76 instances)
-c GEN:    PROBLEM TOTAL : 63531
-c GEN:    PROBLEM MIN   : 91
-c GEN:    PROBLEM AVG   : 835.93
-c GEN:    PROBLEM MAX   : 2853
-c GEN: SAT Proof Clause Counts
-c GEN:    PROOF TOTAL : 1893
-c GEN:    PROOF MIN   : 2
-c GEN:    PROOF AVG   : 24.91
-c GEN:    PROOF MAX   : 119
-c GEN: Clauses
-c GEN:    POG definition       : 82194
-c GEN:    AUX definition       : 4308
-c GEN:    product justification: 3469
-c GEN:    sum justification    : 2934
-c GEN:    literal justification: 129808
-c GEN:    lemma application    : 28186
-c GEN:    clause TOTAL         : 250899
-c GEN: Time
-c GEN:   SAT execution  : 0.80
-c GEN:   other execution: 4.87
-c GEN:   time TOTAL     : 5.67
-GEN LOG: Elapsed time = 5.682 seconds
-GEN OUTCOME: normal
-FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track1_087.cnf ./mc2022_track1_087.crat
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track1_087.cnf ./mc2022_track1_087.cpog
 FCHECK LOG: Time limit 10000 seconds
-FCHECK: Read CNF file with 2646 variables and 7345 clauses
-FCHECK: Read CRAT file with 6374 operations,  164393 asserted + 86502 defining = 250895 clauses
-FCHECK: Deleted 171737 input and asserted clauses
-FCHECK: Final root literal 7584
-FCHECK: SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 1.056
-FCHECK LOG: Elapsed time = 1.058 seconds
+CHECK: Read CNF file with 2646 variables and 7345 clauses
+CHECK: Read CPOG file with 5018 operations,  367828 asserted + 86019 defining = 453847 clauses
+CHECK: Deleted 375172 input and asserted clauses
+CHECK: Final root literal 7584
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+Root ID = 7584
+CHECK: Regular model count = 248661618089101217592043121701899940370073055166828920881444525198718880000979763200000
+CHECK: Time to compute model counts: 0.006
+CHECK: Elapsed seconds: 1.614
+FCHECK LOG: Elapsed time = 1.617 seconds
 FCHECK OUTCOME: normal
-COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track1_087.cnf -p ./mc2022_track1_087.crat
-COUNT LOG: Time limit 4000 seconds
-COUNTER: Elapsed time for count: 0.02 seconds
-COUNTER: Unweighted count = 248661618089101217592043121701899940370073055166828920881444525198718880000979763200000
-COUNT LOG: Elapsed time = 0.181 seconds
-COUNT OUTCOME: normal
-OVERALL LOG: Elapsed time = 6.922 seconds
+OVERALL LOG: Elapsed time = 1.617 seconds
 OVERALL OUTCOME: normal

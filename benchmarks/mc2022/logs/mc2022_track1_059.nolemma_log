@@ -1,136 +1,139 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -e -C 100000000 -L d2p.log ./mc2022_track1_059.cnf ./mc2022_track1_059.nnf ./mc2022_track1_059.crat
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -e -C 2147483647 -L d2p.log ./mc2022_track1_059.cnf ./mc2022_track1_059.nnf ./mc2022_track1_059.cpog
 GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
 c GEN:   Use lemmas:      no
 c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
 c GEN:   DRAT threshold:  1000
-c GEN:   Clause limit:    100000000
+c GEN:   Clause limit:    2147483647
 c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
 c GEN: Time = 0.00.  Read input file with 330 variables and 5020 clauses
 c Read D4 NNF file with 446752 nodes (159315 explicit) and 320928 edges
 c Compressed POG has 439741 nodes, root literal 440071, and 1682059 defining clauses
-c GEN: Time = 0.74.  Generated POG representation
-c Time = 1.30.  Justifications of 43974 nodes completed.  1749327 total clauses
-c Time = 1.62.  Justifications of 87948 nodes completed.  1814744 total clauses
-c Time = 1.94.  Justifications of 131922 nodes completed.  1879725 total clauses
-c Time = 2.28.  Justifications of 175896 nodes completed.  1946866 total clauses
-c Time = 2.59.  Justifications of 219870 nodes completed.  2011432 total clauses
-c Time = 2.90.  Justifications of 263844 nodes completed.  2076748 total clauses
-c Time = 3.22.  Justifications of 307818 nodes completed.  2141700 total clauses
-c Time = 3.57.  Justifications of 351792 nodes completed.  2208964 total clauses
-c Time = 3.88.  Justifications of 395766 nodes completed.  2273446 total clauses
-c Time = 4.19.  Justifications of 439740 nodes completed.  2338851 total clauses
-c Time = 4.51.  Justifications of 483714 nodes completed.  2403715 total clauses
-c Time = 4.86.  Justifications of 527688 nodes completed.  2471081 total clauses
-c Time = 5.16.  Justifications of 571662 nodes completed.  2535265 total clauses
-c Time = 5.48.  Justifications of 615636 nodes completed.  2600583 total clauses
-c Time = 5.80.  Justifications of 659610 nodes completed.  2665434 total clauses
-c Time = 6.14.  Justifications of 703584 nodes completed.  2732895 total clauses
-c Time = 6.45.  Justifications of 747558 nodes completed.  2797045 total clauses
-c Time = 6.77.  Justifications of 791532 nodes completed.  2862462 total clauses
-c Time = 7.09.  Justifications of 835506 nodes completed.  2927449 total clauses
-c Time = 7.43.  Justifications of 879480 nodes completed.  2994937 total clauses
-c Time = 7.74.  Justifications of 923454 nodes completed.  3058986 total clauses
-c Time = 8.06.  Justifications of 967428 nodes completed.  3124335 total clauses
-c Time = 8.38.  Justifications of 1011402 nodes completed.  3189300 total clauses
-c Time = 8.73.  Justifications of 1055376 nodes completed.  3256737 total clauses
-c Time = 9.03.  Justifications of 1099350 nodes completed.  3320881 total clauses
-c Time = 9.35.  Justifications of 1143324 nodes completed.  3386298 total clauses
-c Time = 9.68.  Justifications of 1187298 nodes completed.  3451202 total clauses
-c Time = 10.02.  Justifications of 1231272 nodes completed.  3518512 total clauses
-c Time = 10.33.  Justifications of 1275246 nodes completed.  3582574 total clauses
-c Time = 10.65.  Justifications of 1319220 nodes completed.  3647914 total clauses
-c Time = 10.98.  Justifications of 1363194 nodes completed.  3712801 total clauses
-c Time = 11.32.  Justifications of 1407168 nodes completed.  3780249 total clauses
-c Time = 11.71.  Justifications of 1451142 nodes completed.  3862076 total clauses
-c Time = 12.10.  Justifications of 1495116 nodes completed.  3941419 total clauses
-c Time = 12.45.  Justifications of 1539090 nodes completed.  4017425 total clauses
-c Time = 12.91.  Justifications of 1583064 nodes completed.  4101780 total clauses
-c Time = 13.40.  Justifications of 1627038 nodes completed.  4187454 total clauses
-c Time = 13.63.  Justifications of 1671012 nodes completed.  4261159 total clauses
-c Time = 13.89.  Justifications of 1714986 nodes completed.  4335922 total clauses
-c Time = 14.28.  Justifications of 1758960 nodes completed.  4414067 total clauses
-c Time = 14.72.  Justifications of 1802934 nodes completed.  4491982 total clauses
-c Time = 15.03.  Justifications of 1846908 nodes completed.  4557448 total clauses
-c Time = 15.36.  Justifications of 1890882 nodes completed.  4626892 total clauses
-c Time = 15.66.  Justifications of 1934856 nodes completed.  4690034 total clauses
-c Time = 15.99.  Justifications of 1978830 nodes completed.  4757655 total clauses
-c Time = 16.35.  Justifications of 2022804 nodes completed.  4828243 total clauses
-c Time = 16.71.  Justifications of 2066778 nodes completed.  4903144 total clauses
-c Time = 17.03.  Justifications of 2110752 nodes completed.  4972235 total clauses
-c Time = 17.35.  Justifications of 2154726 nodes completed.  5039997 total clauses
-c Time = 17.66.  Justifications of 2198700 nodes completed.  5104915 total clauses
-c Time = 17.98.  Justifications of 2242674 nodes completed.  5170058 total clauses
-c Time = 18.33.  Justifications of 2286648 nodes completed.  5240326 total clauses
-c Time = 18.68.  Justifications of 2330622 nodes completed.  5313059 total clauses
-c Time = 21.66.  Justifications of 2374596 nodes completed.  5405807 total clauses
-c Time = 21.87.  Justifications of 2418570 nodes completed.  5480922 total clauses
-c Time = 22.09.  Justifications of 2462544 nodes completed.  5555865 total clauses
-c Time = 22.87.  Justifications of 2506518 nodes completed.  5634675 total clauses
-c Time = 23.26.  Justifications of 2550492 nodes completed.  5713833 total clauses
-c Time = 23.60.  Justifications of 2594466 nodes completed.  5785858 total clauses
-c Time = 23.93.  Justifications of 2638440 nodes completed.  5851988 total clauses
-c Time = 24.26.  Justifications of 2682414 nodes completed.  5917992 total clauses
-c Time = 24.58.  Justifications of 2726388 nodes completed.  5982539 total clauses
-c Time = 24.91.  Justifications of 2770362 nodes completed.  6047886 total clauses
-c Time = 25.28.  Justifications of 2814336 nodes completed.  6117366 total clauses
-c Time = 25.63.  Justifications of 2858310 nodes completed.  6188260 total clauses
-c Time = 25.95.  Justifications of 2902284 nodes completed.  6253377 total clauses
-c Time = 26.28.  Justifications of 2946258 nodes completed.  6317874 total clauses
-c Time = 26.61.  Justifications of 2990232 nodes completed.  6382442 total clauses
-c Time = 26.95.  Justifications of 3034206 nodes completed.  6449755 total clauses
-c Time = 27.35.  Justifications of 3078180 nodes completed.  6523008 total clauses
-c Time = 28.89.  Justifications of 3122154 nodes completed.  6614236 total clauses
-c Time = 29.23.  Justifications of 3166128 nodes completed.  6681586 total clauses
-c Time = 29.55.  Justifications of 3210102 nodes completed.  6743588 total clauses
-c Time = 29.87.  Justifications of 3254076 nodes completed.  6804945 total clauses
-c Time = 30.19.  Justifications of 3298050 nodes completed.  6866962 total clauses
-c Time = 30.53.  Justifications of 3342024 nodes completed.  6930780 total clauses
-c Time = 30.84.  Justifications of 3385998 nodes completed.  6991723 total clauses
-c Time = 31.15.  Justifications of 3429972 nodes completed.  7052934 total clauses
-c Time = 31.48.  Justifications of 3473946 nodes completed.  7115269 total clauses
-c Time = 31.82.  Justifications of 3517920 nodes completed.  7179089 total clauses
-c Time = 32.13.  Justifications of 3561894 nodes completed.  7239566 total clauses
-c Time = 32.45.  Justifications of 3605868 nodes completed.  7300821 total clauses
-c Time = 32.77.  Justifications of 3649842 nodes completed.  7363365 total clauses
-c Time = 33.11.  Justifications of 3693816 nodes completed.  7426840 total clauses
-c Time = 33.42.  Justifications of 3737790 nodes completed.  7487584 total clauses
-c Time = 33.74.  Justifications of 3781764 nodes completed.  7548815 total clauses
-c Time = 34.07.  Justifications of 3825738 nodes completed.  7611410 total clauses
-c Time = 34.43.  Justifications of 3869712 nodes completed.  7677718 total clauses
-c Time = 34.79.  Justifications of 3913686 nodes completed.  7748036 total clauses
-c Time = 35.18.  Justifications of 3957660 nodes completed.  7821748 total clauses
-c Time = 35.52.  Justifications of 4001634 nodes completed.  7887229 total clauses
-c Time = 35.83.  Justifications of 4045608 nodes completed.  7948611 total clauses
-c Time = 36.14.  Justifications of 4089582 nodes completed.  8009898 total clauses
-c Time = 36.47.  Justifications of 4133556 nodes completed.  8072500 total clauses
-c Time = 36.80.  Justifications of 4177530 nodes completed.  8135202 total clauses
-c Time = 37.12.  Justifications of 4221504 nodes completed.  8196858 total clauses
-c Time = 37.44.  Justifications of 4265478 nodes completed.  8258128 total clauses
-c Time = 37.77.  Justifications of 4309452 nodes completed.  8320553 total clauses
-c Time = 38.09.  Justifications of 4353426 nodes completed.  8383133 total clauses
-c Time = 38.42.  Justifications of 4397400 nodes completed.  8444957 total clauses
-c Time = 38.73.  Justifications of 4441374 nodes completed.  8505811 total clauses
-c Time = 39.07.  Justifications of 4485348 nodes completed.  8568744 total clauses
-c Time = 39.39.  Justifications of 4529322 nodes completed.  8630885 total clauses
-c Time = 39.71.  Justifications of 4573296 nodes completed.  8692602 total clauses
-c Time = 40.02.  Justifications of 4617270 nodes completed.  8753680 total clauses
-c Time = 40.36.  Justifications of 4661244 nodes completed.  8816639 total clauses
-c Time = 40.73.  Justifications of 4705218 nodes completed.  8885771 total clauses
-c Time = 41.09.  Justifications of 4749192 nodes completed.  8955494 total clauses
-c Time = 41.49.  Justifications of 4793166 nodes completed.  9033097 total clauses
-c Time = 41.86.  Justifications of 4837140 nodes completed.  9106908 total clauses
-c Time = 42.73.  Justifications of 4881114 nodes completed.  9182406 total clauses
-c Time = 42.95.  Justifications of 4925088 nodes completed.  9251895 total clauses
-c Time = 43.19.  Justifications of 4969062 nodes completed.  9321332 total clauses
-c Time = 43.45.  Justifications of 5013036 nodes completed.  9394216 total clauses
-c Time = 44.17.  Justifications of 5057010 nodes completed.  9466551 total clauses
-c Time = 44.38.  Justifications of 5100984 nodes completed.  9536867 total clauses
-c Time = 44.61.  Justifications of 5144958 nodes completed.  9607049 total clauses
-c Time = 44.72.  Justifications of 5163524 nodes, including root, completed.  9639220 total clauses
-c GEN: Time = 49.62.  Deleted asserted clauses
-c GEN: Time = 93.44.  Deleted input clauses
+c GEN: Time = 0.72.  Generated POG representation
+c Time = 1.26.  Justifications of 43974 nodes completed.  1749327 total clauses.  5 SAT calls
+c Time = 1.57.  Justifications of 87948 nodes completed.  1814744 total clauses.  5 SAT calls
+c Time = 1.89.  Justifications of 131922 nodes completed.  1879725 total clauses.  5 SAT calls
+c Time = 2.21.  Justifications of 175896 nodes completed.  1946866 total clauses.  5 SAT calls
+c Time = 2.51.  Justifications of 219870 nodes completed.  2011432 total clauses.  5 SAT calls
+c Time = 2.82.  Justifications of 263844 nodes completed.  2076748 total clauses.  5 SAT calls
+c Time = 3.14.  Justifications of 307818 nodes completed.  2141700 total clauses.  5 SAT calls
+c Time = 3.48.  Justifications of 351792 nodes completed.  2208964 total clauses.  5 SAT calls
+c Time = 3.78.  Justifications of 395766 nodes completed.  2273446 total clauses.  5 SAT calls
+c Time = 4.10.  Justifications of 439740 nodes completed.  2338851 total clauses.  5 SAT calls
+c Time = 4.41.  Justifications of 483714 nodes completed.  2403715 total clauses.  5 SAT calls
+c Time = 4.74.  Justifications of 527688 nodes completed.  2471081 total clauses.  5 SAT calls
+c Time = 5.04.  Justifications of 571662 nodes completed.  2535265 total clauses.  5 SAT calls
+c Time = 5.35.  Justifications of 615636 nodes completed.  2600583 total clauses.  5 SAT calls
+c Time = 5.66.  Justifications of 659610 nodes completed.  2665434 total clauses.  5 SAT calls
+c Time = 6.00.  Justifications of 703584 nodes completed.  2732895 total clauses.  5 SAT calls
+c Time = 6.30.  Justifications of 747558 nodes completed.  2797045 total clauses.  5 SAT calls
+c Time = 6.61.  Justifications of 791532 nodes completed.  2862462 total clauses.  5 SAT calls
+c Time = 6.92.  Justifications of 835506 nodes completed.  2927449 total clauses.  5 SAT calls
+c Time = 7.26.  Justifications of 879480 nodes completed.  2994937 total clauses.  5 SAT calls
+c Time = 7.56.  Justifications of 923454 nodes completed.  3058986 total clauses.  5 SAT calls
+c Time = 7.88.  Justifications of 967428 nodes completed.  3124335 total clauses.  5 SAT calls
+c Time = 8.19.  Justifications of 1011402 nodes completed.  3189300 total clauses.  5 SAT calls
+c Time = 8.53.  Justifications of 1055376 nodes completed.  3256737 total clauses.  5 SAT calls
+c Time = 8.83.  Justifications of 1099350 nodes completed.  3320881 total clauses.  5 SAT calls
+c Time = 9.14.  Justifications of 1143324 nodes completed.  3386298 total clauses.  5 SAT calls
+c Time = 9.45.  Justifications of 1187298 nodes completed.  3451202 total clauses.  5 SAT calls
+c Time = 9.79.  Justifications of 1231272 nodes completed.  3518512 total clauses.  5 SAT calls
+c Time = 10.09.  Justifications of 1275246 nodes completed.  3582574 total clauses.  5 SAT calls
+c Time = 10.40.  Justifications of 1319220 nodes completed.  3647914 total clauses.  5 SAT calls
+c Time = 10.72.  Justifications of 1363194 nodes completed.  3712801 total clauses.  5 SAT calls
+c Time = 11.06.  Justifications of 1407168 nodes completed.  3780249 total clauses.  5 SAT calls
+c Time = 11.43.  Justifications of 1451142 nodes completed.  3862076 total clauses.  5 SAT calls
+c Time = 11.81.  Justifications of 1495116 nodes completed.  3941419 total clauses.  5 SAT calls
+c Time = 12.15.  Justifications of 1539090 nodes completed.  4017425 total clauses.  5 SAT calls
+c Time = 12.58.  Justifications of 1583064 nodes completed.  4101780 total clauses.  6 SAT calls
+c Time = 13.07.  Justifications of 1627038 nodes completed.  4187454 total clauses.  9 SAT calls
+c Time = 13.29.  Justifications of 1671012 nodes completed.  4261159 total clauses.  9 SAT calls
+c Time = 13.53.  Justifications of 1714986 nodes completed.  4335922 total clauses.  10 SAT calls
+c Time = 13.91.  Justifications of 1758960 nodes completed.  4414067 total clauses.  13 SAT calls
+c Time = 14.34.  Justifications of 1802934 nodes completed.  4491982 total clauses.  16 SAT calls
+c Time = 14.65.  Justifications of 1846908 nodes completed.  4557448 total clauses.  16 SAT calls
+c Time = 14.97.  Justifications of 1890882 nodes completed.  4626892 total clauses.  16 SAT calls
+c Time = 15.27.  Justifications of 1934856 nodes completed.  4690034 total clauses.  16 SAT calls
+c Time = 15.59.  Justifications of 1978830 nodes completed.  4757655 total clauses.  16 SAT calls
+c Time = 15.93.  Justifications of 2022804 nodes completed.  4828243 total clauses.  16 SAT calls
+c Time = 16.28.  Justifications of 2066778 nodes completed.  4903144 total clauses.  16 SAT calls
+c Time = 16.60.  Justifications of 2110752 nodes completed.  4972235 total clauses.  16 SAT calls
+c Time = 16.92.  Justifications of 2154726 nodes completed.  5039997 total clauses.  16 SAT calls
+c Time = 17.23.  Justifications of 2198700 nodes completed.  5104915 total clauses.  16 SAT calls
+c Time = 17.55.  Justifications of 2242674 nodes completed.  5170058 total clauses.  16 SAT calls
+c Time = 17.89.  Justifications of 2286648 nodes completed.  5240326 total clauses.  16 SAT calls
+c Time = 18.23.  Justifications of 2330622 nodes completed.  5313059 total clauses.  16 SAT calls
+c Time = 21.15.  Justifications of 2374596 nodes completed.  5405807 total clauses.  76 SAT calls
+c Time = 21.36.  Justifications of 2418570 nodes completed.  5480922 total clauses.  76 SAT calls
+c Time = 21.58.  Justifications of 2462544 nodes completed.  5555865 total clauses.  76 SAT calls
+c Time = 22.33.  Justifications of 2506518 nodes completed.  5634675 total clauses.  89 SAT calls
+c Time = 22.71.  Justifications of 2550492 nodes completed.  5713833 total clauses.  89 SAT calls
+c Time = 23.04.  Justifications of 2594466 nodes completed.  5785858 total clauses.  89 SAT calls
+c Time = 23.37.  Justifications of 2638440 nodes completed.  5851988 total clauses.  89 SAT calls
+c Time = 23.69.  Justifications of 2682414 nodes completed.  5917992 total clauses.  89 SAT calls
+c Time = 24.01.  Justifications of 2726388 nodes completed.  5982539 total clauses.  89 SAT calls
+c Time = 24.33.  Justifications of 2770362 nodes completed.  6047886 total clauses.  89 SAT calls
+c Time = 24.68.  Justifications of 2814336 nodes completed.  6117366 total clauses.  89 SAT calls
+c Time = 25.03.  Justifications of 2858310 nodes completed.  6188260 total clauses.  89 SAT calls
+c Time = 25.35.  Justifications of 2902284 nodes completed.  6253377 total clauses.  89 SAT calls
+c Time = 25.67.  Justifications of 2946258 nodes completed.  6317874 total clauses.  89 SAT calls
+c Time = 26.00.  Justifications of 2990232 nodes completed.  6382442 total clauses.  89 SAT calls
+c Time = 26.33.  Justifications of 3034206 nodes completed.  6449755 total clauses.  89 SAT calls
+c Time = 26.69.  Justifications of 3078180 nodes completed.  6523008 total clauses.  89 SAT calls
+c Time = 28.23.  Justifications of 3122154 nodes completed.  6614236 total clauses.  112 SAT calls
+c Time = 28.57.  Justifications of 3166128 nodes completed.  6681586 total clauses.  112 SAT calls
+c Time = 28.88.  Justifications of 3210102 nodes completed.  6743588 total clauses.  112 SAT calls
+c Time = 29.19.  Justifications of 3254076 nodes completed.  6804945 total clauses.  112 SAT calls
+c Time = 29.51.  Justifications of 3298050 nodes completed.  6866962 total clauses.  112 SAT calls
+c Time = 29.85.  Justifications of 3342024 nodes completed.  6930780 total clauses.  112 SAT calls
+c Time = 30.16.  Justifications of 3385998 nodes completed.  6991723 total clauses.  112 SAT calls
+c Time = 30.47.  Justifications of 3429972 nodes completed.  7052934 total clauses.  112 SAT calls
+c Time = 30.78.  Justifications of 3473946 nodes completed.  7115269 total clauses.  112 SAT calls
+c Time = 31.12.  Justifications of 3517920 nodes completed.  7179089 total clauses.  112 SAT calls
+c Time = 31.43.  Justifications of 3561894 nodes completed.  7239566 total clauses.  112 SAT calls
+c Time = 31.75.  Justifications of 3605868 nodes completed.  7300821 total clauses.  112 SAT calls
+c Time = 32.07.  Justifications of 3649842 nodes completed.  7363365 total clauses.  112 SAT calls
+c Time = 32.41.  Justifications of 3693816 nodes completed.  7426840 total clauses.  112 SAT calls
+c Time = 32.71.  Justifications of 3737790 nodes completed.  7487584 total clauses.  112 SAT calls
+c Time = 33.02.  Justifications of 3781764 nodes completed.  7548815 total clauses.  112 SAT calls
+c Time = 33.35.  Justifications of 3825738 nodes completed.  7611410 total clauses.  112 SAT calls
+c Time = 33.70.  Justifications of 3869712 nodes completed.  7677718 total clauses.  112 SAT calls
+c Time = 34.06.  Justifications of 3913686 nodes completed.  7748036 total clauses.  112 SAT calls
+c Time = 34.44.  Justifications of 3957660 nodes completed.  7821748 total clauses.  112 SAT calls
+c Time = 34.77.  Justifications of 4001634 nodes completed.  7887229 total clauses.  112 SAT calls
+c Time = 35.08.  Justifications of 4045608 nodes completed.  7948611 total clauses.  112 SAT calls
+c Time = 35.39.  Justifications of 4089582 nodes completed.  8009898 total clauses.  112 SAT calls
+c Time = 35.72.  Justifications of 4133556 nodes completed.  8072500 total clauses.  112 SAT calls
+c Time = 36.05.  Justifications of 4177530 nodes completed.  8135202 total clauses.  112 SAT calls
+c Time = 36.36.  Justifications of 4221504 nodes completed.  8196858 total clauses.  112 SAT calls
+c Time = 36.67.  Justifications of 4265478 nodes completed.  8258128 total clauses.  112 SAT calls
+c Time = 36.99.  Justifications of 4309452 nodes completed.  8320553 total clauses.  112 SAT calls
+c Time = 37.31.  Justifications of 4353426 nodes completed.  8383133 total clauses.  112 SAT calls
+c Time = 37.64.  Justifications of 4397400 nodes completed.  8444957 total clauses.  112 SAT calls
+c Time = 37.95.  Justifications of 4441374 nodes completed.  8505811 total clauses.  112 SAT calls
+c Time = 38.28.  Justifications of 4485348 nodes completed.  8568744 total clauses.  112 SAT calls
+c Time = 38.60.  Justifications of 4529322 nodes completed.  8630885 total clauses.  112 SAT calls
+c Time = 38.92.  Justifications of 4573296 nodes completed.  8692602 total clauses.  112 SAT calls
+c Time = 39.22.  Justifications of 4617270 nodes completed.  8753680 total clauses.  112 SAT calls
+c Time = 39.55.  Justifications of 4661244 nodes completed.  8816639 total clauses.  112 SAT calls
+c Time = 39.93.  Justifications of 4705218 nodes completed.  8885771 total clauses.  112 SAT calls
+c Time = 40.28.  Justifications of 4749192 nodes completed.  8955494 total clauses.  112 SAT calls
+c Time = 40.67.  Justifications of 4793166 nodes completed.  9033097 total clauses.  112 SAT calls
+c Time = 41.04.  Justifications of 4837140 nodes completed.  9106908 total clauses.  112 SAT calls
+c Time = 41.90.  Justifications of 4881114 nodes completed.  9182406 total clauses.  123 SAT calls
+c Time = 42.11.  Justifications of 4925088 nodes completed.  9251895 total clauses.  123 SAT calls
+c Time = 42.33.  Justifications of 4969062 nodes completed.  9321332 total clauses.  123 SAT calls
+c Time = 42.58.  Justifications of 5013036 nodes completed.  9394216 total clauses.  123 SAT calls
+c Time = 43.26.  Justifications of 5057010 nodes completed.  9466551 total clauses.  130 SAT calls
+c Time = 43.46.  Justifications of 5100984 nodes completed.  9536867 total clauses.  130 SAT calls
+c Time = 43.68.  Justifications of 5144958 nodes completed.  9607049 total clauses.  130 SAT calls
+c Time = 43.78.  Justifications of 5163524 nodes, including root, completed.  9639220 total clauses
+c GEN: Time = 48.52.  Deleted asserted clauses
+c GEN: Time = 92.60.  Deleted input clauses
 c GEN: Formula
 c GEN:    input variables: 330
 c GEN:    input clauses  : 5020
@@ -167,28 +170,27 @@ c GEN:    product justification: 3124286
 c GEN:    sum justification    : 3060548
 c GEN:    literal justification: 2785718
 c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 0
 c GEN:    clause TOTAL         : 10657148
 c GEN: Time
-c GEN:   SAT execution  : 4.24
-c GEN:   other execution: 89.21
-c GEN:   time TOTAL     : 93.45
-GEN LOG: Elapsed time = 93.512 seconds
+c GEN:   SAT execution  : 4.09
+c GEN:   other execution: 88.51
+c GEN:   time TOTAL     : 92.61
+GEN LOG: Elapsed time = 92.656 seconds
 GEN OUTCOME: normal
-FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track1_059.cnf ./mc2022_track1_059.crat
+GEN: LOG: size ./mc2022_track1_059.cpog 16350085 lines 2715694865 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track1_059.cnf ./mc2022_track1_059.cpog
 FCHECK LOG: Time limit 10000 seconds
-FCHECK: Read CNF file with 330 variables and 5020 clauses
-FCHECK: Read CRAT file with 439817 operations,  7952624 asserted + 1686596 defining = 9639220 clauses
-FCHECK: Deleted 7957643 input and asserted clauses
-FCHECK: Final root literal 440071
-FCHECK: SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 81.685
-FCHECK LOG: Elapsed time = 81.740 seconds
+CHECK: Read CNF file with 330 variables and 5020 clauses
+CHECK: Read CPOG file with 439817 operations,  7952624 asserted + 1686596 defining = 9639220 clauses
+CHECK: Deleted 7957643 input and asserted clauses
+CHECK: Final root literal 440071
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+Root ID = 440071
+CHECK: Regular model count = 1019632806
+CHECK: Time to compute model counts: 0.099
+CHECK: Elapsed seconds: 80.844
+FCHECK LOG: Elapsed time = 80.893 seconds
 FCHECK OUTCOME: normal
-COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track1_059.cnf -p ./mc2022_track1_059.crat
-COUNT LOG: Time limit 4000 seconds
-COUNTER: Elapsed time for count: 0.83 seconds
-COUNTER: Unweighted count = 1019632806
-COUNT LOG: Elapsed time = 2.703 seconds
-COUNT OUTCOME: normal
-OVERALL LOG: Elapsed time = 177.955 seconds
+OVERALL LOG: Elapsed time = 177.218 seconds
 OVERALL OUTCOME: normal

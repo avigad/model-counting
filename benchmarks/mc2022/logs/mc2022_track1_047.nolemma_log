@@ -1,19 +1,22 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -e -C 100000000 -L d2p.log ./mc2022_track1_047.cnf ./mc2022_track1_047.nnf ./mc2022_track1_047.crat
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -e -C 2147483647 -L d2p.log ./mc2022_track1_047.cnf ./mc2022_track1_047.nnf ./mc2022_track1_047.cpog
 GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
 c GEN:   Use lemmas:      no
 c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
 c GEN:   DRAT threshold:  1000
-c GEN:   Clause limit:    100000000
+c GEN:   Clause limit:    2147483647
 c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
 c GEN: Time = 0.00.  Read input file with 381 variables and 6918 clauses
 c Read D4 NNF file with 262 nodes (96 explicit) and 203 edges
 c Compressed POG has 154 nodes, root literal 535, and 3191 defining clauses
-c GEN: Time = 0.00.  Generated POG representation
-c Time = 2.88.  Justifications of 198 nodes, including root, completed.  26335 total clauses
-c GEN: Time = 2.90.  Deleted asserted clauses
-c GEN: Time = 3.01.  Deleted input clauses
+c GEN: Time = 0.01.  Generated POG representation
+c Time = 3.11.  Justifications of 198 nodes, including root, completed.  26335 total clauses
+c GEN: Time = 3.13.  Deleted asserted clauses
+c GEN: Time = 3.24.  Deleted input clauses
 c GEN: Formula
 c GEN:    input variables: 381
 c GEN:    input clauses  : 6918
@@ -50,28 +53,27 @@ c GEN:    product justification: 137
 c GEN:    sum justification    : 83
 c GEN:    literal justification: 20685
 c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 0
 c GEN:    clause TOTAL         : 26374
 c GEN: Time
-c GEN:   SAT execution  : 1.50
-c GEN:   other execution: 1.52
-c GEN:   time TOTAL     : 3.01
-GEN LOG: Elapsed time = 3.025 seconds
+c GEN:   SAT execution  : 1.64
+c GEN:   other execution: 1.62
+c GEN:   time TOTAL     : 3.26
+GEN LOG: Elapsed time = 3.284 seconds
 GEN OUTCOME: normal
-FCHECK LOG: Running /Users/bryant/repos/model-counting/crat/checker/crat-check ./mc2022_track1_047.cnf ./mc2022_track1_047.crat
+GEN: LOG: size ./mc2022_track1_047.cpog 48829 lines 5553602 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track1_047.cnf ./mc2022_track1_047.cpog
 FCHECK LOG: Time limit 10000 seconds
-FCHECK: Read CNF file with 381 variables and 6918 clauses
-FCHECK: Read CRAT file with 179 operations,  20866 asserted + 5469 defining = 26335 clauses
-FCHECK: Deleted 27783 input and asserted clauses
-FCHECK: Final root literal 535
-FCHECK: SUCCESS.  CRAT representation verified
-FCHECK: Elapsed seconds: 0.165
-FCHECK LOG: Elapsed time = 0.167 seconds
+CHECK: Read CNF file with 381 variables and 6918 clauses
+CHECK: Read CPOG file with 179 operations,  20866 asserted + 5469 defining = 26335 clauses
+CHECK: Deleted 27783 input and asserted clauses
+CHECK: Final root literal 535
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+Root ID = 535
+CHECK: Regular model count = 2268
+CHECK: Time to compute model counts: 0.000
+CHECK: Elapsed seconds: 0.176
+FCHECK LOG: Elapsed time = 0.178 seconds
 FCHECK OUTCOME: normal
-COUNT LOG: Running python3 /Users/bryant/repos/model-counting/crat/prototype/crat_counter.py -i ./mc2022_track1_047.cnf -p ./mc2022_track1_047.crat
-COUNT LOG: Time limit 4000 seconds
-COUNTER: Elapsed time for count: 0.00 seconds
-COUNTER: Unweighted count = 2268
-COUNT LOG: Elapsed time = 0.030 seconds
-COUNT OUTCOME: normal
-OVERALL LOG: Elapsed time = 3.221 seconds
+OVERALL LOG: Elapsed time = 3.472 seconds
 OVERALL OUTCOME: normal
