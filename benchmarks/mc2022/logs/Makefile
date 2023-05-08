@@ -4,6 +4,9 @@ GRAB = $(TDIR)/grab_data.py
 MERGE = $(TDIR)/merge_csv.py
 
 data:
+	$(INTERP) $(GRAB) "Read D4 NNF" *.onesided_log > nodes-nnf.csv	
+	$(INTERP) $(GRAB) "Compressed POG has" *.onesided_log > nodes-pog.csv	
+	$(INTERP) $(MERGE) -f nodes-nnf.csv nodes-pog.csv > nodes.csv
 	$(INTERP) $(GRAB) "D4 LOG: Elapsed" *.D4_log > seconds-d4.csv
 	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.log > seconds-gen.csv
 	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.log > seconds-check.csv
