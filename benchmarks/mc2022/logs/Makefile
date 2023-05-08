@@ -7,7 +7,7 @@ data:
 	$(INTERP) $(GRAB) "D4 LOG: Elapsed" *.D4_log > seconds-d4.csv
 	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.log > seconds-gen.csv
 	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.log > seconds-check.csv
-	$(INTERP) $(GRAB) "COUNT LOG: Elapsed" *.log > seconds-count.csv
+#	$(INTERP) $(GRAB) "COUNT LOG: Elapsed" *.log > seconds-count.csv
 	$(INTERP) $(GRAB) "GEN ERROR" *.log > failures-total.csv
 	$(INTERP) $(GRAB) -1 "Compressed POG has" *.D4_log > clauses-defining.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.log > clauses-total.csv
@@ -33,7 +33,8 @@ data:
 	$(INTERP) $(MERGE) -f seconds-d4.csv 25000 failures.csv > time-d4-failure.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-onesided.csv seconds-check-onesided.csv > time-d4-verify-onesided.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-onesided.csv seconds-check-onesided.csv failures-total.csv > time-d4-verify-onesided-only.csv
-	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv seconds-check.csv seconds-count.csv > times.csv
+#	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv seconds-check.csv seconds-count.csv > times.csv
+	$(INTERP) $(MERGE) -f seconds-d4.csv seconds-gen.csv seconds-check.csv  > times.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-nolemma.csv > clauses-lemma-nolemma.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split.csv > clauses-nosplit-split.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-split+nolemma.csv > clauses-optimized-unoptimized.csv
@@ -71,31 +72,17 @@ data:
 	$(INTERP) $(MERGE) -f time-monolithic.csv time-preprocess.csv > time-monolithic+preprocess.csv
 	$(INTERP) $(MERGE) -f timeouts-monolithic.csv time-preprocess.csv 1500 > monolithic_timeout+time-preprocess.csv
 	$(INTERP) $(MERGE) -f clauses-total-monolithic.csv clauses-total-preprocess.csv > clauses-total-monolithic+preprocess.csv
-	$(INTERP) $(GRAB) "OVERALL LOG: Elapsed" *.preprocess_monolithic_log > seconds-overall-preprocess.csv
-	$(INTERP) $(GRAB) "ERROR: Timeout" *.preprocess_monolithic_log > timeouts-overall-preprocess.csv
-#	$(INTERP) $(GRAB) "clause TOTAL" *.preprocess_monolithic_log > clauses-total-preprocess-monolithic.csv
-	$(INTERP) $(GRAB) "OVERALL LOG: Elapsed" *.monolithic_log > seconds-overall-monolithic.csv
-	$(INTERP) $(GRAB) "ERROR: Timeout" *.monolithic_log > timeouts-overall-monolithic.csv
-	$(INTERP) $(MERGE) -f seconds-overall-preprocess.csv clauses-total-preprocess.csv \
-		> time-overall-preprocess.csv
-	$(INTERP) $(MERGE) -f seconds-overall-monolithic.csv clauses-total-monolithic.csv \
-		> time-overall-monolithic.csv
-	$(INTERP) $(MERGE) -f time-overall-monolithic.csv time-overall-preprocess.csv > time-overall-monolithic+preprocess.csv
-	$(INTERP) $(MERGE) -f time-overall-monolithic.csv timeouts-overall-preprocess.csv 1500 > time-overall-monolithic+timeout-preprocess.csv
-	$(INTERP) $(MERGE) -f timeouts-overall-monolithic.csv 1500 time-overall-preprocess.csv > timeout-overall-monolithic+time-preprocess.csv
-#	$(INTERP) $(MERGE) -f clauses-total-monolithic.csv clauses-total-preprocess-monolithic.csv > clauses-total-monolithic+preprocess.csv
+
+
 	$(INTERP) $(GRAB) "root model" *.mice_log > models-mice.csv
 	$(INTERP) $(GRAB) "N2T ERROR: Timeout" *.mice_log > timeouts-mice.csv
-#	$(INTERP) $(GRAB) "panick" *.mice_log > errors-mice.csv
 	$(INTERP) $(GRAB) "N2T LOG: Elapsed" *.mice_log > seconds-n2t.csv
 	$(INTERP) $(GRAB) "TC LOG: Elapsed" *.mice_log > seconds-tc.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-n2t.csv seconds-tc.csv >  time-mice.csv
-	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-gen.csv seconds-check.csv seconds-count.csv > time-ours.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen.csv seconds-check.csv > time-ours.csv
 	$(INTERP) $(MERGE) -f time-ours.csv time-mice.csv models-mice.csv \
 		| sed 's/1436.934/1500/g' | sed 's/1875.151/1500/g'> time-mice-compare.csv
 	$(INTERP) $(MERGE) -f timeouts-mice.csv time-ours.csv 1500 > time-mice-timeout.csv
-#	$(INTERP) $(MERGE) -f errors-mice.csv time-ours.csv 1500 > time-mice-error.csv
-
 	$(INTERP) $(GRAB) "LCHECK LOG: Elapsed" *.lean_log > seconds-check-lean.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv seconds-check.csv seconds-check-lean.csv > time-check-regular-lean.csv
 
