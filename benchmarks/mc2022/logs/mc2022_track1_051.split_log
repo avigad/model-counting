@@ -1,15 +1,80 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -s -C 2147483647 -L d2p.log ./mc2022_track1_051.cnf ./mc2022_track1_051.nnf ./mc2022_track1_051.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   no
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
+c GEN: Time = 0.00.  Read input file with 1060 variables and 2236 clauses
+c Read D4 NNF file with 85965 nodes (43066 explicit) and 93073 edges
+c Compressed POG has 85868 nodes, root literal 86928, and 467550 defining clauses
+c GEN: Time = 0.19.  Generated POG representation
+c Time = 0.32.  Justifications of 8586 nodes completed.  506795 total clauses.  0 SAT calls
+c Time = 0.48.  Justifications of 17172 nodes completed.  550109 total clauses.  0 SAT calls
+c Time = 0.67.  Justifications of 25758 nodes completed.  598375 total clauses.  0 SAT calls
+c Time = 0.88.  Justifications of 34344 nodes completed.  648264 total clauses.  0 SAT calls
+c Time = 1.08.  Justifications of 42930 nodes completed.  700280 total clauses.  0 SAT calls
+c Time = 1.26.  Justifications of 51516 nodes completed.  746744 total clauses.  0 SAT calls
+c Time = 1.45.  Justifications of 60102 nodes completed.  794098 total clauses.  0 SAT calls
+c Time = 1.65.  Justifications of 68688 nodes completed.  844888 total clauses.  0 SAT calls
+c Time = 1.84.  Justifications of 77274 nodes completed.  892019 total clauses.  0 SAT calls
+c Time = 2.05.  Justifications of 85860 nodes completed.  940802 total clauses.  0 SAT calls
+c Time = 2.05.  Justifications of 85868 nodes, including root, completed.  940813 total clauses
+c GEN: Time = 2.27.  Deleted asserted clauses
+c GEN: Time = 7.05.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 1060
+c GEN:    input clauses  : 2236
+c GEN: POG nodes
+c GEN:    product   : 64462
+c GEN:    sum       : 21405
+c GEN:    node TOTAL: 85867
+c GEN: Other nodes
+c GEN:    aux product: 946
+c GEN: Node visits
+c GEN:    product/BCP: 64463
+c GEN:    product/SAT: 0
+c GEN:    sum        : 21405
+c GEN:    visit TOTAL: 85868
+c GEN: Lemmas
+c GEN:    definitions : 5157
+c GEN:    applications: 51874
+c GEN:    duplicates  : 0
+c GEN:    merged args : 80
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 467550
+c GEN:    AUX definition       : 2838
+c GEN:    product justification: 64463
+c GEN:    sum justification    : 42804
+c GEN:    literal justification: 141015
+c GEN:    lemma application    : 222149
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 940819
+c GEN: Time
+c GEN:   SAT execution  : 0.00
+c GEN:   other execution: 7.06
+c GEN:   time TOTAL     : 7.06
+GEN LOG: Elapsed time = 7.071 seconds
+GEN OUTCOME: normal
+GEN: LOG: size ./mc2022_track1_051.cpog 1029900 lines 93266249 bytes
 FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track1_051.cnf ./mc2022_track1_051.cpog
 FCHECK LOG: Time limit 10000 seconds
 CHECK: Read CNF file with 1060 variables and 2236 clauses
-CHECK: Read CPOG file with 85868 operations,  2126600 asserted + 467550 defining = 2594150 clauses
-CHECK: Deleted 2128835 input and asserted clauses
+CHECK: Read CPOG file with 86814 operations,  470425 asserted + 470388 defining = 940813 clauses
+CHECK: Deleted 472660 input and asserted clauses
 CHECK: Final root literal 86928
 CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
 Root ID = 86928
 CHECK: Regular model count = 44499729951278627285692951953778103131041706213661979403475021211936535985030524365051002880000
 CHECK: Time to compute model counts: 0.029
-CHECK: Elapsed seconds: 9.474
-FCHECK LOG: Elapsed time = 9.478 seconds
+CHECK: Elapsed seconds: 2.789
+FCHECK LOG: Elapsed time = 2.793 seconds
 FCHECK OUTCOME: normal
-OVERALL LOG: Elapsed time = 9.479 seconds
+OVERALL LOG: Elapsed time = 10.071 seconds
 OVERALL OUTCOME: normal

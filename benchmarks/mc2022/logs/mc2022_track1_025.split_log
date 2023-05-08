@@ -1,15 +1,79 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -s -C 2147483647 -L d2p.log ./mc2022_track1_025.cnf ./mc2022_track1_025.nnf ./mc2022_track1_025.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   no
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
+c GEN: Time = 0.00.  Read input file with 1201 variables and 2900 clauses
+c Read D4 NNF file with 48286 nodes (27445 explicit) and 92706 edges
+c Compressed POG has 48210 nodes, root literal 49411, and 605988 defining clauses
+c GEN: Time = 0.20.  Generated POG representation
+c Time = 0.75.  Justifications of 4821 nodes completed.  663817 total clauses.  0 SAT calls
+c Time = 1.36.  Justifications of 9642 nodes completed.  719598 total clauses.  0 SAT calls
+c Time = 1.97.  Justifications of 14463 nodes completed.  772548 total clauses.  0 SAT calls
+c Time = 2.88.  Justifications of 19284 nodes completed.  834421 total clauses.  0 SAT calls
+c Time = 3.46.  Justifications of 24105 nodes completed.  874996 total clauses.  0 SAT calls
+c Time = 4.13.  Justifications of 28926 nodes completed.  920282 total clauses.  0 SAT calls
+c Time = 4.83.  Justifications of 33747 nodes completed.  966311 total clauses.  0 SAT calls
+c Time = 5.63.  Justifications of 38568 nodes completed.  1011754 total clauses.  0 SAT calls
+c Time = 6.47.  Justifications of 43389 nodes completed.  1062728 total clauses.  0 SAT calls
+c Time = 7.40.  Justifications of 48210 nodes, including root, completed.  1117296 total clauses
+c GEN: Time = 7.64.  Deleted asserted clauses
+c GEN: Time = 15.48.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 1201
+c GEN:    input clauses  : 2900
+c GEN: POG nodes
+c GEN:    product   : 37789
+c GEN:    sum       : 10420
+c GEN:    node TOTAL: 48209
+c GEN: Other nodes
+c GEN:    aux product: 109
+c GEN: Node visits
+c GEN:    product/BCP: 37790
+c GEN:    product/SAT: 0
+c GEN:    sum        : 10420
+c GEN:    visit TOTAL: 48210
+c GEN: Lemmas
+c GEN:    definitions : 3248
+c GEN:    applications: 67730
+c GEN:    duplicates  : 0
+c GEN:    merged args : 996
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 605988
+c GEN:    AUX definition       : 349
+c GEN:    product justification: 37790
+c GEN:    sum justification    : 20766
+c GEN:    literal justification: 309392
+c GEN:    lemma application    : 143085
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 1117370
+c GEN: Time
+c GEN:   SAT execution  : 0.00
+c GEN:   other execution: 15.49
+c GEN:   time TOTAL     : 15.49
+GEN LOG: Elapsed time = 15.505 seconds
+GEN OUTCOME: normal
+GEN: LOG: size ./mc2022_track1_025.cpog 1073137 lines 184039600 bytes
 FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track1_025.cnf ./mc2022_track1_025.cpog
 FCHECK LOG: Time limit 10000 seconds
 CHECK: Read CNF file with 1201 variables and 2900 clauses
-CHECK: Read CPOG file with 48211 operations,  5631592 asserted + 605998 defining = 6237590 clauses
-CHECK: Deleted 5634491 input and asserted clauses
+CHECK: Read CPOG file with 48319 operations,  510959 asserted + 606337 defining = 1117296 clauses
+CHECK: Deleted 513858 input and asserted clauses
 CHECK: Final root literal 49411
 CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
 Root ID = 49411
 CHECK: Regular model count = 995353648043325277633470371179901552767596542902694690949393806712545504789889138240157620657590241028863880769128775400
-CHECK: Time to compute model counts: 0.046
-CHECK: Elapsed seconds: 28.574
-FCHECK LOG: Elapsed time = 28.583 seconds
+CHECK: Time to compute model counts: 0.044
+CHECK: Elapsed seconds: 5.097
+FCHECK LOG: Elapsed time = 5.101 seconds
 FCHECK OUTCOME: normal
-OVERALL LOG: Elapsed time = 28.583 seconds
+OVERALL LOG: Elapsed time = 20.838 seconds
 OVERALL OUTCOME: normal

@@ -1,8 +1,82 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -s -C 2147483647 -L d2p.log ./mc2022_track2_125.cnf ./mc2022_track2_125.nnf ./mc2022_track2_125.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   no
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
+c GEN: Time = 0.00.  Read input file with 360 variables and 1533 clauses
+c Read D4 NNF file with 57218 nodes (22555 explicit) and 47724 edges
+c Compressed POG has 40267 nodes, root literal 40627, and 647011 defining clauses
+c GEN: Time = 0.20.  Generated POG representation
+c Time = 159.80.  Justifications of 4026 nodes completed.  2663343 total clauses.  7579 SAT calls
+c Time = 302.62.  Justifications of 8052 nodes completed.  4483986 total clauses.  14273 SAT calls
+c Time = 464.57.  Justifications of 12078 nodes completed.  6532011 total clauses.  22815 SAT calls
+c Time = 627.97.  Justifications of 16104 nodes completed.  8621933 total clauses.  30574 SAT calls
+c Time = 856.99.  Justifications of 20130 nodes completed.  11706179 total clauses.  41278 SAT calls
+c Time = 1078.30.  Justifications of 24156 nodes completed.  14516834 total clauses.  51712 SAT calls
+c Time = 1285.73.  Justifications of 28182 nodes completed.  17157824 total clauses.  61727 SAT calls
+c Time = 1443.54.  Justifications of 32208 nodes completed.  19185649 total clauses.  71179 SAT calls
+c Time = 1490.31.  Justifications of 36234 nodes completed.  19747933 total clauses.  75625 SAT calls
+c Time = 1670.12.  Justifications of 40260 nodes completed.  22156068 total clauses.  84855 SAT calls
+c Time = 1690.48.  Justifications of 40631 nodes, including root, completed.  22410519 total clauses
+c GEN: Time = 1706.81.  Deleted asserted clauses
+c GEN: Time = 1712.71.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 360
+c GEN:    input clauses  : 1533
+c GEN: POG nodes
+c GEN:    product   : 31350
+c GEN:    sum       : 8916
+c GEN:    node TOTAL: 40266
+c GEN: Other nodes
+c GEN:    aux product: 2632
+c GEN: Node visits
+c GEN:    product/BCP: 17283
+c GEN:    product/SAT: 14428
+c GEN:    sum        : 8920
+c GEN:    visit TOTAL: 40631
+c GEN: Lemmas
+c GEN:    definitions : 2387
+c GEN:    applications: 15366
+c GEN:    duplicates  : 0
+c GEN:    merged args : 10446
+c GEN: SAT Problem Clause Counts (85734 instances)
+c GEN:    PROBLEM TOTAL : 51400641
+c GEN:    PROBLEM MIN   : 4
+c GEN:    PROBLEM AVG   : 599.54
+c GEN:    PROBLEM MAX   : 1486
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 12597231
+c GEN:    PROOF MIN   : 2
+c GEN:    PROOF AVG   : 146.93
+c GEN:    PROOF MAX   : 18110
+c GEN: Clauses
+c GEN:    POG definition       : 647011
+c GEN:    AUX definition       : 9380
+c GEN:    product justification: 31711
+c GEN:    sum justification    : 17722
+c GEN:    literal justification: 21604821
+c GEN:    lemma application    : 99992
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 22410637
+c GEN: Time
+c GEN:   SAT execution  : 726.71
+c GEN:   other execution: 986.02
+c GEN:   time TOTAL     : 1712.73
+GEN LOG: Elapsed time = 1712.856 seconds
+GEN OUTCOME: normal
+GEN: LOG: size ./mc2022_track2_125.cpog 43552688 lines 4511383165 bytes
 FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./mc2022_track2_125.cnf ./mc2022_track2_125.cpog
 FCHECK LOG: Time limit 10000 seconds
 CHECK: Read CNF file with 360 variables and 1533 clauses
-CHECK: Read CPOG file with 40267 operations,  22070178 asserted + 647011 defining = 22717189 clauses
-CHECK: Deleted 22071710 input and asserted clauses
+CHECK: Read CPOG file with 42899 operations,  21754128 asserted + 656391 defining = 22410519 clauses
+CHECK: Deleted 21755660 input and asserted clauses
 CHECK: Final root literal 40627
 CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
 Root ID = 40627
@@ -10,8 +84,8 @@ CHECK: Regular model count = 1778516
 Root ID = 40627
 CHECK: Weighted model count = 44.499523947818552839050189039019439699584765541163643596238050625092406325200613229878331005147471359396439726713602048
 CHECK: Time to compute model counts: 0.100
-CHECK: Elapsed seconds: 136.418
-FCHECK LOG: Elapsed time = 136.441 seconds
+CHECK: Elapsed seconds: 131.778
+FCHECK LOG: Elapsed time = 131.831 seconds
 FCHECK OUTCOME: normal
-OVERALL LOG: Elapsed time = 136.442 seconds
+OVERALL LOG: Elapsed time = 1853.562 seconds
 OVERALL OUTCOME: normal
