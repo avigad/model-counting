@@ -170,8 +170,8 @@ def runGen(root, home, logFile, force):
     cnfName = home + "/" + root + ".cnf"
     nnfName = nnfNamer(root, home)
     cpogName = home + "/" + root + ".cpog"
-    if not force and os.path.exists(cpogName):
-        return True
+#    if not force and os.path.exists(cpogName):
+#        return True
     cmd = [genProgram]
     if oneSided:
         cmd += ['-1']
