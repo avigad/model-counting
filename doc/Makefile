@@ -74,15 +74,13 @@ pdata:
 		< $(SRCDATA)/time-mice-compare.csv > data-formatted/time-mice-compare.tex
 	$(DGEN) -X 5 -Y 6 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/time-mice-timeout.csv > data-formatted/time-mice-timeout.tex
-#	$(DGEN) -X 6 -Y 7 -O "only marks, color=bluegray, mark=diamond*,  mark options={scale=1.1}, opacity=0.7" \
-#		< $(SRCDATA)/time-mice-error.csv > data-formatted/time-mice-error.tex
 	$(DGEN) -X 4 -Y 7 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/time-structured+monolithic.csv > data-formatted/time-structured+monolithic.tex
 	$(DGEN) -X 4 -Y 6 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/time-structured+monolithic_timeout.csv > data-formatted/time-structured+monolithic_timeout.tex
 	$(DGEN) -X 2 -Y 3 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/clauses-total-structured+monolithic.csv > data-formatted/clauses-total-structured+monolithic.tex
-	$(DGEN) -X 4 -Y 7 -x 1000 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
+	$(DGEN) -X 5 -Y 9 -x 1000 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/time-monolithic+preprocess.csv > data-formatted/time-monolithic+preprocess.tex
 	$(DGEN) -X 2 -Y 3 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/clauses-total-monolithic+preprocess.csv > data-formatted/clauses-total-monolithic+preprocess.tex

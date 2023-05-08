@@ -63,14 +63,17 @@ data:
 	$(INTERP) $(MERGE) -f time-structured.csv timeouts-monolithic.csv 1500 > time-structured+monolithic_timeout.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv clauses-total-monolithic.csv > clauses-total-structured+monolithic.csv
 
+	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-d4.csv seconds-gen-monolithic.csv seconds-check-monolithic.csv \
+		 > time-monolithic-all.csv
+	$(INTERP) $(GRAB) "D4 LOG: Elapsed" *.preprocess_monolithic_log > seconds-d4-preprocess.csv
 	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.preprocess_monolithic_log > seconds-gen-preprocess.csv
 	$(INTERP) $(GRAB) "GEN OUTCOME: Timeout" *.preprocess_monolithic_log > timeouts-preprocess.csv
 	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.preprocess_monolithic_log > seconds-check-preprocess.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.preprocess_monolithic_log > clauses-total-preprocess.csv
-	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-preprocess.csv seconds-check-preprocess.csv \
-		 > time-preprocess.csv
-	$(INTERP) $(MERGE) -f time-monolithic.csv time-preprocess.csv > time-monolithic+preprocess.csv
-	$(INTERP) $(MERGE) -f timeouts-monolithic.csv time-preprocess.csv 1500 > monolithic_timeout+time-preprocess.csv
+	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-d4-preprocess.csv seconds-gen-preprocess.csv seconds-check-preprocess.csv \
+		| sed 's/1427.487/1500.0/g' \
+		 > time-preprocess-all.csv
+	$(INTERP) $(MERGE) -f time-monolithic-all.csv time-preprocess-all.csv > time-monolithic+preprocess.csv
 	$(INTERP) $(MERGE) -f clauses-total-monolithic.csv clauses-total-preprocess.csv > clauses-total-monolithic+preprocess.csv
 
 
