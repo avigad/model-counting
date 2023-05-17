@@ -150,6 +150,8 @@ def runD4(root, home, logFile, force):
     if preprocess:
         cmd += ["-preproc=backbone+vivification+occElimination"]
     ok = runProgram("D4", root, cmd, logFile)
+    if ok:
+        checkFile(root + ". D4 NNF", nnfName, logFile)
     if not ok and os.path.exists(nnfName):
         os.remove(nnfName)
     return ok
@@ -183,7 +185,8 @@ def runGen(root, home, logFile, force):
         cmd += ['-s']
     cmd += ["-C", str(clauseLimit), "-L", extraLogName, cnfName, nnfName, cpogName]
     ok = runProgram("GEN", root, cmd, logFile, extraLogName = extraLogName)
-    checkFile("GEN", cpogName, logFile)
+    if ok:
+        checkFile(root + ". GEN", cpogName, logFile)
     if not ok and os.path.exists(cpogName):
         os.remove(cpogName)
     return ok
