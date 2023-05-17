@@ -186,16 +186,18 @@ decomposable, negation normal form (d-DNNF)\@.
 into such a form. Unfortunately existing knowledge compilers provide no guarantee that their output correctly
 represents the original formula, and therefore they cannot validate a model count, or any other computed value.
 
-We present \emph{Partitioned-Operation Graphs} (POGs), a generalization
+We present \emph{Partitioned-Operation Graphs} (POGs), a general form that can
+encode all
 of the representations used by existing knowledge compilers.
 We have designed  CPOG, a framework that can express proofs of equivalence between a
 POG  and a Boolean formula in conjunctive normal form (CNF).
 
 We have developed a program that generates POG representations from
-the d-DNNF graphs produced by the state-of-the-art knowledge compiler
+the decision-DNNF graphs (a restricted form of d-DNNF)
+produced by the state-of-the-art knowledge compiler
 \dfour{}, as well as checkable CPOG proofs certifying that the output POGs
 are equivalent to the input CNF formulas.  Our toolchain
-for generating and verifying POGs scales to all but the largest d-DNNF
+for generating and verifying POGs scales to all but the largest
 graphs produced by \dfour{} for formulas from a recent model counting
 competition. Additionally, we have developed a formally verified CPOG
 checker and model counter for POGs in the \lean{} proof assistant.
@@ -233,9 +235,10 @@ witnessed by the progress in recent model counting competitions.
 
 One approach to model counting, known as {\em knowledge compilation},
 transforms the formula into a structured form for which model counting
-is straightforward.  For example, the {\em deterministic,
-  decomposable, negation normal form} (d-DNNF) introduced by
-Darwiche~\cite{darwiche:aaai:2002,darwiche:ecai:2004} represents a
+is straightforward.  For example,the {\em deterministic
+decomposable, negation normal form} (d-DNNF) introduced by
+Darwiche~\cite{darwiche:aaai:2002,darwiche:ecai:2004} (as well as the more restrictive {\em decision-DNNF} representation~\cite{oztok:cp:2014})
+ represents a
 Boolean formula as a directed acyclic graph, with terminal nodes
 labeled by Boolean variables and their complements, and with each
 nonterminal node labeled by a Boolean And or Or operation.  Restrictions
@@ -259,7 +262,7 @@ detect and diagnose bugs in their programs. This, in turn, has led
 to more reliable SAT solvers.
 
 This paper introduces \emph{Partitioned-Operation Graphs} (POGs),
-a generalization of the representations produced by current knowledge
+a general form that can encode all of the representations produced by current knowledge
 compilers. The CPOG (for ``certified'' POG) file format then
 captures both the structure of a POG
 and a checkable proof of its logical equivalence to a Boolean formula in
@@ -326,7 +329,8 @@ encodes a well-formed POG and provides a valid equivalence proof.
 Figure~\ref{fig:chain} illustrates our certifying knowledge
 compilation and model counting toolchain.  Starting with
 input formula $\inputformula$, the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017}
-generates a d-DNNF representation, and the {\em proof
+generates a decision-DNNF representation,
+and the {\em proof
   generator} uses this to generate a CPOG file.
 The {\em proof checker} verifies the equivalence of the CNF and CPOG representations.
 The {\em ring evaluator} computes
@@ -348,12 +352,13 @@ In fact, subtle details in the partitioned sum rule were identified during this 
 
 We evaluate our toolchain using benchmark
 formulas from the 2022 standard and weighted model competitions.  Our
-tools handle all but the largest d-DNNF graphs generated
+tools handle all but the largest decision-DNNF graphs generated
 by \dfour{}.  We also measure the benefits of several optimizations as
 well as the relative performance of the verified checker with one
 designed for high performance and capacity.
 
 \section{Related Work}
+
 
 Generating proofs of unsatisfiability in SAT solvers has a long
 tradition~\cite{ZhangMalik} and has become widely accepted due to the
@@ -362,22 +367,37 @@ generated and efficiently checked
 \cite{RAT,wetzler14_drattrim}.
 A number of formally verified checkers have been developed within different verification frameworks~\cite{cruz-cade-2017,lrat,Lammich:20,Tan:2021}.
 The associated proofs add clauses while preserving satisfiability until the empty clause is derived.
-By contrast, our proofs construct a new propositional formula, and we must verify
+Our work builds on the well-established technology and tools associated with clausal proof systems,
+but we require features not found in proofs of unsatisfiability.
+Our proofs construct a new propositional formula, and we must verify
 %both
 that it
 %satisfies a set of rules and that it
-is equivalent to the input formula.
-This requires verifying additional proof steps, including clause deletion steps, and subtle invariants, as described in
-Sections~\ref{sect:cpog} and \ref{section:formally-verified-toolchain}.
+is equivalent to the input formula.  This requires verifying
+additional proof steps, including clause deletion steps, and subtle
+invariants, as described in Sections~\ref{sect:cpog} and
+\ref{section:formally-verified-toolchain}.
+
+Capelli et al.\ developed a version of the \dfour{} knowledge compiler
+that generates a certificate in a proof system that is itself based on
+decision-DNNF~\cite{capelli:sat:2019,capelli:aaai:2021}.  Their
+modified version of \dfour{} generates additional annotations to the
+compiled representation to enable checking for equivalence with the
+input formula.  They must also track cases where the knowledge
+compiler detects that it can reuse a previously generated subgraph,
+yielding a DAG rather than a tree representation.  Their proof checker
+then must perform a number of checks that we incorporate into our
+proof generator.  Our framework has the advantage of being independent
+from the means by which the proofs are generated with proof checking
+based on very elementary clausal reasoning steps.
 
 Fichte, Hecher, and Roland~\cite{fichte:sat:2022} devised the MICE
 proof framework for model counting programs.  Their proof rules are
-based on the algorithms commonly used by model counters.
-They present a series of lemmas and a theorem stating
-that their checking framework is sound.  They also present
-experimental results for cases where they modify existing model
-counters to generate proof traces, and where they generate proof
-traces from d-DNNF graphs.
+based on the algorithms commonly used by model counters.  They present
+a series of lemmas and a theorem stating that their checking framework
+is sound.  They also present experimental results for cases where they
+modify existing model counters to generate proof traces, and where
+they generate proof traces from decision-DNNF graphs.
 %% They have not formally verified their
 %%proof framework or created a formally verified checker.
 Our toolchain is not directly comparable to theirs---they directly
@@ -392,8 +412,7 @@ Nonetheless,
 we compare the performance of our toolchain to theirs as part of our
 experimental evaluation in Appendix~\ref{app:experiments}.
 
-We know of no other
-work on certifying the output of a knowledge compiler.
+Both the 
 
 \section{Logical Foundations}
 \label{section:logical:foundations}
@@ -577,24 +596,27 @@ operations by traversing the graph from the terminal nodes up to
 the root, computing a value $\rep(\nodeu, w)$ for each node $\nodeu$.
 The final result is then $\rep(\noder, w)$.
 
-POGs generalize the d-DNNF graphs in two ways:
+POGs generalize decision-DNNF graphs in two ways:
 \begin{itemize}
 \item They allow negation of arbitrary nodes in the graph, not just
-  variables.
+  variables.  
   %, and so we allow it in the interest of generality.
 %%  Negation could be useful in some contexts, such as when
 %%  converting binary decision diagrams (BDDs) having complemented
 %%  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
-\item They allow arbitrary arguments to a $\por$ operation, as long as
+\item As with d-DNNF~\cite{darwiche:aaai:2002,darwiche:jair:2002}, they allow arbitrary arguments to a $\por$ operation, as long as
   these have disjoint models.  By contrast, each
-  sum node $\nodeu$ in a d-DNNF must have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a {\em decision variable} $x$ such that
+  sum node $\nodeu$ in a decision-DNNF must have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a {\em decision variable} $x$ such that
   any total assignment $\assign \in  \modelset(\nodeu_b)$ has $\assign(x)=b$, for $b \in \{0,1\}$.
 %%Our generalization is provided to allow an
 %%  encoding of Sentential Decision Diagrams (SDDs)~\cite{darwiche:ijcai:2011} as
 %%  POGs.  This is discussed in Section~\ref{sect:future}, describing possible future research.
 \end{itemize}
-  These generalizations allow more flexibility in the POG
-  representation while maintaining the ability to efficiently perform ring evaluation.
+The generalizations encompassed by POGs have also been referred to as {\em deterministic decomposable circuits} (d-Ds)~\cite{monet:amw:2018}.
+Our current proof generator only works for knowledge compilers
+generating decision-DNNF representations, but these generalizations
+allow for future extensions, while maintaining the ability to
+efficiently perform ring evaluation.
 
 \section{Clausal Proof Framework}
 
@@ -704,7 +726,7 @@ unsatisfiable, and therefore it need only justify clause additions.
 %% two programs are involved in producing a certified compilation of a formula:
 %% \begin{itemize}
 %% \item The {\em proof generator} produces a CPOG file that both defines the POG and gives a proof that the POG is logically equivalent to the input formula.
-%% As the figure indicates, the generator starts with the output of another knowledge compiler, such as one generating a d-DNNF representation of the formula.
+%% As the figure indicates, the generator starts with the output of another knowledge compiler, such as one generating a decision-DNNF representation of the formula.
 %% \item The {\em proof checker} ensures that all of the proof conditions are satisfied.
 %% \end{itemize}
 %% >>>>>>> 9c1793da858d00e5d4022d6d33c009848ba2083b
@@ -718,8 +740,7 @@ Key properties include:
 \begin{itemize}
   \item
   The file contains declarations of $\pand$ and $\por$ operations to describe the POG.
-  Declaring a node $\nodeu$
-implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clauses $\theta_{u}$
+  Declaring a node $\nodeu$ implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clauses $\theta_{u}$
   encoding the product or sum operation.
 %  This is the only means for adding extension variables to the proof.
 \item Boolean negation is supported implicitly by allowing the
@@ -891,8 +912,8 @@ assign a value to $u$ such that $\assign(u) =
 
 The sequence of operator declarations, asserted clauses, and
 clause deletions represents a systematic transformation of the input formula
-into a POG formula.  Validating all of these steps serves to prove that the
-POG is logically equivalent to the input formula.
+into a POG formula.  Validating all of these steps serves to prove that
+POG $P$ is logically equivalent to the input formula.
 At the completion of the proof, the following \textsc{final conditions} must hold:
 \begin{enumerate}
 \item There is exactly one remaining clause that was added via RUP
@@ -901,7 +922,7 @@ At the completion of the proof, the following \textsc{final conditions} must hol
 \end{enumerate}
 In other words, at the end of the proof it must hold that the active clauses be exactly those
 in $\pogformula \doteq \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$, the formula consisting
-of unit clause $\{r\}$ and the defining clauses of the POG nodes. Recognizing that
+of unit clause $\{r\}$ and the defining clauses for the nodes, providing a Tseitin encoding of $P$. Recognizing that
 any total assignment to the input variables implicitly defines the assignments to the extension variables,
 we can see that $\pogformula$ is the clausal encoding of $\phi_\noder$.
 Let $\inputformula$ denote the input formula.
@@ -922,15 +943,15 @@ nonterminal nodes.  It explains how the clause addition and deletion
 steps yield a proof of equivalence between the input formula and its POG
 representation.
 
-\section{Generating CPOG from d-DNNF}
+\section{Generating CPOG from decision-DNNF}
 \label{section:generating:cpog}
 
 %%Figure~\ref{fig:chain} illustrates one method of generating a CPOG
 %%file from an input formula in conjunctive normal form.  Our toolchain
 %%is based on the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017},
 %%but it would also work for other tools that use a top-down search
-%%strategy to generate a d-DNNF representation.
-A d-DNNF
+%%strategy to generate a decision-DNNF representation.
+A decision-DNNF
 graph can be directly translated  into a POG,
 although in doing this conversion,
 our program also performs simplifications to
@@ -1031,7 +1052,7 @@ The process for generating such a proof depends on the form of node $\nodeu$:
   Any of these can
   serve as the target clause.
 \item If $\nodeu$ is a sum node with children $\nodeu_1$ and $\nodeu_0$,
-  then, since the node originated from a d-DNNF graph, there must be
+  then, since the node originated from a decision-DNNF graph, there must be
   some variable $x$ such that either $\nodeu_1$ is a literal node for $x$ or $\nodeu_1$ is a
   product node containing a literal node for $x$ as a child.  In either case, we
   recursively call $\validate(\nodeu_1, \passign \cup \{ x \}, \psi)$.
@@ -1056,6 +1077,7 @@ Similarly, either $\nodeu_0$ is a literal node for $\obar{x}$ or $\nodeu_0$ is a
   do so by writing the formula to a file, invoking a proof-generating
   SAT solver, and then converting the generated unsatisfiability proof
   into a sequence of clause additions in the CPOG file.
+  (The solver is constrained to only use RUP inference rules, preventing it from introducing extension variables.)
 \item For a single nonterminal child ($k = 1$), we recursively call
   $\validate \left(\nodeu_1, \passign \cup \lambda, \psi\right)$.
 \item For multiple nonterminal children ($k > 1$),
@@ -1092,13 +1114,13 @@ input clauses.
 %% CNF formula $\phi$.  Deleting $C$ requires proving that
 %% $\phi \imply C$.
 
-
 The asserted clauses can be deleted in reverse order, using the same
 hints that were used in their original assertions.  By reversing the
 order, those clauses that were used in the hint when a clause was
 added will still remain when it is deleted.
 
-Each input clause deletion can be done as a single RUP step.  The
+Each input clause deletion can be done as a single RUP step, based
+on an algorithm to test for clausal entailment in d-DNNF graphs~\cite{capelli:sat:2019,darwiche:jair:2002}.  The
 proof generator constructs the hint sequence from the defining
 clauses of the POG nodes via a single, bottom-up pass through the
 graph.  The RUP deletion proof for input clause $C$ effectively proves that any
@@ -1128,7 +1150,7 @@ conflict.
 
 It can be seen that the reverse implication proof will be polynomial in the size of the POG\@, because
 each clause deletion requires a single RUP step having a hint with length
-bounded by the number of POG nodes.
+bounded by the number of POG nodes.  
 
 \section{Optimizations}
 
@@ -1263,7 +1285,7 @@ verification.  The prototype checker successfully verified all of the generated
 proofs.  The longest runtime for the combination of proof generator
 and checker for a full proof was 13,145 seconds.
 It is worth noting that, to date, we have not found
-any errors in the d-DNNF graphs generated by \dfour{}.
+any errors in the decision-DNNF graphs generated by \dfour{}.
 
 We found that the monolithic approach for generating the forward
 implication proof works well for smaller POGs, but it becomes
@@ -1287,16 +1309,28 @@ to control the recursion through lemmas.
 \section{Conclusions}
 \label{sect:future}
 
+This paper demonstrates a method for certifying the equivalence of two
+different representations of a Boolean formula: an input formula
+represented in conjunctive normal form, and a compiled representation
+that can then be used to extract useful information about the formula,
+including its weighted and unweighted model counts.  It builds on the
+extensive techniques that have been developed for clausal
+proof systems, including extended resolution and reverse unit propagation, as well as established tools, such as
+proof-generating SAT solvers and \dtrim{}.
+
+
 We are hopeful that having checkable proofs for knowledge compilers
 will allow them to be used in applications where high levels of trust
 are required, and that it will provide a useful tool for developers of
 knowledge compilers.
 %%Although our current implementation only handles
 %%the outputs of one particular program, it could be adapted
-Our experiments demonstrate that our toolchain can already
- handle problems nearly at the limits of current knowledge compilers.
-Further engineering and optimization of our proof
-generator and checker could improve their performance and capacity substantially.
+Our experiments demonstrate that our toolchain can already handle
+problems nearly at the limits of current knowledge compilers.  Further
+engineering and optimization of our proof generator and checker could
+improve their performance and capacity substantially.  We are hopeful
+that our tool can be adapted to handle other knowledge compiler
+representations, such as sentential decision diagrams (SDDs)~\cite{darwiche:ijcai:2011}.
 
 \newpage
 
@@ -1540,7 +1574,7 @@ These shared subgraphs arise when the knowledge compiler employs {\em clause cac
 to detect that the simplified set of
 clauses arising from one partial assignment to the literals matches that
 of a previous partial assignment~\cite{darwiche:aaai:2002}.
-When this d-DNNF node is translated into POG
+When this decision-DNNF node is translated into POG
 node $\nodeu$, the proof generator can assume (and also check), that
 there is a simplified set of clauses $\gamma_{\nodeu}$
 for which the subgraph with root $\nodeu$ is its POG representation.
@@ -1724,9 +1758,9 @@ method for the forward implication proof, with the two optimizations
 of literal grouping and lemmas.
 Running with a time limit of 4000 seconds\footnote{All measured times
 in this document are actual elapsed times, not CPU times.}, \dfour{}
-was able to generate d-DNNF representations for 124 of these, and it timed out on the
+was able to generate decision-DNNF representations for 124 of these, and it timed out on the
 rest.  Our proof generator was able to convert all of the generated
-d-DNNF graphs into POGs and determine how many defining clauses they
+decision-DNNF graphs into POGs and determine how many defining clauses they
 would generate.  A POG operation with $k$ arguments requires $k+1$
 defining clauses, and so the total number of defining clauses in POG $P$ equals
 the number of nonterminal nodes plus the number of edges in the graph, corresponding to our definition of $|P|$ in Section~\ref{sect:pog}.
@@ -1737,7 +1771,7 @@ The number of defining clauses ranged from 304 to 2,761,457,765 with a median of
 \input{figure-runtime-d4-verify}
 \input{figure-clauses-d4-verify}
 
-For each of the 124 d-DNNF graphs generated by \dfour{}, we ran
+For each of the 124 decision-DNNF graphs generated by \dfour{}, we ran
 our proof generator and prototype checker, limiting proof
 generation to 10,000 seconds.  We ran the programs to generate and check
 one-sided proofs for the graphs, again with a time limit of 10,000
