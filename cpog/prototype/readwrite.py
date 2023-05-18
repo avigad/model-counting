@@ -252,7 +252,7 @@ class CnfReader():
     verbLevel = 1
 
    
-    def __init__(self, fname = None, verbLevel = 1):
+    def __init__(self, fname = None, verbLevel = 1, check = True):
         self.verbLevel = verbLevel
         if fname is None:
             opened = False
@@ -266,7 +266,7 @@ class CnfReader():
         self.clauses = []
         self.commentLines = []
         try:
-            self.readCnf()
+            self.readCnf(check)
         except Exception as ex:
             if opened:
                 self.file.close()
@@ -274,7 +274,8 @@ class CnfReader():
         if opened:
             self.file.close()
         
-    def readCnf(self):
+    def readCnf(self, check):
+        print("Reading CNF.  check=%s" % str(check))
         lineNumber = 0
         nclause = 0
         self.nvar = 0
@@ -302,7 +303,6 @@ class CnfReader():
             else:
                 if nclause == 0:
                     raise ReadWriteException("Line %d.  No header line.  Not cnf" % (lineNumber))
-                # Check formatting
                 try:
                     lits = [int(s) for s in line.split()]
                 except:
@@ -311,14 +311,16 @@ class CnfReader():
                 if lits[-1] != 0:
                     raise ReadWriteException("Line %d.  Clause line should end with 0" % lineNumber)
                 lits = lits[:-1]
-                vars = sorted([abs(l) for l in lits])
-                if len(vars) == 0:
-                    raise ReadWriteException("Line %d.  Empty clause" % lineNumber)                    
-                if vars[-1] > self.nvar or vars[0] == 0:
-                    raise ReadWriteException("Line %d.  Out-of-range literal" % lineNumber)
-                for i in range(len(vars) - 1):
-                    if vars[i] == vars[i+1]:
-                        raise ReadWriteException("Line %d.  Opposite or repeated literal" % lineNumber)
+                if check:
+                    # Check formatting
+                    vars = sorted([abs(l) for l in lits])
+                    if len(vars) == 0:
+                        raise ReadWriteException("Line %d.  Empty clause" % lineNumber)                    
+                    if vars[-1] > self.nvar or vars[0] == 0:
+                        raise ReadWriteException("Line %d.  Out-of-range literal" % lineNumber)
+                    for i in range(len(vars) - 1):
+                        if vars[i] == vars[i+1]:
+                            raise ReadWriteException("Line %d.  Opposite or repeated literal" % lineNumber)
                 self.clauses.append(lits)
                 clauseCount += 1
         if clauseCount != nclause:
