@@ -393,6 +393,20 @@ Clause results:
 \item Min = 0.21, Max = 2.34, Harmonic mean = 0.85
 \end{itemize}
 
+
+\section{Benchmarking the \lean{} Proof Checker}
+
+Ran \lean{} checker on the benchmarks yielding at most $10^7$ clauses, with time limit of 1000 seconds.
+\begin{itemize}
+\item 80 total
+\item All ran to completion
+\item All but three ran within factor of $8\times$.  Outliers were small ones
+\item Harmonic mean = $5.43\times$.
+\end{itemize}
+
+\input{figure-check}
+
+
 \section{Comparison with MICE}
 
 \input{figure-mice-cpog}
@@ -429,17 +443,24 @@ Overall, we can summarize the results as:
 \end{itemize}
 
 
-\section{Benchmarking the \lean{} Proof Checker}
+\section{Comparison with CD4 Toolchain}
 
-Ran \lean{} checker on the benchmarks yielding at most $10^7$ clauses, with time limit of 1000 seconds.
+\input{figure-runtime-cd4}  
+
+Ran D4 with certificate logging enabled (by specifying DRAT file).
+Used 114 benchmarks for which regular D4 ran in under 1000 seconds.
+Measure time for entire toolchains (compilation, proof generation,
+checking).  Checking for CD4 includes running drat-trim.
 \begin{itemize}
-\item 80 total
-\item All ran to completion
-\item All but three ran within factor of $8\times$.  Outliers were small ones
-\item Harmonic mean = $5.43\times$.
-\end{itemize}
+\item Completed 80 in under 1000 seconds for both
+  \begin{itemize}
+    \item 7 ran faster with POG framework, up to $2.8\times$; 73 ran slower, up to $119.8\times$.  Harmonic mean = $19.63\times$ slower.
+  \end{itemize}
+\item 2 completed in under 1000 seconds  with POGs but timed out with CD4.  Both had very few models and with long unsatisfiability proofs
+\item 28 completed in under 1000 seconds with CD4 but either timed out or failed with POGs.
+\item Remaining 4 exceeded 1000 seconds for both toolchains
 
-\input{figure-check}
+\end{itemize}
 
 
 \bibliography{references}
@@ -468,37 +489,5 @@ Ran \lean{} checker on the benchmarks yielding at most $10^7$ clauses, with time
 \label{fig:generate:d4}
 \end{figure}
 
-\begin{description}
-\item[Lemmas:] The justification proof must show that the conjunction
-  of the input clauses implies the extension variable associated with
-  the root node.  It does so by showing that this property holds for
-  every node and for every path from the root that node, relative to
-  the partial assignment given by that path.  This could potentially
-  require enumerating exponential numbers of paths to some nodes,
-  effectively converting the graph into a tree.  Instead, the proof
-  can contain a {\em lemma} for each node having indegree greater than
-  one, showing that the root node is implied by a set of clauses.
-  Some of these are the original input clauses, while some are {\em
-    synthetic clauses} representing input clauses that have been
-  reduced by eliminating false literals.  Given such a proof, the
-  lemma can be instantiated for each parent node.  Proofs with lemmas
-  incur some overhead---the synthetic clauses are declared as POG
-  product nodes, and additional clauses must be added to show that,
-  under a given context, the synthetic clauses are implied by some
-  input or containing synthetic clause.  On the other hand, they
-  guarantee that no node in the graph is the root of more than one
-  justication proof.
-\item[Literal grouping:] The generated POG representation will
-  typically have a number of product nodes forming the conjunction of
-  tens, or even hundreds, of literals.  These literals represent ones
-  that we either implied by unit propagation or were added when
-  assigning the complement to the corresponding variable led to a
-  conflict.  Justifying this product node requires showing that each
-  of these literals must hold under the given context.  When this
-  cannot be done by unit propagation, the program must invoke a SAT
-  solver to prove that the complemented value yields a conflict.
-  Rather than doing so for each literal individually, the prover can
-  create a new product node consisting of the literals that have not
-  yet been validated and then prove that falsifying the extension
-  variable associated with the product node yields a conflict.  
 \end{description}
+
