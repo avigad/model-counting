@@ -2,11 +2,11 @@ D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_029.cnf -dDNNF -out=./
 D4 LOG: Time limit 1000 seconds
 c [33mBenchmark Information[0m
 c Number of variables: 1272
-c Number of clauses: 3075
-c Number of literals: 6443
+c Number of clauses: 2979
+c Number of literals: 6128
 c Preproc options: 
 c
-c Preproc time: 0.000467
+c Preproc time: 0.000466
 c Integer mode 
 c
 c [1m[32mOption list [0m
@@ -42,7 +42,7 @@ c top 5: -1087 272 -587 -519
 c top 5: -1087 272 -587 519 
 c top 5: -1087 272 587 
 c top 5: -1087 272 587 -519 
-c      16384 |       0.94 |      49420 |       8196 |      54690 |        563 |     362006 |     412078 |          0 |       8196 |        3251 |          0 | 
+c      16384 |       0.95 |      49420 |       8196 |      54690 |        565 |     362006 |     412078 |          0 |       8196 |        3251 |          0 | 
 c top 5: -1087 272 587 519 
 c top 5: -1087 272 
 c top 5: -1087 
@@ -57,7 +57,7 @@ c top 5: 1087 -587 519 342
 c top 5: 1087 587 
 c top 5: 1087 587 -519 
 c top 5: 1087 587 -519 -342 
-c      32768 |       1.91 |      95453 |      16386 |     106563 |        564 |     665196 |     761540 |          0 |      16386 |        6726 |          0 | 
+c      32768 |       1.92 |      95453 |      16386 |     106563 |        565 |     665196 |     761540 |          0 |      16386 |        6726 |          0 | 
 c top 5: 1087 587 -519 342 
 c top 5: 1087 587 519 
 c top 5: 1087 587 519 -342 
@@ -88,31 +88,31 @@ c Number of nodes: 913654
 c Number of edges: 1047175
 c 
 c [1m[34mCache Information[0m
-c Memory used: 565 MB
+c Memory used: 566 MB
 c
 c Number of positive hit: 132537
 c Number of negative hit: 22777
 c Number of reduceCall: 0
 c
-c Final time: 2.733958
+c Final time: 2.740660
 c 
 s 0.000000
-D4 LOG: Elapsed time = 3.054 seconds
+D4 LOG: Elapsed time = 3.063 seconds
 D4 OUTCOME: normal
 mc2022_track1_029. D4 NNF LOG: size ./mc2022_track1_029.cnnf 254518 lines 11390543 bytes
 mc2022_track1_029. D4 DRAT LOG: size ./mc2022_track1_029.drat 5835 lines 72981 bytes
 DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track1_029.cnf ./mc2022_track1_029.drat -f -U
 DTRIM LOG: Time limit 1000 seconds
 
-c parsing input formula with 1272 variables and 3075 clauses
+c parsing input formula with 1272 variables and 2979 clauses
 
 c finished parsing
 
 c start forward verification
 
-c 2399 of 3075 clauses in core                            
+c 2400 of 2979 clauses in core                            
 
-c 465 of 2941 lemmas in core using 2876 resolution steps
+c 467 of 2941 lemmas in core using 2878 resolution steps
 
 c 0 RAT lemmas in core; 0 redundant literals in core lemmas
 
@@ -131,14 +131,16 @@ CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track1_029.cnf .
 CHECK LOG: Time limit 1000 seconds
 c CNF information
 c Number of variables: 1272
-c Number of clauses: 3075
+c Number of clauses: 2979
 c
 c DRAT information
 c Number of drat clauses: 2940
 c
-c DDnnf parsing: 0.089
-CHECK ERROR: Return code = -6
-CHECK LOG: Elapsed time = 0.104 seconds
-CHECK OUTCOME: failed
-OVERALL LOG: Elapsed time = 3.233 seconds
-OVERALL OUTCOME: failed
+c DDnnf parsing: 0.091
+c DDnnf checked: 2.494
+c
+c Global time: 2.510
+CHECK LOG: Elapsed time = 2.553 seconds
+CHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 5.691 seconds
+OVERALL OUTCOME: normal

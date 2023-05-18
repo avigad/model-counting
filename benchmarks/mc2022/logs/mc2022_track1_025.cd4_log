@@ -2,11 +2,11 @@ D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_025.cnf -dDNNF -out=./
 D4 LOG: Time limit 1000 seconds
 c [33mBenchmark Information[0m
 c Number of variables: 1201
-c Number of clauses: 2900
-c Number of literals: 6078
+c Number of clauses: 2808
+c Number of literals: 5778
 c Preproc options: 
 c
-c Preproc time: 0.000453
+c Preproc time: 0.000697
 c Integer mode 
 c
 c [1m[32mOption list [0m
@@ -58,7 +58,7 @@ c top 5: 1024 552
 c top 5: 1024 552 -323 
 c top 5: 1024 552 -323 -593 
 c top 5: 1024 552 -323 593 
-c      16384 |       0.93 |      49261 |       8194 |      54945 |        563 |     371422 |     421412 |          0 |       8194 |        3479 |          0 | 
+c      16384 |       0.93 |      49261 |       8194 |      54945 |        571 |     371422 |     421412 |          0 |       8194 |        3479 |          0 | 
 c top 5: 1024 552 323 
 c top 5: 1024 552 323 -593 
 c top 5: 1024 552 323 593 
@@ -87,31 +87,31 @@ c Number of nodes: 472489
 c Number of edges: 537751
 c 
 c [1m[34mCache Information[0m
-c Memory used: 563 MB
+c Memory used: 571 MB
 c
 c Number of positive hit: 64482
 c Number of negative hit: 10420
 c Number of reduceCall: 0
 c
-c Final time: 1.264431
+c Final time: 1.261025
 c 
 s 0.000000
-D4 LOG: Elapsed time = 1.429 seconds
+D4 LOG: Elapsed time = 1.514 seconds
 D4 OUTCOME: normal
 mc2022_track1_025. D4 NNF LOG: size ./mc2022_track1_025.cnnf 120151 lines 5691569 bytes
 mc2022_track1_025. D4 DRAT LOG: size ./mc2022_track1_025.drat 5468 lines 67602 bytes
 DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track1_025.cnf ./mc2022_track1_025.drat -f -U
 DTRIM LOG: Time limit 1000 seconds
 
-c parsing input formula with 1201 variables and 2900 clauses
+c parsing input formula with 1201 variables and 2808 clauses
 
 c finished parsing
 
 c start forward verification
 
-c 2235 of 2900 clauses in core                            
+c 2236 of 2808 clauses in core                            
 
-c 432 of 2762 lemmas in core using 2677 resolution steps
+c 434 of 2762 lemmas in core using 2679 resolution steps
 
 c 0 RAT lemmas in core; 0 redundant literals in core lemmas
 
@@ -123,21 +123,23 @@ c WARNING: no empty clause detected, this is not a refutation
 
 s DERIVATION
 
-c verification time: 0.028 seconds
-DTRIM LOG: Elapsed time = 0.030 seconds
+c verification time: 0.026 seconds
+DTRIM LOG: Elapsed time = 0.053 seconds
 DTRIM OUTCOME: normal
 CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track1_025.cnf ./mc2022_track1_025.cnnf ./mc2022_track1_025.drat
 CHECK LOG: Time limit 1000 seconds
 c CNF information
 c Number of variables: 1201
-c Number of clauses: 2900
+c Number of clauses: 2808
 c
 c DRAT information
 c Number of drat clauses: 2761
 c
-c DDnnf parsing: 0.042
-CHECK ERROR: Return code = -6
-CHECK LOG: Elapsed time = 0.054 seconds
-CHECK OUTCOME: failed
-OVERALL LOG: Elapsed time = 1.536 seconds
-OVERALL OUTCOME: failed
+c DDnnf parsing: 0.043
+c DDnnf checked: 1.150
+c
+c Global time: 1.158
+CHECK LOG: Elapsed time = 1.214 seconds
+CHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 2.805 seconds
+OVERALL OUTCOME: normal

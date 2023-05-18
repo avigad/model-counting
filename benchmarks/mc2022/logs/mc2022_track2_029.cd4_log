@@ -2,11 +2,11 @@ D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_029.cnf -dDNNF -out=./
 D4 LOG: Time limit 1000 seconds
 c [33mBenchmark Information[0m
 c Number of variables: 1186
-c Number of clauses: 2867
-c Number of literals: 6013
+c Number of clauses: 2774
+c Number of literals: 5711
 c Preproc options: 
 c
-c Preproc time: 0.000500
+c Preproc time: 0.000447
 c Integer mode 
 c
 c [1m[32mOption list [0m
@@ -86,31 +86,31 @@ c Number of nodes: 341768
 c Number of edges: 382981
 c 
 c [1m[34mCache Information[0m
-c Memory used: 573 MB
+c Memory used: 563 MB
 c
 c Number of positive hit: 40429
 c Number of negative hit: 7839
 c Number of reduceCall: 0
 c
-c Final time: 0.918297
+c Final time: 0.853874
 c 
 s 0.000000
-D4 LOG: Elapsed time = 1.051 seconds
+D4 LOG: Elapsed time = 0.975 seconds
 D4 OUTCOME: normal
 mc2022_track2_029. D4 NNF LOG: size ./mc2022_track2_029.cnnf 80820 lines 3991125 bytes
 mc2022_track2_029. D4 DRAT LOG: size ./mc2022_track2_029.drat 5399 lines 66733 bytes
 DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track2_029.cnf ./mc2022_track2_029.drat -f -U
 DTRIM LOG: Time limit 1000 seconds
 
-c parsing input formula with 1186 variables and 2867 clauses
+c parsing input formula with 1186 variables and 2774 clauses
 
 c finished parsing
 
 c start forward verification
 
-c 2214 of 2867 clauses in core                            
+c 2215 of 2774 clauses in core                            
 
-c 417 of 2728 lemmas in core using 2641 resolution steps
+c 419 of 2728 lemmas in core using 2643 resolution steps
 
 c 0 RAT lemmas in core; 0 redundant literals in core lemmas
 
@@ -122,21 +122,23 @@ c WARNING: no empty clause detected, this is not a refutation
 
 s DERIVATION
 
-c verification time: 0.030 seconds
-DTRIM LOG: Elapsed time = 0.032 seconds
+c verification time: 0.026 seconds
+DTRIM LOG: Elapsed time = 0.028 seconds
 DTRIM OUTCOME: normal
 CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track2_029.cnf ./mc2022_track2_029.cnnf ./mc2022_track2_029.drat
 CHECK LOG: Time limit 1000 seconds
 c CNF information
 c Number of variables: 1186
-c Number of clauses: 2867
+c Number of clauses: 2774
 c
 c DRAT information
 c Number of drat clauses: 2727
 c
-c DDnnf parsing: 0.033
-CHECK ERROR: Return code = -6
-CHECK LOG: Elapsed time = 0.043 seconds
-CHECK OUTCOME: failed
-OVERALL LOG: Elapsed time = 1.143 seconds
-OVERALL OUTCOME: failed
+c DDnnf parsing: 0.031
+c DDnnf checked: 0.955
+c
+c Global time: 0.961
+CHECK LOG: Elapsed time = 0.980 seconds
+CHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 1.999 seconds
+OVERALL OUTCOME: normal
