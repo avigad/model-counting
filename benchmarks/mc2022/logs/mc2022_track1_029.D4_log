@@ -1,11 +1,110 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_029.cnf -dDNNF -out=./mc2022_track1_029.nnf
+D4 LOG: Time limit 900 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 1272
+c Number of clauses: 3075
+c Number of literals: 6443
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -1087 
+c top 5: -1087 -272 
+c top 5: -1087 -272 -587 
+c top 5: -1087 -272 -587 -519 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -1087 -272 -587 519 
+c top 5: -1087 -272 -587 
+c top 5: -1087 -272 587 
+c top 5: -1087 -272 587 -519 
+c top 5: -1087 -272 587 519 
+c top 5: -1087 -272 587 
+c top 5: -1087 -272 587 
+c top 5: -1087 -272 587 
+c top 5: -1087 272 
+c top 5: -1087 272 -587 
+c top 5: -1087 272 -587 -519 
+c top 5: -1087 272 -587 519 
+c top 5: -1087 272 587 
+c top 5: -1087 272 587 -519 
+c      16384 |       0.97 |      49420 |       8196 |      54690 |        566 |     362006 |     412078 |          0 |       8196 |        3251 |          0 | 
+c top 5: -1087 272 587 519 
+c top 5: -1087 272 
+c top 5: -1087 
+c top 5: 1087 
+c top 5: 1087 -587 
+c top 5: 1087 -587 -519 
+c top 5: 1087 -587 -519 -342 
+c top 5: 1087 -587 -519 342 
+c top 5: 1087 -587 519 
+c top 5: 1087 -587 519 -342 
+c top 5: 1087 -587 519 342 
+c top 5: 1087 587 
+c top 5: 1087 587 -519 
+c top 5: 1087 587 -519 -342 
+c      32768 |       1.95 |      95453 |      16386 |     106563 |        566 |     665196 |     761540 |          0 |      16386 |        6726 |          0 | 
+c top 5: 1087 587 -519 342 
+c top 5: 1087 587 519 
+c top 5: 1087 587 519 -342 
+c top 5: 1087 587 519 342 
+c top 5: 1087 
+c top 5: 1087 1264 
+c top 5: 1087 1264 
+c top 5: 1087 1264 
+c top 5: 1087 
+c top 5: 1087 
+c top 5: 1087 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 45555
+c Number of split formula: 148464
+c Number of decision node: 22777
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 37720
+c Number of backbone calls: 0
+c Number of partitioner calls: 9443
+c Average number of assigned literal to obtain decomposable AND nodes: 605.43/1272
+c Minimum number of assigned variable where a decomposable AND appeared: 172
+c 
+c [33mGraph Information[0m
+c Number of nodes: 913654
+c Number of edges: 1047175
+c 
+c [1m[34mCache Information[0m
+c Memory used: 566 MB
+c
+c Number of positive hit: 132537
+c Number of negative hit: 22777
+c Number of reduceCall: 0
+c
+c Final time: 2.783771
+c 
+s 0.000000
+D4 LOG: Elapsed time = 3.184 seconds
+D4 OUTCOME: normal
 GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -p ./mc2022_track1_029.cnf ./mc2022_track1_029.nnf ./mc2022_track1_029.crat
-GEN LOG: Time limit 10000 seconds
+GEN LOG: Time limit 1800 seconds
 c GEN: Time = 0.00.  Read input file with 1272 variables and 3075 clauses
 c Read D4 NNF file with 106054 nodes (60499 explicit) and 194019 edges
 c Compressed POG has 105962 nodes, root literal 107234, and 1197649 defining clauses
-c GEN: Time = 0.41.  Generated POG representation
+c GEN: Time = 0.40.  Generated POG representation
 c GEN: POG created.  Exiting
-GEN LOG: Elapsed time = 0.420 seconds
+GEN LOG: Elapsed time = 0.413 seconds
 GEN OUTCOME: normal
-OVERALL LOG: Elapsed time = 0.421 seconds
+OVERALL LOG: Elapsed time = 3.598 seconds
 OVERALL OUTCOME: normal

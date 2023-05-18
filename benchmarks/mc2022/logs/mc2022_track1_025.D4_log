@@ -1,11 +1,109 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_025.cnf -dDNNF -out=./mc2022_track1_025.nnf
+D4 LOG: Time limit 900 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 1201
+c Number of clauses: 2900
+c Number of literals: 6078
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -1024 
+c top 5: -1024 -253 
+c top 5: -1024 -253 -552 
+c top 5: -1024 -253 -552 -323 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -1024 -253 -552 323 
+c top 5: -1024 -253 -552 
+c top 5: -1024 -253 552 
+c top 5: -1024 -253 552 -323 
+c top 5: -1024 -253 552 323 
+c top 5: -1024 -253 552 
+c top 5: -1024 -253 552 
+c top 5: -1024 -253 552 
+c top 5: -1024 -253 552 
+c top 5: -1024 253 
+c top 5: -1024 253 -552 
+c top 5: -1024 253 -552 -323 
+c top 5: -1024 253 -552 323 
+c top 5: -1024 253 552 
+c top 5: -1024 253 552 -323 
+c top 5: -1024 253 552 323 
+c top 5: -1024 253 
+c top 5: -1024 
+c top 5: 1024 
+c top 5: 1024 -552 
+c top 5: 1024 -552 -323 
+c top 5: 1024 -552 -323 -593 
+c top 5: 1024 -552 -323 593 
+c top 5: 1024 -552 323 
+c top 5: 1024 -552 323 -593 
+c top 5: 1024 -552 323 593 
+c top 5: 1024 552 
+c top 5: 1024 552 -323 
+c top 5: 1024 552 -323 -593 
+c top 5: 1024 552 -323 593 
+c      16384 |       0.95 |      49261 |       8194 |      54945 |        564 |     371422 |     421412 |          0 |       8194 |        3479 |          0 | 
+c top 5: 1024 552 323 
+c top 5: 1024 552 323 -593 
+c top 5: 1024 552 323 593 
+c top 5: 1024 
+c top 5: 1024 1196 
+c top 5: 1024 1196 
+c top 5: 1024 1196 
+c top 5: 1024 
+c top 5: 1024 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 20841
+c Number of split formula: 71865
+c Number of decision node: 10420
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 17023
+c Number of backbone calls: 0
+c Number of partitioner calls: 4514
+c Average number of assigned literal to obtain decomposable AND nodes: 562.52/1201
+c Minimum number of assigned variable where a decomposable AND appeared: 181
+c 
+c [33mGraph Information[0m
+c Number of nodes: 472489
+c Number of edges: 537751
+c 
+c [1m[34mCache Information[0m
+c Memory used: 564 MB
+c
+c Number of positive hit: 64482
+c Number of negative hit: 10420
+c Number of reduceCall: 0
+c
+c Final time: 1.282634
+c 
+s 0.000000
+D4 LOG: Elapsed time = 1.480 seconds
+D4 OUTCOME: normal
 GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -p ./mc2022_track1_025.cnf ./mc2022_track1_025.nnf ./mc2022_track1_025.crat
-GEN LOG: Time limit 10000 seconds
+GEN LOG: Time limit 1800 seconds
 c GEN: Time = 0.00.  Read input file with 1201 variables and 2900 clauses
 c Read D4 NNF file with 48286 nodes (27445 explicit) and 92706 edges
 c Compressed POG has 48210 nodes, root literal 49411, and 605988 defining clauses
 c GEN: Time = 0.20.  Generated POG representation
 c GEN: POG created.  Exiting
-GEN LOG: Elapsed time = 0.209 seconds
+GEN LOG: Elapsed time = 0.200 seconds
 GEN OUTCOME: normal
-OVERALL LOG: Elapsed time = 0.209 seconds
+OVERALL LOG: Elapsed time = 1.680 seconds
 OVERALL OUTCOME: normal
