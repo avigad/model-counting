@@ -1,0 +1,133 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_057.cnf -dDNNF -out=./mc2022_track1_057.cnnf -drat=./mc2022_track1_057.drat
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 759
+c Number of clauses: 20862
+c Number of literals: 114903
+c Preproc options: 
+c
+c Preproc time: 0.003385
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -168 
+c top 5: -168 104 
+c top 5: -168 104 68 
+c top 5: -168 104 68 -82 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 -82 
+c top 5: -168 104 68 82 
+c top 5: 168 
+c top 5: 168 68 
+c top 5: 168 68 -104 
+c top 5: 168 68 -104 4 
+c top 5: 168 68 104 
+c top 5: 168 68 104 132 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 187
+c Number of split formula: 132
+c Number of decision node: 93
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 6
+c Number of backbone calls: 0
+c Number of partitioner calls: 1
+c Average number of assigned literal to obtain decomposable AND nodes: 714.00/759
+c Minimum number of assigned variable where a decomposable AND appeared: 714
+c 
+c [33mGraph Information[0m
+c Number of nodes: 4420
+c Number of edges: 4639
+c 
+c [1m[34mCache Information[0m
+c Memory used: 584 MB
+c
+c Number of positive hit: 68
+c Number of negative hit: 93
+c Number of reduceCall: 0
+c
+c Final time: 0.885507
+c 
+s 0.000000
+D4 LOG: Elapsed time = 1.122 seconds
+D4 OUTCOME: normal
+mc2022_track1_057. D4 NNF LOG: size ./mc2022_track1_057.cnnf 421 lines 108529 bytes
+mc2022_track1_057. D4 DRAT LOG: size ./mc2022_track1_057.drat 45187 lines 1703729 bytes
+DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track1_057.cnf ./mc2022_track1_057.drat -f -U
+DTRIM LOG: Time limit 1000 seconds
+
+c parsing input formula with 759 variables and 20862 clauses
+
+c finished parsing
+
+c start forward verification
+
+c 20862 of 20862 clauses in core                            
+
+c 6411 of 24326 lemmas in core using 143664 resolution steps
+
+c 0 RAT lemmas in core; 0 redundant literals in core lemmas
+
+c optimized proofs are not supported for forward checking
+
+c VERIFIED derivation: all lemmas preserve satisfiability
+
+c WARNING: no empty clause detected, this is not a refutation
+
+s DERIVATION
+
+c verification time: 0.140 seconds
+DTRIM LOG: Elapsed time = 0.143 seconds
+DTRIM OUTCOME: normal
+CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track1_057.cnf ./mc2022_track1_057.cnnf ./mc2022_track1_057.drat
+CHECK LOG: Time limit 1000 seconds
+c CNF information
+c Number of variables: 759
+c Number of clauses: 20862
+c
+c DRAT information
+c Number of drat clauses: 24325
+c
+c DDnnf parsing: 0.000
+c DDnnf checked: 0.006
+c
+c Global time: 0.012
+CHECK LOG: Elapsed time = 0.015 seconds
+CHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 1.289 seconds
+OVERALL OUTCOME: normal

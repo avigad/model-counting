@@ -1,0 +1,135 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_127.cnf -dDNNF -out=./mc2022_track1_127.cnnf -drat=./mc2022_track1_127.drat
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 630
+c Number of clauses: 33701
+c Number of literals: 67972
+c Preproc options: 
+c
+c Preproc time: 0.003300
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -125 
+c top 5: -125 -101 
+c top 5: -125 -101 -87 
+c top 5: -125 -101 -87 -88 
+c unitLits 1048577 4194308 Bytes
+c      16384 |       8.83 |       2229 |       8224 |       1999 |        627 |     234477 |     243725 |          0 |       8224 |          12 |          0 | 
+c      32768 |      18.61 |       6181 |      16416 |       5109 |        631 |     448830 |     467993 |          0 |      16416 |          42 |          0 | 
+c      49152 |      25.59 |      11087 |      24634 |       8774 |        634 |     660167 |     689544 |          0 |      24634 |          87 |          0 | 
+c      65536 |      36.02 |      14320 |      32809 |      11433 |        638 |     899857 |     938915 |          0 |      32809 |         104 |          0 | 
+c unitLits 2097153 8388612 Bytes
+c      81920 |      51.94 |      17632 |      40993 |      14013 |        636 |    1128148 |    1176833 |          0 |      40993 |         138 |          0 | 
+c      98304 |      61.36 |      22253 |      49182 |      17484 |        657 |    1352789 |    1411575 |          0 |      49182 |         171 |          0 | 
+c     114688 |      76.95 |      25830 |      57366 |      20181 |        661 |    1593473 |    1661941 |          0 |      57366 |         196 |          0 | 
+c     131072 |      98.74 |      29587 |      65575 |      23055 |        654 |    1814518 |    1892735 |          0 |      65575 |         243 |          0 | 
+c unitLits 3145729 12582916 Bytes
+c     147456 |     122.50 |      32792 |      73759 |      25471 |        671 |    2035869 |    2123603 |          0 |      73759 |         262 |          0 | 
+c     163840 |     135.26 |      37030 |      81939 |      28552 |        655 |    2264188 |    2361804 |          0 |      81939 |         278 |          0 | 
+c     180224 |     153.31 |      40365 |      90123 |      31041 |        696 |    2500263 |    2607448 |          0 |      90123 |         295 |          0 | 
+c     196608 |     172.77 |      44046 |      98337 |      33768 |        701 |    2713511 |    2830375 |          0 |      98337 |         322 |          0 | 
+c top 5: -125 -101 -87 88 
+c top 5: -125 -101 87 
+c top 5: -125 -101 87 -537 
+c top 5: -125 -101 87 537 
+c top 5: -125 101 
+c top 5: -125 101 -537 
+c top 5: -125 101 -537 -276 
+c top 5: -125 101 -537 276 
+c top 5: -125 101 537 
+c top 5: -125 101 537 -276 
+c top 5: 125 
+c top 5: 125 -537 
+c top 5: 125 -537 -130 
+c top 5: 125 -537 -130 -165 
+c top 5: 125 -537 -130 165 
+c top 5: 125 -537 130 
+c top 5: 125 -537 130 -167 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 208191
+c Number of split formula: 35245
+c Number of decision node: 104095
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 15829
+c Number of backbone calls: 0
+c Number of partitioner calls: 337
+c Average number of assigned literal to obtain decomposable AND nodes: 620.04/630
+c Minimum number of assigned variable where a decomposable AND appeared: 549
+c 
+c [33mGraph Information[0m
+c Number of nodes: 2860405
+c Number of edges: 2983916
+c 
+c [1m[34mCache Information[0m
+c Memory used: 704 MB
+c
+c Number of positive hit: 45922
+c Number of negative hit: 104095
+c Number of reduceCall: 0
+c
+c Final time: 201.931909
+c 
+s 0.000000
+D4 LOG: Elapsed time = 204.195 seconds
+D4 OUTCOME: normal
+mc2022_track1_127. D4 NNF LOG: size ./mc2022_track1_127.cnnf 363363 lines 84520827 bytes
+mc2022_track1_127. D4 DRAT LOG: size ./mc2022_track1_127.drat 2531966 lines 1141730115 bytes
+DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track1_127.cnf ./mc2022_track1_127.drat -f -U
+DTRIM LOG: Time limit 1000 seconds
+
+c parsing input formula with 630 variables and 33701 clauses
+
+c finished parsing
+
+c start forward verification
+
+c 33701 of 33701 clauses in core                            
+
+c 1071514 of 1306425 lemmas in core using 94165773 resolution steps
+
+c 0 RAT lemmas in core; 0 redundant literals in core lemmas
+
+c optimized proofs are not supported for forward checking
+
+c VERIFIED derivation: all lemmas preserve satisfiability
+
+c WARNING: no empty clause detected, this is not a refutation
+
+s DERIVATION
+
+c verification time: 320.959 seconds
+DTRIM LOG: Elapsed time = 320.996 seconds
+DTRIM OUTCOME: normal
+CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track1_127.cnf ./mc2022_track1_127.cnnf ./mc2022_track1_127.drat
+CHECK LOG: Time limit 1000 seconds
+c CNF information
+c Number of variables: 630
+c Number of clauses: 33701
+c
+c DRAT information
+c Number of drat clauses: 1306424
+c
+c DDnnf parsing: 0.396
+c DDnnf checked: 3.670
+c
+c Global time: 6.651
+CHECK LOG: Elapsed time = 7.220 seconds
+CHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 533.457 seconds
+OVERALL OUTCOME: normal

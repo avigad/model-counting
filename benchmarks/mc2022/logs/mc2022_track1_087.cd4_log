@@ -1,0 +1,294 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_087.cnf -dDNNF -out=./mc2022_track1_087.cnnf -drat=./mc2022_track1_087.drat
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 2646
+c Number of clauses: 7345
+c Number of literals: 18013
+c Preproc options: 
+c
+c Preproc time: 0.000944
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -48 
+c top 5: -48 -40 
+c top 5: -48 -40 -36 
+c top 5: -48 -40 -36 -34 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -48 -40 -36 34 
+c top 5: -48 -40 36 
+c top 5: -48 -40 36 -38 
+c top 5: -48 -40 36 38 
+c top 5: -48 40 
+c top 5: -48 40 -44 
+c top 5: -48 40 -44 -42 
+c top 5: -48 40 -44 42 
+c top 5: -48 40 44 
+c top 5: -48 40 44 -46 
+c top 5: -48 40 44 46 
+c top 5: 48 
+c top 5: 48 -56 
+c top 5: 48 -56 -52 
+c top 5: 48 -56 -52 -50 
+c top 5: 48 -56 -52 50 
+c top 5: 48 -56 52 
+c top 5: 48 -56 52 -54 
+c top 5: 48 -56 52 54 
+c top 5: 48 56 
+c top 5: 48 56 -60 
+c top 5: 48 56 -60 -58 
+c top 5: 48 56 -60 58 
+c top 5: 48 56 60 
+c top 5: 48 56 60 -62 
+c top 5: 48 56 60 62 
+c top 5: -609 
+c top 5: -609 -598 
+c top 5: -609 -598 -593 
+c top 5: -609 -598 -593 -590 
+c top 5: -609 -598 -593 -590 
+c top 5: -609 -598 -593 -590 
+c top 5: -609 -598 -593 -590 
+c top 5: -609 -598 -593 590 
+c top 5: -609 -598 -593 
+c top 5: -609 -598 -593 
+c top 5: -609 -598 -593 
+c top 5: -609 -598 -593 
+c top 5: -609 -598 -593 
+c top 5: -609 -598 593 
+c top 5: -609 -598 593 -595 
+c top 5: -609 -598 593 595 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 -598 
+c top 5: -609 598 
+c top 5: -609 598 -603 
+c top 5: -609 598 -603 -600 
+c top 5: -609 598 -603 600 
+c top 5: -609 598 603 
+c top 5: -609 598 603 -606 
+c top 5: -609 598 603 606 
+c top 5: -609 
+c top 5: -609 
+c top 5: -609 
+c top 5: -609 
+c top 5: -609 
+c top 5: -609 
+c top 5: -609 
+c top 5: -609 
+c top 5: -609 
+c top 5: -609 
+c top 5: 609 
+c top 5: 609 -619 
+c top 5: 609 -619 -614 
+c top 5: 609 -619 -614 -611 
+c top 5: 609 -619 -614 611 
+c top 5: 609 -619 614 
+c top 5: 609 -619 614 -616 
+c top 5: 609 -619 614 616 
+c top 5: -329 
+c top 5: -329 -321 
+c top 5: -329 -321 -317 
+c top 5: -329 -321 -317 -315 
+c top 5: -329 -321 -317 315 
+c top 5: -329 -321 317 
+c top 5: -329 -321 317 -319 
+c top 5: -329 -321 317 319 
+c top 5: -329 321 
+c top 5: -329 321 -325 
+c top 5: -329 321 -325 -323 
+c top 5: -329 321 -325 323 
+c top 5: -329 321 325 
+c top 5: -329 321 325 -327 
+c top 5: -329 321 325 327 
+c top 5: 329 
+c top 5: 329 -337 
+c top 5: 329 -337 -333 
+c top 5: 329 -337 -333 -331 
+c top 5: 329 -337 -333 331 
+c top 5: 329 -337 333 
+c top 5: 329 -337 333 -335 
+c top 5: 329 -337 333 335 
+c top 5: 329 337 
+c top 5: 329 337 -341 
+c top 5: 329 337 -341 -339 
+c top 5: 329 337 -341 339 
+c top 5: 329 337 341 
+c top 5: 329 337 341 -343 
+c top 5: 329 337 341 343 
+c top 5: -556 
+c top 5: -556 -540 
+c top 5: -556 -540 -532 
+c top 5: -556 -540 -532 -528 
+c top 5: -556 -540 -532 528 
+c top 5: -556 -540 532 
+c top 5: -556 -540 532 -536 
+c top 5: -556 -540 532 536 
+c top 5: -556 540 
+c top 5: -556 540 -548 
+c top 5: -556 540 -548 -544 
+c top 5: -556 540 -548 544 
+c top 5: -556 540 548 
+c top 5: -556 540 548 -552 
+c top 5: -556 540 548 552 
+c top 5: 556 
+c top 5: 556 -572 
+c top 5: 556 -572 -564 
+c top 5: 556 -572 -564 -560 
+c top 5: 556 -572 -564 560 
+c top 5: 556 -572 564 
+c top 5: 556 -572 564 -568 
+c top 5: 556 -572 564 568 
+c top 5: 556 572 
+c top 5: 556 572 -580 
+c top 5: 556 572 -580 -576 
+c top 5: 556 572 -580 576 
+c top 5: 556 572 580 
+c top 5: 556 572 580 -584 
+c top 5: 556 572 580 584 
+c top 5: -746 
+c top 5: -746 -730 
+c top 5: -746 -730 -722 
+c top 5: -746 -730 -722 -718 
+c top 5: -746 -730 -722 718 
+c top 5: -746 -730 722 
+c top 5: -746 -730 722 -726 
+c top 5: -746 -730 722 726 
+c top 5: -746 730 
+c top 5: -746 730 -738 
+c top 5: -746 730 -738 -734 
+c top 5: -746 730 -738 734 
+c top 5: -746 730 738 
+c top 5: -746 730 738 -742 
+c top 5: -746 730 738 742 
+c top 5: 746 
+c top 5: 746 -762 
+c top 5: 746 -762 -754 
+c top 5: 746 -762 -754 -750 
+c top 5: 746 -762 -754 750 
+c top 5: 746 -762 754 
+c top 5: 746 -762 754 -758 
+c top 5: 746 -762 754 758 
+c top 5: 746 762 
+c top 5: 746 762 -770 
+c top 5: 746 762 -770 -766 
+c top 5: 746 762 -770 766 
+c top 5: 746 762 770 
+c top 5: 746 762 770 -774 
+c top 5: 746 762 770 774 
+c top 5: -835 
+c top 5: -835 -898 
+c top 5: -835 -898 -954 
+c top 5: -835 -898 -954 -1128 
+c top 5: -835 -898 954 
+c top 5: -835 -898 954 -1128 
+c top 5: -835 -898 954 1128 
+c top 5: -835 898 
+c top 5: -835 898 -969 
+c top 5: -835 898 -969 -913 
+c top 5: -835 898 969 
+c top 5: -835 898 969 -976 
+c top 5: -835 898 969 976 
+c top 5: 835 
+c top 5: 835 -954 
+c top 5: 835 -954 -2618 
+c top 5: 835 -954 -2618 -1072 
+c top 5: 835 954 
+c top 5: 835 954 -898 
+c top 5: 835 954 -898 -1128 
+c top 5: 835 954 -898 1128 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 3279
+c Number of split formula: 1342
+c Number of decision node: 1639
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 364
+c Number of backbone calls: 0
+c Number of partitioner calls: 404
+c Average number of assigned literal to obtain decomposable AND nodes: 1700.82/2646
+c Minimum number of assigned variable where a decomposable AND appeared: 830
+c 
+c [33mGraph Information[0m
+c Number of nodes: 72436
+c Number of edges: 75053
+c 
+c [1m[34mCache Information[0m
+c Memory used: 565 MB
+c
+c Number of positive hit: 1226
+c Number of negative hit: 1639
+c Number of reduceCall: 0
+c
+c Final time: 0.151605
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.198 seconds
+D4 OUTCOME: normal
+mc2022_track1_087. D4 NNF LOG: size ./mc2022_track1_087.cnnf 6627 lines 822572 bytes
+mc2022_track1_087. D4 DRAT LOG: size ./mc2022_track1_087.drat 12301 lines 174627 bytes
+DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track1_087.cnf ./mc2022_track1_087.drat -f -U
+DTRIM LOG: Time limit 1000 seconds
+
+c parsing input formula with 2646 variables and 7345 clauses
+
+c finished parsing
+
+c start forward verification
+
+c 5369 of 7345 clauses in core                            
+
+c 1947 of 6776 lemmas in core using 78956 resolution steps
+
+c 0 RAT lemmas in core; 0 redundant literals in core lemmas
+
+c optimized proofs are not supported for forward checking
+
+c VERIFIED derivation: all lemmas preserve satisfiability
+
+c WARNING: no empty clause detected, this is not a refutation
+
+s DERIVATION
+
+c verification time: 0.035 seconds
+DTRIM LOG: Elapsed time = 0.038 seconds
+DTRIM OUTCOME: normal
+CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track1_087.cnf ./mc2022_track1_087.cnnf ./mc2022_track1_087.drat
+CHECK LOG: Time limit 1000 seconds
+c CNF information
+c Number of variables: 2646
+c Number of clauses: 7345
+c
+c DRAT information
+c Number of drat clauses: 6775
+c
+c DDnnf parsing: 0.004
+c DDnnf checked: 0.034
+c
+c Global time: 0.035
+CHECK LOG: Elapsed time = 0.039 seconds
+CHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 0.278 seconds
+OVERALL OUTCOME: normal

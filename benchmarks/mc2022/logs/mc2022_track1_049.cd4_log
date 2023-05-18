@@ -1,0 +1,155 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_049.cnf -dDNNF -out=./mc2022_track1_049.cnnf -drat=./mc2022_track1_049.drat
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 7032
+c Number of clauses: 6191
+c Number of literals: 19541
+c Preproc options: 
+c
+c Preproc time: 0.001570
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -895 
+c top 5: -895 -701 
+c top 5: -895 -701 -624 
+c top 5: -895 -701 -624 -510 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c      16384 |       0.83 |      20059 |       8199 |      22252 |        578 |     216178 |     237638 |          0 |       8199 |        2735 |          0 | 
+c      32768 |       2.44 |      45971 |      16389 |      51510 |        579 |     507088 |     554932 |          0 |      16389 |        5564 |          0 | 
+c      49152 |       4.32 |      72907 |      24581 |      82084 |        580 |     821744 |     896845 |          0 |      24581 |        8050 |          0 | 
+c top 5: -895 -701 -624 -510 
+c top 5: -895 -701 -624 510 
+c unitLits 2097153 8388612 Bytes
+c      65536 |       6.05 |     100964 |      32774 |     113987 |        592 |    1120709 |    1224087 |          0 |      32774 |       10709 |          0 | 
+c      81920 |       7.88 |     129220 |      40967 |     146099 |        592 |    1424292 |    1556151 |          0 |      40967 |       13120 |          0 | 
+c top 5: -895 -701 624 
+c top 5: -895 -701 624 -427 
+c      98304 |       9.76 |     158042 |      49161 |     178738 |        594 |    1735163 |    1895929 |          0 |      49161 |       15670 |          0 | 
+c top 5: -895 -701 624 427 
+c     114688 |      11.84 |     185935 |      57348 |     209980 |        594 |    2050291 |    2239060 |          0 |      57348 |       18229 |          0 | 
+c unitLits 3145729 12582916 Bytes
+c     131072 |      13.94 |     214867 |      65539 |     242369 |        594 |    2372275 |    2590024 |          0 |      65539 |       20790 |          0 | 
+c top 5: -895 701 
+c top 5: -895 701 427 
+c top 5: -895 701 427 -1 
+c     147456 |      15.37 |     241835 |      73733 |     273261 |        595 |    2637693 |    2882439 |          0 |      73733 |       23303 |          0 | 
+c top 5: -895 701 427 1 
+c top 5: 895 
+c top 5: 895 -427 
+c top 5: 895 -427 -662 
+c top 5: 895 -427 -662 -1 
+c     163840 |      17.29 |     268691 |      81926 |     303641 |        595 |    2927280 |    3198927 |          0 |      81926 |       25510 |          0 | 
+c top 5: 895 -427 -662 1 
+c freeVariables 2097153
+c unitLits 4194305 16777220 Bytes
+c     180224 |      19.19 |     296119 |      90116 |     334697 |        607 |    3234073 |    3533176 |          0 |      90116 |       27552 |          0 | 
+c top 5: 895 -427 662 
+c top 5: 895 -427 662 -1 
+c top 5: 895 -427 662 1 
+c     196608 |      21.46 |     324171 |      98308 |     366227 |        608 |    3563451 |    3890664 |          0 |      98308 |       29654 |          0 | 
+c top 5: 895 427 
+c top 5: 895 427 -663 
+c top 5: 895 427 -663 -1 
+c top 5: 895 427 -663 1 
+c top 5: 895 427 663 
+c top 5: 895 427 663 -624 
+c     212992 |      23.52 |     353166 |     106502 |     398760 |        608 |    3904026 |    4260249 |          0 |     106502 |       31880 |          0 | 
+c unitLits 5242881 20971524 Bytes
+c     229376 |      25.77 |     382289 |     114695 |     431749 |        613 |    4266852 |    4652246 |          0 |     114695 |       34178 |          0 | 
+c top 5: 895 427 663 624 
+c     245760 |      27.48 |     410454 |     122885 |     463726 |        613 |    4570386 |    4983947 |          0 |     122885 |       36573 |          0 | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 254451
+c Number of split formula: 479928
+c Number of decision node: 127225
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 179107
+c Number of backbone calls: 0
+c Number of partitioner calls: 37778
+c Average number of assigned literal to obtain decomposable AND nodes: 779.24/7032
+c Minimum number of assigned variable where a decomposable AND appeared: 362
+c 
+c [33mGraph Information[0m
+c Number of nodes: 4746205
+c Number of edges: 5174251
+c 
+c [1m[34mCache Information[0m
+c Memory used: 613 MB
+c
+c Number of positive hit: 424922
+c Number of negative hit: 127225
+c Number of reduceCall: 0
+c
+c Final time: 28.736759
+c 
+s 0.000000
+D4 LOG: Elapsed time = 30.340 seconds
+D4 OUTCOME: normal
+mc2022_track1_049. D4 NNF LOG: size ./mc2022_track1_049.cnnf 1040714 lines 59038280 bytes
+mc2022_track1_049. D4 DRAT LOG: size ./mc2022_track1_049.drat 15715 lines 277963 bytes
+DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track1_049.cnf ./mc2022_track1_049.drat -f -U
+DTRIM LOG: Time limit 1000 seconds
+
+c parsing input formula with 7032 variables and 6191 clauses
+
+c WARNING: deleted clause on line 18954 does not occur: [0] -1443 1406 0
+
+c WARNING: deleted clause on line 18955 does not occur: [0] -1406 1443 0
+
+c WARNING: deleted clause on line 18956 does not occur: [0] 1406 1443 0
+
+c finished parsing
+
+c start forward verification
+
+c 6190 of 6191 clauses in core                            
+
+c 4852 of 8510 lemmas in core using 20733 resolution steps
+
+c 0 RAT lemmas in core; 0 redundant literals in core lemmas
+
+c optimized proofs are not supported for forward checking
+
+c VERIFIED derivation: all lemmas preserve satisfiability
+
+c WARNING: no empty clause detected, this is not a refutation
+
+s DERIVATION
+
+c verification time: 0.036 seconds
+DTRIM LOG: Elapsed time = 0.065 seconds
+DTRIM OUTCOME: normal
+CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track1_049.cnf ./mc2022_track1_049.cnnf ./mc2022_track1_049.drat
+CHECK LOG: Time limit 1000 seconds
+c CNF information
+c Number of variables: 7032
+c Number of clauses: 6191
+c
+c DRAT information
+c Number of drat clauses: 8509
+c
+c DDnnf parsing: 6.360
+c DDnnf checked: 37.804
+c
+c Global time: 37.898
+CHECK LOG: Elapsed time = 38.695 seconds
+CHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 69.296 seconds
+OVERALL OUTCOME: normal

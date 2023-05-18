@@ -1,0 +1,68 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_133.cnf -dDNNF -out=./mc2022_track1_133.cnnf -drat=./mc2022_track1_133.drat
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 9638
+c Number of clauses: 31795
+c Number of literals: 82345
+c Preproc options: 
+c
+c Preproc time: 0.006524
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: 513 
+c top 5: 513 5004 
+c top 5: 513 5004 -9332 
+c top 5: 513 5004 -9332 9161 
+c unitLits 1048577 4194308 Bytes
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 43
+c Number of split formula: 0
+c Number of decision node: 21
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 0
+c Number of backbone calls: 0
+c Number of partitioner calls: 1
+c Average number of assigned literal to obtain decomposable AND nodes: 9638.00/9638
+c Minimum number of assigned variable where a decomposable AND appeared: 9638
+c 
+c [33mGraph Information[0m
+c Number of nodes: 11636
+c Number of edges: 11657
+c 
+c [1m[34mCache Information[0m
+c Memory used: 626 MB
+c
+c Number of positive hit: 0
+c Number of negative hit: 21
+c Number of reduceCall: 0
+c
+c Final time: 83.573029
+c 
+s 0.000000
+D4 LOG: Elapsed time = 685.083 seconds
+D4 OUTCOME: normal
+mc2022_track1_133. D4 NNF LOG: size ./mc2022_track1_133.cnnf 67 lines 391398 bytes
+mc2022_track1_133. D4 DRAT LOG: size ./mc2022_track1_133.drat 12455335 lines 2597312458 bytes
+DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track1_133.cnf ./mc2022_track1_133.drat -f -U
+DTRIM LOG: Time limit 1000 seconds
+DTRIM ERROR: Timeout after 1000 seconds
+DTRIM LOG: Elapsed time = 1000.017 seconds
+DTRIM OUTCOME: Timeout
+OVERALL LOG: Elapsed time = 1688.398 seconds
+OVERALL OUTCOME: failed

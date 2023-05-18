@@ -1,0 +1,152 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_053.cnf -dDNNF -out=./mc2022_track2_053.cnnf -drat=./mc2022_track2_053.drat
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 1291
+c Number of clauses: 3144
+c Number of literals: 6604
+c Preproc options: 
+c
+c Preproc time: 0.000512
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -1101 
+c top 5: -1101 -633 
+c top 5: -1101 -633 -282 
+c top 5: -1101 -633 -282 -601 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -1101 -633 -282 -601 
+c top 5: -1101 -633 -282 601 
+c top 5: -1101 -633 -282 601 
+c top 5: -1101 -633 -282 601 
+c top 5: -1101 -633 -282 601 
+c top 5: -1101 -633 -282 601 
+c top 5: -1101 -633 282 
+c top 5: -1101 -633 282 -601 
+c top 5: -1101 -633 282 601 
+c      16384 |       0.71 |      38573 |       8197 |      43602 |        570 |     233476 |     272762 |          0 |       8197 |        2701 |          0 | 
+c top 5: -1101 -633 282 
+c top 5: -1101 633 
+c top 5: -1101 633 -601 
+c top 5: -1101 633 -601 -282 
+c top 5: -1101 633 -601 -282 
+c top 5: -1101 633 -601 -282 
+c top 5: -1101 633 -601 282 
+c top 5: -1101 633 -601 282 
+c top 5: -1101 633 601 
+c top 5: -1101 633 601 -282 
+c top 5: -1101 633 601 282 
+c top 5: -1101 
+c top 5: 1101 
+c top 5: 1101 -633 
+c top 5: 1101 -633 -601 
+c top 5: 1101 -633 -601 -1170 
+c top 5: 1101 -633 -601 1170 
+c top 5: 1101 -633 601 
+c top 5: 1101 -633 601 -1170 
+c      32768 |       1.51 |      79200 |      16390 |      89622 |        571 |     482994 |     563085 |          0 |      16390 |        5175 |          0 | 
+c      49152 |       2.47 |     123672 |      24581 |     139720 |        573 |     732371 |     856981 |          0 |      24581 |        7796 |          0 | 
+c top 5: 1101 -633 601 1170 
+c top 5: 1101 633 
+c top 5: 1101 633 -601 
+c top 5: 1101 633 -601 -1170 
+c top 5: 1101 633 -601 1170 
+c top 5: 1101 633 -601 
+c top 5: 1101 633 601 
+c top 5: 1101 633 601 -1170 
+c      65536 |       3.57 |     169613 |      32773 |     191648 |        574 |     994941 |    1165519 |          0 |      32773 |       10173 |          0 | 
+c unitLits 2097153 8388612 Bytes
+c top 5: 1101 633 601 1170 
+c      81920 |       4.58 |     212195 |      40962 |     239792 |        586 |    1241006 |    1454183 |          0 |      40962 |       12783 |          0 | 
+c top 5: 1101 
+c top 5: 1101 1285 
+c top 5: 1101 1285 
+c top 5: 1101 1285 
+c top 5: 1101 
+c top 5: 1101 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 85375
+c Number of split formula: 250276
+c Number of decision node: 42687
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 70426
+c Number of backbone calls: 0
+c Number of partitioner calls: 13262
+c Average number of assigned literal to obtain decomposable AND nodes: 637.16/1291
+c Minimum number of assigned variable where a decomposable AND appeared: 171
+c 
+c [33mGraph Information[0m
+c Number of nodes: 1296648
+c Number of edges: 1519185
+c 
+c [1m[34mCache Information[0m
+c Memory used: 586 MB
+c
+c Number of positive hit: 221525
+c Number of negative hit: 42687
+c Number of reduceCall: 0
+c
+c Final time: 4.799439
+c 
+s 0.000000
+D4 LOG: Elapsed time = 5.349 seconds
+D4 OUTCOME: normal
+mc2022_track2_053. D4 NNF LOG: size ./mc2022_track2_053.cnnf 448767 lines 17175445 bytes
+mc2022_track2_053. D4 DRAT LOG: size ./mc2022_track2_053.drat 6034 lines 75962 bytes
+DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track2_053.cnf ./mc2022_track2_053.drat -f -U
+DTRIM LOG: Time limit 1000 seconds
+
+c parsing input formula with 1291 variables and 3144 clauses
+
+c finished parsing
+
+c start forward verification
+
+c 2487 of 3144 clauses in core                            
+
+c 501 of 3045 lemmas in core using 3020 resolution steps
+
+c 0 RAT lemmas in core; 0 redundant literals in core lemmas
+
+c optimized proofs are not supported for forward checking
+
+c VERIFIED derivation: all lemmas preserve satisfiability
+
+c WARNING: no empty clause detected, this is not a refutation
+
+s DERIVATION
+
+c verification time: 0.027 seconds
+DTRIM LOG: Elapsed time = 0.029 seconds
+DTRIM OUTCOME: normal
+CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track2_053.cnf ./mc2022_track2_053.cnnf ./mc2022_track2_053.drat
+CHECK LOG: Time limit 1000 seconds
+c CNF information
+c Number of variables: 1291
+c Number of clauses: 3144
+c
+c DRAT information
+c Number of drat clauses: 3044
+c
+c DDnnf parsing: 0.161
+CHECK ERROR: Return code = -6
+CHECK LOG: Elapsed time = 0.183 seconds
+CHECK OUTCOME: failed
+OVERALL LOG: Elapsed time = 5.645 seconds
+OVERALL OUTCOME: failed

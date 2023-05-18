@@ -1,0 +1,177 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_027.cnf -dDNNF -out=./mc2022_track2_027.cnnf -drat=./mc2022_track2_027.drat
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 1225
+c Number of clauses: 3020
+c Number of literals: 6561
+c Preproc options: 
+c
+c Preproc time: 0.000506
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -1045 
+c top 5: -1045 -565 
+c top 5: -1045 -565 -1107 
+c top 5: -1045 -565 -1107 -332 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -1045 -565 -1107 332 
+c top 5: -1045 -565 1107 
+c top 5: -1045 -565 1107 -332 
+c top 5: -1045 -565 1107 332 
+c top 5: -1045 -565 1107 332 
+c top 5: -1045 -565 
+c top 5: -1045 565 
+c top 5: -1045 565 -1107 
+c top 5: -1045 565 -1107 -332 
+c top 5: -1045 565 -1107 332 
+c top 5: -1045 565 1107 
+c top 5: -1045 565 1107 -332 
+c top 5: -1045 565 1107 332 
+c top 5: -1045 565 1107 
+c top 5: -1045 565 
+c top 5: -1045 565 
+c top 5: -1045 565 
+c top 5: -1045 565 
+c top 5: -1045 
+c top 5: 1045 
+c top 5: 1045 -565 
+c top 5: 1045 -565 -332 
+c top 5: 1045 -565 -332 -1107 
+c top 5: 1045 -565 -332 1107 
+c top 5: 1045 -565 332 
+c top 5: 1045 -565 332 -1107 
+c top 5: 1045 -565 332 -1107 
+c top 5: 1045 -565 332 1107 
+c top 5: 1045 565 
+c top 5: 1045 565 -332 
+c top 5: 1045 565 -332 -1107 
+c      16384 |       1.04 |      44851 |       8195 |      49675 |        572 |     377108 |     422763 |          0 |       8195 |        3163 |          0 | 
+c top 5: 1045 565 -332 1107 
+c top 5: 1045 565 332 
+c top 5: 1045 565 332 -1107 
+c top 5: 1045 565 332 1107 
+c top 5: 1045 
+c top 5: 1045 1220 
+c top 5: 1045 1220 
+c top 5: 1045 1220 
+c top 5: 1045 
+c top 5: 1045 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 29971
+c Number of split formula: 100934
+c Number of decision node: 14985
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 23621
+c Number of backbone calls: 0
+c Number of partitioner calls: 5626
+c Average number of assigned literal to obtain decomposable AND nodes: 584.53/1225
+c Minimum number of assigned variable where a decomposable AND appeared: 189
+c 
+c [33mGraph Information[0m
+c Number of nodes: 716082
+c Number of edges: 808380
+c 
+c [1m[34mCache Information[0m
+c Memory used: 574 MB
+c
+c Number of positive hit: 91395
+c Number of negative hit: 14985
+c Number of reduceCall: 0
+c
+c Final time: 2.026158
+c 
+s 0.000000
+D4 LOG: Elapsed time = 2.279 seconds
+D4 OUTCOME: normal
+mc2022_track2_027. D4 NNF LOG: size ./mc2022_track2_027.cnnf 169513 lines 8565512 bytes
+mc2022_track2_027. D4 DRAT LOG: size ./mc2022_track2_027.drat 5584 lines 69317 bytes
+DTRIM LOG: Running /Users/bryant/repos/drat-trim/drat-trim ./mc2022_track2_027.cnf ./mc2022_track2_027.drat -f -U
+DTRIM LOG: Time limit 1000 seconds
+
+c parsing input formula with 1225 variables and 3020 clauses
+
+c WARNING: detected and deleted duplicate literal -619 at position 4 of line 1689
+
+c WARNING: detected and deleted duplicate literal -619 at position 3 of line 1690
+
+c WARNING: detected and deleted duplicate literal -619 at position 3 of line 1692
+
+c WARNING: detected and deleted duplicate literal -619 at position 2 of line 1693
+
+c WARNING: detected and deleted duplicate literal 619 at position 7 of line 1696
+
+c WARNING: detected and deleted duplicate literal 619 at position 6 of line 1697
+
+c WARNING: detected and deleted duplicate literal 619 at position 6 of line 1699
+
+c WARNING: detected and deleted duplicate literal 619 at position 5 of line 1700
+
+c WARNING: detected and deleted duplicate literal -534 at position 4 of line 1711
+
+c WARNING: detected and deleted duplicate literal -534 at position 3 of line 1712
+
+c WARNING: detected and deleted duplicate literal -534 at position 3 of line 1714
+
+c WARNING: detected and deleted duplicate literal -534 at position 2 of line 1715
+
+c WARNING: detected and deleted duplicate literal 534 at position 6 of line 1718
+
+c WARNING: detected and deleted duplicate literal 534 at position 5 of line 1719
+
+c WARNING: detected and deleted duplicate literal 534 at position 5 of line 1721
+
+c WARNING: detected and deleted duplicate literal 534 at position 4 of line 1722
+
+c finished parsing
+
+c start forward verification
+
+c 2289 of 3020 clauses in core                            
+
+c 428 of 2824 lemmas in core using 2753 resolution steps
+
+c 0 RAT lemmas in core; 0 redundant literals in core lemmas
+
+c optimized proofs are not supported for forward checking
+
+c VERIFIED derivation: all lemmas preserve satisfiability
+
+c WARNING: no empty clause detected, this is not a refutation
+
+s DERIVATION
+
+c verification time: 0.031 seconds
+DTRIM LOG: Elapsed time = 0.033 seconds
+DTRIM OUTCOME: normal
+CHECK LOG: Running /Users/bryant/repos/d4/certificator ./mc2022_track2_027.cnf ./mc2022_track2_027.cnnf ./mc2022_track2_027.drat
+CHECK LOG: Time limit 1000 seconds
+c CNF information
+c Number of variables: 1225
+c Number of clauses: 3020
+c
+c DRAT information
+c Number of drat clauses: 2823
+c
+c DDnnf parsing: 0.065
+CHECK ERROR: Return code = -6
+CHECK LOG: Elapsed time = 0.075 seconds
+CHECK OUTCOME: failed
+OVERALL LOG: Elapsed time = 2.420 seconds
+OVERALL OUTCOME: failed
