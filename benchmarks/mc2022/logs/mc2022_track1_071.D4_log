@@ -1,97 +1,11 @@
-D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_071.cnf -dDNNF -out=./mc2022_track1_071.nnf
-D4 LOG: Time limit 900 seconds
-c [33mBenchmark Information[0m
-c Number of variables: 729
-c Number of clauses: 3175
-c Number of literals: 8035
-c Preproc options: 
-c Integer mode 
-c
-c [1m[32mOption list [0m
-c Caching: 1
-c Reduce cache procedure level: 20
-c Strategy for Reducing the cache: 0
-c Cache representation: CL
-c Part of the formula that is cached: NT
-c Variable heuristic: VSADS
-c Phase heuristic: TRUE
-c Partitioning heuristic: CB + graph reduction + equivalence simplication
-c
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c top 5: -403 
-c top 5: -403 -267 
-c top 5: -403 -267 -317 
-c top 5: -403 -267 -317 -283 
-c unitLits 1048577 4194308 Bytes
-c      16384 |       1.46 |       1969 |       8346 |       1034 |        571 |     552610 |     561306 |          0 |       8199 |        1650 |          0 | 
-c unitLits 2097153 8388612 Bytes
-c      32768 |       2.86 |       3777 |      16661 |       2187 |        583 |    1118494 |    1135961 |          0 |      16394 |        3134 |          0 | 
-c      49152 |       4.48 |       5195 |      24995 |       2888 |        585 |    1615426 |    1641438 |          0 |      24587 |        4309 |          0 | 
-c unitLits 3145729 12582916 Bytes
-c      65536 |       6.65 |       6112 |      33305 |       3468 |        592 |    2101736 |    2136220 |          0 |      32785 |        5336 |          0 | 
-c      81920 |       8.78 |       7058 |      41606 |       4285 |        592 |    2621309 |    2664398 |          0 |      40974 |        6212 |          0 | 
-c top 5: -403 -267 -317 283 
-c unitLits 4194305 16777220 Bytes
-c      98304 |      10.86 |       8400 |      49890 |       4891 |        597 |    3131563 |    3183158 |          0 |      49164 |        7072 |          0 | 
-c     114688 |      12.62 |      10039 |      58186 |       5391 |        597 |    3751294 |    3811333 |          0 |      57354 |        7907 |          0 | 
-c top 5: -403 -267 317 
-c top 5: -403 -267 317 -283 
-c unitLits 5242881 20971524 Bytes
-c     131072 |      14.74 |      11081 |      66511 |       5885 |        603 |    4306867 |    4375349 |          0 |      65547 |        8816 |          0 | 
-c top 5: -403 -267 317 283 
-c     147456 |      16.86 |      12073 |      74827 |       6599 |        603 |    4757493 |    4834519 |          0 |      73739 |        9737 |          0 | 
-c top 5: 403 
-c top 5: 403 -267 
-c top 5: 403 -267 -283 
-c top 5: 403 -267 -283 -24 
-c unitLits 6291457 25165828 Bytes
-c     163840 |      19.19 |      12736 |      83190 |       6784 |        607 |    5338671 |    5423987 |          0 |      81927 |       10823 |          0 | 
-c     180224 |      21.47 |      13515 |      91550 |       7070 |        608 |    5988317 |    6081963 |          0 |      90126 |       11916 |          0 | 
-c unitLits 7340033 29360132 Bytes
-c     196608 |      23.91 |      14548 |      99866 |       7596 |        614 |    6511292 |    6613393 |          0 |      98317 |       12863 |          0 | 
-c     212992 |      26.36 |      15408 |     108311 |       7940 |        615 |    7142038 |    7252505 |          0 |     106506 |       14127 |          0 | 
-c unitLits 8388609 33554436 Bytes
-c     229376 |      28.47 |      16602 |     116624 |       8526 |        619 |    7717358 |    7836312 |          0 |     114697 |       15319 |          0 | 
-c ----------------------------------------------------------------------------------------------------------------------------------------------------------
-c
-c [1m[31mStatistics [0m
-c [33mCompilation Information[0m
-c Number of compiled node: 230543
-c Number of split formula: 8638
-c Number of decision node: 115271
-c Number of node built on domain constraints: 0
-c Number of decomposable AND nodes: 4299
-c Number of backbone calls: 0
-c Number of partitioner calls: 15441
-c Average number of assigned literal to obtain decomposable AND nodes: 658.61/729
-c Minimum number of assigned variable where a decomposable AND appeared: 506
-c 
-c [33mGraph Information[0m
-c Number of nodes: 7771026
-c Number of edges: 7890636
-c 
-c [1m[34mCache Information[0m
-c Memory used: 619 MB
-c
-c Number of positive hit: 16768
-c Number of negative hit: 117211
-c Number of reduceCall: 0
-c
-c Final time: 28.596991
-c 
-s 0.000000
-D4 LOG: Elapsed time = 30.566 seconds
-D4 OUTCOME: normal
 GEN LOG: Running /Users/bryant/repos/model-counting/crat/ddnnf2pog/d2p -p ./mc2022_track1_071.cnf ./mc2022_track1_071.nnf ./mc2022_track1_071.crat
-GEN LOG: Time limit 1800 seconds
+GEN LOG: Time limit 10000 seconds
 c GEN: Time = 0.00.  Read input file with 729 variables and 3175 clauses
 c Read D4 NNF file with 353996 nodes (121513 explicit) and 241121 edges
 c Compressed POG has 219387 nodes, root literal 220116, and 8038928 defining clauses
-c GEN: Time = 2.09.  Generated POG representation
+c GEN: Time = 2.01.  Generated POG representation
 c GEN: POG created.  Exiting
-GEN LOG: Elapsed time = 2.139 seconds
+GEN LOG: Elapsed time = 2.022 seconds
 GEN OUTCOME: normal
-OVERALL LOG: Elapsed time = 32.706 seconds
+OVERALL LOG: Elapsed time = 2.023 seconds
 OVERALL OUTCOME: normal
