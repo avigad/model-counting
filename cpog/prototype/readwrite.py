@@ -275,7 +275,6 @@ class CnfReader():
             self.file.close()
         
     def readCnf(self, check):
-        print("Reading CNF.  check=%s" % str(check))
         lineNumber = 0
         nclause = 0
         self.nvar = 0

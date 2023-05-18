@@ -7,10 +7,6 @@ import readwrite
 def usage(name):
     print("Usage: %s INFILE.cnf OUTFILE.cnf")
 
-
-def eprint(s):
-    sys.stderr.write(s + '\n')
-
 def process(iname, oname):
     icount = 0
     ncount = 0
@@ -18,12 +14,12 @@ def process(iname, oname):
     try:
         pass
     except Exception as ex:
-        eprint("Failed to read CNF file %s: %s" % (iname, str(ex)))
+        print("Failed to read CNF file %s: %s" % (iname, str(ex)))
         return
     try:
         cwriter = readwrite.CnfWriter(creader.nvar, oname)
     except Exception as ex:
-        eprint("Failed to open CNF output file %s: %s" % (oname, str(ex)))
+        print("Failed to open CNF output file %s: %s" % (oname, str(ex)))
         return
     for clause in creader.clauses:
         icount += 1
@@ -32,7 +28,7 @@ def process(iname, oname):
             ncount += 1
             cwriter.doClause(clause)
     cwriter.finish()
-    eprint("Processed %d clauses in file %s.  Wrote %d clauses to file %s" % (icount, iname, ncount, oname))
+    print("Processed %d clauses in file %s.  Wrote %d clauses to file %s" % (icount, iname, ncount, oname))
 
 def run(name, args):
     if len(args) != 2:
