@@ -135,7 +135,7 @@
 
 \authorrunning{R. E. Bryant et al.} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
 
-%\Copyright{Jane Open Access and Joan R. Public} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+\Copyright{Randal E. Bryant, Wojciech Nawrocki, Jeremy Avigad, and Marijn J. H. Heule} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
 
 %\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm
 \begin{CCSXML}
@@ -573,9 +573,11 @@ We write $a - b$ as a shorthand for $a + -b$.
   every variable $x \in \varset$.  We then define $w(\obar{x}) \doteq \mulident-w(x)$.
 
   For Boolean formula $\phi$ and ring weight function $w$, the \emph{ring evaluation problem} computes
-  \begin{eqnarray}
+  \begin{equation}
+    \begin{array}{rcl}
     \rep(\phi, w) & = & \sum_{\alpha \in \modelset(\phi)} \;\; \prod_{\lit \in \alpha} w(\ell) \label{eqn:rep}
-  \end{eqnarray}
+    \end{array}
+  \end{equation}
   In this equation, sum \scalebox{0.8}{$\sum$} is computed using addition operation $\radd$, and product \scalebox{0.8}{$\prod$} is computed using multiplication operation $\rmul$.
 \label{def:weight}
 \end{definition}
@@ -626,15 +628,16 @@ Performing ring evaluation on an arbitrary Boolean formula could be intractable,
 \begin{proposition}
 \label{prop:ring:eval}
 Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the following for any weight function $w$:
-\begin{eqnarray}
-%% V1
+%%\begin{eqnarray}
+\begin{displaymath}
+\begin{array}{rcl}
+\rep(\boolnot \phi,\; w) &=& \mulident - \rep(\phi, w) \\ %\label{eqn:ring:negation} \\
 \textstyle
-\rep(\boolnot \phi,\; w) &=& \mulident - \rep(\phi, w) \label{eqn:ring:negation} \\
+\scalebox{1.2}{\rep}\left(\Pand_{1 \leq i \leq k} \phi_i,\; w \right) &=& \prod_{1 \leq i \leq k} \rep(\phi_i, w) \\ %\label{eqn:ring:product} \\
 \textstyle
-\scalebox{1.2}{\rep}\left(\Pand_{1 \leq i \leq k} \phi_i,\; w \right) &=& \prod_{1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:product} \\
-\textstyle
-\scalebox{1.2}{\rep}\left(\Por_{1 \leq i \leq k} \phi_i,\; w\right) &=& \sum_{1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:sum}
-\end{eqnarray}
+\scalebox{1.2}{\rep}\left(\Por_{1 \leq i \leq k} \phi_i,\; w\right) &=& \sum_{1 \leq i \leq k} \rep(\phi_i, w) \\ %\label{eqn:ring:sum}
+\end{array}
+\end{displaymath}
 \end{proposition}
 As is described in \cref{section:formally-verified-toolchain}, we have proved these three equations using \lean{}.
 
@@ -1062,7 +1065,7 @@ $\passign$, the expression  $\simplify{\psi}{\passign}$ denotes the set of claus
 obtained from $\psi$ by: i) eliminating any
 clause containing a literal $\lit$ such that $\passign(\lit) = 1$,
 ii) for the remaining clauses eliminating those literals $\lit$ for
-which $\passign(\lit) = 0$, and iii) eliminating any duplicate clauses.
+which $\passign(\lit) = 0$, and iii) eliminating any duplicate or tautological clauses.
 In doing these simplifications, we also track the \emph{provenance}
 of each simplified clause $C$, i.e., which of the (possibly multiple) input clauses simplified to become $C$.
 More formally, for $C \in \simplify{\psi}{\passign}$, we let $\prov_{\passign}(C, \psi)$ denote
