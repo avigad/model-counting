@@ -1,7 +1,25 @@
 #!/usr/bin/python3
 
-# Run model counting program on benchmark file
-# Use newer versions of programs
+
+#####################################################################################
+# Copyright (c) 2023 Randal E. Bryant, Carnegie Mellon University
+# Last edit: May 19, 2022
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+# associated documentation files (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge, publish, distribute,
+# sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all copies or
+# substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+# NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
+# OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+########################################################################################
 
 import getopt
 import sys
@@ -11,10 +29,10 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-f] [-s n|g|c] [-m] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-f] [-s n|g] [-m] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
-    print("  -s n|g|c Stop after NNF generation, CPOG generation (g) or proof check (c)")
+    print("  -s n|g   Stop after NNF generation or CPOG generation (g)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -m       Monolithic mode: Do validation with single call to SAT solver")
     print("  -p       Preprocess (within D4).  Should then use monolithic mode for CPOG generation")
@@ -52,12 +70,8 @@ checkProgram = checkHome + "/cpog-check"
 leanHome = homePath + "/model-counting/lean4"
 leanCheckProgram = leanHome + "/ProofChecker/build/bin/checker"
 
-interpreter = "python3"
-countHome = homePath + "/model-counting/cpog/counter"
-countProgram = countHome + "/cpog-count.py"
-
-#timeLimits = { "D4" : 4000, "GEN" : 1000, "FCHECK" : 1000, "LCHECK" : 1000, "COUNT" : 1000 }
-timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 10000, "LCHECK" : 10000, "COUNT" : 4000 }
+#timeLimits = { "D4" : 4000, "GEN" : 1000, "FCHECK" : 1000, "LCHECK" : 1000 }
+timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 10000, "LCHECK" : 10000}
 
 clauseLimit = (1 << 31) - 1
 
@@ -210,14 +224,7 @@ def runLeanCheck(root, home, logFile):
     return ok
 
 
-def runCount(root, home, logFile):
-    cnfName = home + "/" + root + ".cnf"
-    cpogName = home + "/" + root + ".cpog"
-    cmd = [interpreter, countProgram, "-i", cnfName, "-p", cpogName]
-    ok = runProgram("COUNT", root, cmd, logFile)
-    return ok
-
-def runSequence(root, home, stopD4, stopGen, stopCheck, force):
+def runSequence(root, home, stopD4, stopGen, force):
     waitWhileBlocked()
     result = ""
     prefix = "OVERALL"
@@ -260,13 +267,9 @@ def runSequence(root, home, stopD4, stopGen, stopCheck, force):
     if useLean:
         if not done:
             ok = ok and runLeanCheck(root, home, logFile)
-        done = done or stopCheck
     else:
         if not done:
             ok = ok and runCheck(root, home, logFile)
-        done = done or stopCheck
-        if not done:
-            ok = ok and runCount(root, home, logFile)
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     result += "%s LOG: Elapsed time = %.3f seconds\n" % (prefix, seconds)
@@ -285,20 +288,18 @@ def stripSuffix(fname):
     return ".".join(fields)
 
 
-def runBatch(home, fileList, stopD4, stopGen, stopCheck, force):
+def runBatch(home, fileList, stopD4, stopGen, force):
     roots = [stripSuffix(f) for f in fileList]
     roots = [r for r in roots if r is not None]
     print("Running on roots %s" % roots)
     for r in roots:
-        runSequence(r, home, stopD4, stopGen, stopCheck, force)
+        runSequence(r, home, stopD4, stopGen, force)
 
 def run(name, args):
     global useLemma, group, oneSided, monolithic, useLean, preprocess
     home = "."
     stopD4 = False
     stopGen = False
-    # Don't need to run separate counter anymore
-    stopCheck = True
     force = False
     optList, args = getopt.getopt(args, "hf1mpLGFs:t:")
     for (opt, val) in optList:
@@ -324,8 +325,6 @@ def run(name, args):
                 stopD4 = True
             elif val == 'g':
                 stopGen = True
-            elif val == 'c':
-                stopCheck = True
             else:
                 print("Unknown stopping condition '%s'" % val)
                 usage(name)
@@ -336,7 +335,7 @@ def run(name, args):
             print("Unknown option '%s'" % opt)
             usage(name)
             return
-    runBatch(home, args, stopD4, stopGen, stopCheck, force)
+    runBatch(home, args, stopD4, stopGen, force)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
