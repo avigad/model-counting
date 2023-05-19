@@ -445,7 +445,7 @@ Overall, we can summarize the results as:
 
 \section{Comparison with CD4 Toolchain}
 
-\input{figure-runtime-cd4}  
+\input{figure-cd4-cpog}  
 
 Ran D4 with certificate logging enabled (by specifying DRAT file).
 Used 114 benchmarks for which regular D4 ran in under 1000 seconds.
@@ -459,9 +459,9 @@ checking).  Checking for CD4 includes running drat-trim.
 \item 2 completed in under 1000 seconds  with POGs but timed out with CD4.  Both had very few models and with long unsatisfiability proofs
 \item 28 completed in under 1000 seconds with CD4 but either timed out or failed with POGs.
 \item Remaining 4 exceeded 1000 seconds for both toolchains
-
 \end{itemize}
 
+Found that CD4 cannot handle files that are first preprocessed with D4's built-in preprocessors.
 
 \bibliography{references}
 

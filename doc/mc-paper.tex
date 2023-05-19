@@ -17,15 +17,16 @@
 %\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
 
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{booktabs}
 \usepackage{hyperref}
 
-\newcommand{\pand}{\mathbin{\land^{\sf p}}}
-\newcommand{\por}{\mathbin{\lor^{\sf p}}}
-\DeclareMathOperator*{\Pand}{\bigwedge^{\sf p}}
-\DeclareMathOperator*{\Por}{\bigvee^{\sf p}}
+\newcommand{\pand}{\mathbin{\land^\textsf{p}}}
+\newcommand{\por}{\mathbin{\lor^\textsf{p}}}
+\DeclareMathOperator*{\Pand}{\bigwedge^\textsf{p}}
+\DeclareMathOperator*{\Por}{\bigvee^\textsf{p}}
 \newcommand{\boolnot}{\neg}
 \newcommand{\tautology}{\top}
 \newcommand{\nil}{\bot}
@@ -48,6 +49,8 @@
 \newcommand{\ifandonlyif}{\Leftrightarrow}
 %\newcommand{\drational}{\mathbb{Q}_{2,5}}
 \newcommand{\drational}{\textbf{Q}_{2,5}}
+\newcommand{\entail}{\vDash}
+\newcommand{\entaildrat}{\entail_{\textrm{DRAT}}}
 
 \newcommand{\assign}{\alpha}
 \newcommand{\passign}{\rho}
@@ -73,9 +76,11 @@
 
 \newcommand{\progname}[1]{\textsc{#1}}
 \newcommand{\dfour}{\progname{D4}}
+\newcommand{\cdfour}{\progname{CD4}}
 \newcommand{\Dfour}{\progname{D4}}
 \newcommand{\cadical}{\progname{CaDiCal}}
 \newcommand{\dtrim}{\progname{drat-trim}}
+\newcommand{\Dtrim}{\progname{Drat-trim}}
 
 \definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
 \definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
@@ -153,7 +158,19 @@
 
 %\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
 
-%\nolinenumbers %uncomment to disable line numbering
+\nolinenumbers %uncomment to disable line numbering
+
+\EventEditors{Meena Mahajan and Friedrich Slivovsky}
+\EventNoEds{2}
+\EventLongTitle{26th International Conference on Theory and Applications of Satisfiability Testing (SAT 2023)}
+\EventShortTitle{SAT 2023}
+\EventAcronym{SAT}
+\EventYear{2023}
+\EventDate{July 4--8, 2023}
+\EventLocation{Alghero, Italy}
+\EventLogo{}
+\SeriesVolume{271}
+\ArticleNo{6}
 
 %Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %\EventEditors{John Q. Open and Joan R. Access}
@@ -192,7 +209,7 @@ of the representations used by existing knowledge compilers.
 We have designed  CPOG, a framework that can express proofs of equivalence between a
 POG  and a Boolean formula in conjunctive normal form (CNF).
 
-We have developed a program that generates POG representations from
+We have developed a program that generates POG representations from det-DNNF
 graphs 
 produced by the state-of-the-art knowledge compiler
 \dfour{}, as well as checkable CPOG proofs certifying that the output POGs
@@ -214,7 +231,7 @@ such assignment exists.  They have applications across a variety of
 domains including computational mathematics, combinatorial
 optimization, and the formal verification of hardware, software, and
 security protocols.  Some applications, however, require going
-beyond Boolean satisfiability.  For example, the {\em model
+beyond Boolean satisfiability.  For example, the \emph{model
   counting problem} requires computing the number of satisfying
 assignments of a formula, including in cases where there are far too many
 to enumerate individually.  Model counting has
@@ -233,9 +250,9 @@ satisfiability \cite{valiant:siam:1979}.  Nonetheless, a number of
 model counters that scale to very large formulas have been developed, as
 witnessed by the progress in recent model counting competitions.
 
-One approach to model counting, known as {\em knowledge compilation},
+One approach to model counting, known as \emph{knowledge compilation},
 transforms the formula into a structured form for which model counting
-is straightforward.  For example, the {\em deterministic
+is straightforward.  For example, the \emph{deterministic
 decomposable, negation normal form}
 (det-DNNF) introduced by
 Darwiche~\cite{darwiche:aaai:2002,darwiche:ecai:2004}
@@ -252,6 +269,7 @@ a det-DNNF representation.  These include standard and weighted model
 counting, and much more.
 
 One shortcoming of existing knowledge compilers is that they have no
+generally accepted
 way to validate that their generated results are correct, i.e., that
 the compiled representation is logically equivalent to the original
 formula.  By contrast, all modern SAT solvers can generate
@@ -270,7 +288,7 @@ and a checkable proof of its logical equivalence to a Boolean formula in
 conjunctive normal form (CNF).  A CPOG
 proof consists of a sequence of clause addition and deletion steps,
 based on an extended resolution proof system~\cite{Tseitin:1983}.
-We establish a set of conditions that, when satisified by a CPOG file, guarantee that it
+We establish a set of conditions that, when satisified by a CPOG file, guarantees that it
 encodes a well-formed POG and provides a valid equivalence proof.
 
 \begin{figure}
@@ -330,11 +348,11 @@ encodes a well-formed POG and provides a valid equivalence proof.
 Figure~\ref{fig:chain} illustrates our certifying knowledge
 compilation and model counting toolchain.  Starting with
 input formula $\inputformula$, the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017}
-generates a {\em decision} DNNF (dec-DNNF) representation (a restricted form of dec-DNNF),
-and the {\em proof
+generates a \emph{decision} DNNF (dec-DNNF) representation (a restricted form of det-DNNF),
+and the \emph{proof
   generator} uses this to generate a CPOG file.
-The {\em proof checker} verifies the equivalence of the CNF and CPOG representations.
-The {\em ring evaluator} computes
+The \emph{proof checker} verifies the equivalence of the CNF and CPOG representations.
+The \emph{ring evaluator} computes
 a standard or weighted model count from the POG\@ representation.
 As the dashed box in Figure~\ref{fig:chain} indicates, this toolchain
 moves the root of trust away from the complex and highly
@@ -342,21 +360,27 @@ optimized knowledge compiler to a relatively simple checker and
 evaluator.  Importantly, the proof generator need not be
 trusted---its errors will be caught by the proof checker.
 
-To ensure soundness of the abstract CPOG proof system, as well as correctness of its
-concrete implementation, we formally verified the proof system as well as versions
-of the proof checker and ring evaluator in the \lean{} proof assistant~\cite{demoura:cade:2021}.
-Running these two programs on a particular CPOG file gives assurance that the proof
-and the model count are correct. Our experience with developing a formally verified
-proof checker has shown that, even within the well-understood framework of extended
-resolution, it can be challenging to formulate a full set of requirements that guarantee soundness.
-In fact, subtle details in the partitioned sum rule were identified during this process.
+To ensure soundness of the abstract CPOG proof system, as well as
+correctness of its concrete implementation, we formally verified the
+proof system as well as versions of the proof checker and ring
+evaluator in the \lean{} proof assistant~\cite{demoura:cade:2021}.
+Running these two programs on a particular CPOG file gives strong
+assurance that the proof and the model count are correct. Our
+experience with developing a formally verified proof checker has shown
+that, even within the well-understood framework of extended
+resolution, it can be challenging to formulate a full set of
+requirements that guarantee soundness.  In fact, our efforts to
+formally verify our proof framework exposed subtle conditions that we had
+to impose on our partitioned sum rule.
 
-We evaluate our toolchain using benchmark
-formulas from the 2022 standard and weighted model competitions.  Our
-tools handle all but the largest dec-DNNF graphs generated
-by \dfour{}.  We also measure the benefits of several optimizations as
-well as the relative performance of the verified checker with one
-designed for high performance and capacity.
+We evaluate our toolchain using benchmark formulas from the 2022
+standard and weighted model competitions.  Our tools handle all but
+the largest dec-DNNF graphs generated by \dfour{}.  We also measure
+the benefits of several optimizations as well as the relative
+performance of the verified checker with one designed for high
+performance and capacity.  We also show that our tools can provide
+end-to-end verification of formulas that have been transformed by an
+equivalence-preserving preprocessor.
 
 \section{Related Work}
 
@@ -379,12 +403,63 @@ additional proof steps, including clause deletion steps, and subtle
 invariants, as described in Sections~\ref{sect:cpog} and
 \ref{section:formally-verified-toolchain}.
 
-Capelli et al.\ developed a version of the \dfour{} knowledge compiler
+Capelli et al.\ developed a knowledge compiler
 that generates a certificate in a proof system that is itself based on
-dec-DNNF~\cite{capelli:sat:2019,capelli:aaai:2021}.  Their
-modified version of \dfour{} generates additional annotations to the
-compiled representation, as well as a file of clausal proof steps in the DRAT format~\cite{wetzler14_drattrim}.
-These files must be processed by two different checkers.
+dec-DNNF~\cite{capelli:sat:2019,capelli:aaai:2021}.  Their \cdfour{} program,
+a modified version of \dfour{}, generates annotations to the
+compiled representation, providing information about how the compiled version relates to the input clauses.
+It also generates a file of clausal proof steps in the DRAT format~\cite{wetzler14_drattrim}.
+Completing the certification involves running two different checkers on
+the annotated dec-DNNF graph and the DRAT file.
+Although the authors make informal arguments
+regarding the soundness of their frameworks, these do not provide
+strong levels of assurance.  Indeed, 
+we have identified a weakness in the their
+methodology due to an invalid assumption about the
+guarantees provided by \dtrim{}, the program it uses to check the
+DRAT file.
+
+In more detail, \cdfour{} emits a sequence of clauses $R$ that
+includes the conflict clauses that arose via a top-down processing of
+the input clauses.  Given input formula $\phi$, their first task is to
+check whether $\phi \imply R$, i.e., that any model of $\phi$ is also
+a model of $R$.  They then base other parts of their proof on that
+property and use a separate checker to perform a series of additional
+checks.  They use \dtrim{} to prove the implication, checking that each clause in $R$
+satisifies the \emph{reverse asymmetric tautology} (RAT) property with
+respect to the preceding
+clauses~\cite{heule:cade:2013,jarvisalo:ijcar:2012}.  Adding a RAT
+clause $C$ to a set of clauses maintains satisfiability, but it may
+not preserve models.  As an example, consider the following formulas:
+\begin{center}
+  \begin{tabular}{lccc}
+    $\phi_1$: & $(x_1 \lor x_3)$ & & \\
+    $\phi_2$: & $(x_1 \lor x_3)$ & $\land$ & $(x_1 \lor \obar{x}_2)$\\    
+  \end{tabular}
+\end{center}
+Clearly, these two formulas are not equivalent---$\phi_1$ has six
+models, while $\phi_2$ has five.  In particular, $\phi_1$ allows
+arbitrary assignments to variable $x_2$.  Critically, however the
+second clause of $\phi_2$ is RAT with respect to the first---any
+satisfying assignment to $\phi_1$ can be transformed into one that
+also satisfies $\phi_2$ by setting $x_2 = 0$.
+  
+This weakness would allow a buggy (or malicious) version
+of \cdfour{} to generate a compiled representation of $\phi_2$ when
+given $\phi_1$ as its input.  By adding the second clause to $R$,
+the check with \dtrim{} would pass, as would the other tests performed
+by their checker.  We have been able to confirm this possibility with
+their compiler and checker\footnote{Downloaded May 18, 2023 from
+\url{https://github.com/crillab/d4}}.
+
+This weakness can be corrected by restricting \dtrim{} to only add
+clauses that obey the stronger \emph{reverse unit propagation} (RUP) property~\cite{goldberg,vangelder08_verifying_rup_proofs}.  We have added a
+commandline argument to \dtrim{}\footnote{Available at
+\url{https://github.com/marijnheule/drat-trim/tree/develop}.} that enforces this
+restriction.  This weakness, however, illustrates the general challenge of
+developing a new proof framework.
+Without a formal verification, there are likely to be 
+conditions that make the framework unsound.
 
 Fichte, Hecher, and Roland~\cite{fichte:sat:2022} devised the MICE
 proof framework for model counting programs.  Their proof rules are
@@ -393,17 +468,13 @@ developed a program that can generate proof traces from dec-DNNF
 graphs and a program to check adherence to their proof rules.  This
 framework is not directly comparable to ours, since it only certifies
 the unweighted model count, but it has similar goals.
+Again, they provide only  informal arguments 
+regarding the soundness of their frameworks.
 
 Both of these prior certification frameworks are strongly tied to the
 algorithms used by the knowledge compilers and model counters.  Some
 of the conditions to be checked are relevant only to specific
-implementations.  Although the authors make informal arguments
-regarding the soundness of their frameworks, these do not provide
-strong levels of assurance.  Indeed, as we discuss in
-Appendix~\ref{app:comparison}, we uncovered a weakness in the \dfour{}
-verification framework due to its invalid assumption about the
-guarantees provided by \dtrim{}, the program it uses to check their
-DRAT file.  Our framework is very general and is based on a small set
+implementations.    Our framework is very general and is based on a small set
 of proof rules.  It builds on the highly developed
 concepts of clausal proof systems.  These factors were important in enabling formal verification.
 In Appendix~\ref{app:comparison}
@@ -414,17 +485,17 @@ we also compare the performance of our toolchain to these two others.
 \label{section:logical:foundations}
 
   Let $\varset$ denote a set of Boolean variables, and let $\assign$
-  be an {\em assignment} of truth values to some subset of the
+  be an \emph{assignment} of truth values to some subset of the
   variables, where $0$ denotes false and $1$ denotes true, i.e.,
   $\assign \colon \varset' \rightarrow \{0,1\}$ for some $\varset'
-  \subseteq \varset$.  We say the assignment is {\em total} when it
+  \subseteq \varset$.  We say the assignment is \emph{total} when it
   assigns a value to every variable ($\varset' = \varset$), and that
-  it is {\em partial} otherwise.
+  it is \emph{partial} otherwise.
   The set of all possible total assignments over
   $\varset$ is denoted $\uassign$.
 
 For each variable $x \in \varset$,
-  we define the {\em literals} $x$ and $\obar{x}$, where $\obar{x}$ is the
+  we define the \emph{literals} $x$ and $\obar{x}$, where $\obar{x}$ is the
   negation of $x$. An
   assignment $\assign$ can be viewed as a set of literals, where
   we write $\lit \in \assign$ when $\lit = x$ and $\assign(x) = 1$ or when
@@ -434,7 +505,7 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
 
 \begin{definition}[Boolean Formulas]
   The set of Boolean formulas is defined recursively.  Each
-  formula $\phi$ has an associated {\em dependency set}
+  formula $\phi$ has an associated \emph{dependency set}
   $\dependencyset(\phi)  \subseteq \varset$, and a set of models $\modelset(\phi)$,
   consisting of total assignments that satisfy the formula:
   \begin{enumerate}
@@ -442,12 +513,12 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
     with $\dependencyset(0) = \dependencyset(1) = \emptyset$, with $\modelset(0) = \emptyset$, and with $\modelset(1) = \uassign$.
   \item Variable $x$ is a Boolean formula, with $\dependencyset(x) = \{x\}$
     and $\modelset(x) = \{\assign \in \uassign | \assign(x)=1\}$.
-  \item For formula $\phi$, its {\em negation}, written $\boolnot \phi$ is a Boolean formula,
+  \item For formula $\phi$, its \emph{negation}, written $\boolnot \phi$ is a Boolean formula,
     with $\dependencyset(\boolnot \phi) = \dependencyset(\phi)$ and $\modelset(\boolnot \phi) = \uassign - \modelset(\phi)$.
-  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em product} $\phi = \bigwedge_{1 \leq i \leq k} \phi_i$ is a Boolean formula, with
+  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their \emph{product} $\phi = \bigwedge_{1 \leq i \leq k} \phi_i$ is a Boolean formula, with
       $\dependencyset(\phi) = \bigcup_{1 \leq i \leq k} \dependencyset(\phi_i)$ and
       $\modelset(\phi) = \bigcap_{1 \leq i \leq k} \modelset(\phi_i)$.
-  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their {\em sum} $\phi = \bigvee_{1 \leq i \leq k} \phi_i$ is a Boolean formula, with
+  \item For formulas $\phi_1, \phi_2, \ldots, \phi_k$, their \emph{sum} $\phi = \bigvee_{1 \leq i \leq k} \phi_i$ is a Boolean formula, with
       $\dependencyset(\phi) = \bigcup_{1 \leq i \leq k} \dependencyset(\phi_i)$ and
       $\modelset(\phi) = \bigcup_{1 \leq i \leq k} \modelset(\phi_i)$.
   \end{enumerate}
@@ -456,18 +527,18 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
 
 
   We highlight two special classes of Boolean formulas.  A formula is
-  in {\em negation normal form} when negation is applied only to variables.  A
-  formula is in {\em conjunctive normal form} (CNF) when i) it is in
+  in \emph{negation normal form} when negation is applied only to variables.  A
+  formula is in \emph{conjunctive normal form} (CNF) when i) it is in
   negation normal form, and ii) sum is applied only to literals.  A CNF
-  formula can be represented as a set of {\em clauses}, each of which is a
+  formula can be represented as a set of \emph{clauses}, each of which is a
   set of literals.  Each clause represents the sum of the
   literals, and the formula is the product of its clauses.  We use
   set notation to reference the clauses within a formula and the
-  literals within a clause.  A clause consisting of a single literal is referred to as a {\em unit} clause and the literal as a {\em unit} literal.
+  literals within a clause.  A clause consisting of a single literal is referred to as a \emph{unit} clause and the literal as a \emph{unit} literal.
 This literal must be assigned value $1$ by any satisfying assignment of the formula.
 
 \begin{definition}[Partitioned-Operation Formula]\label{def:partitioned-operation-formula}
-  A {\em partitioned-operation formula}
+  A \emph{partitioned-operation formula}
  satisfies the following for all product and sum operations:
       \begin{enumerate}
       \item The arguments to each product must have disjoint dependency sets.  That is, operation
@@ -484,24 +555,24 @@ We propose a general framework for summarizing properties of Boolean
 formulas along the lines of algebraic model counting~\cite{kimmig:jal:2017}.
 
 \begin{definition}[Commutative Ring]
-  A {\em commutative ring} $\ring$ is an algebraic structure
+  A \emph{commutative ring} $\ring$ is an algebraic structure
   $\langle \dset, \radd, \rmul, \addident, \mulident \rangle$,
   with elements in the set $\dset$ and with commutative and
   associative operations $\radd$ (addition) and $\rmul$ (multiplication),
   such that multiplication distributes
   over addition.  $\addident$ is the additive identity and $\mulident$ is
   the multiplicative identity.  Every element $a \in \dset$ has an
-  {\em additive inverse} $-a$ such that $a + -a = \addident$.
+  \emph{additive inverse} $-a$ such that $a + -a = \addident$.
 \label{def:ring}
 \end{definition}
 We write $a - b$ as a shorthand for $a + -b$.
 
 \begin{definition}[Ring Evaluation Problem]
 \label{def:ring_evaluation}
-  For commutative ring $\ring$, a {\em ring weight function} associates a value $w(x) \in \dset$ with
+  For commutative ring $\ring$, a \emph{ring weight function} associates a value $w(x) \in \dset$ with
   every variable $x \in \varset$.  We then define $w(\obar{x}) \doteq \mulident-w(x)$.
 
-  For Boolean formula $\phi$ and ring weight function $w$, the {\em ring evaluation problem} computes
+  For Boolean formula $\phi$ and ring weight function $w$, the \emph{ring evaluation problem} computes
   \begin{eqnarray}
     \rep(\phi, w) & = & \sum_{\alpha \in \modelset(\phi)} \;\; \prod_{\lit \in \alpha} w(\ell) \label{eqn:rep}
   \end{eqnarray}
@@ -511,17 +582,17 @@ We write $a - b$ as a shorthand for $a + -b$.
 
 Many important properties of Boolean formulas can be
 expressed as ring evaluation problems.  The
-(standard) {\em model counting} problem for formula $\phi$ requires determining $|\modelset(\phi)|$.
+(standard) \emph{model counting} problem for formula $\phi$ requires determining $|\modelset(\phi)|$.
 It can be cast as a ring evaluation problem by having $\radd$ and
 $\rmul$ be addition and multiplication over rational numbers and using
 weight function $w(x) = 1/2$ for every variable $x$.
-Ring evaluation of formula $\phi$ gives the {\em density} of
+Ring evaluation of formula $\phi$ gives the \emph{density} of
 the formula, i.e., the fraction of all possible total assignments that are
 models.  For $n = |\varset|$, scaling the density by $2^n$
 yields the number of models.  This formulation avoids the need for a ``smoothing'' operation,
 in which redundant expressions are inserted into the formula~\cite{darwiche:jair:2002}.
 
-The {\em weighted model counting}  problem is also defined over
+The \emph{weighted model counting}  problem is also defined over
 rational numbers.  Some formulations  allow
 independently assigning weights $W(x)$ and $W(\obar{x})$ for each variable $x$ and its complement, with the possibility that
 $W(x) + W(\obar{x}) \not = 1$.
@@ -532,9 +603,9 @@ variable $x$, and computing the weighted count
 as $\rep(\phi, w)\; \rmul\; \prod_{x \in \varset} r(x)$.
 Of course, this requires that $r(x) \not = 0$ for all $x \in \varset$.
 
-The {\em function hashing problem} provides a test
+The \emph{function hashing problem} provides a test
 of inequivalence for Boolean formulas.  That is, for $n = |\varset|$, let $\ring$ be a
-finite  field with $|\dset| = m$ such that $m \geq 2 n$.  For each $x \in \varset$, chose a value from $\dset$ at random for $w(x)$.  Two formulas
+finite  field with $|\dset| = m$ such that $m \geq 2 n$.  For each $x \in \varset$, choose a value from $\dset$ at random for $w(x)$.  Two formulas
 $\phi_1$ and $\phi_2$ will clearly have $\rep(\phi_1, w) = \rep(\phi_2, w)$
 if they are logically equivalent.
 %, and if $\rep(\phi_1, w) \not = \rep(\phi_2, w)$, then they are clearly inequivalent.
@@ -567,26 +638,30 @@ Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the fo
 \end{proposition}
 As is described in \cref{section:formally-verified-toolchain}, we have proved these three equations using \lean{}.
 
-A {\em partitioned-operation graph} (POG) is a directed, acyclic graph
-with nodes $N$ and edges $E \subseteq N \times N$.  We denote nodes with boldface symbols, such as $\nodeu$ and $\nodev$.
-When $(\nodeu,\nodev) \in E$,
-node $\nodev$ is said to be a {\em child} of node $\nodeu$.
-The in- and out-degrees of node $\nodeu$ are defined as $\indegree(\nodeu) = | E \cap (N \times \{\nodeu\}) |$, and
-$\outdegree(\nodeu) = | E \cap (\{\nodeu\} \times N) |$.
-Node $\nodeu$ is said to be {\em terminal} if $\outdegree(\nodeu) = 0$.  A terminal node is labeled by a Boolean constant or variable.
-Node $\nodeu$ is said to be {\em nonterminal} if $\outdegree(\nodeu) > 0$.
-A nonterminal node is labeled by one of the three Boolean operations: $\boolnot$, $\pand$ or $\por$.
-Node $\nodeu$ can be labeled with $\boolnot$ only if $\outdegree(\nodeu) = 1$.
-It can be labeled with operation $\pand$ or $\por$ only if it satisfies the partitioning restriction for that operation.
-Every POG has a designated {\em root node} $\noder$.
+A \emph{partitioned-operation graph} (POG) is a directed, acyclic
+graph with nodes $N$ and edges $E \subseteq N \times N$.  We denote
+nodes with boldface symbols, such as $\nodeu$ and $\nodev$.  When
+$(\nodeu,\nodev) \in E$, node $\nodev$ is said to be a \emph{child} of
+node $\nodeu$.  The in- and out-degrees of node $\nodeu$ are defined
+as $\indegree(\nodeu) = | E \cap (N \times \{\nodeu\}) |$, and
+$\outdegree(\nodeu) = | E \cap (\{\nodeu\} \times N) |$.  Node
+$\nodeu$ is said to be \emph{terminal} if $\outdegree(\nodeu) = 0$.  A
+terminal node is labeled by a Boolean constant or variable.  Node
+$\nodeu$ is said to be \emph{nonterminal} if $\outdegree(\nodeu) > 0$.
+A nonterminal node is labeled by Boolean operation $\pand$ or $\por$.
+A node can be labeled with operation $\pand$ or $\por$ only if it
+satisfies the partitioning restriction for that operation.  Every POG
+has a designated \emph{root node} $\noder$.  Each edge has
+a \emph{polarity}, indicating whether (negative polarity) or not
+(positive polarity) the corresponding argument should be negated.
 
 In essence, a POG represents a partitioned-operation
 formula with a sharing of common subformulas.  Indeed, every node in the graph can be viewed as a partitioned-operation formula, and so we write
 $\phi_{\nodeu}$ as the formula denoted by node $\nodeu$.
 Each such formula has a set of models, and we write $\modelset(\nodeu)$ as a shorthand for $\modelset(\phi_{\nodeu})$.
 
-We define the {\em size} of POG $P$, written $|P|$, to be the
-the number of nodes labeled $\pand$ or $\por$ plus the number of edges from these nodes to their children.  Ring
+We define the \emph{size} of POG $P$, written $|P|$, to be the
+the number of nonterminal nodes plus the number of edges from these nodes to their children.  Ring
 evaluation of $P$ can be performed with at most $|P|$ ring
 operations by traversing the graph from the terminal nodes up to
 the root, computing a value $\rep(\nodeu, w)$ for each node $\nodeu$.
@@ -602,13 +677,13 @@ POGs generalize dec-DNNF graphs in two ways:
 %%  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
 \item As with det-DNNF~\cite{darwiche:aaai:2002,darwiche:jair:2002}, they allow arbitrary arguments to a $\por$ operation, as long as
   these have disjoint models.  By contrast, each
-  sum node $\nodeu$ in a dec-DNNF must have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a {\em decision variable} $x$ such that
+  sum node $\nodeu$ in a dec-DNNF must have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a \emph{decision variable} $x$ such that
   any total assignment $\assign \in  \modelset(\nodeu_b)$ has $\assign(x)=b$, for $b \in \{0,1\}$.
 %%Our generalization is provided to allow an
 %%  encoding of Sentential Decision Diagrams (SDDs)~\cite{darwiche:ijcai:2011} as
 %%  POGs.  This is discussed in Section~\ref{sect:future}, describing possible future research.
 \end{itemize}
-The generalizations encompassed by POGs have also been referred to as {\em deterministic decomposable circuits} (d-Ds)~\cite{monet:amw:2018}.
+The generalizations encompassed by POGs have also been referred to as \emph{deterministic decomposable circuits} (d-Ds)~\cite{monet:amw:2018}.
 Our current proof generator only works for knowledge compilers
 generating dec-DNNF representations, but these generalizations
 allow for future extensions, while maintaining the ability to
@@ -626,11 +701,11 @@ A proof in our framework consists of a sequence of clause addition
 and deletion steps, with each step preserving the set of solutions to
 the original formula.
 The status of the proof at any step is represented as
-a set of {\em active} clauses $\theta$, i.e., those that
+a set of \emph{active} clauses $\theta$, i.e., those that
 have been added but not yet deleted.
 Our framework is based
-on {\em extended} resolution~\cite{Tseitin:1983}, where proof
-steps can introduce new {\em extension variables} encoding Boolean formulas over input and prior extension variables.
+on \emph{extended} resolution~\cite{Tseitin:1983}, where proof
+steps can introduce new \emph{extension variables} encoding Boolean formulas over input and prior extension variables.
 Let $Z$
 denote the set of extension variables occuring in formula $\theta$.
 Starting with  $\theta$ equal to input formula $\inputformula$,
@@ -638,15 +713,15 @@ the proof must maintain the invariant that
 $\inputformula \ifandonlyif \exists Z\,\theta$.
 
 Clauses can be added in two different ways.  One is when they serve as
-the {\em defining clauses} for an extension variable.  This form
+the \emph{defining clauses} for an extension variable.  This form
 occurs only when defining $\pand$ and $\por$ operations, as is
 described in Section~\ref{sect:cpog}.  Clauses can also be added or
-deleted based on {\em implication redundancy}.  That is, when clause
+deleted based on \emph{implication redundancy}.  That is, when clause
 $C$ satisfies $\theta \imply C$ for formula $\theta$, then it can either
 be added to $\theta$ to create the formula $\theta \cup \{C\}$ or it can be deleted
 from $\theta \cup \{C\}$ to create $\theta$.
 
-We use {\em reverse unit propagation} (RUP) to certify
+We use \emph{reverse unit propagation} (RUP) to certify
 implication redundancy when adding or deleting
 clauses~\cite{goldberg,vangelder08_verifying_rup_proofs}.
 RUP
@@ -655,7 +730,7 @@ proof checkers~\cite{RAT,wetzler14_drattrim} for propositional logic. It provide
 way to check a sequence of applications of the resolution proof rule~\cite{robinson-1965}.
 Let $C = \{\lit_1, \lit_2, \ldots,\lit_p\}$ be a clause to be
 proved redundant with respect to formula $\theta$.  Let $D_1, D_2, \ldots, D_k$ be a sequence of supporting
-{\em antecedent} clauses, such that each $D_i$ is in $\theta$.
+\emph{antecedent} clauses, such that each $D_i$ is in $\theta$.
 A RUP step
 proves that $\bigwedge_{1\leq i \leq k} D_i \imply C$ by showing
 that the combination of the antecedents plus the negation of $C$ leads
@@ -713,7 +788,7 @@ unsatisfiable, and therefore it need only justify clause additions.
 %% RUP is an alternative formulation of resolution.  For target clause
 %% $C$, it can be seen that applying resolution operations to the
 %% antecedent clauses from right to left will derive a clause $C'$ such
-%% that $C' \subseteq C$.  By {\em subsumption} %~\cite{philipp:lpar:2017},
+%% that $C' \subseteq C$.  By \emph{subsumption} %~\cite{philipp:lpar:2017},
 %% we then have $C' \rightarrow C$.  Compared to listing each resolution
 %% operation as a separate step, using RUP as the basic proof step makes
 %% the proofs more compact.
@@ -721,9 +796,9 @@ unsatisfiable, and therefore it need only justify clause additions.
 %% As is shown in Figure~\ref{fig:chain}
 %% two programs are involved in producing a certified compilation of a formula:
 %% \begin{itemize}
-%% \item The {\em proof generator} produces a CPOG file that both defines the POG and gives a proof that the POG is logically equivalent to the input formula.
+%% \item The \emph{proof generator} produces a CPOG file that both defines the POG and gives a proof that the POG is logically equivalent to the input formula.
 %% As the figure indicates, the generator starts with the output of another knowledge compiler, such as one generating a dec-DNNF representation of the formula.
-%% \item The {\em proof checker} ensures that all of the proof conditions are satisfied.
+%% \item The \emph{proof checker} ensures that all of the proof conditions are satisfied.
 %% \end{itemize}
 %% >>>>>>> 9c1793da858d00e5d4022d6d33c009848ba2083b
 
@@ -736,7 +811,7 @@ Key properties include:
 \begin{itemize}
   \item
   The file contains declarations of $\pand$ and $\por$ operations to describe the POG.
-  Declaring a node $\nodeu$ implicitly adds an {\em extension} variable $u$ and a set of {\em defining} clauses $\theta_{u}$
+  Declaring a node $\nodeu$ implicitly adds an \emph{extension} variable $u$ and a set of \emph{defining} clauses $\theta_{u}$
   encoding the product or sum operation.
 %  This is the only means for adding extension variables to the proof.
 \item Boolean negation is supported implicitly by allowing the
@@ -745,11 +820,11 @@ Key properties include:
 \item
   The file contains explicit clause addition steps.
   A clause can only be added if it is logically implied by the existing clauses.
-  A sequence of clause identifiers must be listed as a {\em hint} providing a RUP verification of the implication.
+  A sequence of clause identifiers must be listed as a \emph{hint} providing a RUP verification of the implication.
 \item
   The file contains explicit clause deletion steps.
   A clause can only be deleted if it is logically implied by the remaining clauses.
-  A sequence of clause identifiers must be listed as a {\em hint} providing a RUP verification of the implication.
+  A sequence of clause identifiers must be listed as a \emph{hint} providing a RUP verification of the implication.
 \item The checker must track the dependency set for every input and
   extension variable.  For each $\pand$ operation, the checker must ensure that the dependency sets for its arguments are disjoint.
   The associated extension variable has a dependency set equal to the union of those of its arguments.
@@ -771,13 +846,13 @@ Key properties include:
     \toprule
     \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
     \midrule
-    \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\tt a}  & \makebox[15mm][l]{$L^{*}$ {\tt 0}} & \makebox[15mm][l]{$C^{+}$ {\tt 0}}  & \makebox[20mm][l]{Add RUP clause} \\
-     & {\tt d} & $C$             & $C^{+}$  {\tt 0} & Delete RUP clause \\
+    \makebox[5mm][l]{$C$} & \makebox[10mm][l]{\texttt{a}}  & \makebox[15mm][l]{$L^{*}$ \texttt{0}} & \makebox[15mm][l]{$C^{+}$ \texttt{0}}  & \makebox[20mm][l]{Add RUP clause} \\
+     & \texttt{d} & $C$             & $C^{+}$  \texttt{0} & Delete RUP clause \\
     \midrule
-    $C$    & {\tt p} & $V \; L^{*}$ {\tt 0}    &                  & Declare $\pand$ operation \\
-    $C$    & {\tt s} & $V \; L \; L$    & $C^{+}$ {\tt 0}  & Declare $\por$ operation \\
+    $C$    & \texttt{p} & $V \; L^{*}$ \texttt{0}    &                  & Declare $\pand$ operation \\
+    $C$    & \texttt{s} & $V \; L \; L$    & $C^{+}$ \texttt{0}  & Declare $\por$ operation \\
     \midrule
-     & {\tt r} & $L$             &            & Declare root literal\\
+     & \texttt{r} & $L$             &            & Declare root literal\\
     \bottomrule
   \end{tabular}
   }
@@ -797,9 +872,9 @@ such that any clause identifier $C'$ given in the hint when adding clause $C$ mu
 The first set of proof rules are similar to those in other clausal
 proofs.
 Clauses can be added via RUP addition
-(command {\tt a}), with a sequence of antecedent clauses (the
+(command \texttt{a}), with a sequence of antecedent clauses (the
 ``hint'').
-Similarly for clause deletion (command {\tt d}).
+Similarly for clause deletion (command \texttt{d}).
 
 \begin{table}
 \caption{Defining Clauses for Product (A) and Sum (B) Operations}
@@ -838,12 +913,12 @@ $\;$ \\
 \label{tab:defining}
 \end{table}
 
-The declaration of a {\em product} operation, creating a node with operation $\pand$,
+The declaration of a \emph{product} operation, creating a node with operation $\pand$,
  has the form:
 \begin{center}
 \begin{tabular}{ccccccccc}
-  \makebox[5mm]{$i$} & \makebox[5mm]{{\tt p}} & \makebox[5mm]{$v$} & \makebox[5mm]{$\lit_1$} & \makebox[5mm]{$\lit_2$} &
-  \makebox[5mm]{$\cdots$} & \makebox[5mm]{$\lit_k$} & \makebox[5mm]{\tt 0} \\
+  \makebox[5mm]{$i$} & \makebox[5mm]{\texttt{p}} & \makebox[5mm]{$v$} & \makebox[5mm]{$\lit_1$} & \makebox[5mm]{$\lit_2$} &
+  \makebox[5mm]{$\cdots$} & \makebox[5mm]{$\lit_k$} & \makebox[5mm]{\texttt{0}} \\
 \end{tabular}
 \end{center}
 Integer $i$ is a new clause ID, $v$ is a positive integer that does not
@@ -860,10 +935,10 @@ representing Boolean constant $1$.  The only clause added to the proof will be
 the unit literal $v$.  A reference to literal $-v$ then provides a way
 of representing constant $0$.
 
-The declaration of a {\em sum} operation, creating a node with operation $\por$, has the form:
+The declaration of a \emph{sum} operation, creating a node with operation $\por$, has the form:
 \begin{center}
 \begin{tabular}{ccccccc}
-  \makebox[5mm]{$i$} & \makebox[5mm]{{\tt s}} & \makebox[5mm]{$v$} & \makebox[5mm]{$\lit_1$} & \makebox[5mm]{$\lit_2$}
+  \makebox[5mm]{$i$} & \makebox[5mm]{\texttt{s}} & \makebox[5mm]{$v$} & \makebox[5mm]{$\lit_1$} & \makebox[5mm]{$\lit_2$}
 \makebox[5mm]{$H$} & \makebox[5mm]{$\texttt{0}$} \\
 \end{tabular}
 \end{center}
@@ -877,7 +952,7 @@ this declaration implicitly causes three clauses to be added to the proof, defin
 The hint must provide a RUP proof of the clause $\obar{\lit}_1 \lor \obar{\lit}_2$, showing that the two children of this node have disjoint models.
 
 Finally, the literal denoting the root of the POG is declared with the
-{\tt r} command.  It can occur anywhere in the file.  Except in degenerate cases, it
+\texttt{r} command.  It can occur anywhere in the file.  Except in degenerate cases, it
 will be the extension variable representing the root of a graph.
 %, but in
 %degenerate cases it can be the positive or negative literal of an
@@ -891,7 +966,7 @@ operation uniquely define the value of its extension variable for any assignment
 For the
 extension variable $u$ associated with any POG node $\nodeu$, we can therefore
 prove that any total assignment $\assign$ to the input variables which
-also satisfies the POG definitions will
+also satisfies the POG defining clauses will
 assign a value to $u$ such that $\assign(u) =
 1$ if and only if $\assign \in \modelset(\nodeu)$.
 
@@ -908,7 +983,7 @@ assign a value to $u$ such that $\assign(u) =
 
 The sequence of operator declarations, asserted clauses, and
 clause deletions represents a systematic transformation of the input formula
-into a POG formula.  Validating all of these steps serves to prove that
+into a POG\@.  Validating all of these steps serves to prove that
 POG $P$ is logically equivalent to the input formula.
 At the completion of the proof, the following \textsc{final conditions} must hold:
 \begin{enumerate}
@@ -922,14 +997,14 @@ of unit clause $\{r\}$ and the defining clauses for the nodes, providing a Tseit
 any total assignment to the input variables implicitly defines the assignments to the extension variables,
 we can see that $\pogformula$ is the clausal encoding of $\phi_\noder$.
 Let $\inputformula$ denote the input formula.
-The sequence of clause addition steps provides a {\em forward implication} proof that
+The sequence of clause addition steps provides a \emph{forward implication} proof that
 $\modelset(\inputformula) \subseteq \modelset(\phi_\noder)$.  That is, any total
 assignment $\assign$ satisfying the input formula must also satisfy
 the formula represented by the POG\@.
 Conversely,
 each proof step that deletes an input clause proves that any
 total assignment $\alpha$ that falsifies the clause must
-falsify $\phi_\noder$.  Deleting all but the final asserted clause and all input clauses provides a {\em reverse implication} proof
+falsify $\phi_\noder$.  Deleting all but the final asserted clause and all input clauses provides a \emph{reverse implication} proof
 that
 $\modelset(\phi_\noder) \subseteq \modelset(\inputformula)$.
 
@@ -948,19 +1023,20 @@ representation.
 %%but it would also work for other tools that use a top-down search
 %%strategy to generate a dec-DNNF representation.
 A dec-DNNF
-graph can be directly translated  into a POG,
-although in doing this conversion,
-our program also performs simplifications to
+graph can be directly translated  into a POG.
+In doing this conversion,
+our program performs simplifications to
 eliminate Boolean constants.
 Except in degenerate cases,
 %where the formula is unsatisfiable or a tautology,
 we can therefore assume
 that the POG does not contain any constant nodes.
 In addition, negation is only
-applied to variables, and so we can merge the negation operations into the terminal nodes,
-viewing the POG as consisting
-of {\em literal} nodes corresponding to input variables and their negations, along with
-{\em nonterminal} nodes, which can be further classified as {\em product} and {\em sum} nodes.
+applied to variables, and so the only edges with negative polarity will have variables as children.
+We can therefore view
+view the POG as consisting
+of \emph{literal} nodes corresponding to input variables and their negations, along with
+\emph{nonterminal} nodes, which can be further classified as \emph{product} and \emph{sum} nodes.
 
 \subsection{Forward Implication Proof}
 
@@ -972,9 +1048,9 @@ and the POG definition clauses
 will yield $\assign(r) = 1$, for root literal $r$.  This part of the
 proof consists of a series of clause assertions leading to one adding
 $\{r\}$ as a unit clause.  We have devised two methods of generating this
-proof.  The {\em monolithic} approach makes just one call to a
+proof.  The \emph{monolithic} approach makes just one call to a
 proof-generating SAT solver and has it determine the relationship
-between the two representations.  The {\em structural} approach
+between the two representations.  The \emph{structural} approach
 recursively traverses the POG, generating proof obligations at each
 node encountered.  It may require multiple calls to a proof-generating SAT
 solver.
@@ -987,7 +1063,7 @@ obtained from $\psi$ by: i) eliminating any
 clause containing a literal $\lit$ such that $\passign(\lit) = 1$,
 ii) for the remaining clauses eliminating those literals $\lit$ for
 which $\passign(\lit) = 0$, and iii) eliminating any duplicate clauses.
-In doing these simplifications, we also track the {\em provenance}
+In doing these simplifications, we also track the \emph{provenance}
 of each simplified clause $C$, i.e., which of the (possibly multiple) input clauses simplified to become $C$.
 More formally, for $C \in \simplify{\psi}{\passign}$, we let $\prov_{\passign}(C, \psi)$ denote
 those clauses $C' \in \psi$, such that
@@ -1017,7 +1093,7 @@ $\validate(\nodeu, \passign, \psi)$ taking as arguments POG
 node $\nodeu$, partial assignment
 $\passign$, and a set of clauses $\psi \subseteq \inputformula$.
 The procedure adds a number of clauses to the proof, culminating with
-the addition of the {\em target} clause:
+the addition of the \emph{target} clause:
 $u \lor \bigvee_{\lit \in \passign} \obar{\lit}$, indicating
 that $(\bigwedge_{\lit \in \passign} \lit) \imply u$, i.e.,
 that any total
@@ -1028,7 +1104,7 @@ The result will therefore be to add unit clause $\{r\}$ to the proof.
 Here we present a correct, but somewhat inefficient formulation of
 $\validate$.  We then refine it with some optimizations.
 
-The recursive call $\validate(u, \passign, \psi)$ assumes that we have
+The recursive call $\validate(\nodeu, \passign, \psi)$ assumes that we have
 traversed a path from the root node down to node $\nodeu$, with the
 literals encountered in the product nodes forming the partial
 assignment $\passign$.  The set of clauses $\psi$ can be a proper
@@ -1130,8 +1206,8 @@ adds literals via unit propagation until a
 conflict arises.    Unit literal $r$ gets
 added right away, setting up a potential conflict.
 
-Working upward through the graph, node $\nodeu$ is {\em marked} when
-the collected set of literals force $u$ to evaluate to $0$.  When marking $\nodeu$, the
+Working upward through the graph, node $\nodeu$ is \emph{marked} when
+the collected set of literals forces $u$ to evaluate to $0$.  When marking $\nodeu$, the
 program adds $\obar{u}$ to the RUP literals and adds the appropriate
 defining clause to the hint.  A literal node for
 $\lit$ will be marked if $\lit \in C$, with no hint required.  If
@@ -1161,7 +1237,7 @@ representation of the formula; they serve only to enable the forward
 implication proof.  Here we summarize the two optimizations.
 Appendix~\ref{app:optimizations} provides more details.
 
-{\em Literal Grouping:} A single recursive step of $\validate$ can encounter product nodes
+\emph{Literal Grouping:} A single recursive step of $\validate$ can encounter product nodes
 having many---tens or even hundreds---of literals as children.  The
 earlier formulation of $\validate$ considers each literal $\lit \in \lambda$
 separately, calling a SAT solver for every literal that cannot be
@@ -1173,12 +1249,12 @@ a solver with $v$ set to 0 yields an unsatisfiability proof that can
 be mapped back to a sequence of clause additions in the CPOG file validating
 all of the literals.
 
-{\em Lemmas:} Our formulation of $\validate$ requires each call at a
+\emph{Lemmas:} Our formulation of $\validate$ requires each call at a
 node $\nodeu$ to recursively validate all of its children.  This
 effectively expands the graph into a tree, potentially requiring an
 exponential number of recursive steps.  Instead, for each node
 $\nodeu$ having $\indegree(\nodeu) > 1$, the program can define and
-generate the proof of a {\em lemma} for $\nodeu$ when it is first reached by
+generate the proof of a \emph{lemma} for $\nodeu$ when it is first reached by
 a call to $\validate$ and then apply this lemma for this and
 subsequent calls.  The lemma states that the POG with root node
 $\nodeu$ satisfies forward implication for a formula
@@ -1200,17 +1276,17 @@ optimizations yield substantial benefits.
 
 
 \section{Implementations}
-We have implemented versions of the three programs that, along with
+We have implemented programs that, along with
 the \dfour{} knowledge compiler, form the toolchain illustrated in
 Figure~\ref{fig:chain}\footnote{All tools, along with a set of 
 benchmark problems are available at \url{https://github.com/rebryant/cpog}}.  The proof generator is the same in both
 cases, since it need not be trusted.
-Our {\em verified}
-versions of the proof checker and ring evaluator have been formally
+Our \emph{verified}
+version of the proof checker and ring evaluator have been formally
 verified within the \lean{} theorem prover.  Our long term goal is to
-rely on these.  Our {\em prototype} versions are written in C
-(checker) and Python (ring evaluator).  These are currently faster and
-more scalable, but we anticipate their need will diminish as the
+rely on these.  Our \emph{prototype} version is written in C\@.
+It is faster and
+more scalable, but we anticipate its need will diminish as the
 verified version is further optimized.
 %% Our long-term goal is to have a toolchain suitable for use in a
 %% knowledge compiler competition, along the lines of the annual
@@ -1241,8 +1317,9 @@ assignment that is a model for the compiled representation
 must also be a model for the input formula---even when
 full validation is impractical.
 
-Our prototype ring evaluator can perform both standard and weighted
-model counting.  It performs arithmetic over a subset of the rationals
+We incorporated a ring evaluator into the prototype checker.  It
+can perform both standard and weighted
+model counting with full precision.  It performs arithmetic over a subset of the rationals
 we call $\drational$, consisting of numbers of the form $a \cdot 2^{b}
 \cdot 5^{c}$, for integers $a$, $b$, and $c$, and with $a$ implemented
 to have arbitrary range.  Allowing scaling by powers of 2 enables the
@@ -1390,7 +1467,7 @@ representations, such as sentential decision diagrams (SDDs)~\cite{darwiche:ijca
 %% Break
 \\[2.5ex]
 \begin{minipage}{0.42\textwidth}
-(D) Implicit Clauses\\[1.2ex]
+(D) Defining Clauses\\[1.2ex]
 \begin{tabular}{llll}
 \toprule
 \makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
@@ -1566,7 +1643,7 @@ variable $v$.  A single call to the solver can generate this proof by invoking i
 As we have noted, the recursive calling of $\validate$ starting at
 root $\noder$ effectively expands the POG into a tree, and this can
 lead to an exponential number of calls.
-These shared subgraphs arise when the knowledge compiler employs {\em clause caching}
+These shared subgraphs arise when the knowledge compiler employs \emph{clause caching}
 to detect that the simplified set of
 clauses arising from one partial assignment to the literals matches that
 of a previous partial assignment~\cite{darwiche:aaai:2002}.
@@ -1576,7 +1653,7 @@ there is a simplified set of clauses $\gamma_{\nodeu}$
 for which the subgraph with root $\nodeu$ is its POG representation.
 
 The proof generator can exploit the sharing of subgraphs
-by constructing and proving a {\em lemma} for each node
+by constructing and proving a \emph{lemma} for each node
 $\nodeu$ having $\indegree(\nodeu) > 1$.  This proof shows that any
 total assignment $\assign$ that satisfies formula $\gamma_{\nodeu}$ and the defining clauses for the POG must yield
 $\assign(u) = 1$.  This lemma is then invoked for every node having
@@ -1588,13 +1665,13 @@ represent the clauses for the simplified formula $\gamma_{\nodeu}$ in the CPOG f
 unaltered input clauses, and these can be used directly.  Others,
 however will be clauses that do not appear in the input formula.  We
 implement these by adding POG product nodes to the CPOG file to create
-the appropriate clauses.  Consider an {\em argument} clause
+the appropriate clauses.  Consider an \emph{argument} clause
 $C \in \gamma_{\nodeu}$ with $C = \lit_1 \lor \lit_2 \lor \cdots \lor \lit_k$.  If we
 define product node $\nodev$ with arguments
 $\obar{\lit}_1, \obar{\lit}_2, \ldots, \obar{\lit}_k$, then by
 Table~\ref{tab:defining}(A), we will introduce a defining clause
 $v \lor \lit_1 \lor \lit_2 \lor \cdots \lit_k$.  We call this a {\em
-  synthetic} clause having $\obar{v}$ as the {\em guard literal}.
+  synthetic} clause having $\obar{v}$ as the \emph{guard literal}.
 That is, a partial assignment $\passign$ such that $\passign(v) = 0$ will {\em
   activate} the clause, causing it to represent argument clause $C$.  On the other
 hand, a partial assignment with $\passign(v) = 1$ will
@@ -1853,7 +1930,6 @@ size.  It would begin the recursive descent of $\validate$ according
 to a structural approach, but monolithically generate
 the proof once it encounters a sufficiently small subgraph.
 
-
 \subsection{Impact of Optimizations}
 \label{app:experiment:optimize}
 
@@ -1890,6 +1966,40 @@ take longer, but in one case ran $3.9\times$ faster.
 Overall, it is clear that these two optimizations are worthwhile, and
 sometimes critical, to success for some benchmarks.
 
+\subsection{Certifying Preprocessed Formulas}
+
+\input{figure-runtime-preprocess}
+\input{figure-clauses-preprocess}
+
+The \dfour{} knowledge compiler can optionally perform three different
+forms of preprocessing on the input formula.  These transform the
+formula while preserving logical equivalence~\cite{lagniez:aaai:2014}.
+Proving that the combination of preprocessing plus knowledge
+compilation preserved logical equivalence would be a valuable
+capability.  However, proof generators that operate based on the
+structure of the input clauses, including our structural approach,
+will generally fail in this case, since the compilation was not based
+on the original input clauses.
+
+One strength of monolithic proof generation is that it makes no
+assumptions about how the compiled representation.  A complete
+proof-generating SAT solver could, in principle, always generate the
+forward implication proof, as long as forward implication holds.  To
+test this hypothesis, we ran our proof framework with preprocessing
+enabled on the same 83 benchmarks as in
+Section~\ref{app:experiment:monolithic}.  We measured the time for two
+entire toolchains: one with compilation, proof generation, and
+checking, and the other starting with preprocessing and then having
+the same steps as the other.  The results are summarized in
+Figures~\ref{fig:preprocess:time} and \ref{fig:preprocess:clauses}.
+Setting a time limit of 1000 seconds, 70 of the formulas completed
+without preprocessing, while 69 did so with preprocessing.  The one
+that timed out with preprocessing did so due to the excessive time
+required for preprocessing.  Of the 69, 53 ran faster with
+preprocessing, while 15 ran slower.  The sizes of the generated 
+CPOG proofs were more variable: 31 had fewer clauses with preprocessing, 21 had more, and 17 were identical.
+
+
 \subsection{Evaluation of the Verified Checker}
 \label{app:lean:evaluation}
 
@@ -1917,6 +2027,38 @@ we are confident that we can reduce this gap with more effort in
 optimizing the verified checker.
 
 
+\section{Comparison with other Certification Frameworks}
+\label{app:comparison}
+
+This section provides more insights into how our proof framework (POG)
+compares with other work in certified knowledge compilation and model counting.
+
+
+\subsection{Comparison with \cdfour{} Framework}
+
+\input{figure-cd4-cpog}
+
+Figure~\ref{fig:cd4:cpog} shows the results of a set of experiments
+comparing the performance of our toolchain (CPOG) versus one based on
+\cdfour{}.  It shows the timings for the 110 benchmarks for which
+either the CPOG toolchain or the \cdfour{} toolchain completes in less
+than 1000 seconds.  Both toolchains include compilation, in addition
+to proof generation and checking.  Of these, 80 completed for both
+toolchains, 28 timed out or failed with the CPOG toolchain, and 2
+timed out for the \cdfour{} toolchain.  The data clearly show that the
+\cdfour{} toolchain can handle larger benchmarks and generally runs
+faster.  Only 7 of the 80 that completed with both toolchains ran
+faster with the CPOG toolchain.  For these 80, the toolchain based on
+\cdfour{} ran faster by a harmonic mean factor of $19.8\times$.
+
+On the other hand, the \cdfour{} proof generation and checking is
+tightly connected to the operation of \dfour{}, and every change to
+the program could require changes to the proof steps and possibly
+changes to the proof framework.  For example, we have found that
+\cdfour{} does not work properly when the compiler makes use of its
+internal preprocessor.
+
+
 \subsection{Comparison with the MICE Framework}
 
 To compare the performance of our toolchain versus that of
@@ -1939,7 +2081,9 @@ We can summarize the results as:
 \item 1 completed with MICE under 1000 seconds but exceeded that threshold for CPOG
 \end{itemize}
 
-\input{figure-mice-cpog} The detailed results are shown in
+\input{figure-mice-cpog}
+
+The detailed results are shown in
 Figure~\ref{fig:mice}.  As can be seen, the comparative runtimes are
 highly variable, reflecting the fact that the two toolchains differ
 fundamentally in their objectives and their approaches.
@@ -1954,7 +2098,6 @@ tree.  They lack an optimization analogous to lemmas.
 
 We have not tried the MICE toolchain on larger benchmarks, but we
 suspect it would encounter significant scaling limitations.
-
 
 
 \end{document}
