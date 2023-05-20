@@ -3,7 +3,7 @@
 \centering{%
 \begin{tikzpicture}[scale = 0.50]
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log,
-      legend style={at={(0.30,0.96)}},
+      legend style={at={(0.35,0.96)}},
       legend cell align={left},
                               x post scale=1.8, y post scale=2.4,
                               xmode=log,xmin=0.01,xmax=4000,
@@ -18,9 +18,9 @@
     \input{data-formatted/time-d4-verify-onesided-only}
     \input{data-formatted/time-d4-failure}
     \legend{
-      \scriptsize \textsf{Full validation},
-      \scriptsize \textsf{One-sided validation},
-      \scriptsize \textsf{Resource limit exceeded},
+ \textsf{Full validation},
+ \textsf{One-sided validation},
+ \textsf{Resource limit exceeded},
     }
     \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,20000) (4000,20000)};

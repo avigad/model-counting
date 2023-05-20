@@ -197,8 +197,7 @@
 
 Computing many useful properties of Boolean formulas, such as their weighted or unweighted model count,
 is intractable on general representations. It can become tractable when formulas are expressed in a
-special form, such as the deterministic,
-decomposable, negation normal form (det-DNNF)\@.
+special form, such as the decision-decomposable, negation normal form (dec-DNNF)\@.
 \emph{Knowledge compilation} is the process of converting a formula
 into such a form. Unfortunately existing knowledge compilers provide no guarantee that their output correctly
 represents the original formula, and therefore they cannot validate a model count, or any other computed value.
@@ -209,7 +208,7 @@ of the representations used by existing knowledge compilers.
 We have designed  CPOG, a framework that can express proofs of equivalence between a
 POG  and a Boolean formula in conjunctive normal form (CNF).
 
-We have developed a program that generates POG representations from det-DNNF
+We have developed a program that generates POG representations from dec-DNNF
 graphs 
 produced by the state-of-the-art knowledge compiler
 \dfour{}, as well as checkable CPOG proofs certifying that the output POGs
@@ -252,11 +251,11 @@ witnessed by the progress in recent model counting competitions.
 
 One approach to model counting, known as \emph{knowledge compilation},
 transforms the formula into a structured form for which model counting
-is straightforward.  For example, the \emph{deterministic
-decomposable, negation normal form}
+is straightforward.  For example, the \emph{deterministic, decomposable, negation normal form}
 (det-DNNF) introduced by
-Darwiche~\cite{darwiche:aaai:2002,darwiche:ecai:2004}
-represents a
+Darwiche~\cite{darwiche:aaai:2002,darwiche:ecai:2004}, as well as the more restricted
+\emph{decision-DNNF} (dec-DNNF)~\cite{huang:jair:2007,oztok:cp:2014},
+represent a
 Boolean formula as a directed acyclic graph, with terminal nodes
 labeled by Boolean variables and their complements, and with each
 nonterminal node labeled by a Boolean And or Or operation.  Restrictions
@@ -266,7 +265,7 @@ Kimmig et al.\ present a very general {\em
   algebraic model counting}~\cite{kimmig:jal:2017} framework describing
 properties of Boolean functions that can be efficiently computed from
 a det-DNNF representation.  These include standard and weighted model
-counting, and much more.
+counting, and much more.  
 
 One shortcoming of existing knowledge compilers is that they have no
 generally accepted
@@ -348,7 +347,7 @@ encodes a well-formed POG and provides a valid equivalence proof.
 Figure~\ref{fig:chain} illustrates our certifying knowledge
 compilation and model counting toolchain.  Starting with
 input formula $\inputformula$, the \dfour{} knowledge compiler~\cite{lagniez:ijcai:2017}
-generates a \emph{decision} DNNF (dec-DNNF) representation (a restricted form of det-DNNF),
+generates a dec-DNNF representation,
 and the \emph{proof
   generator} uses this to generate a CPOG file.
 The \emph{proof checker} verifies the equivalence of the CNF and CPOG representations.
@@ -441,13 +440,13 @@ not preserve models.  As an example, consider the following formulas:
 \begin{center}
   \begin{tabular}{lccc}
     $\phi_1$: & $(x_1 \lor x_3)$ & & \\
-    $\phi_2$: & $(x_1 \lor x_3)$ & $\land$ & $(x_1 \lor \obar{x}_2)$\\    
+    $\phi_2$: & $(x_1 \lor x_3)$ & $\land$ & $(x_2 \lor \obar{x}_3)$\\    
   \end{tabular}
 \end{center}
 Clearly, these two formulas are not equivalent---$\phi_1$ has six
-models, while $\phi_2$ has five.  In particular, $\phi_1$ allows
+models, while $\phi_2$ has four.  In particular, $\phi_1$ allows
 arbitrary assignments to variable $x_2$.  Critically, however the
-second clause of $\phi_2$ is RAT with respect to the first---any
+second clause of $\phi_2$ is RAT with respect to $\phi_1$---any
 satisfying assignment to $\phi_1$ can be transformed into one that
 also satisfies $\phi_2$ by setting $x_2 = 0$.
   
@@ -1352,7 +1351,7 @@ We summarize the results of our experiments here.
 The supplement~\cite{bryant:sat:2023:supplement}
 provides a more complete description. For our
 evaluation, we used the public benchmark problems from the 2022
-standard and weighted model competitions.  We found that there were
+standard and weighted model competitions\footnote{Downloaded from \url{https://mccompetition.org/2022/mc_description.html}}.  We found that there were
 180 unique CNF files among these, ranging in size from 250 to
 2,753,207 clauses.
 %%We ran our programs on a processor with 64~GB of
@@ -1361,7 +1360,7 @@ standard and weighted model competitions.  We found that there were
 With a runtime limit of 4000 seconds, \dfour{} completed for 124 of the
 benchmark problems.  Our proof generator was able to convert all of
 these into POGs, with their declarations ranging from 304 to
-2,761,457,765 (median 848,784) defining clauses.
+2,761,457,765 median 848,784) defining clauses.
 %(The
 %maximum count overflowed the overflowed the 32-bit signed integers we
 %used to represent clause identifiers in both the proof generator and
@@ -1381,23 +1380,42 @@ It is worth noting that, to date, we have not found
 any errors in the dec-DNNF graphs generated by \dfour{}.
 
 We found that the monolithic approach for generating the forward
-implication proof works well for smaller POGs, but it becomes
-unreliable and inefficient for larger ones.
-%% These experiments suggest
-%% a possible hybrid approach, stopping the recursion of the structural
-%% approach and shifting to monolithic mode once the subgraph size is below some
-%% threshold.
+implication proof works well for smaller POGs (up to one million
+defining clauses), but it becomes inefficient for larger ones.  These
+experiments suggest a possible hybrid approach, stopping the recursion
+of the structural approach and shifting to monolithic mode once the
+subgraph size is below some threshold.  By using monolithic mode, we
+were also able to perform end-to-end verification of all but one of the
+benchmarks that could be verified without preprocessing, with a total
+time limit (including preprocessing) of 1,000 seconds.
+
 We also found that our two optimizations: literal grouping and
 lemmas can provide substantial improvements in proof size and runtime.
-Running the verified proof checker in \lean{} showed the same scaling
-with respect to the proof size as did the prototype checker, but it
-required, on average, around 5.9 times longer.
+In the extreme cases, a lack
+of lemmas caused one proof to grow by a factor of 52.5, while a lack
+of literal grouping caused another proof to grow by a factor of 39.6.
+Overall, it is clear that these two optimizations are worthwhile, and
+sometimes critical, to success for some benchmarks.
 
-Finally, the runtimes for the MICE toolchain versus our CPOG toolchain
+Running the verified proof checker in \lean{} required, on average
+(harmonic mean), around 5.9 times longer than the prototype checker.
+Encouraging, the scaling trends were identical for the two solvers,
+indicating that the two checkers have similar asymptotic performance.
+We consider a factor of 5.9 to be acceptable for the assurance
+provided by formal verification.
+
+In comparing other proof frameworks, we found that the \cdfour{}
+toolchain ran very fast and could handle very large benchmarks.  Even
+with a total time limit of 1,000 seconds, including the time for
+knowledge compilation, the \cdfour{} toolchain completed for 106
+benchmarks, while the CPOG toolchain completed for just 82.  We found
+that the runtimes for the MICE toolchain versus our CPOG toolchain
 showed little correlation, reflecting the fact that the two solve
-different problems and use different approaches.  In general,
-our CPOG toolchain showed better scaling, in part due to its ability
-to control the recursion through lemmas.
+different problems and use different approaches.  In general, our CPOG
+toolchain showed better scaling, in part due to its ability to control
+the recursion through lemmas.  On the other hand, neither of these
+toolchains could perform end-to-end verification when the knowledge
+compilation was preceded by preprocessing.
 
 \section{Conclusions}
 \label{sect:future}
