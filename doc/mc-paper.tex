@@ -429,8 +429,8 @@ DRAT file.
 In more detail, \cdfour{} emits a sequence of clauses $R$ that
 includes the conflict clauses that arose via a top-down processing of
 the input clauses.  Given input formula $\phi$, their first task is to
-check whether $\phi \imply R$, i.e., that any model of $\phi$ is also
-a model of $R$.  They then base other parts of their proof on that
+check whether $\phi \imply R$, i.e., that any assignment that satisfies $\phi$ also satisfies each of the clauses in $R$.
+They then base other parts of their proof on that
 property and use a separate checker to perform a series of additional
 checks.  They use \dtrim{} to prove the implication, checking that each clause in $R$
 satisifies the \emph{reverse asymmetric tautology} (RAT) property with
@@ -456,8 +456,9 @@ of \cdfour{} to generate a compiled representation of $\phi_2$ when
 given $\phi_1$ as its input.  By adding the second clause to $R$,
 the check with \dtrim{} would pass, as would the other tests performed
 by their checker.  We have been able to confirm this possibility with
-their compiler and checker\footnote{Downloaded May 18, 2023 from
-\url{https://github.com/crillab/d4}}.
+their compiler and checker\footnote{Downloaded May 18, 2023 as\\
+\url{https://github.com/crillab/d4/tree/333370cc1e843dd0749c1efe88516e72b5239174}.}
+
 
 This weakness can be corrected by restricting \dtrim{} to only add
 clauses that obey the stronger \emph{reverse unit propagation} (RUP) property~\cite{goldberg,vangelder08_verifying_rup_proofs}.  We have added a
@@ -665,8 +666,8 @@ has a designated \emph{root node} $\noder$.  Each edge has
 a \emph{polarity}, indicating whether (negative polarity) or not
 (positive polarity) the corresponding argument should be negated.
 
-In essence, a POG represents a partitioned-operation
-formula with a sharing of common subformulas.  Indeed, every node in the graph can be viewed as a partitioned-operation formula, and so we write
+A POG represents a partitioned-operation
+formula with a sharing of common subformulas.  Every node in the graph can be viewed as a partitioned-operation formula, and so we write
 $\phi_{\nodeu}$ as the formula denoted by node $\nodeu$.
 Each such formula has a set of models, and we write $\modelset(\nodeu)$ as a shorthand for $\modelset(\phi_{\nodeu})$.
 
@@ -766,7 +767,7 @@ no proof step causes a satisfiable set of clauses to become
 unsatisfiable, and therefore it need only justify clause additions.
 
 
-\section{The CPOG POG Representation and Proof System}
+\section{The CPOG Representation and Proof System}
 \label{sect:cpog}
 
 
@@ -1289,8 +1290,8 @@ optimizations yield substantial benefits.
 \section{Implementations}
 We have implemented programs that, along with
 the \dfour{} knowledge compiler, form the toolchain illustrated in
-Figure~\ref{fig:chain}\footnote{All tools, along with a set of 
-benchmark problems are available at \url{https://github.com/rebryant/cpog}}.  The proof generator is the same in both
+Figure~\ref{fig:chain}\footnote{The source code for all tools, along with a set of 
+benchmark problems are available as part of the supplement\cite{bryant:sat:2023:supplement}}.  The proof generator is the same in both
 cases, since it need not be trusted.
 Our \emph{verified}
 version of the proof checker and ring evaluator have been formally
