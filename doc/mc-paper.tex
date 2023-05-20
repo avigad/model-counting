@@ -259,7 +259,7 @@ represent a
 Boolean formula as a directed acyclic graph, with terminal nodes
 labeled by Boolean variables and their complements, and with each
 nonterminal node labeled by a Boolean And or Or operation.  Restrictions
-are placed on the structure of the graph such that a count of the
+are placed on the structure of the graph (described in Section~\ref{sect:pog}) such that a count of the
 models can be computed by a single bottom-up traversal.
 Kimmig et al.\ present a very general {\em
   algebraic model counting}~\cite{kimmig:jal:2017} framework describing
@@ -269,13 +269,13 @@ counting, and much more.
 
 One shortcoming of existing knowledge compilers is that they have no
 generally accepted
-way to validate that their generated results are correct, i.e., that
+way to validate that 
 the compiled representation is logically equivalent to the original
 formula.  By contrast, all modern SAT solvers can generate
 checkable proofs when they encounter unsatisfiable formulas.  The
 guarantee provided by a checkable certificate of correctness enables
 users of SAT solvers to fully trust their results.  Experience has also
-shown that proof production capabilites allow SAT solver developers to quickly
+shown that being able to generate proofs allow SAT solver developers to quickly
 detect and diagnose bugs in their programs. This, in turn, has led
 to more reliable SAT solvers.
 
@@ -427,10 +427,10 @@ DRAT file.
 
 In more detail, \cdfour{} emits a sequence of clauses $R$ that
 includes the conflict clauses that arose via a top-down processing of
-the input clauses.  Given input formula $\phi$, their first task is to
-check whether $\phi \imply R$, i.e., that any assignment that satisfies $\phi$ also satisfies each of the clauses in $R$.
+the input clauses.  Given input formula $\phi_I$, their first task is to
+check whether $\phi_I \imply R$, i.e., that any assignment that satisfies $\phi_I$ also satisfies each of the clauses in $R$.
 They then base other parts of their proof on that
-property and use a separate checker to perform a series of additional
+property and use a separate program to perform a series of additional
 checks.  They use \dtrim{} to prove the implication, checking that each clause in $R$
 satisifies the \emph{reverse asymmetric tautology} (RAT) property with
 respect to the preceding
@@ -448,7 +448,7 @@ models, while $\phi_2$ has four.  In particular, $\phi_1$ allows
 arbitrary assignments to variable $x_2$.  Critically, however the
 second clause of $\phi_2$ is RAT with respect to $\phi_1$---any
 satisfying assignment to $\phi_1$ can be transformed into one that
-also satisfies $\phi_2$ by setting $x_2 = 0$.
+also satisfies $\phi_2$ by setting $x_2$ to 1.
   
 This weakness would allow a buggy (or malicious) version
 of \cdfour{} to generate a compiled representation of $\phi_2$ when
@@ -461,9 +461,9 @@ their compiler and checker\footnote{Downloaded May 18, 2023 as\\
 
 This weakness can be corrected by restricting \dtrim{} to only add
 clauses that obey the stronger \emph{reverse unit propagation} (RUP) property~\cite{goldberg,vangelder08_verifying_rup_proofs}.  We have added a
-commandline argument to \dtrim{}\footnote{Available at
-\url{https://github.com/marijnheule/drat-trim/tree/develop}.} that enforces this
-restriction.  This weakness, however, illustrates the general challenge of
+commandline argument to \dtrim{} that enforces this
+restriction.\footnote{Available at
+\url{https://github.com/marijnheule/drat-trim/tree/develop}.}  This weakness, however, illustrates the general challenge of
 developing a new proof framework.
 Without a formal verification, there are likely to be 
 conditions that make the framework unsound.
