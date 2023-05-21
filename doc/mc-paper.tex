@@ -395,7 +395,7 @@ Generating proofs of unsatisfiability in SAT solvers has a long
 tradition~\cite{ZhangMalik} and has become widely accepted due to the
 formulation of clausal proof systems for which proofs can readily be
 generated and efficiently checked
-\cite{RAT,wetzler14_drattrim}.
+\cite{heule:cade:2013,wetzler14_drattrim}.
 A number of formally verified checkers have been developed within different verification frameworks~\cite{cruz-cade-2017,lrat,Lammich:20,Tan:2021}.
 The associated proofs add clauses while preserving satisfiability until the empty clause is derived.
 Our work builds on the well-established technology and tools associated with clausal proof systems,
@@ -736,7 +736,7 @@ implication redundancy when adding or deleting
 clauses~\cite{goldberg,vangelder08_verifying_rup_proofs}.
 RUP
 is the core rule supported by standard
-proof checkers~\cite{RAT,wetzler14_drattrim} for propositional logic. It provides a simple and efficient
+proof checkers~\cite{heule:cade:2013,wetzler14_drattrim} for propositional logic. It provides a simple and efficient
 way to check a sequence of applications of the resolution proof rule~\cite{robinson-1965}.
 Let $C = \{\lit_1, \lit_2, \ldots,\lit_p\}$ be a clause to be
 proved redundant with respect to formula $\theta$.  Let $D_1, D_2, \ldots, D_k$ be a sequence of supporting
@@ -1316,7 +1316,7 @@ Our proof generator is written in C/C++ and uses
 \cadical{}~\cite{biere-cadical-2019} as its SAT solver.  To convert
 proof steps back into hinted CPOG clause additions, the generator can
 use either its own RUP proof generator, or it can invoke
-\dtrim{}~\cite{RAT}.  The latter yields shorter proofs and scales well
+\dtrim{}~\cite{heule:cade:2013}.  The latter yields shorter proofs and scales well
 to large proofs, but each invocation has a high startup cost.  We
 therefore only use it when solving larger problems (currently ones
 with over 1000 clauses).
