@@ -202,7 +202,7 @@ special form, such as the decision-decomposable, negation normal form (dec-DNNF)
 into such a form. Unfortunately existing knowledge compilers provide no guarantee that their output correctly
 represents the original formula, and therefore they cannot validate a model count, or any other computed value.
 
-We present \emph{Partitioned-Operation Graphs} (POGs), a general form that can
+We present \emph{Partitioned-Operation Graphs} (POGs), a form that can
 encode all
 of the representations used by existing knowledge compilers.
 We have designed  CPOG, a framework that can express proofs of equivalence between a
@@ -280,7 +280,7 @@ detect and diagnose bugs in their programs. This, in turn, has led
 to more reliable SAT solvers.
 
 This paper introduces \emph{Partitioned-Operation Graphs} (POGs),
-a general form that can encode all of the representations produced by current knowledge
+a form that can encode all of the representations produced by current knowledge
 compilers. The CPOG (for ``certified'' POG) file format then
 captures both the structure of a POG
 and a checkable proof of its logical equivalence to a Boolean formula in
@@ -363,7 +363,7 @@ To ensure soundness of the abstract CPOG proof system, as well as
 correctness of its concrete implementation, we formally verified the
 proof system as well as versions of the proof checker and ring
 evaluator in the \lean{} proof assistant~\cite{demoura:cade:2021}.
-Running these two programs on a particular CPOG file gives strong
+Running these two programs on a  CPOG file gives strong
 assurance that the proof and the model count are correct. Our
 experience with developing a formally verified proof checker has shown
 that, even within the well-understood framework of extended
@@ -385,7 +385,7 @@ We have developed an online supplement to this
 paper~\cite{bryant:sat:2023:supplement} containing additional
 information, including a worked example, details on the algorithms,
 and extensive experimental results.  The archive also includes copies
-of the programs and a set of benchmark files for testing.
+of the programs and a set of benchmark files.
 
 
 \section{Related Work}
@@ -454,7 +454,7 @@ This weakness would allow a buggy (or malicious) version
 of \cdfour{} to generate a compiled representation of $\phi_2$ when
 given $\phi_1$ as its input.  By adding the second clause to $R$,
 the check with \dtrim{} would pass, as would the other tests performed
-by their checker.  We have been able to confirm this possibility with
+by their checker.  We have confirmed this possibility with
 their compiler and checker\footnote{Downloaded May 18, 2023 as\\
 \url{https://github.com/crillab/d4/tree/333370cc1e843dd0749c1efe88516e72b5239174}.}
 
