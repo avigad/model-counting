@@ -364,8 +364,8 @@ $\assign(x_1) = 1$, $\assign(x_3) = 0$, and $\assign(x_4) = 1$.  The hint then c
 clauses (e.g., clause 36 asserting that $\alpha(p_{10}) = 1$) or
 clauses that cause unit propagation.  Hint clauses 8 and 10 force the
 assignments $\assign(p_5) = \assign(p_6) = 0$.  These, plus hint clause 12 force
-$\assign(s_7) = 0$.  This, plus hint clauses 16 and 21 force $\assign(p_8) = \assign(p_9) = 0$, leading
-via clause 22 to $\assign(s_{10}) = 0$.  But this contradicts clause 36,
+$\assign(s_7) = 0$.  This, plus hint clauses 16 and 21 force $\assign(p_8) = \assign(p_9) = 0$, leading,
+via clause 22, to $\assign(s_{10}) = 0$.  But this contradicts clause 36,
 completing the RUP proof.  The deletion hints for the other input
 clauses follow similar patterns---they work from the bottom nodes of
 the POG upward, showing that any total assignment that falsifies the clause
@@ -605,8 +605,8 @@ from 250 to 2,753,207 clauses.
 Our default configuration for the proof generator used the structural
 method for the forward implication proof, with the two optimizations
 of literal grouping and lemmas.
-Running with a time limit of 4000 seconds\footnote{All measured times
-in this document are actual elapsed times, not CPU times.}, \dfour{}
+Running with a time limit of 4000 seconds,\footnote{All measured times
+in this document are actual elapsed times, not CPU times.} \dfour{}
 was able to generate dec-DNNF representations for 124 of these, and it timed out on the
 rest.  Our proof generator was able to convert all of the generated
 dec-DNNF graphs into POGs and determine how many defining clauses they
@@ -627,23 +627,23 @@ one-sided proofs for the graphs, again with a time limit of 10,000
 seconds for proof generation.
 
 Figure~\ref{fig:d4:cpog} summarizes our results in terms of the time
-required by \dfour{} (X axis) versus the sum of the times for the
-proof generator and checker (Y axis).
+required by \dfour{} (X axis) versus the sum of the times for proof generation, checking, and counting
+ (Y axis).
 We were able to complete a full validation for 108 of the 124
 benchmarks, with times ranging from fractions of a second to 13,144
 seconds, with a median of 71.6 seconds.
 
 Relative to the runtime for \dfour{}, two problems ran faster with the
-generator and checker.  These were for problems having small numbers
+generator, checker, and counter.  These were for problems having small numbers
 of models (relative to the number of variables), and so most of the
 time spent by both \dfour{} and our proof generator was in running a
 CDCL solver to search the very sparse solution space.  \cadical{}
 generally outperforms the miniSAT-based solver used by \dfour{}.  At
 the other extreme, one problem that required only 19 seconds for
 \dfour{} required 8657 seconds to generate a proof and 45 seconds to
-check it.  This benchmark appears to stem from weak performance
+check it (and count).  This benchmark appears to stem from weak performance
 by our implementation of BCP\@.  Overall the ratios
-between the combined generation plus checking times versus the time
+between the combined time for generation, checking, and counting versus the time
 for \dfour{} had a harmonic mean of 5.5.
 
 Of the 16 benchmarks that could not be fully validated, one had so
@@ -674,17 +674,17 @@ unsatisfiability.
 
 To assess the relative merits of the two approaches to forward
 implication proof generation, we ran the proof generator in monolithic
-mode on the 92 problems for which the combination of structural proof generation
-and checking required at most 3000 seconds and then kept only those
+mode on the 92 problems for which the combination of structural proof generation, checking, and counting
+required at most 3000 seconds and then kept only those
 measurements for which at least one of the two approaches had combined
-times (generation plus checking) of at most 1000 seconds.  There were
+times of at most 1000 seconds.  There were
 a total of 83 such problems.  Figures~\ref{fig:monolithic:time} and
 \ref{fig:monolithic:clauses} show comparisons between the two
 approaches in terms of time and total clauses.
 
 Examining Figure~\ref{fig:monolithic:time}, we can see that the
 monolithic approach ran faster than the structural approach for 23 of
-the problems, including a case where the generator and checker
+the problems, including a case where the generator, checker, and counter
 required only one second, versus 71 seconds for the structural
 approach.  On the other hand, the monolithic approach timed out for 13
 of the cases and was slower for the other 37.  In general, we can see
@@ -729,7 +729,7 @@ As the figures illustrated, each optimization on its own can shorten
 the proofs, sometimes substantially, and the two combine to have even
 greater effect.  Of the 80 benchmark problems evaluated, and comparing
 with both optimizations disabled, 47 had the number of proof clauses
-reduced by a factor of 2 by using lemmas, 14 by using literal merging,
+reduced by at least a factor of 2 by using lemmas, 14 by using literal merging,
 and 60 by enabling both optimizations.  In the extreme cases, a lack
 of lemmas caused one proof to grow by a factor of 52.5, while a lack
 of literal grouping caused another proof to grow by a factor of 39.6.
@@ -758,14 +758,14 @@ will generally fail in this case, since the compilation was not based
 on the original input clauses.
 
 One strength of monolithic proof generation is that it makes no
-assumptions about how the compiled representation.  A complete
+assumptions about how the compiled representation was generated.  A complete
 proof-generating SAT solver could, in principle, always generate the
 forward implication proof, as long as forward implication holds.  To
 test this hypothesis, we ran our proof framework with preprocessing
 enabled on the same 83 benchmarks as in
 Section~\ref{app:experiment:monolithic}.  We measured the time for two
-entire toolchains: one with compilation, proof generation, and
-checking, and the other starting with preprocessing and then having
+entire toolchains: one with compilation, proof generation, 
+checking, and counting, and the other starting with preprocessing and then having
 the same steps as the other.  The results are summarized in
 Figures~\ref{fig:preprocess:time} and \ref{fig:preprocess:clauses}.
 Setting a time limit of 1000 seconds, 70 of the formulas completed
@@ -806,7 +806,7 @@ optimizing the verified checker.
 \section{Comparison with other Certification Frameworks}
 \label{app:comparison}
 
-This section provides more insights into how our proof framework (POG)
+This section provides more insights into how our proof framework (CPOG)
 compares with other work in certified knowledge compilation and model counting.
 
 
@@ -839,11 +839,9 @@ internal preprocessor.
 
 To compare the performance of our toolchain versus that of
 MICE~\cite{fichte:sat:2022}, we consider how the combination of proof
-generation, proof checking, and ring evaluation in the CPOG toolchain compares to the time to
+generation, proof checking, and counting in the CPOG toolchain compares to the time to
 run their proof generator \progname{nnf2trace} and checker
-\progname{sharptrace}.  We add the time for ring evaluation on our
-side, since their checker provides a count, although only an
-unweighted one.  We used the prototype versions of the checker and ring evaluator.
+\progname{sharptrace}.
 We ran their tools on the 92 benchmark problems for
 which our toolchain requires at most 3000 seconds and retained
 the 84 data points for which at least one of the toolchains completes in under 1000 seconds.
