@@ -12,6 +12,10 @@ all:
 	bibtex mc-paper
 	pdflatex mc-paper	
 	pdflatex mc-paper
+	pdflatex mc-supplement
+	bibtex mc-supplement
+	pdflatex mc-supplement	
+	pdflatex mc-supplement
 
 rdata:
 	rm -rf $(SRCDATA)
