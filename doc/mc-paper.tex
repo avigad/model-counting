@@ -677,21 +677,14 @@ operations by traversing the graph from the terminal nodes up to
 the root, computing a value $\rep(\nodeu, w)$ for each node $\nodeu$.
 The final result is then $\rep(\noder, w)$.
 
-POGs generalize dec-DNNF graphs in two ways:
+
+
+We can now define and compare the two related representations:
 \begin{itemize}
-\item They allow negation of arbitrary nodes in the graph, not just
-  variables.  
-  %, and so we allow it in the interest of generality.
-%%  Negation could be useful in some contexts, such as when
-%%  converting binary decision diagrams (BDDs) having complemented
-%%  edges~\cite{brace-dac-1990,minato-dac-1990} into POGs.
-\item As with det-DNNF~\cite{darwiche:aaai:2002,darwiche:jair:2002}, they allow arbitrary arguments to a $\por$ operation, as long as
-  these have disjoint models.  By contrast, each
-  sum node $\nodeu$ in a dec-DNNF must have two children $\nodeu_1$ and $\nodeu_0$, and for these there must be a \emph{decision variable} $x$ such that
+\item A det-DNNF graph is a POG with negation applied only to the variables.
+\item A dec-DNNF graph is det-DNNF graph with the further restriction that any
+  sum node $\nodeu$ has have exactly two children $\nodeu_1$ and $\nodeu_0$, and for these there is a \emph{decision variable} $x$ such that
   any total assignment $\assign \in  \modelset(\nodeu_b)$ has $\assign(x)=b$, for $b \in \{0,1\}$.
-%%Our generalization is provided to allow an
-%%  encoding of Sentential Decision Diagrams (SDDs)~\cite{darwiche:ijcai:2011} as
-%%  POGs.  This is discussed in Section~\ref{sect:future}, describing possible future research.
 \end{itemize}
 The generalizations encompassed by POGs have also been referred to as \emph{deterministic decomposable circuits} (d-Ds)~\cite{monet:amw:2018}.
 Our current proof generator only works for knowledge compilers
