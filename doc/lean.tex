@@ -47,7 +47,7 @@ node $\noder$:
 
 \begin{theorem}
 \label{thm:lean:equiv}
-If the proof checker has assembled POG $P$ with root node $\noder$ starting from input formula $\inputformula$, and \textsc{final conditions} hold of the checker state, then $\inputformula$ is logically equivalent to $\phi_\noder$.
+If the proof checker has assembled POG $P$ with root node $\noder$ starting from input formula $\inputformula$, and \textsc{final conditions} (as stated in Section~\ref{subsection:semantics}) hold of the checker state, then $\inputformula$ is logically equivalent to $\phi_\noder$.
 \end{theorem}
 \begin{proof}
 \textsc{Final conditions} imply that the active clausal formula $\theta$ is exactly $\pogformula \doteq \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$. The conclusion follows from this and the checker invariants. The full proof is formally verified in Lean.
