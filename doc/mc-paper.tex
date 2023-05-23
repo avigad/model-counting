@@ -209,7 +209,7 @@ We have designed  CPOG, a framework that can express proofs of equivalence betwe
 POG  and a Boolean formula in conjunctive normal form (CNF).
 
 We have developed a program that generates POG representations from dec-DNNF
-graphs 
+graphs
 produced by the state-of-the-art knowledge compiler
 \dfour{}, as well as checkable CPOG proofs certifying that the output POGs
 are equivalent to the input CNF formulas.  Our toolchain
@@ -265,11 +265,11 @@ Kimmig et al.\ present a very general {\em
   algebraic model counting}~\cite{kimmig:jal:2017} framework describing
 properties of Boolean functions that can be efficiently computed from
 a det-DNNF representation.  These include standard and weighted model
-counting, and much more.  
+counting, and much more.
 
 One shortcoming of existing knowledge compilers is that they have no
 generally accepted
-way to validate that 
+way to validate that
 the compiled representation is logically equivalent to the original
 formula.  By contrast, all modern SAT solvers can generate
 checkable proofs when they encounter unsatisfiable formulas.  The
@@ -423,7 +423,7 @@ Completing the certification involves running two different checkers on
 the annotated dec-DNNF graph and the DRAT file.
 Although the authors make informal arguments
 regarding the soundness of their frameworks, these do not provide
-strong levels of assurance.  Indeed, 
+strong levels of assurance.  Indeed,
 we have identified a weakness in the their
 methodology due to an invalid assumption about the
 guarantees provided by \dtrim{}, the program it uses to check the
@@ -444,7 +444,7 @@ not preserve models.  As an example, consider the following formulas:
 \begin{center}
   \begin{tabular}{lccc}
     $\phi_1$: & $(x_1 \lor x_3)$ & & \\
-    $\phi_2$: & $(x_1 \lor x_3)$ & $\land$ & $(x_2 \lor \obar{x}_3)$\\    
+    $\phi_2$: & $(x_1 \lor x_3)$ & $\land$ & $(x_2 \lor \obar{x}_3)$\\
   \end{tabular}
 \end{center}
 Clearly, these two formulas are not equivalent---$\phi_1$ has six
@@ -453,7 +453,7 @@ arbitrary assignments to variable $x_2$.  Critically, however the
 second clause of $\phi_2$ is RAT with respect to $\phi_1$---any
 satisfying assignment to $\phi_1$ can be transformed into one that
 also satisfies $\phi_2$ by setting $x_2$ to 1.
-  
+
 This weakness would allow a buggy (or malicious) version
 of \cdfour{} to generate a compiled representation of $\phi_2$ when
 given $\phi_1$ as its input.  By adding the second clause to $R$,
@@ -465,11 +465,11 @@ their compiler and checker.\footnote{Downloaded May 18, 2023 as\\
 
 This weakness can be corrected by restricting \dtrim{} to only add
 clauses that obey the stronger \emph{reverse unit propagation} (RUP) property~\cite{goldberg,vangelder08_verifying_rup_proofs}.  We have added a
-commandline argument to \dtrim{} that enforces this
+command-line argument to \dtrim{} that enforces this
 restriction.\footnote{Available at
 \url{https://github.com/marijnheule/drat-trim/releases/tag/v05.22.2023}.}  This weakness, however, illustrates the general challenge of
 developing a new proof framework.
-Without a formal verification, there are likely to be 
+Without a formal verification, there are likely to be
 conditions that make the framework unsound.
 
 Fichte, Hecher, and Roland~\cite{fichte:sat:2022} devised the MICE
@@ -479,7 +479,7 @@ developed a program that can generate proof traces from dec-DNNF
 graphs and a program to check adherence to their proof rules.  This
 framework is not directly comparable to ours, since it only certifies
 the unweighted model count, but it has similar goals.
-Again, they provide only  informal arguments 
+Again, they provide only  informal arguments
 regarding the soundness of their frameworks.
 
 Both of these prior certification frameworks are strongly tied to the
@@ -641,11 +641,11 @@ Performing ring evaluation on an arbitrary Boolean formula could be intractable,
 Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the following for any weight function $w$:
 \begin{displaymath}
 \begin{array}{rcl}
-\rep(\boolnot \phi,\; w) &=& \mulident - \rep(\phi, w) \\ 
+\rep(\boolnot \phi,\; w) &=& \mulident - \rep(\phi, w) \\
 \textstyle
-\scalebox{1.2}{\rep}\left(\Pand_{1 \leq i \leq k} \phi_i,\; w \right) &=& \prod_{1 \leq i \leq k} \rep(\phi_i, w) \\ 
+\scalebox{1.2}{\rep}\left(\Pand_{1 \leq i \leq k} \phi_i,\; w \right) &=& \prod_{1 \leq i \leq k} \rep(\phi_i, w) \\
 \textstyle
-\scalebox{1.2}{\rep}\left(\Por_{1 \leq i \leq k} \phi_i,\; w\right) &=& \sum_{1 \leq i \leq k} \rep(\phi_i, w) \\ 
+\scalebox{1.2}{\rep}\left(\Por_{1 \leq i \leq k} \phi_i,\; w\right) &=& \sum_{1 \leq i \leq k} \rep(\phi_i, w) \\
 \end{array}
 \end{displaymath}
 \end{proposition}
@@ -1040,7 +1040,7 @@ we can therefore assume
 that the POG does not contain any constant nodes.
 In addition, negation is only
 applied to variables, and so the only edges with negative polarity will have variables as children.
-We can therefore 
+We can therefore
 view the POG as consisting
 of \emph{literal} nodes corresponding to input variables and their negations, along with
 \emph{nonterminal} nodes, which can be further classified as \emph{product} and \emph{sum} nodes.
@@ -1176,7 +1176,7 @@ creating the hint by combining the results from the BCP and SAT calls for
   the first defining clause for node $\nodeu$
 (see Table~\ref{tab:defining}(A)).
 \end{enumerate}
-Observe that 
+Observe that
 all of these steps involve a polynomial number of
 operations per recursive call, with the exception of those that call
 a SAT solver to validate a literal.
@@ -1230,7 +1230,7 @@ conflict.
 
 It can be seen that the reverse implication proof will be polynomial in the size of the POG\@, because
 each clause deletion requires a single RUP step having a hint with length
-bounded by the number of POG nodes.  
+bounded by the number of POG nodes.
 
 \section{Optimizations}
 
@@ -1344,7 +1344,7 @@ for one of the weighted benchmarks.
 
 \input{figure-combined-verify}
 
-We summarize the results of our experiments here.  
+We summarize the results of our experiments here.
 The supplement~\cite{bryant:sat:2023:supplement}
 provides a more complete description. For our
 evaluation, we used the public benchmark problems from the 2022
@@ -1367,7 +1367,7 @@ We ran our proof generator with a time limit of 10,000 seconds.  The
 results are shown in Figure~\ref{fig:dual:total}, The left-hand plot
 shows the elapsed time for the combination of proof generation,
 checking, and counting versus the time for
-\dfour{}.  
+\dfour{}.
 The proof generator was able to generate full proofs for 108 of the problems and
 one-sided proofs for an additional 9 of them, leaving just 7 with no
 verification.  The prototype checker successfully verified all of the generated
