@@ -413,21 +413,22 @@ additional proof steps, including clause deletion steps, and subtle
 invariants, as described in Sections~\ref{sect:cpog} and
 \ref{section:formally-verified-toolchain}.
 
-Capelli, Lagniez, and Marquis developed a knowledge compiler
-that generates a certificate in a proof system that is itself based on
-dec-DNNF~\cite{capelli:sat:2019,capelli:aaai:2021}.  Their \cdfour{} program,
-a modified version of \dfour{}, generates annotations to the
-compiled representation, providing information about how the compiled version relates to the input clauses.
-It also generates a file of clausal proof steps in the DRAT format~\cite{wetzler14_drattrim}.
-Completing the certification involves running two different checkers on
-the annotated dec-DNNF graph and the DRAT file.
-Although the authors make informal arguments
-regarding the soundness of their frameworks, these do not provide
-strong levels of assurance.  Indeed,
-we have identified a weakness in the their
-methodology due to an invalid assumption about the
-guarantees provided by \dtrim{}, the program it uses to check the
-DRAT file.
+Capelli, Lagniez, and Marquis developed a knowledge compiler that
+generates a certificate in a proof system that is itself based on
+dec-DNNF~\cite{capelli:sat:2019,capelli:aaai:2021}.  Their \cdfour{}
+program, a modified version of \dfour{}, generates annotations to the
+compiled representation, providing information about how the compiled
+version relates to the input clauses.  It also generates a file of
+clausal proof steps in the DRAT format~\cite{wetzler14_drattrim}.
+Completing the certification involves running two different checkers
+on the annotated dec-DNNF graph and the DRAT file.  Although the
+authors make informal arguments regarding the soundness of their
+frameworks, these do not provide strong levels of assurance.  Indeed,
+we have identified a weakness in the their methodology due to an
+invalid assumption about the guarantees provided by \dtrim{}, the
+program it uses to check the DRAT file.  Moreover, this weakness is
+\emph{exploitable}: their framework can be ``spoofed'' into accepting
+an incorrect compilation.
 
 In more detail, \cdfour{} emits a sequence of clauses $R$ that
 includes the conflict clauses that arose via a top-down processing of
@@ -449,15 +450,15 @@ not preserve models.  As an example, consider the following formulas:
 \end{center}
 Clearly, these two formulas are not equivalent---$\phi_1$ has six
 models, while $\phi_2$ has four.  In particular, $\phi_1$ allows
-arbitrary assignments to variable $x_2$.  Critically, however the
+arbitrary assignments to variable $x_2$.  Critically, however, the
 second clause of $\phi_2$ is RAT with respect to $\phi_1$---any
 satisfying assignment to $\phi_1$ can be transformed into one that
-also satisfies $\phi_2$ by setting $x_2$ to 1.
+also satisfies $\phi_2$ by setting $x_2$ to 1, while keeping the values for other variables fixed.
 
-This weakness would allow a buggy (or malicious) version
-of \cdfour{} to generate a compiled representation of $\phi_2$ when
-given $\phi_1$ as its input.  By adding the second clause to $R$,
-the check with \dtrim{} would pass, as would the other tests performed
+This weakness would allow a buggy (or malicious) version of \cdfour{}
+to spoof the checking framework.  Given formula $\phi_1$ as input, it
+could produce a compiled result, including annotations, based on $\phi_2$ and also include the second clause of $\phi_2$ to $R$.
+The check with \dtrim{} would pass, as would the other tests performed
 by their checker.  We have confirmed this possibility with
 their compiler and checker.\footnote{Downloaded May 18, 2023 as\\
 \url{https://github.com/crillab/d4/tree/333370cc1e843dd0749c1efe88516e72b5239174}.}
@@ -469,7 +470,8 @@ command-line argument to \dtrim{} that enforces this
 restriction.\footnote{Available at
 \url{https://github.com/marijnheule/drat-trim/releases/tag/v05.22.2023}.}  This weakness, however, illustrates the general challenge of
 developing a new proof framework.
-Without a formal verification, there are likely to be
+As we can attest,
+without engaging in the effort to formally verify the framework, there are likely to be
 conditions that make the framework unsound.
 
 Fichte, Hecher, and Roland~\cite{fichte:sat:2022} devised the MICE
@@ -480,7 +482,7 @@ graphs and a program to check adherence to their proof rules.  This
 framework is not directly comparable to ours, since it only certifies
 the unweighted model count, but it has similar goals.
 Again, they provide only  informal arguments
-regarding the soundness of their frameworks.
+regarding the soundness of their framework.
 
 Both of these prior certification frameworks are strongly tied to the
 algorithms used by the knowledge compilers and model counters.  Some
@@ -929,9 +931,9 @@ The declaration of a \emph{product} operation, creating a node with operation $\
 \end{center}
 Integer $i$ is a new clause ID, $v$ is a positive integer that does not
 correspond to any previous variable, and $\lit_1, \lit_2, \ldots, \lit_k$ is a sequence of $k$
-integers representing literals of existing variables.
+integers, indicating the arguments as literals of existing variables.
 As Table~\ref{tab:defining}(A) shows,
-this declaration implicitly causes $k+1$ clauses to be added to the proof, defining extension variable $v$ to be the product of its arguments.
+this declaration implicitly causes $k+1$ clauses to be added to the proof, using a Tseitin encoding to define extension variable $v$ as the product of its arguments.
 
 The dependency sets for the arguments represented by each pair of
 literals $\lit_i$
@@ -950,11 +952,12 @@ The declaration of a \emph{sum} operation, creating a node with operation $\por$
 \end{center}
 Integer $i$ is a new clause ID, $v$ is a positive integer that does
 not correspond to any previous variable, and $\lit_1$ and $\lit_2$ are
-signed integers representing literals of existing variables.  Hint $H$
+signed integers, indicating the arguments as literals of existing variables.  Hint $H$
 consists of a
-sequence of clause IDs, all of which must be defining clauses for other POG operations.
+sequence of clause IDs, all of which must be defining clauses for other POG operations.\footnote{The restriction to defining clauses in the hint is critical to soundness.
+Allowing the hint to include the IDs of input clauses creates an exploitable weakness.  We discovered this weakness in the course of our efforts at formal verification.}
 As Table~\ref{tab:defining}(B) shows,
-this declaration implicitly causes three clauses to be added to the proof, defining extension variable $v$ to be the sum of its arguments.
+this declaration implicitly causes three clauses to be added to the proof, using a Tseitin encoding to define extension variable $v$ as be the sum of its arguments.
 The hint must provide a RUP proof of the clause $\obar{\lit}_1 \lor \obar{\lit}_2$, showing that the two children of this node have disjoint models.
 
 Finally, the literal denoting the root of the POG is declared with the
@@ -1458,7 +1461,7 @@ representations, such as sentential decision diagrams (SDDs)~\cite{darwiche:ijca
 %% for $1 \leq i \leq k$, and then $k-1$ binary sum nodes to form
 %% the sum of $t_1, \ldots, t_k$.
 
-\newpage
+%%\newpage
 
 \bibliography{references}
 
