@@ -20,6 +20,7 @@
 \usepackage{amssymb}
 \usepackage{tikz}
 \usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usepackage{booktabs}
 \usepackage{hyperref}
 
@@ -386,11 +387,9 @@ and so proof checking certifies correct operation of the preprocessor,
 the knowledge compiler, and the proof generator.
 
 We have developed an online supplement to this
-paper~\cite{bryant:sat:2023:supplement} containing additional
-information, including a worked example, details on the algorithms,
-and extensive experimental results.  The archive also includes copies
-of the programs and a set of benchmark files.
-
+paper~\cite{bryant:sat:2023:supplement} that includes
+a worked example, more details on the algorithms,
+and extensive experimental results.  
 
 \section{Related Work}
 
@@ -457,7 +456,7 @@ also satisfies $\phi_2$ by setting $x_2$ to 1, while keeping the values for othe
 
 This weakness would allow a buggy (or malicious) version of \cdfour{}
 to spoof the checking framework.  Given formula $\phi_1$ as input, it
-could produce a compiled result, including annotations, based on $\phi_2$ and also include the second clause of $\phi_2$ to $R$.
+could produce a compiled result, including annotations, based on $\phi_2$ and also include the second clause of $\phi_2$ in $R$.
 The check with \dtrim{} would pass, as would the other tests performed
 by their checker.  We have confirmed this possibility with
 their compiler and checker.\footnote{Downloaded May 18, 2023 as\\
@@ -1341,7 +1340,7 @@ If the proof checker has assembled POG $P$ with root node $\noder$ starting from
 \begin{proof}
 \textsc{Final conditions} imply that the active clausal formula $\theta$ is exactly $\pogformula \doteq \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$. The conclusion follows from this and the checker invariants. The full proof is formally verified in Lean.
 \end{proof}
-After certifying a CPOG proof, the checker can pass its in-memory POG representation to the ring evaluator. We can conclude that this is partitioned directly from \texttt{invariants.partitioned}.
+After certifying a CPOG proof, the checker can pass its in-memory POG representation to the ring evaluator, along with the partitioning guarantee provided by \texttt{invariants.partitioned}.
 
 \vspace{1em}\noindent
 \textbf{Ring evaluation}. We formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem
@@ -1405,7 +1404,7 @@ we have that the number of models of \lstinline{φ} on its variables is
 We have implemented programs that, along with
 the \dfour{} knowledge compiler, form the toolchain illustrated in
 Figure~\ref{fig:chain}.\footnote{The source code for all tools
-is available as part of the supplement~\cite{bryant:sat:2023:supplement}}  The proof generator is the same in both
+is available at \url{https://github.com/rebryant/cpog/releases/tag/v1.0.0}.}  The proof generator is the same in both
 cases, since it need not be trusted.
 Our \emph{verified}
 version of the proof checker and ring evaluator have been formally
