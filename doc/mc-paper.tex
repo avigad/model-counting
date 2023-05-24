@@ -1283,7 +1283,122 @@ results~\cite{bryant:sat:2023:supplement} show that these
 optimizations yield substantial benefits.
 
 
-\input{lean}
+%%\input{lean}
+
+\section{A Formally Verified Toolchain}
+\label{section:formally-verified-toolchain}
+
+We set out to formally verify the system with two goals in mind: first, to ensure that the CPOG framework is mathematically
+sound; and second, to implement correct-by-construction proof checking and ring evaluation (the ``Trusted Code'' components of \cref{fig:chain}). These two goals are achieved with a single proof development in the \lean{} programming language~\cite{demoura:cade:2021}. Verification was greatly aided by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean} automated tactic. In this section, we briefly describe the functionality we implemented and what we proved about it. More information is provided in the supplement~\cite{bryant:sat:2023:supplement}.
+
+\vspace{1em}\noindent
+\textbf{Proof checking.} The goal of a CPOG proof is to construct a POG that is equivalent to the input CNF $\inputformula$. The POG being constructed, and the set of active clauses are stored in the checker state \texttt{st}. The checker begins by parsing the input formula, initializing the active clauses to $\theta \leftarrow \inputformula$, and initializing the POG $P$ to an empty one. It then processes every step of the CPOG proof, either modifying its state by adding/deleting clauses in $\theta$ and adding nodes to $P$, or throwing an exception if a step is incorrect. Afterwards, it carries out the \textsc{final conditions} check of \cref{subsection:semantics}. Throughout the process, we maintain invariants that ensure that $P$ is partitioned and that a successful final check entails the logical equivalence of $\inputformula$ and $\phi_\noder$, where $\noder$ is the final POG root (\cref{thm:lean:equiv}).
+
+The specifications we use to state these invariants are built on a general theory of propositional logic, mirroring \cref{section:logical:foundations}. Following the DIMACS CNF convention, we define the data types \lstinline{Var} of variables being positive natural numbers, \lstinline{ILit} of literals being non-zero integers, and \lstinline{PropForm} of propositional formulas. \lstinline{PropForm} is generic over the type of variables, so we instantiate it with our type as \lstinline{PropForm Var}. Assignments of truth values are taken to be total functions \lstinline{PropAssignment Var := Var → Bool}. Requiring totality is not a limitation: instead of talking about two equal, partial assignments to a subset $X' \subseteq X$ of variables, we can more conveniently talk about two total assignments that agree on $X'$. We write \lstinline{σ ⊨ φ} when \lstinline{σ : PropAssignment Var} satisfies \lstinline{φ : PropForm Var}.
+
+The invariants refer to the checker state \lstinline{st} with fields \lstinline{st.inputCnf} for $\inputformula$, \lstinline{st.clauseDb} for $\theta$, \lstinline{st.pog} for $P$, \lstinline{st.pogDefsForm} for the clausal POG definitions formula $\bigwedge_{\nodeu\in P}\theta_u$, and \lstinline{st.allVars} for all variables (original and extension) added so far. For any $\nodeu\in P$, \lstinline{st.pog.toPropForm u} computes $\phi_\nodeu$. The first two invariants state that assignments to original variables extend uniquely to extension variables defining the POG nodes. In the formalization, we split this into extension and uniqueness:
+\begin{lstlisting}
+/-- Any assignment satisfying φ₁ extends to φ₂ while preserving values on X. -/
+def extendsOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
+  ∀ (σ₁ : PropAssignment Var), σ₁ ⊨ φ₁ → ∃ σ₂, σ₁.agreeOn X σ₂ ∧ σ₂ ⊨ φ₂
+/-- Assignments satisfying φ are determined on Y by their values on X. -/
+def uniqueExt (X Y : Set Var) (φ : PropForm Var) :=
+  ∀ (σ₁ σ₂ : PropAssignment Var), σ₁ ⊨ φ → σ₂ ⊨ φ → σ₁.agreeOn X σ₂ →
+    σ₁.agreeOn Y σ₂
+
+invariants.extends_pogDefsForm : extendsOver st.inputCnf.vars ⊤ st.pogDefsForm
+invariants.uep_pogDefsForm : uniqueExt st.inputCnf.vars st.allVars st.pogDefsForm
+\end{lstlisting}
+Note that in the definition of \lstinline{uniqueExt}, the arrows associate to the right,
+so the definition says that the three assumptions imply the conclusion.
+The next invariant guarantees that the set of solutions over the original variables is preserved:
+\begin{lstlisting}
+def equivalentOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
+  extendsOver X φ₁ φ₂ ∧ extendsOver X φ₂ φ₁
+
+invariants.equivInput : equivalentOver st.inputCnf.vars st.inputCnf st.clauseDb
+\end{lstlisting}
+Finally, for every node $\nodeu\in P$ with corresponding literal $u$ we ensure that $\phi_\nodeu$ is partitioned (\cref{def:partitioned-operation-formula}) and relate $\phi_\nodeu$ to its clausal encoding $\theta_u \doteq u \wedge \bigwedge_{\nodev\in P}\theta_v$:
+\begin{lstlisting}
+def partitioned : PropForm Var → Prop
+  | tr | fls | var _ => True
+  | neg φ    => φ.partitioned
+  | disj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ ∀ τ, ¬(τ ⊨ φ ∧ τ ⊨ ψ)
+  | conj φ ψ => φ.partitioned ∧ ψ.partitioned ∧ φ.vars ∩ ψ.vars = ∅
+
+invariants.partitioned : ∀ (u : ILit), (st.pog.toPropForm u).partitioned
+invariants.equivalent_lits : ∀ (u : ILit), equivalentOver st.inputCnf.vars
+    (u ∧ st.pogDefsForm) (st.pog.toPropForm x)
+\end{lstlisting}
+These invariants are maintained by valid CPOG proofs. Together with additional invariants
+that ensure the correctness of cached computations, they imply the soundness theorem for $P$ with root
+node $\noder$:
+
+\begin{theorem}
+\label{thm:lean:equiv}
+If the proof checker has assembled POG $P$ with root node $\noder$ starting from input formula $\inputformula$, and \textsc{final conditions} (as stated in Section~\ref{subsection:semantics}) hold of the checker state, then $\inputformula$ is logically equivalent to $\phi_\noder$.
+\end{theorem}
+\begin{proof}
+\textsc{Final conditions} imply that the active clausal formula $\theta$ is exactly $\pogformula \doteq \{\{r\}\} \cup \; \bigcup_{\nodeu \in P} \theta_{u}$. The conclusion follows from this and the checker invariants. The full proof is formally verified in Lean.
+\end{proof}
+After certifying a CPOG proof, the checker can pass its in-memory POG representation to the ring evaluator. We can conclude that this is partitioned directly from \texttt{invariants.partitioned}.
+
+\vspace{1em}\noindent
+\textbf{Ring evaluation}. We formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem
+(\cref{def:ring_evaluation}) in a commutative ring \lstinline{R} as follows:
+\begin{lstlisting}
+def weightSum {R : Type} [CommRing R]
+    (weight : Var → R) (φ : PropForm Var) (s : Finset Var) : R :=
+  ∑ τ in models φ s, ∏ x in s, if τ x then weight x else 1 - weight x
+\end{lstlisting}
+The rules for efficient ring evaluation of partitioned formulas are expressed as:
+\begin{lstlisting}
+def ringEval (weight : Var → R) : PropForm Var → R
+  | tr       => 1
+  | fls      => 0
+  | var x    => weight x
+  | neg φ    => 1 - ringEval weight φ
+  | disj φ ψ => ringEval weight φ + ringEval weight ψ
+  | conj φ ψ => ringEval weight φ * ringEval weight ψ
+\end{lstlisting}
+\Cref{prop:ring:eval} is then formalized as follows:
+\begin{lstlisting}
+theorem ringEval_eq_weightSum (weight : Var → R) {φ : PropForm Var} :
+    partitioned φ → ringEval weight φ = weightSum weight φ (vars φ)
+\end{lstlisting}
+To efficiently compute the ring evaluation of a formula represented by a POG node, we implemented
+\lstinline{Pog.ringEval} and then proved that it matches the specification above:
+\begin{lstlisting}
+theorem ringEval_eq_ringEval (pog : Pog) (weight : Var → R) (x : Var) :
+  pog.ringEval weight x = (pog.toPropForm x).ringEval weight
+\end{lstlisting}
+Applying this to the output of our verified CPOG proof checker, which we know to be partitioned
+and equivalent to the input formula $\inputformula$, we obtain a proof that our toolchain computes
+the correct ring evaluation of $\inputformula$.
+
+\vspace{1em}\noindent
+\textbf{Model counting.} Finally, we established that ring evaluation with the appropriate weights
+corresponds to the standard model count. To do so, we defined a function that
+carries out an integer calculation of the number of models over a set of variables
+of cardinality \lstinline{nVars}:
+\begin{lstlisting}
+def countModels (nVars : Nat) : PropForm Var → Nat
+  | tr       => 2^nVars
+  | fls      => 0
+  | var _    => 2^(nVars - 1)
+  | neg φ    => 2^nVars - countModels nVars φ
+  | disj φ ψ => countModels nVars φ + countModels nVars ψ
+  | conj φ ψ => countModels nVars φ * countModels nVars ψ / 2^nVars
+\end{lstlisting}
+We then formally proved that for a partitioned formula whose variables are among a finite set
+\lstinline{s}, this computation really does count the number of models over \lstinline{s}:
+\begin{lstlisting}
+theorem countModels_eq_card_models {φ : PropForm Var} {s : Finset Var} :
+  vars φ ⊆ s → partitioned φ → countModels (card s) φ = card (models φ s)
+\end{lstlisting}
+In particular, taking \lstinline{s} to be exactly the variables of \lstinline{φ},
+we have that the number of models of \lstinline{φ} on its variables is
+\lstinline{countModels φ (card (vars φ))}.
 
 
 \section{Implementations}
@@ -1345,7 +1460,97 @@ for one of the weighted benchmarks.
 \section{Experimental Evaluation}
 \label{sect:experimental}
 
-\input{figure-combined-verify}
+%%\input{figure-combined-verify}
+
+\begin{figure}
+\begin{minipage}{0.49\textwidth}
+\centering{%
+\begin{tikzpicture}[scale = 0.50]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log,
+      legend style={at={(0.35,0.96)}},
+      legend cell align={left},
+                              x post scale=1.8, y post scale=2.4,
+                              xmode=log,xmin=0.01,xmax=4000,
+                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
+                              ymin=0.01, ymax=29000,
+                              ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
+                              xlabel={D4 runtime (seconds)},
+                              %ylabel={CPOG generation and checking runtime (seconds)},
+%                              title={D4 Defining Clause Generation}
+            ]
+%    \input{data-formatted/time-d4-verify}
+
+\addplot [only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7] coordinates { (5.758,13.334) (0.017,0.022) (0.014,0.034) (0.179,1.754) (0.016,0.046) (0.012,0.012) (0.024,0.13) (0.928,18.877) (0.069,0.624) (0.166,18.378) (1.48,21.674999999999997) (3.356,116.882) (3.184,46.001000000000005) (1.676,46.439) (0.016,0.063) (0.019,0.11100000000000002) (0.472,6.808) (0.02,0.126) (5.048,182.556) (0.398,74.411) (0.685,21.603) (0.252,3.414) (30.753,2292.7690000000002) (0.643,9.902) (2.154,36.441) (1.158,4.7219999999999995) (2.436,83.753) (1.636,132.504) (1.491,59.292) (4.683,1499.441) (30.566,4136.219) (145.967,2177.9669999999996) (2.666,40.712) (0.105,1.923) (5.508,31.97) (244.952,7273.887000000001) (0.206,8.503) (606.378,13198.325) (23.234,39.160000000000004) (0.837,182.089) (49.574,52.467) (25.077,42.550000000000004) (63.691,12374.461) (4.544,147.119) (1.679,359.63) (22.322,4493.414000000001) (2.076,61.509) (70.355,1322.4) (90.915,2908.19) (123.037,6910.268) (112.248,9602.115) (178.14,4147.301) (394.71,517.646) (158.115,180.629) (69.122,315.91) (508.972,258.496) (2.033,84.352) (270.954,433.669) (1536.914,859.557) (19.013,8856.852) (2.938,272.899) (598.709,8218.087) (9.311,105.213) (0.277,2.226) (0.101,1.086) (30.577,394.01700000000005) (0.18,2.051) (0.016,0.064) (0.021,0.134) (0.52,14.541) (0.016,0.063) (0.237,11.949000000000002) (0.985,58.088) (2.278,33.982) (1.053,16.815) (1.326,20.087) (2.908,45.419) (3.441,45.275) (2.06,30.061999999999998) (1.483,108.72) (3.377,47.61) (0.017,0.073) (0.016,0.052000000000000005) (3.536,72.871) (1.337,19.372999999999998) (5.587,81.767) (193.799,9953.933) (89.858,3959.588) (0.023,0.06899999999999999) (49.796,2973.447) (0.718,76.449) (5.364,204.765) (3.21,138.828) (41.455,1955.3980000000001) (1.083,53.278999999999996) (1.695,279.8) (1.345,286.818) (3.111,411.545) (6.397,1495.882) (22.214,666.7180000000001) (65.322,110.378) (22.917,420.612) (272.642,3116.728) (1.929,85.946) (1358.165,5872.383) (3951.002,10810.879) (14.808,1124.911) (93.537,4307.451)};
+
+%    \input{data-formatted/time-d4-verify-onesided-only}
+
+\addplot [only marks, color=bluegray, mark=square*,  mark options={scale=0.8}, opacity=0.7] coordinates { (205.743,2420.6859999999997) (326.575,4433.625) (476.021,3973.2659999999996) (494.38,5879.952) (1046.603,10779.982) (351.999,2069.865) (64.21,479.92100000000005) (316.505,3074.084) (788.377,6710.351000000001)};
+
+%    \input{data-formatted/time-d4-failure}
+
+\addplot [only marks, color=darkgreen, mark=diamond*, mark options={scale=1.1}, opacity=0.7] coordinates { (2052.239,25000) (424.73,25000) (2636.562,25000) (1403.431,25000) (3070.214,25000) (2053.446,25000) (2790.169,25000)};
+
+
+    \legend{
+ \textsf{Full validation},
+ \textsf{One-sided validation},
+ \textsf{Resource limit exceeded},
+    }
+    \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,20000) (4000,20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (2000,20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (200, 20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (20, 20000)};
+    \node[left] at (axis cs: 0.9,0.12) {$0{.}1\times$};
+    \node[left] at (axis cs: 0.09,0.12) {$1\times$};
+    \node[left] at (axis cs: 0.09,1.2) {$10\times$};
+    \node[left] at (axis cs: 0.09,12.0) {$100\times$};
+    \node[left] at (axis cs: 0.09,120.0) {$1000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+\centering{%
+\begin{tikzpicture}[scale = 0.50]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10},
+                              x post scale=1.8, y post scale=2.15,
+                              xmode=log,xmin=100,xmax=1000000000, 
+                              xtick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, xticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              ymode=log, ymin=100, ymax=1000000000, 
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              xlabel={Defining Clauses},
+                              %ylabel={Proof Clauses},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,1000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,10000) (1e7,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,100000) (1e6,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,1000000) (1e5,1e9)};
+%%    \input{data-formatted/defining+total}
+
+\addplot [only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7] coordinates { (18271,161794) (1295,2397) (1659,4427) (127284,262373) (2325,6077) (359,554) (5373,14373) (314359,1213826) (44178,81780) (493,33207) (605988,1117440) (1141369,3809317) (1197649,2211944) (1001050,2393131) (2947,7851) (4991,13207) (355617,721935) (4897,13101) (2437497,5273728) (345,46079) (701346,1593947) (3191,26378) (5985623,28392373) (467550,940819) (1318024,2813565) (4713,23892) (1682059,3160386) (1406192,4043887) (899701,1704811) (4936014,11840667) (8038928,68469623) (70651620,197339867) (9567,251890) (39501,104182) (18007,187551) (125319627,374762287) (82194,297768) (269645146,770382773) (304,427342) (574062,8448281) (887,478450) (1757,399856) (78873354,503117290) (190248,429409) (2064844,13434107) (13737124,141587875) (50722,820648) (45923418,82243431) (83111464,188103550) (40776253,104351646) (79106742,265990284) (3133905,23973053) (16147,1697847) (45214,1277037) (72258,4612352) (905,2500003) (401032,840020) (355,2155900) (63050,4692737) (3195277,6098685) (1125105,4417869) (325251378,736764776) (6074672,13104909) (132891,287958) (65522,136116) (15561156,38336288) (143191,298755) (2851,7851) (5243,13911) (334862,681444) (2659,7335) (82585,317789) (447979,1612224) (905899,1733678) (433226,802268) (551970,1006319) (1891045,3387533) (1210098,2232426) (755273,1440924) (470934,1914084) (1178453,2188886) (3131,8575) (2515,6607) (1903735,4312279) (1107098,1868005) (1801878,3324418) (47556240,206213289) (24087642,83491057) (3109,8227) (16038150,101261480) (312728,642675) (3175308,7847036) (142059,747752) (20382514,69650789) (453769,1563728) (498246,1154507) (797866,6840229) (3835114,17412807) (5035130,10668725) (647011,9905453) (5189,1234644) (740235,2672407) (219979530,417455256) (402460,844395) (2295530,81147729) (1772352,119113610) (3975194,16763326) (8493275,41873955)};
+
+
+    \node[left] at (axis cs: 900,1200) {$1\times$};
+    \node[left] at (axis cs: 900,12000) {$10\times$};
+    \node[left] at (axis cs: 900,120000) {$100\times$};
+    \node[left] at (axis cs: 900,1200000) {$1{,}000\times$};
+    \node[left] at (axis cs: 900,12000000) {$10{,}000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\end{minipage}
+\caption{Runtime (left) and proof size (right) for CPOG proofs.  The runtime includes proof generation, checking, and model counting relative to the runtime for D4.
+  The proof size is measured as total clauses relative to the number of defining clauses.}
+\label{fig:dual:total}
+\end{figure}
+
 
 We summarize the results of our experiments here.
 The supplement~\cite{bryant:sat:2023:supplement}
