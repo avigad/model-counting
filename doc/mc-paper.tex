@@ -431,7 +431,7 @@ program it uses to check the DRAT file.  This weakness is
 an incorrect compilation.
 
 In more detail, \cdfour{} emits a sequence of clauses $R$ that
-includes the conflict clauses that arose via a top-down processing of
+includes the conflict clauses that arose during a top-down processing of
 the input clauses.  Given input formula $\phi_I$, their first task is to
 check whether $\phi_I \imply R$, i.e., that any assignment that satisfies $\phi_I$ also satisfies each of the clauses in $R$.
 They then base other parts of their proof on that
@@ -440,7 +440,7 @@ checks.  They use \dtrim{} to prove the implication, checking that each clause i
 satisifies the \emph{reverse asymmetric tautology} (RAT) property with
 respect to the preceding
 clauses~\cite{heule:cade:2013,jarvisalo:ijcar:2012}.  Adding a RAT
-clause $C$ to a set of clauses maintains satisfiability, but does not necessarily
+clause $C$ to a set of clauses maintains satisfiability, but it does not necessarily
 preserve models.  As an example, consider the following formulas:
 \begin{center}
   \begin{tabular}{lccc}
