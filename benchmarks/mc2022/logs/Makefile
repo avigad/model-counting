@@ -2,6 +2,7 @@ INTERP = python3
 TDIR = ../../../tools
 GRAB = $(TDIR)/grab_data.py
 MERGE = $(TDIR)/merge_csv.py
+TWEAK = $(TDIR)/tweak_csv.py
 
 data:
 	$(INTERP) $(GRAB) "Read D4 NNF" *.onesided_log > nodes-nnf.csv	
@@ -85,10 +86,22 @@ data:
 	$(INTERP) $(GRAB) "N2T LOG: Elapsed" *.mice_log > seconds-n2t.csv
 	$(INTERP) $(GRAB) "TC LOG: Elapsed" *.mice_log > seconds-tc.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-n2t.csv seconds-tc.csv >  time-mice.csv
-	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen.csv seconds-check.csv > time-ours.csv
-	$(INTERP) $(MERGE) -f time-ours.csv time-mice.csv models-mice.csv \
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen.csv seconds-check.csv > time-pog.csv
+	$(INTERP) $(MERGE) -f time-pog.csv time-mice.csv models-mice.csv \
 		| sed 's/1436.934/1500/g' | sed 's/1875.151/1500/g'> time-mice-compare.csv
-	$(INTERP) $(MERGE) -f timeouts-mice.csv time-ours.csv 1500 > time-mice-timeout.csv
+	$(INTERP) $(MERGE) -f timeouts-mice.csv time-pog.csv 1500 > time-mice-timeout.csv
 	$(INTERP) $(GRAB) "LCHECK LOG: Elapsed" *.lean_log > seconds-check-lean.csv
 	$(INTERP) $(MERGE) -f clauses-total.csv seconds-check.csv seconds-check-lean.csv > time-check-regular-lean.csv
+
+	$(INTERP) $(GRAB) "D4 LOG: Elapsed" *.cd4_log > seconds-d4-cd4.csv
+	$(INTERP) $(GRAB) "DTRIM LOG: Elapsed" *.cd4_log > seconds-dtrim-cd4.csv
+	$(INTERP) $(GRAB) "c Global time" *.cd4_log > seconds-check-cd4.csv
+	$(INTERP) $(GRAB) "DTRIM ERROR: Timeout" *.cd4_log > timeout-dtrim-cd4.csv
+	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-d4-cd4.csv seconds-dtrim-cd4.csv seconds-check-cd4.csv > time-toolchain-cd4.csv
+	$(INTERP) $(MERGE) -f -s 1:2:3 seconds-d4.csv seconds-gen.csv seconds-check.csv > time-toolchain-pog.csv
+	$(INTERP) $(MERGE) -f time-toolchain-pog.csv time-toolchain-cd4.csv \
+		| $(INTERP) $(TWEAK) -c 5 -t 1000 -v 1500 | $(INTERP) $(TWEAK) -c 9 -t 1000 > time-toolchain-compare.csv
+	$(INTERP) $(MERGE) -f failures-total.csv 1500 time-toolchain-cd4.csv \
+		| $(INTERP) $(TWEAK) -c 7 -t 1000 > time-toolchain-compare-pog-fail.csv
+	$(INTERP) $(MERGE) -f time-toolchain-pog.csv timeout-dtrim-cd4.csv 1500 > time-toolchain-compare-cd4-timeout.csv
 

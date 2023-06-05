@@ -1,0 +1,878 @@
+\documentclass[letterpaper,USenglish,cleveref, autoref, thm-restate]{lipics-v2021}
+%This is a template for producing LIPIcs articles.
+%See lipics-v2021-authors-guidelines.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling autoref support, use "autoref"
+%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
+%for enabling thm-restate support, use "thm-restate"
+%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
+%for producing a PDF according the PDF/A standard, add "pdfa"
+
+%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\newcommand{\pand}{\mathbin{\land^\textsf{p}}}
+\newcommand{\por}{\mathbin{\lor^\textsf{p}}}
+\DeclareMathOperator*{\Pand}{\bigwedge^\textsf{p}}
+\DeclareMathOperator*{\Por}{\bigvee^\textsf{p}}
+\newcommand{\boolnot}{\neg}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\oneminus}{{\sim}}
+\newcommand{\lit}{\ell}
+
+\newcommand{\varset}{X}
+\newcommand{\exvarset}{Z}
+\newcommand{\dependencyset}{{\cal D}}
+\newcommand{\litset}{{\cal L}}
+\newcommand{\ring}{{\cal R}}
+\newcommand{\dset}{{\cal A}}
+\newcommand{\rep}{\textbf{R}}
+\newcommand{\radd}{+}
+\newcommand{\rmul}{\times}
+\newcommand{\addident}{\textbf{0}}
+\newcommand{\mulident}{\textbf{1}}
+\newcommand{\imply}{\Rightarrow}
+\newcommand{\ifandonlyif}{\Leftrightarrow}
+%\newcommand{\drational}{\mathbb{Q}_{2,5}}
+\newcommand{\drational}{\textbf{Q}_{2,5}}
+\newcommand{\entail}{\vDash}
+\newcommand{\entaildrat}{\entail_{\textrm{DRAT}}}
+
+\newcommand{\assign}{\alpha}
+\newcommand{\passign}{\rho}
+\newcommand{\lassign}{\beta}
+\newcommand{\uassign}{{\cal U}}
+\newcommand{\modelset}{{\cal M}}
+
+\newcommand{\indegree}{\textrm{indegree}}
+\newcommand{\outdegree}{\textrm{outdegree}}
+\newcommand{\validate}{\textsf{validate}}
+\newcommand{\prov}{\textrm{Prov}}
+\newcommand{\inputformula}{\phi_I}
+\newcommand{\pogformula}{\theta_P}
+
+\newcommand{\makenode}[1]{\mathbf{#1}}
+\newcommand{\nodeu}{\makenode{u}}
+\newcommand{\nodev}{\makenode{v}}
+\newcommand{\nodes}{\makenode{s}}
+\newcommand{\nodep}{\makenode{p}}
+\newcommand{\noder}{\makenode{r}}
+
+\newcommand{\simplify}[2]{#1|_{#2}}
+
+\newcommand{\progname}[1]{\textsc{#1}}
+\newcommand{\dfour}{\progname{D4}}
+\newcommand{\cdfour}{\progname{CD4}}
+\newcommand{\Dfour}{\progname{D4}}
+\newcommand{\cadical}{\progname{CaDiCal}}
+\newcommand{\dtrim}{\progname{drat-trim}}
+\newcommand{\Dtrim}{\progname{Drat-trim}}
+
+\definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
+\definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
+\definecolor{clearyellow}{rgb}{0.964706, 0.745098, 0}
+\definecolor{clearorange}{rgb}{0.917647, 0.462745, 0}
+\definecolor{mildgray}{rgb}{0.54902, 0.509804, 0.47451}
+\definecolor{softblue}{rgb}{0.643137, 0.858824, 0.909804}
+\definecolor{bluegray}{rgb}{0.141176, 0.313725, 0.603922}
+\definecolor{lightgreen}{rgb}{0.709804, 0.741176, 0}
+\definecolor{darkgreen}{rgb}{0.152941, 0.576471, 0.172549}
+\definecolor{redpurple}{rgb}{0.835294, 0, 0.196078}
+\definecolor{midblue}{rgb}{0, 0.592157, 0.662745}
+\definecolor{clearpurple}{rgb}{0.67451, 0.0784314, 0.352941}
+\definecolor{browngreen}{rgb}{0.333333, 0.313725, 0.145098}
+\definecolor{darkestpurple}{rgb}{0.396078, 0.113725, 0.196078}
+\definecolor{greypurple}{rgb}{0.294118, 0.219608, 0.298039}
+\definecolor{darkturquoise}{rgb}{0, 0.239216, 0.298039}
+\definecolor{darkbrown}{rgb}{0.305882, 0.211765, 0.160784}
+\definecolor{midgreen}{rgb}{0.560784, 0.6, 0.243137}
+\definecolor{darkred}{rgb}{0.576471, 0.152941, 0.172549}
+\definecolor{darkpurple}{rgb}{0.313725, 0.027451, 0.470588}
+\definecolor{darkestblue}{rgb}{0, 0.156863, 0.333333}
+\definecolor{lightpurple}{rgb}{0.776471, 0.690196, 0.737255}
+\definecolor{softgreen}{rgb}{0.733333, 0.772549, 0.572549}
+\definecolor{offwhite}{rgb}{0.839216, 0.823529, 0.768627}
+\definecolor{medgreen}{rgb}{0.15, 0.6, 0.15}
+
+% Lean code:
+\usepackage{listings}
+%\definecolor{keywordcolor}{rgb}{0.7, 0.1, 0.1}   % red
+\definecolor{keywordcolor}{rgb}{0.0, 0.1, 0.6}   % blue
+\definecolor{tacticcolor}{rgb}{0.0, 0.1, 0.6}    % blue
+\definecolor{commentcolor}{rgb}{0.4, 0.4, 0.4}   % grey
+\definecolor{symbolcolor}{rgb}{0.0, 0.1, 0.6}    % blue
+\definecolor{sortcolor}{rgb}{0.1, 0.5, 0.1}      % green
+\definecolor{attributecolor}{rgb}{0.7, 0.1, 0.1} % red
+\def\lstlanguagefiles{lstlean.tex}
+% set default language
+\lstset{language=lean, xleftmargin=1em}
+\lstset{backgroundcolor=\color{white}}
+
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{SUPPLEMENT to \\ Certified Knowledge Compilation \\ with Application to Verified Model Counting}
+\hideLIPIcs
+
+\titlerunning{Certified Knowledge Compilation}
+
+\author{Randal E. Bryant}{Computer Science Department, Carnegie Mellon University, Pittsburgh, PA 15213 USA}{Randy.Bryant@cs.cmu.edu}{https://orcid.org/0000-0001-5024-6613}{Supported by NSF grant CCF-2108521}
+\author{Wojciech Nawrocki}{Department of Philosophy, Carnegie Mellon University}{wjnawrocki@cmu.edu}{https://orcid.org/0000-0002-8839-0618}{Hoskinson Center for Formal Mathematics}
+\author{Jeremy Avigad}{Department of Philosophy, Carnegie Mellon University}{avigad@cmu.edu}{https://orcid.org/0000-0003-1275-315X}{Hoskinson Center for Formal Mathematics}
+\author{Marijn J. H. Heule}{Computer Science Department, Carnegie Mellon University}{marijn@cmu.edu}{https://orcid.org/0000-0002-5587-8801}{Supported by NSF grant CCF-2108521}
+
+\authorrunning{R. E. Bryant et al.} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+\Copyright{Randal E. Bryant, Wojciech Nawrocki, Jeremy Avigad, and Marijn J. H. Heule} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+%\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10003752.10003790.10003794</concept_id>
+       <concept_desc>Theory of computation~Automated reasoning</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Automated reasoning}
+
+
+%\keywords{Dummy keyword} %TODO mandatory; please add comma-separated list of keywords
+\keywords{Propositional model counting, Proof checking}
+
+%\category{} %optional, e.g. invited paper
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+\nolinenumbers %uncomment to disable line numbering
+
+\EventEditors{Meena Mahajan and Friedrich Slivovsky}
+\EventNoEds{2}
+\EventLongTitle{26th International Conference on Theory and Applications of Satisfiability Testing (SAT 2023)}
+\EventShortTitle{SAT 2023}
+\EventAcronym{SAT}
+\EventYear{2023}
+\EventDate{July 4--8, 2023}
+\EventLocation{Alghero, Italy}
+\EventLogo{}
+\SeriesVolume{271}
+\ArticleNo{6}
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\EventEditors{John Q. Open and Joan R. Access}
+%\EventNoEds{2}
+%\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+%\EventShortTitle{CVIT 2016}
+%\EventAcronym{CVIT}
+%\EventYear{2016}
+%\EventDate{December 24--27, 2016}
+%\EventLocation{Little Whinging, United Kingdom}
+%\EventLogo{}
+%\SeriesVolume{42}
+%\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\program}[1]{\textsc{#1}}
+\newcommand{\lean}{Lean~4}
+
+\begin{document}
+
+\maketitle
+
+
+
+This document is a supplement to the paper
+``Certified Knowledge Compilation with Applications to Verified Model Counting,''
+published at the 2023 Conference on Theory and Applications of SAT Testing (SAT).
+
+
+\section{CPOG Example}
+\label{app:cpog:example}
+
+\begin{figure}
+\begin{minipage}{0.58\textwidth}
+(A)  Input Formula\\[1.2ex]
+\begin{tabular}{lll}
+\toprule
+\makebox[5mm]{ID} & \makebox[15mm]{Clauses} & \\
+\midrule
+1 & \texttt{-1 3 -4} & \texttt{0} \\
+2 & \texttt{-1 -3 4} & \texttt{0} \\
+3 & \texttt{3 -4} & \texttt{0}\\
+4 & \texttt{1 -3 4} & \texttt{0} \\
+5 & \texttt{-1 -2} & \texttt{0} \\
+\bottomrule
+\end{tabular}
+\\[1.8ex]
+(C) POG Declaration\\[1.2ex]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line} & Explanation \\
+\midrule
+6 & \texttt{p 5 -3 -4} & \texttt{0} & $p_5 = \obar{x}_3 \pand \obar{x}_4$ \\
+9 & \texttt{p 6 3 4} & \texttt{0} & $p_6 = x_3 \pand x_4$ \\
+12 & \texttt{s 7 5 6 7 10} & \texttt{0} & $s_7 = p_5 \por p_6$ \\
+15 & \texttt{p 8 -1 7} & \texttt{0} & $p_8 = \obar{x}_1 \pand s_7$ \\
+18 & \texttt{p 9 1 -2 7} & \texttt{0} & $p_9 = x_1 \pand \obar{x}_2 \pand s_7$ \\
+22 & \texttt{s 10 8 9 16 19} & \texttt{0} & $s_{10} = p_8 \por p_9$ \\
+ & \texttt{r 10} && Root $r = s_{10}$\\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.35\textwidth}
+(B) POG Representation \\
+\input{dd/eg4}
+\end{minipage}
+%% Break
+\\[2.5ex]
+\begin{minipage}{0.42\textwidth}
+(D) Defining Clauses\\[1.2ex]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
+\midrule
+\texttt{6} & \texttt{5 3 4} & \texttt{0} & Define $p_5$ \\
+\texttt{7} & \texttt{-5 -3} & \texttt{0} & \\
+\texttt{8} & \texttt{-5 -4} & \texttt{0} & \\
+\midrule
+\texttt{9} & \texttt{6 -3 -4} & \texttt{0} & Define $p_6$ \\
+\texttt{10} & \texttt{-6 3} & \texttt{0} & \\
+\texttt{11} & \texttt{-6 4} & \texttt{0} & \\
+\midrule
+\texttt{12} & \texttt{-7 5 6} & \texttt{0} & Define $s_7$ \\
+\texttt{13} & \texttt{7 -5} & \texttt{0} & \\
+\texttt{14} & \texttt{7 -6} & \texttt{0} & \\
+\midrule
+\texttt{15} & \texttt{8 1 -7} & \texttt{0} & Define $p_8$ \\
+\texttt{16} & \texttt{-8 -1} & \texttt{0} & \\
+\texttt{17} & \texttt{-8 7} & \texttt{0} & \\
+\midrule
+\texttt{18} & \texttt{9 -1 2 -7} & \texttt{0} & Define $p_9$ \\
+\texttt{19} & \texttt{-9 1} & \texttt{0} & \\
+\texttt{20} & \texttt{-9 -2} & \texttt{0} & \\
+\texttt{21} & \texttt{-9 7} & \texttt{0} & \\
+\midrule
+\texttt{22} & \texttt{-10 8 9} & \texttt{0} & Define $s_{10}$ \\
+\texttt{23} & \texttt{10 -8} & \texttt{0} & \\
+\texttt{24} & \texttt{10 -9} & \texttt{0} & \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+(E) CPOG Assertions\\[1.2ex]
+\begin{tabular}{llllll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hint} & Explanation \\
+\midrule
+\texttt{25} & \texttt{a 5 1 3} & \texttt{0} & \texttt{3 6} & \texttt{0} & $\obar{x}_1 \land \obar{x}_3 \imply p_5$ \\
+\texttt{26} & \texttt{a 6 1 -3} & \texttt{0} & \texttt{4 9} & \texttt{0} & $\obar{x}_1 \land x_3 \imply p_6$ \\
+\texttt{27} & \texttt{a 3 7 1} & \texttt{0} & \texttt{13 25} & \texttt{0} & $\obar{x}_3 \land \obar{x}_1 \imply s_7$  \\
+\texttt{28} & \texttt{a 7 1} & \texttt{0} & \texttt{27 14 26} & \texttt{0} & $\obar{x}_1 \imply s_7$  \\
+\texttt{29} & \texttt{a 8 1} & \texttt{0} & \texttt{28 15} & \texttt{0} & $\obar{x}_1 \imply p_8$  \\
+\texttt{30} & \texttt{a 5 -1 3} & \texttt{0} & \texttt{1 6} & \texttt{0} & $x_1 \land \obar{x}_3 \imply p_5$ \\
+\texttt{31} & \texttt{a 6 -1 -3} & \texttt{0} & \texttt{2 9} & \texttt{0} & $x_1 \land x_3 \imply p_6$ \\
+\texttt{32} & \texttt{a 3 7 -1} & \texttt{0} & \texttt{13 30} & \texttt{0} & $\obar{x}_3 \land x_1 \imply s_7$  \\
+\texttt{33} & \texttt{a 7 -1} & \texttt{0} & \texttt{32 14 31} & \texttt{0} & $x_1 \imply s_7$  \\
+\texttt{34} & \texttt{a 9 -1} & \texttt{0} & \texttt{5 33 18} & \texttt{0} & $x_1 \imply p_9$  \\
+\texttt{35} & \texttt{a 1 10} & \texttt{0} & \texttt{23 29} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
+\texttt{36} & \texttt{a 10} & \texttt{0} & \texttt{35 24 34} & \texttt{0} & $s_{10}$ \\
+\bottomrule
+\end{tabular}
+\\[1.5ex]
+(F) Input Clause Deletions\\[1.2ex]
+\begin{tabular}{lllll}
+  \toprule
+ \multicolumn{3}{l}{CPOG line} & Explanation\\
+\midrule
+ \texttt{d 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
+ \texttt{d 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
+ \texttt{d 3} & \texttt{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
+ \texttt{d 4} & \texttt{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
+ \texttt{d 5} & \texttt{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\caption{Example formula (A), its POG representation (B), and its CPOG proof (C), (E), and (F)}
+\label{fig:eg4:all}
+\end{figure}
+
+Figure \ref{fig:eg4:all} illustrates an example formula and shows how
+the CPOG file declares its POG representation.  The input formula (A)
+consists of five clauses over variables $x_1$, $x_2$, $x_3$, and
+$x_4$.  The generated POG (B) has six nonterminal nodes representing
+four products and two sums.  We name these by the node
+type (product $\nodep$ or sum $\nodes$), subscripted by the ID of the
+extension variable.
+% We denote the extension variable for nodes $\nodep_i$ and $\nodes_j$ as $p_i$ and $s_j$, respectively.
+  The first part of the CPOG file (C) declares
+these nodes using clause IDs that increment by three or four,
+depending on whether the node has two children or three.  The last two
+nonzero values in the sum declarations are the hint providing the
+required mutual exclusion proof.
+
+\subsection{Node Declarations}
+
+We step through portions of the file to provide a better understanding of the CPOG proof framework.
+Figure
+\ref{fig:eg4:all}(D) shows the defining clauses that are implicitly
+defined by the POG operation declarations.  These do not appear in the
+CPOG file.  Referring back to the declarations of the sum nodes in
+Figure \ref{fig:eg4:all}(C), we can see that the declaration of node
+$\nodes_7$ had clause IDs 7 and 10 as the hint.  We can see in Figure
+\ref{fig:eg4:all}(A) that these two clauses form a RUP proof for the clause
+$\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $\nodes_7$
+have disjoint models.  Similarly, node $\nodes_{10}$ is declared as having
+clause IDs 16 and 19 as the hint.  These form a RUP proof for the clause
+$\obar{p}_8 \lor \obar{p}_9$, showing that the two children of
+$\nodes_{10}$ have disjoint models.
+
+\subsection{Forward Implication Proof}
+
+Figure \ref{fig:eg4:all}(E) provides the sequence of assertions
+leading to unit clause 36, consisting of the literal $s_{10}$.  This clause indicates that $\nodes_{10}$ is implied by the input clauses, i.e.,
+any total assignment $\assign$
+satisfying the input clauses must have $\assign(s_{10}) = 1$.
+Working backward, we can see that
+clause 29 indicates that variable $p_8$ will be implied by the input
+clauses when $\assign(x_1) = 0$, while clause 34 indicates that node $p_9$ will
+be implied by the input clauses when $\assign(x_1) = 1$.  These serve as the
+hint for clause 36.
+
+\subsection{Reverse Implication Proof}
+
+Figure \ref{fig:eg4:all}(F) shows the RUP proof steps required to
+delete the input clauses.  Consider the first of these, deleting
+input clause $\obar{x}_1 \lor x_3 \lor \obar{x}_4$.  The requirement is to show
+that there is no total assignment $\assign$ that falsifies this clause but assigns $\assign(s_{10}) = 1$.
+The proof proceeds by first assuming that the clause is false, requiring
+$\assign(x_1) = 1$, $\assign(x_3) = 0$, and $\assign(x_4) = 1$.  The hint then consist of unit
+clauses (e.g., clause 36 asserting that $\alpha(p_{10}) = 1$) or
+clauses that cause unit propagation.  Hint clauses 8 and 10 force the
+assignments $\assign(p_5) = \assign(p_6) = 0$.  These, plus hint clause 12 force
+$\assign(s_7) = 0$.  This, plus hint clauses 16 and 21 force $\assign(p_8) = \assign(p_9) = 0$, leading,
+via clause 22, to $\assign(s_{10}) = 0$.  But this contradicts clause 36,
+completing the RUP proof.  The deletion hints for the other input
+clauses follow similar patterns---they work from the bottom nodes of
+the POG upward, showing that any total assignment that falsifies the clause
+must assign $\assign(s_{10}) = 0$.
+
+Deleting the asserted clauses is so simple that we do not show it.  It
+involves simply deleting the clauses from clause number 35 down to
+clause number 25, with each deletion using the same hint as were used
+to add that clause.  In the end, therefore, only the defining clauses
+for the POG nodes and the unit clause asserting $s_{10}$ remain,
+completing a proof that the POG is logically equivalent to the input
+formula.
+
+Observe that the forward implication proof shown in Figure~\ref{fig:eg4:all}  must ``visit'' nodes
+$\nodep_5$ and $\nodep_6$ twice, separately considering  assignments where $\assign(x_1) = 1$
+(clauses 25 and 26) and where $\assign(x_1) = 1$ (clauses 30 and 31).
+Section~\ref{app:lemma:eg} shows how to use a lemma such that these nodes are each only visited once.
+
+
+\section{Optimizations for Forward Implication Proofs}
+
+The two optimizations we have implemented exploit the power of our
+general resolution framework to define new structures within the
+proof.
+They create new product nodes that are not part
+of the POG representation.
+
+\label{app:optimizations}
+
+\subsection{Literal Grouping}
+
+A single recursive step of $\validate$ can encounter product nodes
+having many literals as children.  The naive formulation of $\validate$
+considers each literal $\lit \in \lambda$ separately.
+Literal grouping allows all literals to be validated with a single call to a SAT solver.
+It collects those literals
+$\lit_1, \lit_2, \ldots, \lit_m$ that cannot be validated by BCP and defines a
+product node $\nodev$ having these literals as children.  The goal
+then becomes to prove that any total assignment must yield 1 for extension
+variable $v$.  A single call to the solver can generate this proof by invoking it on the formula
+  $\simplify{\psi}{\passign} \cup \simplify{\theta_{v}}{\{ \obar{v} \}}$, which should be unsatisfiable.
+  The proof steps can be mapped back into clause addition steps in the CPOG file, incorporating the
+  input clauses and the defining clauses for $\nodev$ into the hints.
+
+
+\subsection{Lemmas}
+\label{app:lemma}
+
+As we have noted, the recursive calling of $\validate$ starting at
+root $\noder$ effectively expands the POG into a tree, and this can
+lead to an exponential number of calls.
+These shared subgraphs arise when the knowledge compiler employs \emph{clause caching}
+to detect that the simplified set of
+clauses arising from one partial assignment to the literals matches that
+of a previous partial assignment~\cite{darwiche:aaai:2002}.
+When this dec-DNNF node is translated into POG
+node $\nodeu$, the proof generator can assume (and also check), that
+there is a simplified set of clauses $\gamma_{\nodeu}$
+for which the subgraph with root $\nodeu$ is its POG representation.
+
+The proof generator can exploit the sharing of subgraphs
+by constructing and proving a \emph{lemma} for each node
+$\nodeu$ having $\indegree(\nodeu) > 1$.  This proof shows that any
+total assignment $\assign$ that satisfies formula $\gamma_{\nodeu}$ and the defining clauses for the POG must yield
+$\assign(u) = 1$.  This lemma is then invoked for every node having
+$\nodeu$ as a child.
+As a result, the generator will make recursive calls during a call to $\validate$ only once for each node in the POG\@.
+
+The challenge for implementing this strategy is to find a way to
+represent the clauses for the simplified formula $\gamma_{\nodeu}$ in the CPOG file.  Some may be
+unaltered input clauses, and these can be used directly.  Others,
+however will be clauses that do not appear in the input formula.  We
+implement these by adding POG product nodes to the CPOG file to create
+the appropriate clauses.  Consider an \emph{argument} clause
+$C \in \gamma_{\nodeu}$ with $C = \lit_1 \lor \lit_2 \lor \cdots \lor \lit_k$.  If we
+define a product node $\nodev$ with arguments
+$\obar{\lit}_1, \obar{\lit}_2, \ldots, \obar{\lit}_k$, 
+we will introduce a defining clause
+$v \lor \lit_1 \lor \lit_2 \lor \cdots \lit_k$.  We call this a {\em
+  synthetic} clause having $\obar{v}$ as the \emph{guard literal}.
+That is, a partial assignment $\passign$ such that $\passign(v) = 0$ will {\em
+  activate} the clause, causing it to represent argument clause $C$.  On the other
+hand, a partial assignment with $\passign(v) = 1$ will
+cause the clause to become a tautology and therefore have no effect.
+
+Suppose for every clause $C_j \in \gamma_{\nodeu}$ that does not correspond to
+an input clause, we generate a synthetic clause $C'_j$ with guard literal
+$\obar{v}_j$, for $1 \leq j \leq m$.  Let $\gamma'_{\nodeu}$ be the formula where each clause $C_j$ is replaced by synthetic clause $C'_j$,
+while input clauses in $\gamma_{\nodeu}$ are left unchanged.
+Let $\lassign = \{ \obar{v}_1, \obar{v}_2, \ldots, \obar{v}_m \}$.
+Invoking $\validate(\nodeu, \lassign, \gamma'_{\nodeu})$
+ will then prove a lemma, given by the target clause
+ $u \lor v_1 \lor v_2 \lor \cdots \lor v_m$,
+ showing that any total assignment $\assign$ that activates the synthetic clauses will have $\assign(u) = 1$.
+
+Later, when node $\nodeu$ is encountered by a call to $\validate(\nodeu, \passign, \psi)$, we invoke the lemma
+by showing that each synthetic clause
+$C_j$ matches some simplified clause in $\simplify{\psi}{\passign}$.  More precisely,
+for $1 \leq j \leq m$,
+we use clause addition to assert the clause
+$\obar{v}_j \lor \bigvee_{\lit \in \passign} \obar{\lit}$,
+showing that synthetic clause $C_j$ will be activated.
+Combining the lemma with these activations provides a derivation of the target clause for the call to $\validate$.
+
+Observe that the lemma structure can be hierarchical, since a shared
+subgraph may contain nodes that are themselves roots of shared
+subgraphs.  Nonetheless, the principles described allow the
+definition, proof, and applications of a lemma for each shared node in
+the graph.  For any node $\nodeu$, the first call to
+$\validate(\nodeu, \passign, \psi)$ may require further recursion,
+but any subsequent call can simply reuse the lemma proved by the first call.
+
+\subsection{Lemma Example}
+\label{app:lemma:eg}
+
+\begin{figure}
+(A) Additional nodes\\[1.0em]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line} & Explanation \\
+\midrule
+25 & \texttt{p 11 -3 4} & \texttt{0} & $v_{11} = \obar{x}_3 \pand {x}_4$ \\
+28 & \texttt{p 12  3 -4} & \texttt{0} & $v_{12} = {x}_3 \pand \obar{x}_4$ \\
+\bottomrule
+\end{tabular}
+\\[1.0em]
+(B) Implicit Clauses\\[1.2em]
+\begin{tabular}{llll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
+\midrule
+\texttt{25} & \texttt{11 3 -4} & \texttt{0} & Argument clause $\{x_3 ,\, \obar{x}_4\}$, activated by $\obar{v}_{11}$ \\
+\texttt{26} & \texttt{-11 -3} & \texttt{0} & \\
+\texttt{27} & \texttt{-11 4} & \texttt{0} & \\
+\midrule
+\texttt{28} & \texttt{12 -3 4} & \texttt{0} & Argument clause $\{\obar{x}_3,\,  {x}_4\}$, activated by $\obar{v}_{12}$ \\
+\texttt{29} & \texttt{-12 3} & \texttt{0} & \\
+\texttt{30} & \texttt{-12 -4} & \texttt{0} & \\
+\bottomrule
+\end{tabular}
+\\[1.0em]
+(C) CPOG Assertions\\[1.0em]
+\begin{tabular}{llllll}
+\toprule
+\makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hint} & Explanation \\
+\midrule
+\multicolumn{6}{l}{Lemma Proof} \\
+\texttt{31} & \texttt{a 5 11 12 3} & \texttt{0} & \texttt{25 6} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land \obar{x}_3 \imply p_{5}$ \\
+\texttt{32} & \texttt{a 6 11 12 -3} & \texttt{0} & \texttt{28 9} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land {x}_3 \imply p_{6}$ \\
+\texttt{33} & \texttt{a 3 7 11 12} & \texttt{0} & \texttt{13 31} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land \obar{x}_3 \imply s_{7}$ \\
+\texttt{34} & \texttt{a 7 11 12} & \texttt{0} & \texttt{33 14 32} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \imply s_{7}$ \\
+\midrule
+\multicolumn{6}{l}{Lemma Application \#1} \\
+\texttt{35} & \texttt{a -11 1} & \texttt{0} & \texttt{26 27 3} & \texttt{0} & $\obar{x}_1 \imply \obar{v}_{11}$ \\
+\texttt{36} & \texttt{a -12 1} & \texttt{0} & \texttt{29 30 4} & \texttt{0} & $\obar{x}_1 \imply \obar{v}_{12}$ \\
+\texttt{37} & \texttt{a 7 1} & \texttt{0} & \texttt{35 36 34} & \texttt{0} & $\obar{x}_1 \imply s_7$ \\
+\midrule
+\texttt{38} & \texttt{a 8 1} & \texttt{0} & \texttt{37 15} & \texttt{0} & $\obar{x}_1 \imply p_8$ \\
+\midrule
+\multicolumn{6}{l}{Lemma Application \#2} \\
+\texttt{39} & \texttt{a -11 -1} & \texttt{0} & \texttt{26 27 1} & \texttt{0} & ${x}_1 \imply \obar{v}_{11}$ \\
+\texttt{40} & \texttt{a -12 -1} & \texttt{0} & \texttt{29 30 2} & \texttt{0} & ${x}_1 \imply \obar{v}_{12}$ \\
+\texttt{41} & \texttt{a 7 -1} & \texttt{0} & \texttt{39 40 34} & \texttt{0} & ${x}_1 \imply s_7$ \\
+\midrule
+\texttt{42} & \texttt{a 9 -1} & \texttt{0} & \texttt{5 41 18} & \texttt{0} & ${x}_1 \imply p_9$ \\
+\texttt{43} & \texttt{a 1 10} & \texttt{0} & \texttt{23 38} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
+\texttt{44} & \texttt{a 10} & \texttt{0} & \texttt{43 24 42} & \texttt{0} & $s_{10}$ \\
+\bottomrule
+\end{tabular}
+\caption{Example of lemma definition, proof, and application}
+\label{fig:eg4:lemmas}
+\end{figure}
+
+Figure~\ref{fig:eg4:lemmas} shows an alternate forward implication
+proof for the example of Figure~\ref{fig:eg4:all} using a lemma to
+represent the shared node $\nodes_7$.  We can see that the POG with
+this node as root encodes the Boolean formula $x_3 \leftrightarrow x_4$, having a CNF representation consisting of the clauses
+$\{x_3 ,\, \obar{x}_4\}$ and $\{\obar{x}_3 ,\, {x}_4\}$.  The product node
+declarations shown in Figure~\ref{fig:eg4:lemmas}(A) create synthetic
+clauses 25 and 28 to encode these arguments with activating literals
+$\obar{v}_{11}$ and $\obar{v}_{12}$, respectively.  Clauses 31--34
+then provide a proof of the lemma, stating that any assignment
+$\assign$ that activates these clauses will  assign $1$ to $s_7$.
+Clauses 35 and 36 state that an assignment with $\assign(x_1) = 0$
+will cause the first synthetic clause to activate due to input clause
+3, and it will cause the second synthetic clause to activate due to
+input clause 4.  From this, clause 37 can use the lemma to state that
+assigning $0$ to $x_1$ will cause $s_7$ to evaluate to $1$.  Similarly,
+clauses 39 and 40 serve to activate the synthetic clauses when
+$\assign(x_1) = 1$, due to input clauses 1 and 2, and clause 41 then
+uses the lemma to state that assigning $1$ to $x_1$ will cause $s_7$ to
+evaluate to $1$.
+
+In this example, adding the lemma increases the proof length, but that
+is only because it is such a simple formula.
+
+
+\input{leanappendix}
+
+\section{Detailed Experimental Results}
+\label{app:experiments}
+
+Our experiments are designed to evaluate the following:
+\begin{itemize}
+\item
+whether our toolchain can handle challenging benchmark problems,
+\item
+the effectiveness of some design choices and optimizations,
+\item
+whether our toolchain can perform end-to-end verification with preprocessed formulas,
+\item
+the comparative performance of the prototype and verified checkers, and
+\item
+how the performance of our toolchain compares to that of related verification toolchains.
+\end{itemize}
+
+\subsection{Experimental Setup}
+
+As a test machine, we used a 2021~MacBook~Pro laptop having a 3.2~Ghz
+Apple M1 processor and with 64~GB of physical memory.  We also used an
+external 3~TB solid-state disk drive with an advertised read/write
+speed of one gigabit per second.  Despite being a laptop, this
+configuration is somewhat more powerful than the nodes typically
+found in server clusters.  The fast access to storage is especially
+important due to the very large files generated and processed by the
+tools.  Our tools generated individual files with over 160 gigabytes
+of data.
+
+For benchmarks, we downloaded 100 files each from the 2022 standard and weighted model counting competitions:
+\begin{center}
+       \url{https://mccompetition.org/2022/mc_description.html}
+\end{center}
+We found that 20 of these were duplicates across the two tracks,
+yielding a total of 180 unique benchmark problems, ranging in size
+from 250 to 2,753,207 clauses.
+
+Our default configuration for the proof generator used the structural
+method for the forward implication proof, with the two optimizations
+of literal grouping and lemmas.
+Running with a time limit of 4000 seconds,\footnote{All measured times
+in this document are actual elapsed times, not CPU times.} \dfour{}
+was able to generate dec-DNNF representations for 124 of these, and it timed out on the
+rest.  Our proof generator was able to convert all of the generated
+dec-DNNF graphs into POGs and determine how many defining clauses they
+would generate.  A POG operation with $k$ arguments requires $k+1$
+defining clauses, and so the total number of defining clauses in POG $P$ equals
+the number of nonterminal nodes plus the number of edges in the graph, corresponding to our definition of $|P|$.
+The number of defining clauses ranged from 304 to 2,761,457,765 with a median of 848,784.
+
+\subsection{Performance of the Proof Generator and Checker}
+
+\input{figure-runtime-d4-verify}
+\input{figure-clauses-d4-verify}
+
+For each of the 124 dec-DNNF graphs generated by \dfour{}, we ran
+our proof generator and prototype checker, limiting proof
+generation to 10,000 seconds.  We ran the programs to generate and check
+one-sided proofs for the graphs, again with a time limit of 10,000
+seconds for proof generation.
+
+Figure~\ref{fig:d4:cpog} summarizes our results in terms of the time
+required by \dfour{} (X axis) versus the sum of the times for proof generation, checking, and counting
+ (Y axis).
+We were able to complete a full validation for 108 of the 124
+benchmarks, with times ranging from fractions of a second to 13,144
+seconds, with a median of 71.6 seconds.
+
+Relative to the runtime for \dfour{}, two problems ran faster with the
+generator, checker, and counter.  These were for problems having small numbers
+of models (relative to the number of variables), and so most of the
+time spent by both \dfour{} and our proof generator was in running a
+CDCL solver to search the very sparse solution space.  \cadical{}
+generally outperforms the miniSAT-based solver used by \dfour{}.  At
+the other extreme, one problem that required only 19 seconds for
+\dfour{} required 8657 seconds to generate a proof and 45 seconds to
+check it (and count).  This benchmark appears to stem from weak performance
+by our implementation of BCP\@.  Overall the ratios
+between the combined time for generation, checking, and counting versus the time
+for \dfour{} had a harmonic mean of 5.5.
+
+Of the 16 benchmarks that could not be fully validated, one had so
+many defining clauses that it overflowed the 32-bit signed integers
+our programs use for clause identifiers.  Another exited due to the
+virtual memory limit imposed by the operating system, and the other 14
+timed out.  Of the 15 that did not overflow the clause counter, we
+were able to complete a one-sided verification for 9, but the other 6
+timed out.  Overall, we were able to provide some level of
+verification for 94\% of the benchmark problems.
+
+
+Figure~\ref{fig:defining:total} compares the number of defining
+clauses (X axis) with the total number of clauses (Y axis) for the 108
+problems that were fully verified.  These totals include the defining
+clauses for the POG, the additional defining clauses introduced to
+support literal grouping and lemmas, and the clauses added by RUP
+steps in the forward implication proof.  These totals ranged from 554
+to 770,382,773, with a median of 1,719,245.  The ratios of the total
+clauses versus defining clauses ranged from 1.54 to 6073, with a
+harmonic mean of 3.13.  The high numbers were for problems having very
+few models, and so the proof clauses must encode large proofs of
+unsatisfiability.
+
+\subsection{Monolithic Forward Implication Proofs}
+\label{app:experiment:monolithic}
+
+
+To assess the relative merits of the two approaches to forward
+implication proof generation, we ran the proof generator in monolithic
+mode on the 92 problems for which the combination of structural proof generation, checking, and counting
+required at most 3000 seconds and then kept only those
+measurements for which at least one of the two approaches had combined
+times of at most 1000 seconds.  There were
+a total of 83 such problems.  Figures~\ref{fig:monolithic:time} and
+\ref{fig:monolithic:clauses} show comparisons between the two
+approaches in terms of time and total clauses.
+
+Examining Figure~\ref{fig:monolithic:time}, we can see that the
+monolithic approach ran faster than the structural approach for 23 of
+the problems, including a case where the generator, checker, and counter
+required only one second, versus 71 seconds for the structural
+approach.  On the other hand, the monolithic approach timed out for 13
+of the cases and was slower for the other 37.  In general, we can see
+the monolithic approach faring worse on larger problems.
+
+Figure~\ref{fig:monolithic:clauses} shows the total number of clauses
+for the two approaches for the 70 cases where both approaches completed within 1000 seconds.
+As can be seen, the monolithic approach consistently produces
+shorter proofs, perhaps due to the benefits of the proof trimming by
+\dtrim{}.
+
+\input{figure-runtime-monolithic}
+\input{figure-clauses-monolithic}
+
+
+These experiments suggest that a hybrid of the two approaches might
+yield the best results in terms of consistency, runtime, and proof
+size.  It would begin the recursive descent of $\validate$ according
+to a structural approach, but monolithically generate
+the proof once it encounters a sufficiently small subgraph.
+
+\subsection{Impact of Optimizations}
+\label{app:experiment:optimize}
+
+\input{figure-clauses-optimizations}
+
+To assess the impact of the two optimizations: literal grouping and
+lemmas, we ran the proof generator on the 80 problems for which the
+combination of the two optimizations yielded proofs totaling at most
+10~million clauses.  Compared to the problems used to assess monolithic
+proof generation (Section~\ref{app:experiment:monolithic}), this set included one that had a short proof but
+long runtime and excluded four that had short runtimes but long
+proofs.  We then ran the proof generator on all three combinations of
+the optimizations being partially or totally disabled.
+Figure~\ref{fig:optimized:lessoptimized} shows how disabling these optimizations affected the
+total number of clauses in the proofs, where the X axis indicates the
+total number with both optimizations enabled, while the Y axis
+indicates the number with one (left) or both (right) optimizations
+disabled.
+
+As the figures illustrated, each optimization on its own can shorten
+the proofs, sometimes substantially, and the two combine to have even
+greater effect.  Of the 80 benchmark problems evaluated, and comparing
+with both optimizations disabled, 47 had the number of proof clauses
+reduced by at least a factor of 2 by using lemmas, 14 by using literal merging,
+and 60 by enabling both optimizations.  In the extreme cases, a lack
+of lemmas caused one proof to grow by a factor of 52.5, while a lack
+of literal grouping caused another proof to grow by a factor of 39.6.
+
+The time performance of these optimizations is less dramatic, but
+still significant.  Lemmas sometimes made proof generation slower, but
+in one case ran $38\times$ faster.  Similarly, literal grouping could
+take longer, but in one case ran $3.9\times$ faster.
+
+Overall, it is clear that these two optimizations are worthwhile, and
+sometimes critical, to success for some benchmarks.
+
+\subsection{Certifying Preprocessed Formulas}
+
+\input{figure-runtime-preprocess}
+\input{figure-clauses-preprocess}
+
+The \dfour{} knowledge compiler can optionally perform three different
+forms of preprocessing on the input formula.  These transform the
+formula while preserving logical equivalence~\cite{lagniez:aaai:2014}.
+Proving that the combination of preprocessing plus knowledge
+compilation preserved logical equivalence would be a valuable
+capability.  However, proof generators that operate based on the
+structure of the input clauses, including our structural approach,
+will generally fail in this case, since the compilation was not based
+on the original input clauses.
+
+One strength of monolithic proof generation is that it makes no
+assumptions about how the compiled representation was generated.  A complete
+proof-generating SAT solver could, in principle, always generate the
+forward implication proof, as long as forward implication holds.  To
+test this hypothesis, we ran our proof framework with preprocessing
+enabled on the same 83 benchmarks as in
+Section~\ref{app:experiment:monolithic}.  We measured the time for two
+entire toolchains: one with compilation, proof generation, 
+checking, and counting, and the other starting with preprocessing and then having
+the same steps as the other.  The results are summarized in
+Figures~\ref{fig:preprocess:time} and \ref{fig:preprocess:clauses}.
+Setting a time limit of 1000 seconds, 70 of the formulas completed
+without preprocessing, while 69 did so with preprocessing.  The one
+that timed out with preprocessing did so due to the excessive time
+required for preprocessing.  Of the 69, 53 ran faster with
+preprocessing, while 15 ran slower.  The sizes of the generated 
+CPOG proofs were more variable: 31 had fewer clauses with preprocessing, 21 had more, and 17 were identical.
+
+
+\subsection{Evaluation of the Verified Checker}
+\label{app:lean:evaluation}
+
+\input{figure-check}
+
+We ran the \lean{} checker on the 80 benchmark problems for which the
+generated CPOG file had at most 10~million total clauses.  These are the
+same benchmarks used in evaluating the optimizations (Section
+\ref{app:experiment:optimize}).
+All of the checks completed and confirmed the outcome of the prototype checker.
+
+Figure~\ref{fig:lean} shows the
+performance of both the \lean{} checker and the prototype
+checker on the Y axis, as functions of the total number of clauses on the X axis.
+As would be expected, the \lean{} checker consistently runs slower
+than the prototype checker.
+The ratio of the runtime for \lean{} versus the runtime for
+the prototype checker had a harmonic mean of $5.94$.
+
+Importantly, however, it can be seen that both checkers show the same
+overall performance trends.  The ratio of the two runtimes was less
+than $8.0$ for all but three small benchmarks.  This seems like a
+reasonable price to pay for a rigorous guarantee of correctness, and
+we are confident that we can reduce this gap with more effort in
+optimizing the verified checker.
+
+
+\section{Comparison with other Certification Frameworks}
+\label{app:comparison}
+
+This section provides more insights into how our proof framework (CPOG)
+compares with other work in certified knowledge compilation and model counting.
+
+
+\subsection{Comparison with \cdfour{} Framework}
+
+\input{figure-cd4-cpog}
+
+Figure~\ref{fig:cd4:cpog} shows the results of a set of experiments
+comparing the performance of our toolchain (CPOG) versus one based on
+\cdfour{}.  It shows the timings for the 110 benchmarks for which
+either the CPOG toolchain or the \cdfour{} toolchain completes in less
+than 1000 seconds.  Both toolchains include compilation, in addition
+to proof generation and checking.  Of these, 80 completed for both
+toolchains, 28 timed out or failed with the CPOG toolchain, and 2
+timed out for the \cdfour{} toolchain.  The data clearly show that the
+\cdfour{} toolchain can handle larger benchmarks and generally runs
+faster.  Only 7 of the 80 that completed with both toolchains ran
+faster with the CPOG toolchain.  For these 80, the toolchain based on
+\cdfour{} ran faster by a harmonic mean factor of $19.8\times$.
+
+On the other hand, the \cdfour{} proof generation and checking is
+tightly connected to the operation of \dfour{}, and every change to
+the program could require changes to the proof steps and possibly
+changes to the proof framework.  For example, we have found that
+\cdfour{} does not work properly when the compiler makes use of its
+internal preprocessor.
+
+
+\subsection{Comparison with the MICE Framework}
+
+To compare the performance of our toolchain versus that of
+MICE~\cite{fichte:sat:2022}, we consider how the combination of proof
+generation, proof checking, and counting in the CPOG toolchain compares to the time to
+run their proof generator \progname{nnf2trace} and checker
+\progname{sharptrace}.
+We ran their tools on the 92 benchmark problems for
+which our toolchain requires at most 3000 seconds and retained
+the 84 data points for which at least one of the toolchains completes in under 1000 seconds.
+
+We can summarize the results as:
+\begin{itemize}
+\item 84 total data points
+\item 76 were completed by both programs in under 1000 seconds
+\item Of those 21 were faster with MICE, 55 with CPOG
+\item 7 completed with CPOG under 1000 seconds but exceeded that threshold for MICE
+\item 1 completed with MICE under 1000 seconds but exceeded that threshold for CPOG
+\end{itemize}
+
+\input{figure-mice-cpog}
+
+The detailed results are shown in
+Figure~\ref{fig:mice}.  As can be seen, the comparative runtimes are
+highly variable, reflecting the fact that the two toolchains differ
+fundamentally in their objectives and their approaches.
+
+One shortcoming of \progname{nnf2trace} can be seen in
+the near-vertical series of points in the upper-lefthand corner.
+These correlate with a similar set of points along the left in
+Figure~\ref{fig:optimized:lessoptimized}.  Like the naive
+implementation of $\validate$, their program recursively traverses the
+graph representation of a formula, effectively expanding it into a
+tree.  They lack an optimization analogous to lemmas.
+
+We have not tried the MICE toolchain on larger benchmarks, but we
+suspect it would encounter significant scaling limitations.
+
+\bibliography{references}
+
+\end{document}

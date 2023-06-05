@@ -17,6 +17,10 @@ all:
 	bibtex mc-paper
 	pdflatex mc-paper	
 	pdflatex mc-paper
+	pdflatex mc-supplement
+	bibtex mc-supplement
+	pdflatex mc-supplement	
+	pdflatex mc-supplement
 
 rdata:
 	rm -rf $(SRCDATA)
@@ -44,6 +48,9 @@ rdata:
 	cp -p $(LDATA)/time-check-regular-lean.csv $(SRCDATA)
 	cp -p $(LDATA)/time-monolithic+preprocess.csv $(SRCDATA)
 	cp -p $(LDATA)/clauses-total-monolithic+preprocess.csv $(SRCDATA)
+	cp -p $(LDATA)/time-toolchain-compare-cd4-timeout.csv $(SRCDATA)
+	cp -p $(LDATA)/time-toolchain-compare-pog-fail.csv $(SRCDATA)	
+	cp -p $(LDATA)/time-toolchain-compare.csv $(SRCDATA)	
 
 
 pdata:
@@ -93,3 +100,9 @@ pdata:
 		< $(SRCDATA)/time-check-regular-lean.csv > data-formatted/time-check-regular.tex
 	$(DGEN) -X 2 -Y 4 -O "only marks, color=bluegray, mark=square*, mark options={scale=0.8}, opacity=0.7" \
 		< $(SRCDATA)/time-check-regular-lean.csv > data-formatted/time-check-lean.tex
+	$(DGEN) -X 5 -Y 7 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
+		< $(SRCDATA)/time-toolchain-compare-cd4-timeout.csv > data-formatted/time-toolchain-compare-cd4-timeout.tex
+	$(DGEN) -X 3 -Y 7 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
+		< $(SRCDATA)/time-toolchain-compare-pog-fail.csv > data-formatted/time-toolchain-compare-pog-fail.tex
+	$(DGEN) -X 5 -Y 9 -O "only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7" \
+		< $(SRCDATA)/time-toolchain-compare.csv > data-formatted/time-toolchain-compare.tex
