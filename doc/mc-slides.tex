@@ -1,0 +1,785 @@
+\documentclass[t,pdf]{beamer}
+\mode<presentation>{}
+
+
+\usecolortheme[RGB={196, 30, 58}]{structure}
+
+\usepackage{color}
+\usepackage{animate}
+\usepackage{tikz}
+\usetikzlibrary{shadings,shadows}
+\usetikzlibrary{shapes, arrows}
+\usetikzlibrary{decorations.pathreplacing,angles,quotes}
+\usetikzlibrary{calc}
+\usetikzlibrary{positioning}
+\usepackage{pgfplots}
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage{scrextend}
+\usepackage{ifthen}
+
+%%\newcommand{\reference}[1]{{\footnotesize [#1]}}
+\newcommand{\reference}[1]{}
+
+\newboolean{details}
+\setboolean{details}{false}
+
+
+\newcommand{\skipframe}[1]{\ifthenelse{\boolean{details}}{\frame{#1}}{}}
+
+\usepackage{hyperref}
+%% Colored hyperlink 
+\newcommand{\cref}[2]{\href{#1}{\color{blue}#2}}
+%% Colored hyperlink showing link in TT font
+% \newcommand{\chref}[1]{\href{#1}{\small\tt \color{blue}#1}}
+\newcommand{\hcref}[1]{\cref{#1}{\small\tt #1}}
+
+\usepackage{booktabs,colortbl}
+
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\nil}{\bot}
+%%\newcommand{\implies}{\Rightarrow}
+\newcommand{\bitem}{\item[$\bullet$]}
+
+\newcommand{\makenode}[1]{{\mathbf #1}}
+\newcommand{\nodeu}{\makenode{u}}
+\newcommand{\nodev}{\makenode{v}}
+\newcommand{\nodew}{\makenode{w}}
+\newcommand{\nodes}{\makenode{s}}
+\newcommand{\noder}{\makenode{r}}
+\newcommand{\nodep}{\makenode{p}}
+
+\newcommand{\anot}{\obar{a}}
+\newcommand{\bnot}{\obar{b}}
+\newcommand{\cnot}{\obar{c}}
+\newcommand{\dnot}{\obar{d}}
+\newcommand{\enot}{\obar{e}}
+\newcommand{\tnot}{\obar{t}}
+\newcommand{\unot}{\obar{u}}
+\newcommand{\vnot}{\obar{v}}
+\newcommand{\wnot}{\obar{w}}
+\newcommand{\xnot}{\obar{x}}
+\newcommand{\znot}{\obar{z}}
+
+\newcommand{\pand}{\mathbin{\land^{\sf p}}}
+\newcommand{\por}{\mathbin{\lor^{\sf p}}}
+
+
+\definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
+
+
+\definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
+\definecolor{clearyellow}{rgb}{0.964706, 0.745098, 0}
+\definecolor{clearorange}{rgb}{0.917647, 0.462745, 0}
+\definecolor{mildgray}{rgb}{0.54902, 0.509804, 0.47451}
+\definecolor{softblue}{rgb}{0.643137, 0.858824, 0.909804}
+\definecolor{bluegray}{rgb}{0.141176, 0.313725, 0.603922}
+\definecolor{lightgreen}{rgb}{0.709804, 0.741176, 0}
+\definecolor{redpurple}{rgb}{0.835294, 0, 0.196078}
+\definecolor{midblue}{rgb}{0, 0.592157, 0.662745}
+\definecolor{clearpurple}{rgb}{0.67451, 0.0784314, 0.352941}
+\definecolor{browngreen}{rgb}{0.333333, 0.313725, 0.145098}
+\definecolor{darkestpurple}{rgb}{0.396078, 0.113725, 0.196078}
+\definecolor{greypurple}{rgb}{0.294118, 0.219608, 0.298039}
+\definecolor{darkturquoise}{rgb}{0, 0.239216, 0.298039}
+\definecolor{darkbrown}{rgb}{0.305882, 0.211765, 0.160784}
+\definecolor{midgreen}{rgb}{0.560784, 0.6, 0.243137}
+\definecolor{darkred}{rgb}{0.576471, 0.152941, 0.172549}
+\definecolor{darkpurple}{rgb}{0.313725, 0.027451, 0.470588}
+\definecolor{darkestblue}{rgb}{0, 0.156863, 0.333333}
+\definecolor{lightpurple}{rgb}{0.776471, 0.690196, 0.737255}
+\definecolor{softgreen}{rgb}{0.733333, 0.772549, 0.572549}
+\definecolor{offwhite}{rgb}{0.839216, 0.823529, 0.768627}
+
+\definecolor{mediumgreen}{RGB}{20,140,20}
+\definecolor{mediumblue}{RGB}{20,20,140}
+\definecolor{medgreen}{rgb}{0.34, 0.65, 0.34}
+
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+\definecolor{darkred}{RGB}{180,0,0}
+\newcommand{\darkred}[1]{\textcolor{darkred}{#1}}
+\definecolor{dominocolor}{RGB}{0,0,128}
+\definecolor{darkgreen}{RGB}{0,180,0}
+\definecolor{darkgray}{RGB}{128,128,128}
+\definecolor{showblue}{RGB}{58, 30, 196}
+
+\definecolor{bddneutralcolor}{RGB}{0,0,102}
+\definecolor{bddpathcolor}{RGB}{25,25,255}
+\definecolor{bddfillcolor}{RGB}{255,255,224}
+\definecolor{bddbackground}{RGB}{230,240,255}
+\definecolor{bddhighcolor}{RGB}{204,0,0}
+\definecolor{bddlowcolor}{RGB}{0,143,0}
+
+
+\definecolor{xred}{rgb}{0.77, 0.12, 0.23}
+\definecolor{xgreen}{rgb}{0.3, 0.6, 0}
+\definecolor{xblue}{rgb}{0., 0.25, 1}
+
+
+\title{\LARGE Certified Knowledge Compilation \\
+    with Application to \\Verified Model Counting}
+%\subtitle{}
+\author{\large Randal E. Bryant \\
+  \emph{Wojciech Nawrocki} \\
+  Jeremy Avigad \\
+  Marijn J. H. Heule}
+\institute{\includegraphics[height=50pt]{CMU_Logo}}
+
+\date{\textcolor{black}{SAT, 2023}}
+
+
+\setbeamertemplate{footline}
+{
+	\leavevmode%
+	\hbox{%
+	\begin{beamercolorbox}[wd=0.35\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+%%	\tiny {\url{http://www.cs.cmu.edu/~bryant}}
+%%			\vspace{4pt}
+	\end{beamercolorbox}%
+	\begin{beamercolorbox}[wd=0.45\paperwidth,ht=2.25ex,dp=1ex,center]{author in head/foot}%
+	\end{beamercolorbox}%
+	\begin{beamercolorbox}[wd=0.2\paperwidth,ht=2.5ex,dp=1ex,right]{date in head/foot}%
+		\structure{\scriptsize \insertframenumber{} / \inserttotalframenumber\hspace*{3ex}}
+		\vspace{3pt}
+	\end{beamercolorbox}}%
+	\vskip0pt%
+}
+
+\beamertemplatenavigationsymbolsempty
+
+\begin{document}
+
+\begin{frame}
+	\titlepage
+
+%\small\url{http://www.cs.cmu.edu/~bryant}
+\end{frame}
+
+
+
+\frame{
+\frametitle{Automated Reasoning Programs}
+
+\begin{tikzpicture}
+\node [left] at (1.0,0.25) {\large Formalized};
+\node [left] at (1.0,-0.25) {\large Problem};
+\draw[fill=structure, rounded corners] (2.0,-1.25) rectangle (5.0,1.25);
+\node[white] at (3.5,0.45) {\Large \bf Reasoning};
+\node[white] at (3.5,-0.45) {\Large \bf Tool};
+\draw (1.0,0.0) [-latex, line width=3pt] -- (2.0,0.0);
+
+
+\node [right] at (8.25,-0.65) {\large Outcome};
+\draw (5.0,-0.65) [-latex, line width=3pt] -- (8.25,-0.65);
+
+%% Upper boundary
+\node at (0.0,2.5) {{}};
+\end{tikzpicture}
+
+\medskip
+
+
+\only<2->{
+{\bf Standard Tools}
+\begin{itemize}
+\item Lingering doubt about whether result can be trusted
+\item If find bug in tool, must rerun all prior verifications
+\end{itemize}
+}
+
+\only<3->{
+{\bf Formally Verified Tools}
+\begin{itemize}
+\item Hard to develop
+\item Hard to make scalable
+\end{itemize}
+}
+
+} %% frame
+
+
+\frame{
+\frametitle{Proof-Generating Automated Reasoning Programs}
+
+\begin{tikzpicture}
+\node [left] at (1.0,0.25) {\large Formalized};
+\node [left] at (1.0,-0.25) {\large Problem};
+\draw[fill=structure, rounded corners] (2.0,-1.25) rectangle (5.0,1.25);
+\node[white] at (3.5,0.45) {\Large \bf Reasoning};
+\node[white] at (3.5,-0.45) {\Large \bf Tool};
+\draw (1.0,0.0) [-latex, line width=3pt] -- (2.0,0.0);
+
+\node at (5.75,1.15) {\large Proof};
+\draw (5.0,0.65) [-latex, line width=3pt] -- (6.5,0.65);
+
+\node [right] at (8.25,-0.65) {\large Outcome};
+\draw (5.0,-0.65) [-latex, line width=3pt] -- (8.25,-0.65);
+
+\draw(1.5,0.0) [-latex,line width=3pt] -- (1.5,1.75) -- (6.5,1.75);
+%\draw(1.5,0.0) [line width=3pt] -- (1.5,1.75);
+%\draw(1.5,1.75) [->, line width=3pt] -- (6.5,1.75);
+
+\draw(7.5,-0.65) [-latex, line width=3pt] -- (7.5,0.1);
+
+\draw[fill=mediumblue, rounded corners] (6.5,0.1) rectangle (8.75,2.4);
+\node[white] at (7.625,1.25) {\Large \bf Checker};
+%% Upper boundary
+\node at (0.0,2.5) {{}};
+\end{tikzpicture}
+
+\medskip
+
+{\bf Proof-Generating Tools}
+\begin{itemize}
+\item Only need to prove individual executions, not entire program
+\item Can have bugs in tool but still trust result
+\only<2->{
+\item Can we trust the checker?
+  \begin{itemize}
+  \bitem Simple algorithms and implementation
+  \bitem Possibly formally verified
+  \end{itemize}
+}
+\end{itemize}
+
+}
+
+
+\frame{
+\frametitle{Boolean Satisfiability Solvers}
+
+
+\begin{tikzpicture}
+
+
+\node[text width=1.5cm] (F) at (0,0) {Boolean formula};
+\node[regular polygon,regular polygon sides=4, minimum size=3.5cm, draw,fill=structure, rounded corners] (S) at (3.5,0) {};
+\node[white] at (3.5,0.5) {\huge \bf SAT};
+\node[white] at (3.5,-0.5) {\huge \bf solver};
+\draw[line width=3pt, -latex] (F) -- (S);
+\node[white] at (10,3.75) {~};
+
+\only<1-2>{
+\node[text width=1.5cm] (sat) at (8,0.75) {\large \bf solution};
+\node (topl) at (4.75,0.75) {~};
+\draw[line width=3pt, -latex] (topl) -- (sat);
+\node  at (6,1.25) {{\it satisfiable}};
+}
+
+\only<3>{
+\node[text width=1.5cm] (unsat) at (8,-0.75) {\large \bf ?};
+\node  at (6,-0.25) {{\it unsatisfiable}};
+\node (botl) at (4.75,-0.75) {~};
+\draw[line width=3pt, -latex] (botl) --(unsat);
+}
+
+\only<2>{
+\node[rectangle, minimum height=1.5cm,minimum width=3cm, draw,fill=xgreen, rounded corners] (check) at (8.5,3) {};
+\node[white] at (8.5,3.25) {\large \bf Solution};
+\node[white] at (8.5,2.75) {\large \bf Checker};
+
+\draw[line width=3pt, -latex] (F) edge [bend left=20] (check.west);
+\draw[line width=3pt, -latex] (sat.north) -- (check.south);
+}
+
+\end{tikzpicture}
+
+} %% frame
+
+
+\frame{
+\frametitle{Proof Generating Solvers}
+
+\begin{tikzpicture}
+
+
+\node[text width=1.5cm] (F) at (0,0) {Boolean formula};
+
+\node[regular polygon,regular polygon sides=4, minimum size=3.5cm, draw,fill=structure, rounded corners] (S) at (3.5,0) {};
+\node[white] at (3.5,0.5) {\huge \bf SAT};
+\node[white] at (3.5,-0.5) {\huge \bf solver};
+\node[white] at (10,3.75) {~};
+\draw[line width=3pt, -latex] (F) --( S);
+
+\node[text width=1.5cm] (unsat) at (8,-0.75) {\large \bf unsatisfiability proof};
+\node  at (6,-0.25) {{\it unsatisfiable}};
+\node (botl) at (4.75,-0.75) {~};
+\draw[line width=2pt, -latex] (botl) --(unsat);
+
+\node[rectangle, minimum height=1.5cm,minimum width=3cm, draw,fill=xgreen, rounded corners] (check) at (8.5,3) {};
+\node[white] at (8.5,3.25) {\large \bf Proof};
+\node[white] at (8.5,2.75) {\large \bf Checker};
+
+\draw[line width=3pt, -latex] (F) edge [bend left=20] (check.west);
+\draw[line width=2pt, -latex] (unsat.north) -- (check.south);
+
+\end{tikzpicture}
+
+
+} %% FRAME
+
+\begin{frame}
+  \frametitle{Knowledge Compilation}
+  \begin{itemize}
+  \item Darwiche \reference{DarMar-2002}
+  \end{itemize}
+
+\medskip
+
+  {\bf Convert CNF Formula into More Tractable Representation}
+
+  \medskip
+  {\bf Sample Query}
+  \begin{itemize}
+  \item {\em Model Counting:} How many satisfying assignments does the formula have?
+  \end{itemize}
+
+\medskip
+  {\bf Challenging Problem}
+  \begin{itemize}
+  \item \#SAT more difficult than SAT
+  \end{itemize}
+\medskip
+
+\only<2->{
+  {\bf Questions}
+  \begin{itemize}
+  \item {\em How do I know the generated representation is logically equivalent to the input formula?}
+  \item {\em How do I know if the computed query values are correct?}
+  \end{itemize}
+} %% only
+\end{frame}
+
+\begin{frame}
+
+   \frametitle{Algebraic Formulation}
+   \begin{itemize}
+     \item Kimmig et al. \reference{KimVdbDra-2017}
+   \end{itemize}
+\medskip
+{\bf Definitions}
+\begin{itemize}
+  \item Input variables $x_1, x_2, \ldots, x_n$
+  \item {\em Assignment}: $\alpha = \{ \ell_1, \ell_2, \ldots, \ell_n \}$ with each $\ell_i \in \{x_i, \xnot_i\}$
+  \item {\em Models}: ${\cal M}(\phi)$ is set of satisfying assignments for formula $\phi$
+\end{itemize}
+
+\medskip
+{\bf Ring Evaluation}
+\begin{itemize}
+     \item Commutative ring ${\cal R}$ 
+     \item Assign weight $w(x_i) \in {\cal R}$ to each input variable $x_i$
+     \item Define $w(\xnot_i) = 1-w(x_i)$
+     \item Ring evaluation ${\bf R}(\phi, w)$ of formula $\phi$:
+   \end{itemize}
+   \begin{eqnarray*}
+     {\bf R}(\phi, w) & = & \sum_{\alpha \in {\cal M}(\phi)} \; \prod_{\ell_i \in \alpha} w(\ell_i)
+   \end{eqnarray*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Ring Evaluation Examples}
+
+\bigskip
+
+{\bf Model Counting}
+\begin{itemize}
+\item Let $w(x_i) = w(\obar{x}_i) = 1/2$ for all $i$
+\item ${\bf R}(\phi, w)$ gives {\em density} of function
+  \begin{itemize}
+    \bitem Fraction of assignments that satisfy $\phi$
+  \end{itemize}
+\item Scale by $2^n$ to get model count
+\end{itemize}
+
+\bigskip
+
+{\bf Probabilistic Inference}
+\begin{itemize}
+\item Each input variable $x_i$ is true with probability $p(x_i)$.
+\item ${\bf R}(\phi, p)$ is probability that formula is true
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Partitioned-Operation Formulas}
+
+\medskip
+
+  {\bf Allowed Operations}
+\smallskip
+  \begin{itemize}
+  \item \makebox[4.5em][l]{\bf Product:} $\phi_1 \pand \phi_2$, where ${\cal D}(\phi_1) \cap {\cal D}(\phi_2) = \emptyset$
+\smallskip
+    \begin{itemize}
+      \bitem ${\cal D}(\phi)$: Set of all variables occuring in $\phi$
+    \end{itemize}
+\smallskip
+  \item \makebox[4.5em][l]{\bf Sum:} $\phi_1 \por \phi_2$, where ${\cal M}(\phi_1) \cap {\cal M}(\phi_2) = \emptyset$
+\smallskip
+  \item \makebox[4.5em][l]{\bf Negation:} $\neg \phi$
+  \end{itemize}
+
+  \bigskip
+      {\bf Ring Evaluation of Partitioned Formula}
+      \begin{eqnarray*}
+        {\bf R}(\phi_1 \pand \phi_2,\, w) & = & {\bf R}(\phi_1, w) \,\cdot\, {\bf R}(\phi_2, w)\\[1.5ex]
+        {\bf R}(\phi_1 \por \phi_2,\, w) & = & {\bf R}(\phi_1, w) \,+\, {\bf R}(\phi_2, w)\\[1.5ex]
+        {\bf R}(\neg \phi,\, w) & = & 1-{\bf R}(\phi, w)
+      \end{eqnarray*}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Partitioned-Operation Graphs (POGs)}
+
+\bigskip
+\begin{minipage}{0.38\textwidth}
+  \centering{
+  \input{dd/eg4-slides}
+  } % Centering
+\end{minipage}
+\begin{minipage}{0.6\textwidth}
+\begin{itemize}
+\item Directed graph representation of formula
+\medskip
+  \begin{itemize}
+    \bitem Leaf nodes: Input variables
+    \bitem Operation nodes: Partitioned product and sum
+    \bitem Each edge can be negated
+  \end{itemize}
+\bigskip
+\item 
+Can encode other compiled representations
+\end{itemize}
+\end{minipage}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Certifying Toolchain}
+
+
+\medskip
+\begin{itemize}
+\bitem {\footnotesize Joint work with Wojciech Nawrocki, Jeremy Avigad, and Marijn Heule}
+\end{itemize}
+\medskip
+\centering{
+\begin{tikzpicture}[scale=0.13]
+  \draw[fill=blue!10!white] (48,-2) rectangle (65,22);
+
+  \draw[fill=structure] (8,10) rectangle (20,18);
+  \node[white] at (14,15.2) {\footnotesize Knowledge};
+  \node[white] at (14,12.8) {\footnotesize Compiler};
+
+  \draw[fill=structure] (28,10) rectangle (40,18);
+  \node[white] at (34,15.2) {\footnotesize Proof};
+  \node[white] at (34,12.8) {\footnotesize Generator};
+
+
+  \draw[fill=structure] (51,10) rectangle (63,18);
+  \node[white] at (57,15.2) {\footnotesize Proof};
+  \node[white] at (57,12.8) {\footnotesize Checker};
+
+  \draw[fill=structure] (51,0) rectangle (63,8);
+  \node[white] at (57,5.2) {\footnotesize Ring};
+  \node[white] at (57,2.8) {\footnotesize Evaluator};
+
+
+  \node at (57,20) {\footnotesize Trusted Code};
+
+  %% CNF
+  \draw[line width=2pt] (0,20) -- (44,20) -- (44,16) [-latex] -- (51,16);
+  \draw[line width=2pt] (4,20) -- (4,16) [-latex] -- (8,16);
+  \draw[line width=2pt] (24,20) -- (24,16) [-latex] -- (28,16);
+  \node [left] at (-1,20) {$\phi_I$};
+  \node [above] at (2,20) {\footnotesize \texttt{.cnf}};
+
+  %% NNF
+  \draw[line width=2pt] (20,12) [-latex] -- (28,12);
+  \node [above] at (24,12) {\footnotesize \texttt{.ddnnf}};
+
+  %% CPOG
+  \draw[line width=2pt] (40,12) [-latex] -- (51,12);
+  \draw[line width=2pt] (44,12) -- (44,4) [-latex] -- (51,4);
+  \node [above] at (44,12) {\footnotesize \texttt{.cpog}};
+
+  %% OK/Not
+  \draw[line width=2pt] (63,14) [-latex] -- (68,14) ;
+  \node [right] at (68,15.2) {\footnotesize  OK /} ;
+  \node [right] at (68,12.8) {\footnotesize  Not OK} ;
+  \draw[line width=2pt] (63,4) [-latex] -- (68,4) ;
+  \node [right] at (68,4) {$\textbf{R}(\phi_I, w)$};
+\end{tikzpicture}
+} %% Centering
+\vskip -1ex
+
+\begin{itemize}
+\item {\em Knowledge Compiler} (D4 \reference{LagMar-2017}): Convert CNF into representation using only partitioned operations
+\item {\em Proof Generator}: Generate file combining POG definition + equivalence proof
+\item {\em Proof Checker}: Validate proof file 
+\item {\em Ring Evaluator}: Compute standard or weighted model count
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Trusting the Trusted Code}
+
+\bigskip
+\centering{
+\begin{tikzpicture}[scale=0.13]
+  \draw[fill=blue!10!white] (48,-2) rectangle (65,22);
+
+  \draw[fill=structure] (8,10) rectangle (20,18);
+  \node[white] at (14,15.2) {\footnotesize Knowledge};
+  \node[white] at (14,12.8) {\footnotesize Compiler};
+
+  \draw[fill=structure] (28,10) rectangle (40,18);
+  \node[white] at (34,15.2) {\footnotesize Proof};
+  \node[white] at (34,12.8) {\footnotesize Generator};
+
+
+  \draw[fill=structure] (51,10) rectangle (63,18);
+  \node[white] at (57,15.2) {\footnotesize Proof};
+  \node[white] at (57,12.8) {\footnotesize Checker};
+
+  \draw[fill=structure] (51,0) rectangle (63,8);
+  \node[white] at (57,5.2) {\footnotesize Ring};
+  \node[white] at (57,2.8) {\footnotesize Evaluator};
+
+
+  \node at (57,20) {\footnotesize Trusted Code};
+
+  %% CNF
+  \draw[line width=2pt] (0,20) -- (44,20) -- (44,16) [-latex] -- (51,16);
+  \draw[line width=2pt] (4,20) -- (4,16) [-latex] -- (8,16);
+  \draw[line width=2pt] (24,20) -- (24,16) [-latex] -- (28,16);
+  \node [left] at (-1,20) {$\phi_I$};
+  \node [above] at (2,20) {\footnotesize \texttt{.cnf}};
+
+  %% NNF
+  \draw[line width=2pt] (20,12) [-latex] -- (28,12);
+  \node [above] at (24,12) {\footnotesize \texttt{.ddnnf}};
+
+  %% CPOG
+  \draw[line width=2pt] (40,12) [-latex] -- (51,12);
+  \draw[line width=2pt] (44,12) -- (44,4) [-latex] -- (51,4);
+  \node [above] at (44,12) {\footnotesize \texttt{.cpog}};
+
+  %% OK/Not
+  \draw[line width=2pt] (63,14) [-latex] -- (68,14) ;
+  \node [right] at (68,15.2) {\footnotesize  OK /} ;
+  \node [right] at (68,12.8) {\footnotesize  Not OK} ;
+  \draw[line width=2pt] (63,4) [-latex] -- (68,4) ;
+  \node [right] at (68,4) {$\textbf{R}(\phi_I, w)$};
+\end{tikzpicture}
+} %% Centering
+
+\vskip -1ex
+
+\begin{minipage}{\textwidth}
+\medskip
+{\bf Within Lean 4 Proof Framework \reference{DemUlr-2021}}
+\begin{itemize}
+\item Soundness of proof system
+  \begin{itemize}
+    \bitem Helped us identify some weaknesses in our proof rules
+  \end{itemize}
+\item Verified checker
+  \begin{itemize}
+  \bitem Around $6\times$ slower than one implemented in C
+%  \bitem Same asymptotic performance
+  \end{itemize}
+\item Ring Evaluator: Over rationals
+\end{itemize}
+\end{minipage}
+\end{frame}
+
+\begin{frame}
+\frametitle{CPOG Declaration + Proof}
+           \bigskip
+
+           {\bf Input Formula $\phi_I$}
+
+           \bigskip
+           
+           {\bf POG Declaration $\theta_P$}
+           \begin{itemize}
+             \item Extension variable $u$ for each operation node  $\nodeu$
+             \item Node $\nodeu$ with $k$ children characterized  by $k+1$ defining clauses
+             \item Children indicated by literals
+               \begin{itemize}
+                 \bitem Positive or negated arguments
+                 \bitem Input variables or results from other operation
+               \end{itemize}
+             \item Unit clause $[r]$ for root node $\noder$
+           \end{itemize}
+
+           \bigskip
+
+           {\bf Proof Objective}
+           \begin{eqnarray*}
+             \phi_I & \Longleftrightarrow & \theta_P
+           \end{eqnarray*}
+
+
+\end{frame}
+
+\begin{frame}
+\frametitle{CPOG Proof Structure}
+
+{\bf Forward Implication Proof}
+\vskip -1.0em
+\begin{eqnarray*}
+  \phi_I & \implies & \theta_P
+\end{eqnarray*}
+\vskip -0.5em
+\begin{itemize}
+\item Add clauses by resolution
+\item Terminating with unit clause $[r]$
+\item {\em Any assignment satisfying $\phi_I$  causes the POG formula to evaluate to true}
+\end{itemize}
+           
+\bigskip
+
+{\bf Reverse Implication Proof}
+\vskip -1.0em
+\begin{eqnarray*}
+  \theta_P & \implies & \phi_I
+\end{eqnarray*}
+\vskip -0.5em
+\begin{itemize}
+\item Delete clauses by resolution
+  \begin{itemize}
+    \bitem Deleted clause implied by remaining ones
+  \end{itemize}
+\item Including each of the input clauses
+\item {\em Any assignment falsifying the input clause causes the POG formula to evaluate to false}
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Experimental Results: CPOG Generation and Checking}
+\bigskip
+\begin{minipage}{0.63\textwidth}
+\begin{tikzpicture}[scale = 0.50]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log,
+      legend style={at={(0.30,0.96)}},
+      legend cell align={left},
+                              x post scale=1.8, y post scale=2.4,
+                              xmode=log,xmin=0.01,xmax=4000,
+                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
+                              ymin=0.01, ymax=29000,
+                              ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
+                              xlabel={D4 runtime (seconds)}, ylabel={CPOG generation and checking runtime (seconds)},
+%                              title={D4 Defining Clause Generation}
+            ]
+%    \input{data-formatted/time-d4-verify}
+\addplot [only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7] coordinates { (5.758,13.045) (0.017,0.03) (0.014,0.047) (0.179,1.847) (0.016,0.062) (0.012,0.022) (0.024,0.16999999999999998) (0.928,20.743000000000002) (0.069,0.754) (0.166,17.75) (1.48,21.223999999999997) (3.356,110.95) (3.184,47.193) (1.676,48.49) (0.016,0.08099999999999999) (0.019,0.141) (0.472,6.882) (0.02,0.161) (5.048,170.314) (0.398,70.944) (0.685,20.974) (0.252,3.342) (30.753,2129.125) (0.643,9.855) (2.154,37.226) (1.158,4.633) (2.436,89.771) (1.636,126.078) (1.491,62.69) (4.683,1426.489) (30.566,3914.6259999999997) (145.967,2062.9629999999997) (2.666,41.732) (0.105,2.084) (5.508,30.682000000000002) (244.952,7312.937) (0.206,8.398) (606.378,13144.747) (23.234,38.677) (0.837,170.78900000000002) (49.574,57.587999999999994) (25.077,46.29900000000001) (63.691,12177.898) (4.544,139.899) (1.679,346.404) (22.322,4447.67) (2.076,63.914) (70.355,1268.879) (90.915,2782.6130000000003) (123.037,6933.090999999999) (112.248,9251.585) (178.14,3991.669) (394.71,487.715) (158.115,163.04700000000003) (69.122,304.792) (508.972,252.11700000000002) (2.033,88.145) (270.954,388.37300000000005) (1536.914,771.949) (19.013,8702.097) (2.938,269.092) (598.709,8085.308) (9.311,105.24799999999999) (0.277,2.423) (0.101,1.0819999999999999) (30.577,397.437) (0.18,2.276) (0.016,0.08499999999999999) (0.021,0.17099999999999999) (0.52,13.385) (0.016,0.081) (0.237,11.658000000000001) (0.985,58.235) (2.278,32.183) (1.053,15.828) (1.326,18.72) (2.908,48.425) (3.441,44.796) (2.06,28.279) (1.483,110.438) (3.377,46.214) (0.017,0.096) (0.016,0.068) (3.536,75.644) (1.337,19.128) (5.587,81.44800000000001) (193.799,10831.611) (89.858,4126.2029999999995) (0.023,0.087) (49.796,2888.948) (0.718,71.703) (5.364,205.144) (3.21,129.792) (41.455,1926.9289999999999) (1.083,48.012) (1.695,268.74) (1.345,264.555) (3.111,342.282) (6.397,1421.771) (22.214,688.805) (65.322,101.219) (22.917,519.913) (272.642,3145.4440000000004) (1.929,87.996) (1358.165,5874.534000000001) (3951.002,10775.298999999999) (14.808,1115.634) (93.537,4308.5650000000005)};
+
+%    \input{data-formatted/time-d4-verify-onesided-only}
+\addplot [only marks, color=bluegray, mark=square*,  mark options={scale=0.8}, opacity=0.7] coordinates { (205.743,3092.184) (326.575,5611.652) (476.021,4030.371) (494.38,6625.9839999999995) (1046.603,13782.805) (351.999,2582.8019999999997) (64.21,557.361) (316.505,4054.794) (788.377,7536.77)};
+
+%    \input{data-formatted/time-d4-failure}
+\addplot [only marks, color=darkgreen, mark=diamond*, mark options={scale=1.1}, opacity=0.7] coordinates { (2052.239,25000) (424.73,25000) (2636.562,25000) (1403.431,25000) (3070.214,25000) (2053.446,25000) (2790.169,25000)};
+
+    \legend{
+      \scriptsize \textsf{Full validation},
+      \scriptsize \textsf{Reverse implication},
+      \scriptsize \textsf{No validation},
+    }
+    \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,20000) (4000,20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,0.1) (2000,20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,1.0) (200, 20000)};
+    \addplot[mark=none, color=lightblue] coordinates{(0.01,10.0) (20, 20000)};
+    \node[left] at (axis cs: 0.9,0.12) {$0{.}1\times$};
+    \node[left] at (axis cs: 0.09,0.12) {$1\times$};
+    \node[left] at (axis cs: 0.09,1.2) {$10\times$};
+    \node[left] at (axis cs: 0.09,12.0) {$100\times$};
+    \node[left] at (axis cs: 0.09,120.0) {$1000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+\end{minipage}
+\begin{minipage}{0.35\textwidth}
+\begin{itemize}
+\bitem 180 benchmark files from 2022 model checking competitions
+\bitem D4 completed 124 with 4000-second time limit
+\bitem Generated complete proofs for 108 with 10,000-second time limit
+\bitem Reverse implications for 9
+\bitem No proofs for 7
+\end{itemize}
+\end{minipage}
+\end{frame}
+
+\begin{frame}
+\frametitle{Experimental Results: CPOG Sizes}
+\bigskip
+\begin{minipage}{0.70\textwidth}
+\begin{tikzpicture}[scale = 0.53]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10},
+      legend style={at={(0.92,0.28)}},
+      legend cell align={left},
+                              x post scale=1.9, y post scale=2.10,
+                              xmode=log,xmin=100,xmax=1e10, 
+                              xtick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 1e10}, 
+                              xticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$, $10^{10}$},
+                              ymode=log, ymin=100, ymax=2000000000, 
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000},
+                              yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              xlabel={Defining Clauses}, ylabel={Proof Clauses},
+            ]
+%    \input{data-formatted/defining+total}
+\addplot [only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7] coordinates { (18271,161794) (1295,2397) (1659,4427) (127284,262373) (2325,6077) (359,554) (5373,14373) (314359,1213826) (44178,81780) (493,33207) (605988,1117440) (1141369,3809317) (1197649,2211944) (1001050,2393131) (2947,7851) (4991,13207) (355617,721935) (4897,13101) (2437497,5273728) (345,46079) (701346,1593947) (3191,26378) (5985623,28392373) (467550,940819) (1318024,2813565) (4713,23892) (1682059,3160386) (1406192,4043887) (899701,1704811) (4936014,11840667) (8038928,68469623) (70651620,197339867) (9567,251890) (39501,104182) (18007,187551) (125319627,374762287) (82194,297768) (269645146,770382773) (304,427342) (574062,8448281) (887,478450) (1757,399856) (78873354,503117290) (190248,429409) (2064844,13434107) (13737124,141587875) (50722,820648) (45923418,82243431) (83111464,188103550) (40776253,104351646) (79106742,265990284) (3133905,23973053) (16147,1697847) (45214,1277037) (72258,4612352) (905,2500003) (401032,840020) (355,2155900) (63050,4771522) (3195277,6098685) (1125105,4417869) (325251378,736764776) (6074672,13104909) (132891,287958) (65522,136116) (15561156,38336288) (143191,298755) (2851,7851) (5243,13911) (334862,681444) (2659,7335) (82585,317789) (447979,1612224) (905899,1733678) (433226,802268) (551970,1006319) (1891045,3387533) (1210098,2232426) (755273,1440924) (470934,1914084) (1178453,2188886) (3131,8575) (2515,6607) (1903735,4312279) (1107098,1868005) (1801878,3324418) (47556240,206213289) (24087642,83491057) (3109,8227) (16038150,101261480) (312728,642675) (3175308,7847036) (142059,747752) (20382514,69650789) (453769,1563728) (498246,1154507) (797866,6840229) (3835114,17412807) (5035130,10668725) (647011,9905453) (5189,1234644) (740235,2672407) (219979530,417455256) (402460,844395) (2295530,81147729) (1772352,119113610) (3975194,16763326) (8493275,41873955)};
+
+%    \input{data-formatted/clauses-defining-onesided}
+%\addplot [only marks, color=bluegray, mark=square*, mark options={scale=0.8}, opacity=0.7] coordinates { (120863325,120863325) (184240761,184240761) (7992626,7992626) (260104055,260104055) (387150630,387150630) (65210486,65210486) (26816878,26816878) (238009358,238009358) (307380236,307380236)};
+\addplot [only marks, color=bluegray, mark=square*, mark options={scale=0.8}, opacity=0.7] coordinates { (120863325,1500000000) (184240761,1500000000) (7992626,1500000000) (260104055,1500000000) (387150630,1500000000) (65210486,1500000000) (26816878,1500000000) (238009358,1500000000) (307380236,1500000000)};
+
+%    \input{data-formatted/clauses-defining-failure}
+\addplot [only marks, color=darkgreen, mark=diamond*, mark options={scale=1.1}, opacity=0.7] coordinates { (284769023,1500000000) (404276843,1500000000) (1765743261,1500000000) (869865958,1500000000) (2761457765,1500000000) (1258914451,1500000000) (1030698214,1500000000)};
+
+    \legend{
+      \scriptsize \textsf{Full validation},
+      \scriptsize \textsf{Reverse implication},
+      \scriptsize \textsf{No validation},
+    }
+    \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,1000) (1e8,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,10000) (1e7,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,100000) (1e6,1e9)};
+    \addplot[mark=none, color=lightblue] coordinates{(100,1000000) (1e5,1e9)};
+    \addplot[color=black,dashed] coordinates{(1e2,1.5e9) (1e10,1.5e9)};
+    \node[left] at (axis cs: 1000,1200) {$1\times$};
+    \node[left] at (axis cs: 1000,12000) {$10\times$};
+    \node[left] at (axis cs: 1000,120000) {$100\times$};
+    \node[left] at (axis cs: 1000,1200000) {$1{,}000\times$};
+    \node[left] at (axis cs: 1000,12000000) {$10{,}000\times$};
+
+          \end{axis}
+\end{tikzpicture}
+\end{minipage}
+\begin{minipage}{0.28\textwidth}
+\begin{itemize}
+\bitem 108 problems fully verified
+\bitem CPOG files up to 160~GB
+\bitem Reverse implications for 9
+\bitem No proofs for 7
+\end{itemize}
+\end{minipage}
+
+\end{frame}
+
+
+
+
+\end{document}
+

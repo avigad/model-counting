@@ -3,6 +3,11 @@ DGEN = $(INTERP) ../tools/gen-data.py
 LDATA = ../benchmarks/mc2022/logs
 SRCDATA = data-raw
 
+slides:
+	cd dd ; make
+	pdflatex mc-slides
+	pdflatex mc-slides
+
 all:
 	cd dd ; make
 	cd ../benchmarks/mc2022/logs ; make data
