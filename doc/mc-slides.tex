@@ -18,8 +18,8 @@
 \usepackage{scrextend}
 \usepackage{ifthen}
 
-%%\newcommand{\reference}[1]{{\footnotesize [#1]}}
-\newcommand{\reference}[1]{}
+\newcommand{\reference}[1]{{\footnotesize [#1]}}
+%\newcommand{\reference}[1]{}
 
 \newboolean{details}
 \setboolean{details}{false}
@@ -36,7 +36,8 @@
 
 \usepackage{booktabs,colortbl}
 
-\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\opos}[1]{#1}
+\newcommand{\oneg}[1]{\overline{#1}}
 \newcommand{\nil}{\bot}
 %%\newcommand{\implies}{\Rightarrow}
 \newcommand{\bitem}{\item[$\bullet$]}
@@ -49,21 +50,21 @@
 \newcommand{\noder}{\makenode{r}}
 \newcommand{\nodep}{\makenode{p}}
 
-\newcommand{\anot}{\obar{a}}
-\newcommand{\bnot}{\obar{b}}
-\newcommand{\cnot}{\obar{c}}
-\newcommand{\dnot}{\obar{d}}
-\newcommand{\enot}{\obar{e}}
-\newcommand{\tnot}{\obar{t}}
-\newcommand{\unot}{\obar{u}}
-\newcommand{\vnot}{\obar{v}}
-\newcommand{\wnot}{\obar{w}}
-\newcommand{\xnot}{\obar{x}}
-\newcommand{\znot}{\obar{z}}
+\newcommand{\anot}{\oneg{a}}
+\newcommand{\bnot}{\oneg{b}}
+\newcommand{\cnot}{\oneg{c}}
+\newcommand{\dnot}{\oneg{d}}
+\newcommand{\enot}{\oneg{e}}
+\newcommand{\tnot}{\oneg{t}}
+\newcommand{\unot}{\oneg{u}}
+\newcommand{\vnot}{\oneg{v}}
+\newcommand{\wnot}{\oneg{w}}
+\newcommand{\xnot}{\oneg{x}}
+\newcommand{\znot}{\oneg{z}}
 
 \newcommand{\pand}{\mathbin{\land^{\sf p}}}
 \newcommand{\por}{\mathbin{\lor^{\sf p}}}
-
+\newcommand{\pneg}{{\sim}}
 
 \definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
 
@@ -120,9 +121,9 @@
     with Application to \\Verified Model Counting}
 %\subtitle{}
 \author{\large Randal E. Bryant \\
-  \emph{Wojciech Nawrocki} \\
+  Wojciech Nawrocki \\
   Jeremy Avigad \\
-  Marijn J. H. Heule}
+  \emph{Marijn J. H. Heule}}
 \institute{\includegraphics[height=50pt]{CMU_Logo}}
 
 \date{\textcolor{black}{SAT, 2023}}
@@ -158,7 +159,7 @@
 
 
 \frame{
-\frametitle{Automated Reasoning Programs}
+\frametitle{Motivation: Automated Reasoning Programs}
 
 \begin{tikzpicture}
 \node [left] at (1.0,0.25) {\large Formalized};
@@ -231,131 +232,55 @@
 
 {\bf Proof-Generating Tools}
 \begin{itemize}
-\item Only need to prove individual executions, not entire program
+\item Verify individual executions, not entire program
 \item Can have bugs in tool but still trust result
-\only<2->{
 \item Can we trust the checker?
   \begin{itemize}
-  \bitem Simple algorithms and implementation
-  \bitem Possibly formally verified
+  \item[] \textbf{Ideal:} formally verified
   \end{itemize}
-}
 \end{itemize}
-
-}
-
-
-\frame{
-\frametitle{Boolean Satisfiability Solvers}
-
-
-\begin{tikzpicture}
-
-
-\node[text width=1.5cm] (F) at (0,0) {Boolean formula};
-\node[regular polygon,regular polygon sides=4, minimum size=3.5cm, draw,fill=structure, rounded corners] (S) at (3.5,0) {};
-\node[white] at (3.5,0.5) {\huge \bf SAT};
-\node[white] at (3.5,-0.5) {\huge \bf solver};
-\draw[line width=3pt, -latex] (F) -- (S);
-\node[white] at (10,3.75) {~};
-
-\only<1-2>{
-\node[text width=1.5cm] (sat) at (8,0.75) {\large \bf solution};
-\node (topl) at (4.75,0.75) {~};
-\draw[line width=3pt, -latex] (topl) -- (sat);
-\node  at (6,1.25) {{\it satisfiable}};
-}
-
-\only<3>{
-\node[text width=1.5cm] (unsat) at (8,-0.75) {\large \bf ?};
-\node  at (6,-0.25) {{\it unsatisfiable}};
-\node (botl) at (4.75,-0.75) {~};
-\draw[line width=3pt, -latex] (botl) --(unsat);
-}
-
-\only<2>{
-\node[rectangle, minimum height=1.5cm,minimum width=3cm, draw,fill=xgreen, rounded corners] (check) at (8.5,3) {};
-\node[white] at (8.5,3.25) {\large \bf Solution};
-\node[white] at (8.5,2.75) {\large \bf Checker};
-
-\draw[line width=3pt, -latex] (F) edge [bend left=20] (check.west);
-\draw[line width=3pt, -latex] (sat.north) -- (check.south);
-}
-
-\end{tikzpicture}
-
-} %% frame
-
-
-\frame{
-\frametitle{Proof Generating Solvers}
-
-\begin{tikzpicture}
-
-
-\node[text width=1.5cm] (F) at (0,0) {Boolean formula};
-
-\node[regular polygon,regular polygon sides=4, minimum size=3.5cm, draw,fill=structure, rounded corners] (S) at (3.5,0) {};
-\node[white] at (3.5,0.5) {\huge \bf SAT};
-\node[white] at (3.5,-0.5) {\huge \bf solver};
-\node[white] at (10,3.75) {~};
-\draw[line width=3pt, -latex] (F) --( S);
-
-\node[text width=1.5cm] (unsat) at (8,-0.75) {\large \bf unsatisfiability proof};
-\node  at (6,-0.25) {{\it unsatisfiable}};
-\node (botl) at (4.75,-0.75) {~};
-\draw[line width=2pt, -latex] (botl) --(unsat);
-
-\node[rectangle, minimum height=1.5cm,minimum width=3cm, draw,fill=xgreen, rounded corners] (check) at (8.5,3) {};
-\node[white] at (8.5,3.25) {\large \bf Proof};
-\node[white] at (8.5,2.75) {\large \bf Checker};
-
-\draw[line width=3pt, -latex] (F) edge [bend left=20] (check.west);
-\draw[line width=2pt, -latex] (unsat.north) -- (check.south);
-
-\end{tikzpicture}
-
-
 } %% FRAME
 
-\begin{frame}
-  \frametitle{Knowledge Compilation}
-  \begin{itemize}
-  \item Darwiche \reference{DarMar-2002}
-  \end{itemize}
-
-\medskip
-
-  {\bf Convert CNF Formula into More Tractable Representation}
-
-  \medskip
-  {\bf Sample Query}
-  \begin{itemize}
-  \item {\em Model Counting:} How many satisfying assignments does the formula have?
-  \end{itemize}
-
-\medskip
-  {\bf Challenging Problem}
-  \begin{itemize}
-  \item \#SAT more difficult than SAT
-  \end{itemize}
-\medskip
-
-\only<2->{
-  {\bf Questions}
-  \begin{itemize}
-  \item {\em How do I know the generated representation is logically equivalent to the input formula?}
-  \item {\em How do I know if the computed query values are correct?}
-  \end{itemize}
-} %% only
-\end{frame}
 
 \begin{frame}
+  \frametitle{Model Counting}
 
-   \frametitle{Algebraic Formulation}
-   \begin{itemize}
-     \item Kimmig et al. \reference{KimVdbDra-2017}
-   \end{itemize}
+\medskip
+\begin{minipage}{0.49\textwidth}
+\begin{center}
+  {\bf Formula $\phi$}\\[0.25em]
+  \begin{tabular}{lc}
+    $(\oneg{x}_1 \lor \opos{x}_3 \lor \oneg{x}_4)$ & $\land$ \\
+    $(\oneg{x}_1 \lor \oneg{x}_3 \lor \opos{x}_4)$ & $\land$ \\
+    $(\opos{x}_1 \lor \opos{x}_3 \lor \oneg{x}_4)$ & $\land$ \\
+    $(\opos{x}_1 \lor \oneg{x}_3 \lor \opos{x}_4)$ & $\land$ \\
+    $(\oneg{x}_1 \lor \oneg{x}_2)$ &  \\
+  \end{tabular}
+%%  \begin{tabular}{ccccc}
+%%    $\oneg{x}_1$ & $\lor$ &  $\opos{x}_3$ & $\lor$ &  $\oneg{x}_4$ \\
+%%    $\oneg{x}_1$ & $\lor$ &  $\oneg{x}_3$ & $\lor$ &  $\opos{x}_4$ \\
+%%    $\opos{x}_1$ & $\lor$ &  $\opos{x}_3$ & $\lor$ &  $\oneg{x}_4$ \\
+%%    $\opos{x}_1$ & $\lor$ &  $\oneg{x}_3$ & $\lor$ &  $\opos{x}_4$ \\
+%%    $\oneg{x}_1$ & $\lor$ & $\oneg{x}_2$ \\
+%%  \end{tabular}
+\end{center}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+\begin{center}
+  {\bf Models ${\cal M}(\phi)$}\\[0.25em]
+  \begin{tabular}{cc}
+    $\;$\\
+    $\{ \oneg{x}_1, \oneg{x}_2, \oneg{x}_3, \oneg{x}_4 \}$ &
+    $\{ \oneg{x}_1, \oneg{x}_2, \opos{x}_3, \opos{x}_4 \}$ \\
+    $\{ \oneg{x}_1, \opos{x}_2, \opos{x}_3, \opos{x}_4 \}$ &
+    $\{ \opos{x}_1, \oneg{x}_2, \opos{x}_3, \opos{x}_4 \}$ \\
+    $\{ \oneg{x}_1, \opos{x}_2, \oneg{x}_3, \oneg{x}_4 \}$ &
+    $\{ \opos{x}_1, \oneg{x}_2, \oneg{x}_3, \oneg{x}_4 \}$ \\
+    $\;$\\
+  \end{tabular}
+\end{center}
+\end{minipage}
+
 \medskip
 {\bf Definitions}
 \begin{itemize}
@@ -365,11 +290,90 @@
 \end{itemize}
 
 \medskip
+\only<2->{
+{\bf Model Counting Problem}
+\begin{itemize}
+\item Given formula $\phi$, compute $|{\cal M}(\phi)|$
+\item Challenging: \#SAT more difficult than SAT
+\end{itemize}
+}
+
+  
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Knowledge Compilation}
+  \begin{itemize}
+  \item Darwiche \reference{DarMar-2002}
+  \end{itemize}
+
+\medskip
+
+\begin{minipage}{\textwidth}
+\centering{
+\begin{tikzpicture}[scale=0.16]
+  \node [left] at (3,14) {$\phi$};
+  \node [right] at (55,14) {$|{\cal M}(\phi)|$};
+
+
+  \draw[fill=structure] (8,10) rectangle (20,18);
+  \node[white] at (14,15.3) {Knowledge};
+  \node[white] at (14,12.7) {Compiler};
+  \node at (14,19.5) {(Hard)};
+
+  \draw[fill=structure] (38,10) rectangle (50,18);
+  \node[white] at (44,15.3) {Model};
+  \node[white] at (44,12.7) {Counter};
+  \node at (44,19.5) {(Easy)};
+
+  \node at (29,15.3) {Compiled};
+  \node at (29,12.7) {Form};
+
+
+  \draw[line width=2pt] (4,14)  [-latex] -- (8,14);
+  \draw[line width=2pt] (20,14) [-latex] -- (24,14);
+  \draw[line width=2pt] (34,14) [-latex] -- (38,14);
+  \draw[line width=2pt] (50,14) [-latex] -- (54,14);
+\end{tikzpicture}
+}
+\end{minipage}
+
+\bigskip
+  {\bf Convert CNF formula into more tractable representation}
+  \begin{itemize}
+  \item Potentially exponential size
+  \item Model counting polynomial in size of representation
+  \end{itemize}
+
+  \medskip
+
+\only<2->{
+  {\bf Concerns:}
+  \begin{itemize}
+  \item Is the compiled form logically equivalent to the input formula?
+  \item Is the counting computed correctly?
+  \end{itemize}
+}
+
+\end{frame}
+
+\begin{frame}
+
+   \frametitle{Algebraic Formulation}
+   \begin{itemize}
+     \item Kimmig et al. \reference{KimVdbDra-2017}
+   \end{itemize}
+
+\medskip
 {\bf Ring Evaluation}
 \begin{itemize}
      \item Commutative ring ${\cal R}$ 
      \item Assign weight $w(x_i) \in {\cal R}$ to each input variable $x_i$
      \item Define $w(\xnot_i) = 1-w(x_i)$
+       \begin{itemize}
+         \bitem Write as $\pneg w(x_i)$
+       \end{itemize}
      \item Ring evaluation ${\bf R}(\phi, w)$ of formula $\phi$:
    \end{itemize}
    \begin{eqnarray*}
@@ -384,7 +388,7 @@
 
 {\bf Model Counting}
 \begin{itemize}
-\item Let $w(x_i) = w(\obar{x}_i) = 1/2$ for all $i$
+\item Let $w(x_i) = w(\oneg{x}_i) = 1/2$ for all $i$
 \item ${\bf R}(\phi, w)$ gives {\em density} of function
   \begin{itemize}
     \bitem Fraction of assignments that satisfy $\phi$
@@ -412,7 +416,7 @@
   \item \makebox[4.5em][l]{\bf Product:} $\phi_1 \pand \phi_2$, where ${\cal D}(\phi_1) \cap {\cal D}(\phi_2) = \emptyset$
 \smallskip
     \begin{itemize}
-      \bitem ${\cal D}(\phi)$: Set of all variables occuring in $\phi$
+      \bitem ${\cal D}(\phi)$: Set of variables occuring in $\phi$
     \end{itemize}
 \smallskip
   \item \makebox[4.5em][l]{\bf Sum:} $\phi_1 \por \phi_2$, where ${\cal M}(\phi_1) \cap {\cal M}(\phi_2) = \emptyset$
@@ -423,36 +427,41 @@
   \bigskip
       {\bf Ring Evaluation of Partitioned Formula}
       \begin{eqnarray*}
-        {\bf R}(\phi_1 \pand \phi_2,\, w) & = & {\bf R}(\phi_1, w) \,\cdot\, {\bf R}(\phi_2, w)\\[1.5ex]
+        {\bf R}(\phi_1 \pand \phi_2,\, w) & = & {\bf R}(\phi_1, w) \,\times\, {\bf R}(\phi_2, w)\\[1.5ex]
         {\bf R}(\phi_1 \por \phi_2,\, w) & = & {\bf R}(\phi_1, w) \,+\, {\bf R}(\phi_2, w)\\[1.5ex]
-        {\bf R}(\neg \phi,\, w) & = & 1-{\bf R}(\phi, w)
+        {\bf R}(\neg \phi,\, w) & = & \pneg \, {\bf R}(\phi, w)
       \end{eqnarray*}
 
 \end{frame}
 
 \begin{frame}
-  \frametitle{Partitioned-Operation Graphs (POGs)}
+  \frametitle{Partitioned-Operation Graph (POG)}
 
-\bigskip
-\begin{minipage}{0.38\textwidth}
+\medskip
+\begin{minipage}{0.49\textwidth}
   \centering{
+  {\bf POG} \\[0.3em]
   \input{dd/eg4-slides}
   } % Centering
 \end{minipage}
-\begin{minipage}{0.6\textwidth}
-\begin{itemize}
-\item Directed graph representation of formula
-\medskip
-  \begin{itemize}
-    \bitem Leaf nodes: Input variables
-    \bitem Operation nodes: Partitioned product and sum
-    \bitem Each edge can be negated
-  \end{itemize}
-\bigskip
-\item 
-Can encode other compiled representations
-\end{itemize}
+\begin{minipage}{0.49\textwidth}
+\only<2->{
+  \centering{
+  {\bf Ring Evaluation} \\[0.3em]
+  \input{dd/eg4-eval}
+  } % Centering
+} %% \only
 \end{minipage}
+
+\begin{itemize}
+\only<1>{
+\item Directed graph representation of formula
+\item Each edge can be negative or positive
+}
+\only<2->{
+\item Evaluation: Number of ring operations linear in graph size
+}
+\end{itemize}
 
 \end{frame}
 
@@ -460,10 +469,6 @@ Can encode other compiled representations
 \frametitle{Certifying Toolchain}
 
 
-\medskip
-\begin{itemize}
-\bitem {\footnotesize Joint work with Wojciech Nawrocki, Jeremy Avigad, and Marijn Heule}
-\end{itemize}
 \medskip
 \centering{
 \begin{tikzpicture}[scale=0.13]
@@ -581,7 +586,7 @@ Can encode other compiled representations
 
 \begin{minipage}{\textwidth}
 \medskip
-{\bf Within Lean 4 Proof Framework \reference{DemUlr-2021}}
+{\bf Within Lean 4 Proof Framework} \reference{DemUlr-2021}
 \begin{itemize}
 \item Soundness of proof system
   \begin{itemize}
@@ -598,21 +603,93 @@ Can encode other compiled representations
 \end{frame}
 
 \begin{frame}
+  \frametitle{Related Work \#1}
+  \medskip
+  
+  {\bf CD4:} Verified C4 \reference{CapLagMar-2021}
+  \begin{itemize}
+  \item Modified version of D4
+    \begin{itemize}
+    \item Generates annotated output + clausal proof in DRAT format
+    \item Verify with checker + \textsc{drat-trim} \reference{HeuHunWet-2013}
+    \end{itemize}
+  \item Experiments: Scales very well
+  \end{itemize}
+   \medskip
+       {\bf Limitations:}
+       \begin{itemize}
+       \item Proof framework closely mirrors compiler operation
+       \item No formal proof of soundness
+         \begin{itemize}
+         \item Found exploitable weakness
+         \item RAT rule does not require model preservation
+         \item Easily fixable
+         \end{itemize}
+       \item No verified checker
+       \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Related Work \#2}
+  \medskip
+   {\bf MICE:} Proof framework for top-down model counters \reference{FicHecRol-2022}
+   \begin{itemize}
+   \item Modify model counter or generate proof from D4 output
+   \item Generates series of proof obligations
+   \item Experiments: Scaling problems when many shared subgraphs
+   \end{itemize}
+   \medskip
+       {\bf Limitations:}
+       \begin{itemize}
+       \item Only verifies standard model counting
+       \item Proof framework closely mirrors compiler/counter operation
+       \item No formal proof of soundness
+       \item No verified checker
+       \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Importance of Formal Verification}
+
+\bigskip
+    {\bf Claim:}
+    
+\medskip
+\begin{center}
+{\em\Large Any proof framework that has not been \\[0.3em] mechanically verified is unsound}
+\end{center}
+\medskip
+
+         \begin{itemize}
+           \item Borne out by our own experience
+           \item Weaknesses can often be fixed by strengthening proof requirements
+           \item Framework + checker should withstand adversarial testing
+         \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
 \frametitle{CPOG Declaration + Proof}
-           \bigskip
+           \medskip
 
            {\bf Input Formula $\phi_I$}
 
-           \bigskip
+           \medskip
            
            {\bf POG Declaration $\theta_P$}
            \begin{itemize}
+             \item Tseitin encoding of POG
              \item Extension variable $u$ for each operation node  $\nodeu$
              \item Node $\nodeu$ with $k$ children characterized  by $k+1$ defining clauses
-             \item Children indicated by literals
+             \item Each child indicated by literal
                \begin{itemize}
-                 \bitem Positive or negated arguments
-                 \bitem Input variables or results from other operation
+                 \bitem Positive or negated argument
+                 \bitem Input variable or result from other operation
                \end{itemize}
              \item Unit clause $[r]$ for root node $\noder$
            \end{itemize}
@@ -627,8 +704,9 @@ Can encode other compiled representations
 
 \end{frame}
 
+
 \begin{frame}
-\frametitle{CPOG Proof Structure}
+\frametitle{CPOG Proof Structure \#1}
 
 {\bf Forward Implication Proof}
 \vskip -1.0em
@@ -637,12 +715,47 @@ Can encode other compiled representations
 \end{eqnarray*}
 \vskip -0.5em
 \begin{itemize}
-\item Add clauses by resolution
+\item Add clauses by reverse unit propagation (RUP)
 \item Terminating with unit clause $[r]$
 \item {\em Any assignment satisfying $\phi_I$  causes the POG formula to evaluate to true}
+\medskip
+\item Most difficult part of proof generation
+  \begin{itemize}
+    \item Potentially exponential in POG size
+    \item E.g., when $\phi_I$ is unsatisfiable
+  \end{itemize}
 \end{itemize}
-           
-\bigskip
+\end{frame}
+
+\begin{frame}
+\frametitle{Forward Proof Generation}
+           \medskip
+
+           {\bf Direct Generation}
+           \begin{itemize}
+             \item No assumption about how POG was generated
+             \item Use SAT solver to generate proof that $\phi_I \land \neg \theta_P$ unsatisfiable
+             \item Negate $\theta_P$ by replacing unit clause $[r]$ with $[\oneg{r}]$
+             \item Experimentally: Scales to POGs with  $\sim 10^6$ defining clauses
+           \end{itemize}
+
+           \medskip
+
+           {\bf Structured Generation}
+           \begin{itemize}
+           \item Assumes POG generated by top-down knowledge compiler
+           \item Generate proof by recursive traversal of POG
+           \item Call SAT solver for some subformulas
+           \item Avoid exponential expansion using lemma for each shared subgraph
+           \item Experimentally: Scales to POGs with $\sim 10^8$ defining clauses
+           \end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{CPOG Proof Structure \#2}
 
 {\bf Reverse Implication Proof}
 \vskip -1.0em
@@ -651,12 +764,18 @@ Can encode other compiled representations
 \end{eqnarray*}
 \vskip -0.5em
 \begin{itemize}
-\item Delete clauses by resolution
+\item Delete clauses by RUP
   \begin{itemize}
     \bitem Deleted clause implied by remaining ones
   \end{itemize}
-\item Including each of the input clauses
-\item {\em Any assignment falsifying an input clause causes the POG formula to evaluate to false}
+\item Including each input clause
+\begin{itemize}
+\bitem {\em Any assignment falsifying the input clause causes the POG formula to evaluate to false}
+\end{itemize}
+  \medskip
+  
+\item One RUP proof step for each clause deleted
+\item Compiled form allows efficient test of clausal entailment \reference{DarMar-2002}
 \end{itemize}
 
 
@@ -664,10 +783,39 @@ Can encode other compiled representations
 
 
 \begin{frame}
+  \frametitle{Experimental Evaluation}
+
+  {\bf Benchmark Problems:}
+  \begin{itemize}
+    \item 180 unique formulas from 2022 unweighted and weighted model counting competitions
+%    \item Run on high-end laptop with high-speed SSD
+  \end{itemize}
+
+  \medskip
+
+  {\bf D4 Execution}
+  \begin{itemize}
+  \item Time limit of 4000 seconds
+  \item Completed 124 problems
+  \item Converted into POGs ranging from 304 to 2,761,457,765 defining clauses
+  \end{itemize}
+
+  \medskip
+  {\bf Running our toolchain}
+  \begin{itemize}
+    \item Limited CPOG generation to 10,000 seconds
+    \item Full proofs for 108 problems
+    \item Reverse implication proofs for 9 more
+    \item No proofs or 7
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
 \frametitle{Experimental Results: CPOG Generation and Checking}
 \bigskip
-\begin{minipage}{0.63\textwidth}
-\begin{tikzpicture}[scale = 0.50]
+\begin{center}
+\begin{tikzpicture}[scale = 0.52]
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log,
       legend style={at={(0.30,0.96)}},
       legend cell align={left},
@@ -676,7 +824,7 @@ Can encode other compiled representations
                               xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
                               ymin=0.01, ymax=29000,
                               ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
-                              xlabel={D4 runtime (seconds)}, ylabel={CPOG generation and checking runtime (seconds)},
+                              xlabel={D4 runtime (seconds)}, ylabel={CPOG generation, checking, and ring evaluation  (seconds)},
 %                              title={D4 Defining Clause Generation}
             ]
 %    \input{data-formatted/time-d4-verify}
@@ -708,22 +856,13 @@ Can encode other compiled representations
 
           \end{axis}
 \end{tikzpicture}
-\end{minipage}
-\begin{minipage}{0.35\textwidth}
-\begin{itemize}
-\bitem 180 benchmark files from 2022 model checking competitions
-\bitem D4 completed 124 with 4000-second time limit
-\bitem Generated complete proofs for 108 with 10,000-second time limit
-\bitem Reverse implications for 9
-\bitem No proofs for 7
-\end{itemize}
-\end{minipage}
+\end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{Experimental Results: CPOG Sizes}
 \bigskip
-\begin{minipage}{0.70\textwidth}
+\begin{center}
 \begin{tikzpicture}[scale = 0.53]
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10},
       legend style={at={(0.92,0.28)}},
@@ -735,7 +874,7 @@ Can encode other compiled representations
                               ymode=log, ymin=100, ymax=2000000000, 
                               ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000},
                               yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
-                              xlabel={Defining Clauses}, ylabel={Proof Clauses},
+                              xlabel={Defining Clauses}, ylabel={Defining + Proof Clauses},
             ]
 %    \input{data-formatted/defining+total}
 \addplot [only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7] coordinates { (18271,161794) (1295,2397) (1659,4427) (127284,262373) (2325,6077) (359,554) (5373,14373) (314359,1213826) (44178,81780) (493,33207) (605988,1117440) (1141369,3809317) (1197649,2211944) (1001050,2393131) (2947,7851) (4991,13207) (355617,721935) (4897,13101) (2437497,5273728) (345,46079) (701346,1593947) (3191,26378) (5985623,28392373) (467550,940819) (1318024,2813565) (4713,23892) (1682059,3160386) (1406192,4043887) (899701,1704811) (4936014,11840667) (8038928,68469623) (70651620,197339867) (9567,251890) (39501,104182) (18007,187551) (125319627,374762287) (82194,297768) (269645146,770382773) (304,427342) (574062,8448281) (887,478450) (1757,399856) (78873354,503117290) (190248,429409) (2064844,13434107) (13737124,141587875) (50722,820648) (45923418,82243431) (83111464,188103550) (40776253,104351646) (79106742,265990284) (3133905,23973053) (16147,1697847) (45214,1277037) (72258,4612352) (905,2500003) (401032,840020) (355,2155900) (63050,4771522) (3195277,6098685) (1125105,4417869) (325251378,736764776) (6074672,13104909) (132891,287958) (65522,136116) (15561156,38336288) (143191,298755) (2851,7851) (5243,13911) (334862,681444) (2659,7335) (82585,317789) (447979,1612224) (905899,1733678) (433226,802268) (551970,1006319) (1891045,3387533) (1210098,2232426) (755273,1440924) (470934,1914084) (1178453,2188886) (3131,8575) (2515,6607) (1903735,4312279) (1107098,1868005) (1801878,3324418) (47556240,206213289) (24087642,83491057) (3109,8227) (16038150,101261480) (312728,642675) (3175308,7847036) (142059,747752) (20382514,69650789) (453769,1563728) (498246,1154507) (797866,6840229) (3835114,17412807) (5035130,10668725) (647011,9905453) (5189,1234644) (740235,2672407) (219979530,417455256) (402460,844395) (2295530,81147729) (1772352,119113610) (3975194,16763326) (8493275,41873955)};
@@ -766,18 +905,103 @@ Can encode other compiled representations
 
           \end{axis}
 \end{tikzpicture}
-\end{minipage}
-\begin{minipage}{0.28\textwidth}
-\begin{itemize}
-\bitem 108 problems fully verified
-\bitem CPOG files up to 160~GB
-\bitem Reverse implications for 9
-\bitem No proofs for 7
-\end{itemize}
-\end{minipage}
+\end{center}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Final Thoughts}
+
+  \medskip
+
+  {\bf Observations}
+  \begin{itemize}
+  \item Toolchain can handle all but largest outputs from D4
+  \item Framework is very general
+    \begin{itemize}
+      \bitem E.g., can generate, prove, and apply lemmas without any extensions
+      \bitem Not tied to particular compilation method
+    \end{itemize}
+  \end{itemize}
+
+  \medskip
+
+  {\bf Future Work}
+  \begin{itemize}
+  \item Improve speed and capacity of toolchain
+  \item Handle outputs from other knowledge compilers
+  \item Support projected model counting
+  \end{itemize}
 
 \end{frame}
 
+\begin{frame}
+\frametitle{Paper Supplement}
+
+\bigskip
+\begin{center}
+ \hcref{https://doi.org/10.5281/zenodo.7966174}
+\end{center}
+
+\bigskip
+\begin{itemize}
+\item Worked example
+\item More details on algorithms
+\item More details on formal verification
+\item Lots of experimental results
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+
+  \frametitle{References}
+
+\medskip
+
+\begin{minipage}{0.1\textwidth}
+    \textcolor{white}{Filler}
+\end{minipage}
+\begin{minipage}{0.88\textwidth}
+\footnotesize
+\begin{itemize}
+
+\item[CapLagMar-2021]
+  F. Capelli, J.-M. Lagniez, and P. Marquis,
+  ``Certifying Top-Down Decision-{DNNF} Compilers'',
+  {\em AAAI}, 2021
+
+\item[DarMar-2002]
+  A. Darwiche and P. Marquis,
+  ``A Knowledge Compilation Map,''
+  {\em JAIR}, 2002
+  
+\item[DemUlr-2021]
+  L. de Moura and S. Ulrich,
+  ``The Lean 4 theorem prover and programming language,''
+{\em CADE},  2021
+
+\item[FicHecRol-2022]
+  J. Fichte, M. Hecher, and V. Roland,
+  ``Proofs for propositional model counting,''
+  {\em SAT} 2022.
+
+\item[HeuHunWet-2013] M. J. H. Heule, W. A. Hunt, Jr., N. Wetzler,
+  ``Trimming while checking clausal proofs,''
+  {\em FMCAD}, 2013.
+
+
+\item[KimVdbDra-2017] Angelika Kimmig, Guy Van den Broeck, and Luc De Raedt,
+  ``Algebraic model counting,''
+  {\em J. Applied Logic}, 2017
+
+\item[LagMar-2017] J.-M. Lagniez and  P. Marquis,
+  ``An improved decision-DNNF compiler,''
+  {\em IJCAI}, 2017
+\end{itemize}
+\end{minipage}
+\end{frame}
 
 
 
