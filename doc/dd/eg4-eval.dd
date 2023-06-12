@@ -1,54 +1,68 @@
-# Representation of evaluation for 5-clause example
+# Representation of schema for 5-clause example
+# Colors
+c fillwhite 255:255:255
+
 # Nodes
 # Labeled nodes
-n t   175 425 t=r r=20 e=fillcolor f=fillcolor l=$\sigma(\phi)$
-n x1   25 300 t=r r=20 e=fillcolor f=fillcolor l=$w_1$
-n x2   25 200 t=r r=20 e=fillcolor f=fillcolor l=$w_2$
-n x3   25 100 t=r r=20 e=fillcolor f=fillcolor l=$w_3$
-n x4   25   0 t=r r=20 e=fillcolor f=fillcolor l=$w_4$
+n t   200 425 t=r r=25 e=fillwhite f=fillwhite l=${\mathbf{R}}(\phi,~w)$
+n x1   15 300 t=r r=40 e=fillwhite f=fillwhite l=$w(x_1)$
+n x2   15 200 t=r r=40 e=fillwhite f=fillwhite l=$w(x_2)$
+n x3   15 100 t=r r=40 e=fillwhite f=fillwhite l=$w(x_3)$
+n x4   15   0 t=r r=40 e=fillwhite f=fillwhite l=$w(x_4)$
 # Operators
-n s11 175 350 l=$+$
-n p9  125 250 l=$\times$
-n p10  225 250 l=$\times$
-n s7  175 150 l=$+$
-n p5  125  50 l=$\times$
-n p6  225  50 l=$\times$
+n s10 200 350 r=20 l=$+$
+n p9  125 250 r=20 l=$\times$
+n p8  275 250 r=20 l=$\times$
+n s7  200 150 r=20 l=$+$
+n p6  125  50 r=20 l=$\times$
+n p5  275  50 r=20 l=$\times$
+# ~ Operations
+n nx4 200 0 r=15 l=$\sim$
+n nx3 200 100 r=15 l=$\sim$
+n nx2 90 215 r=15 l=$\sim$
+n nx1 200 300  r=15 l=$\sim$
+
 # Connectors
 n x1a  75 300 t=e
-n x1b 175 300 t=e
-n x1n 175 300 t=b r=12 l=$\sim$
+n x1b 200 300 t=e
+n x1n 200 300 t=e
 n x2a  75 200 t=e
+n x2n  90 215 t=e
 n x3a  75 100 t=e
-n x3b 175 100 t=e
-n x3n 175 100 t=b r=12 l=$\sim$
+n x3b 200 100 t=e
+n x3n 200 100 t=e
 n x4a  75   0 t=e
-n x4b 175   0 t=e
-n x4n 175   0 t=b r=12 l=$\sim$
+n x4b 200   0 t=e
+n x4n 200   0 t=e
 # Edges
 # Between operators
-e t s11
-e s11 p9
-e s11 p10
+e t s10
+e s10 p9
+e s10 p8
 e  p9 s7
-e  p10 s7
-e s7 p5
+e  p8 s7
 e s7 p6
+e s7 p5
 # Inputs
 e x1  x1b
 e x1a  p9
-e x1b  p10
+e x1b  p8
+e x1n x1n m=b
 e x2  x2a
+e x2n x2n m=b
 e x2a  p9
 e x3  x3b
-e x3a p5
-e x3b p6 
+e x3a p6
+e x3b p5 
+e x3n x3n m=b
 e x4 x4b
-e x4a p5
-e x4b p6
+e x4a p6
+e x4b p5
+e x4n x4n m=b
 # Tags
-t s11 $s_{11}$ p=r off=0
-t  p9 $p_{9}$ p=r off=0
-t  p10 $p_{10}$ p=r off=0
-t  s7 $s_{7}$ p=r off=0
-t  p5 $p_{5}$ p=r off=0
-t  p6 $p_{6}$ p=r off=0
+# t s10 $\nodes_{10}$ p=r off=0
+# t  p9 $\nodep_{9}$ p=r off=0
+# t  p8 $\nodep_{8}$ p=r off=0
+# t  s7 $\nodes_{7}$ p=r off=0
+# t  p6 $\nodep_{6}$ p=r off=0
+# t  p5 $\nodep_{5}$ p=r off=0
