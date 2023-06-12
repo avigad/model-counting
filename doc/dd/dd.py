@@ -27,7 +27,7 @@ import math
 #       Position options: above, below, left, right
 
 # Edge
-#    e FID TID value=neutral mark=none [only=XX]
+#    e FID TID value=neutral mark=none radius=10 [only=XX]
 #       FID and TID are Ids of source and destination nodes
 #       value options: neutral, high, low, path
 #       mark options: none, bubble   
@@ -349,14 +349,16 @@ class Edge(Only):
     mtype = EdgeType.none
     edgeSpacing = 12.0
     edgeFraction = 0.65
+    radius = NodeType.radius[NodeType.root]
 
-    def __init__(self, fromId=None, toId=None, etype=None):
+    def __init__(self, fromId=None, toId=None, etype=None, eradius = None):
         Only.__init__(self)
         self.fromId = fromId
         self.fromNode = None
         self.toId = toId
         self.toNode = None
         self.etype = EdgeType.neutral if etype is None else etype
+        self.radius = NodeType.radius[NodeType.root] if eradius is None else eradius
 
     def parse(self, line):
         fields = line.split()
@@ -370,7 +372,7 @@ class Edge(Only):
                 raise ParseException(line, "Invalid key=value syntax")
             prefix, value = info
             try:
-                key = parseLabel(prefix, ["type", "mark", "only"])
+                key = parseLabel(prefix, ["type", "mark", "only", "radius"])
             except NoMatchException:
                 raise ParseException(line, "Invalid prefix '%s'" % prefix)
             except MultiMatchException:
@@ -391,6 +393,11 @@ class Edge(Only):
                     raise ParseException(line, "Ambiguous mark '%s'" % value)
             elif key == "only":
                 self.setOnly(value)
+            elif key == "radius":
+                try:
+                    self.radius = int(value)
+                except:
+                    raise ParseException(line, "Invalid radius")
         return self
         
     def renderTikz(self, outfile, lowerLeft, scale=1.0, scheme=Scheme.blackWhite):
@@ -417,7 +424,7 @@ class Edge(Only):
         if self.mtype == EdgeType.bubble:
             cx = (sx+fx)/2
             cy = (sy+fy)/2
-            r = scale * NodeType.radius[NodeType.root]
+            r = scale * self.radius
             outfile.write("%s\\draw [fill=%s,draw=%s] (%.2f,%.2f) circle [radius=%.2f];\n" % (self.indent, edge, edge, cx,cy,r))
         self.onlySuffix(outfile)
 
