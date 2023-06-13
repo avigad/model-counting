@@ -400,13 +400,22 @@
 \item Scale by $2^n$ to get model count
 \end{itemize}
 
-\bigskip
+\medskip
 
 {\bf Probabilistic Inference}
 \begin{itemize}
-\item Each input variable $x_i$ is true with probability $p(x_i)$.
+\item Each input variable $x_i$ is true with probability $p(x_i)$
 \item ${\bf R}(\phi, p)$ is probability that formula is true
 \end{itemize}
+
+\medskip
+
+{\bf Weighted Model Counting}
+\begin{itemize}
+\item Variable $x_i$ and its negation $\oneg{x}_i$ can have weights such that $W(x_i) + W(\oneg{x}_i) \not = 1$
+\item Handle by normalizing and scaling  
+\end{itemize}
+
 \end{frame}
 
 \begin{frame}
@@ -623,11 +632,14 @@
        {\bf Limitations:}
        \begin{itemize}
        \item Proof framework closely mirrors compiler operation
+         \begin{itemize}
+           \bitem Cannot certify when preprocessor enabled
+         \end{itemize}
        \item No formal proof of soundness
          \begin{itemize}
          \bitem Found exploitable weakness
          \bitem RAT rule does not require model preservation
-         \bitem Easily fixable
+         \bitem Fix by adding option to \textsc{drat-trim}
          \end{itemize}
        \item No verified checker
        \end{itemize}
@@ -649,6 +661,9 @@
        \begin{itemize}
        \item Only verifies standard model counting
        \item Proof framework closely mirrors compiler/counter operation
+         \begin{itemize}
+           \bitem Cannot certify when preprocessor enabled
+         \end{itemize}
        \item No formal proof of soundness
        \item No verified checker
        \end{itemize}
@@ -701,10 +716,14 @@
            \bigskip
 
            {\bf Proof Objective}
+\vskip -1.0em
            \begin{eqnarray*}
              \phi_I & \Longleftrightarrow & \theta_P
            \end{eqnarray*}
-
+\vskip -0.5em
+         \begin{itemize}
+         \item Transform $\phi_I$ into $\theta_P$ via equivalence-preserving proof steps
+         \end{itemize}
 
 \end{frame}
 
@@ -715,7 +734,7 @@
 \begin{center}
   \begin{tabular}{lllll}
     \toprule
-    \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
     \midrule
     \makebox[5mm][l]{\rtext{$C$}} & \makebox[10mm][l]{\texttt{p}}  & \makebox[15mm][l]{$\btext{V} \; \gtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Declare $\pand$ operation} \\
     \rtext{$C$}    & \texttt{s} & $\btext{V} \; \gtext{L \; L}$    & \rtext{$C^{+}$} \texttt{0}  & Declare $\por$ operation \\
@@ -725,9 +744,9 @@
   \medskip
 
     \begin{tabular}{llllll}
-      \makebox[2mm][l]{\rtext{$C$}} & \makebox[17mm][l]{Clause ID} & 
-      \makebox[2mm][l]{\btext{$L$}} & \makebox[13mm][l]{Literal} &
-      \makebox[2mm][l]{\gtext{$V$}} & \makebox[13mm][l]{Variable} \\
+      \makebox[2mm][l]{\rtext{$C$}} & \makebox[18mm][l]{Clause ID} & 
+      \makebox[2mm][l]{\btext{$V$}} & \makebox[15mm][l]{Variable} &
+      \makebox[2mm][l]{\gtext{$L$}} & \makebox[15mm][l]{Literal} \\
     \end{tabular}
 \end{center}
 
@@ -773,7 +792,7 @@
 \begin{center}
   \begin{tabular}{lllll}
     \toprule
-    \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
     \midrule
     \makebox[5mm][l]{\rtext{$C$}} & \makebox[10mm][l]{\texttt{a}}  & \makebox[15mm][l]{$\gtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{$\rtext{C^{+}}$ \texttt{0}}  & \makebox[20mm][l]{Add RUP clause} \\
      & \texttt{d} & \rtext{$C$}             & \rtext{$C^{+}$}  \texttt{0} & Delete RUP clause \\
@@ -802,7 +821,7 @@
 \begin{center}
   \begin{tabular}{lllll}
     \toprule
-    \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
     \midrule
      \makebox[5mm][l]{} & \makebox[10mm][l]{\texttt{r}} & \makebox[15mm][l]{\gtext{$L$}}    & \makebox[7mm][l]{}            & \makebox[28mm][l]{Declare root literal}\\
     \bottomrule
@@ -856,7 +875,7 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{CPOG Proof Structure:Forward Implication}
+\frametitle{CPOG Proof Structure: Forward Implication}
 
 {\bf Forward Implication Proof}
 \vskip -1.0em
@@ -867,7 +886,7 @@
 \begin{itemize}
 \item Add clauses by reverse unit propagation (RUP)
 \item Terminating with unit clause $[r]$
-\item {\em Any assignment satisfying $\phi_I$  causes the POG formula to evaluate to true}
+\item {\em Any assignment satisfying $\phi_I$  causes the POG to evaluate to true}
 \medskip
 \item Most difficult part of proof generation
   \begin{itemize}
@@ -913,7 +932,7 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{Forward Proof Generation:Structured Method}
+\frametitle{Forward Proof Generation: Structural Method}
 \vskip -1.0em
 \begin{eqnarray*}
   \phi_I & \implies & \theta_P
@@ -947,7 +966,7 @@
 
 
 \begin{frame}
-\frametitle{CPOG Proof Structure:Reverse Implication}
+\frametitle{CPOG Proof Structure: Reverse Implication}
 
 {\bf Reverse Implication Proof}
 \vskip -1.0em
@@ -962,12 +981,12 @@
   \end{itemize}
 \item Including each input clause
 \begin{itemize}
-\bitem {\em Any assignment falsifying the input clause causes the POG formula to evaluate to false}
+\bitem {\em Any assignment falsifying the input clause causes the POG to evaluate to false}
 \end{itemize}
-  \medskip
-  
 \item One RUP proof step for each clause deleted
-\item Compiled form allows efficient test of clausal entailment \reference{DarMar-2002}
+\begin{itemize}
+  \bitem Based on principle that compiled form allows efficient test of clausal entailment \reference{DarMar-2002}
+\end{itemize}
 \end{itemize}
 
 
@@ -989,7 +1008,7 @@
   \begin{itemize}
   \item Time limit of 4000 seconds
   \item Completed 124 problems
-  \item Converted into POGs ranging from 304 to 2,761,457,765 defining clauses
+  \item Converted to POGs ranging from 304 to 2,761,457,765 defining clauses
   \end{itemize}
 
   \medskip
@@ -1004,7 +1023,7 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{Experimental Results: CPOG Generation and Checking}
+\frametitle{Experimental Results: Toolchain Runtime}
 \bigskip
 \begin{center}
 \begin{tikzpicture}[scale = 0.52]
@@ -1083,6 +1102,7 @@
       \scriptsize \textsf{Reverse implication},
       \scriptsize \textsf{No validation},
     }
+    \addplot[mark=none, color=lightblue] coordinates{(100,1e9) (1e10,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,1000) (1e8,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,10000) (1e7,1e9)};
@@ -1161,12 +1181,12 @@
 
 \item[CapLagMar-2021]
   F. Capelli, J.-M. Lagniez, and P. Marquis,
-  ``Certifying Top-Down Decision-{DNNF} Compilers'',
+  ``Certifying top-down decision-{DNNF} compilers'',
   {\em AAAI}, 2021
 
 \item[DarMar-2002]
   A. Darwiche and P. Marquis,
-  ``A Knowledge Compilation Map,''
+  ``A knowledge compilation map,''
   {\em JAIR}, 2002
   
 \item[DemUlr-2021]
