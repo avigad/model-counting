@@ -3,7 +3,8 @@ GDIR = .
 GEN = $(GDIR)/ddgen.py
 SCALE=50pt
 
-tex: eg4.tex eg4-slides.tex eg4-eval.tex eg-proj.tex eg-preproj.tex eg-proj-skolemize.tex
+tex: eg4.tex eg4-slides.tex eg4-eval.tex eg4-partial.tex \
+	eg-proj.tex eg-preproj.tex eg-proj-skolemize.tex
 
 c3.tex: c3.dd
 	$(GEN) -i c3.dd -o c3.tex -u $(SCALE)
@@ -55,6 +56,9 @@ eg4-slides.tex: eg4-slides.dd
 
 eg4-eval.tex: eg4-eval.dd
 	$(GEN) -i eg4-eval.dd -o eg4-eval.tex -u $(UNIT) -s 0.9 -S c
+
+eg4-partial.tex: eg4-partial.dd
+	$(GEN) -i eg4-partial.dd -o eg4-partial.tex -u $(UNIT) -s 0.9 -S c
 
 eg4-doc.pdf: eg4.dd
 	$(GEN) -w -i eg4.dd -o eg4-doc.tex -u $(SCALE)

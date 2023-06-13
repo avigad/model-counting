@@ -39,6 +39,7 @@
 \newcommand{\opos}[1]{#1}
 \newcommand{\oneg}[1]{\overline{#1}}
 \newcommand{\nil}{\bot}
+\newcommand{\lit}{\ell}
 %%\newcommand{\implies}{\Rightarrow}
 \newcommand{\bitem}{\item[$\bullet$]}
 
@@ -116,6 +117,9 @@
 \definecolor{xgreen}{rgb}{0.3, 0.6, 0}
 \definecolor{xblue}{rgb}{0., 0.25, 1}
 
+\newcommand{\btext}[1]{\textcolor{xblue}{#1}}
+\newcommand{\rtext}[1]{\textcolor{xred}{#1}}
+\newcommand{\gtext}[1]{\textcolor{xgreen}{#1}}
 
 \title{\LARGE Certified Knowledge Compilation \\
     with Application to \\Verified Model Counting}
@@ -250,11 +254,11 @@
 \begin{center}
   {\bf Formula $\phi$}\\[0.25em]
   \begin{tabular}{lc}
-    $(\oneg{x}_1 \lor \opos{x}_3 \lor \oneg{x}_4)$ & $\land$ \\
-    $(\oneg{x}_1 \lor \oneg{x}_3 \lor \opos{x}_4)$ & $\land$ \\
-    $(\opos{x}_1 \lor \opos{x}_3 \lor \oneg{x}_4)$ & $\land$ \\
-    $(\opos{x}_1 \lor \oneg{x}_3 \lor \opos{x}_4)$ & $\land$ \\
-    $(\oneg{x}_1 \lor \oneg{x}_2)$ &  \\
+    $[\oneg{x}_1 \lor \opos{x}_3 \lor \oneg{x}_4]$ & $\land$ \\
+    $[\oneg{x}_1 \lor \oneg{x}_3 \lor \opos{x}_4]$ & $\land$ \\
+    $[\opos{x}_1 \lor \opos{x}_3 \lor \oneg{x}_4]$ & $\land$ \\
+    $[\opos{x}_1 \lor \oneg{x}_3 \lor \opos{x}_4]$ & $\land$ \\
+    $[\oneg{x}_1 \lor \oneg{x}_2]$ &  \\
   \end{tabular}
 %%  \begin{tabular}{ccccc}
 %%    $\oneg{x}_1$ & $\lor$ &  $\opos{x}_3$ & $\lor$ &  $\oneg{x}_4$ \\
@@ -621,9 +625,9 @@
        \item Proof framework closely mirrors compiler operation
        \item No formal proof of soundness
          \begin{itemize}
-         \item Found exploitable weakness
-         \item RAT rule does not require model preservation
-         \item Easily fixable
+         \bitem Found exploitable weakness
+         \bitem RAT rule does not require model preservation
+         \bitem Easily fixable
          \end{itemize}
        \item No verified checker
        \end{itemize}
@@ -706,7 +710,153 @@
 
 
 \begin{frame}
-\frametitle{CPOG Proof Structure \#1}
+  \frametitle{CPOG Format: Operations}
+
+\begin{center}
+  \begin{tabular}{lllll}
+    \toprule
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
+    \midrule
+    \makebox[5mm][l]{\rtext{$C$}} & \makebox[10mm][l]{\texttt{p}}  & \makebox[15mm][l]{$\btext{V} \; \gtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Declare $\pand$ operation} \\
+    \rtext{$C$}    & \texttt{s} & $\btext{V} \; \gtext{L \; L}$    & \rtext{$C^{+}$} \texttt{0}  & Declare $\por$ operation \\
+    \bottomrule
+  \end{tabular}
+
+  \medskip
+
+    \begin{tabular}{llllll}
+      \makebox[2mm][l]{\rtext{$C$}} & \makebox[17mm][l]{Clause ID} & 
+      \makebox[2mm][l]{\btext{$L$}} & \makebox[13mm][l]{Literal} &
+      \makebox[2mm][l]{\gtext{$V$}} & \makebox[13mm][l]{Variable} \\
+    \end{tabular}
+\end{center}
+
+  \medskip
+
+  \begin{minipage}{0.4\textwidth}
+  \centering{
+  \input{dd/eg4-partial}
+  }
+  \end{minipage}
+  \begin{minipage}{0.58\textwidth}
+  \centering{
+    \begin{tabular}{lll}
+    \toprule
+    \makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line}  \\
+    \midrule
+    \rtext{6} & \texttt{p \btext{5} \gtext{-3 -4}} & \texttt{0} \\
+    \rtext{9} & \texttt{p \btext{6} \gtext{3 4}} & \texttt{0} \\
+    \rtext{12} & \texttt{s \btext{7} \gtext{5 6} \rtext{7 10}} & \texttt{0} \\
+    \bottomrule
+    \end{tabular}
+  }
+  \end{minipage}
+
+  \medskip
+
+  \begin{itemize}
+    \item Operation with $k$ arguments generates $k+1$ defining clauses
+      \begin{itemize}
+        \bitem Operation with ID $i$ generates clauses $i$ through $i+k$
+      \end{itemize}
+    \item $\por$ operation includes clause IDs for mutual exclusion proof
+  \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{CPOG Format: Clause addition and deletion}
+
+\bigskip
+
+\begin{center}
+  \begin{tabular}{lllll}
+    \toprule
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
+    \midrule
+    \makebox[5mm][l]{\rtext{$C$}} & \makebox[10mm][l]{\texttt{a}}  & \makebox[15mm][l]{$\gtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{$\rtext{C^{+}}$ \texttt{0}}  & \makebox[20mm][l]{Add RUP clause} \\
+     & \texttt{d} & \rtext{$C$}             & \rtext{$C^{+}$}  \texttt{0} & Delete RUP clause \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\bigskip
+
+\begin{itemize}
+\item $\gtext{L^{*}}$ declares literals in clause
+\item $\rtext{C^{+}}$ provides hint for reverse unit propagation (RUP) proof
+\item Can only add clause if it is implied by existing ones
+\item Can only delete clause if it is implied by remaining ones
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}
+  \frametitle{CPOG Format: Root Literal}
+
+\bigskip
+
+\begin{center}
+  \begin{tabular}{lllll}
+    \toprule
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{c}{Description} \\
+    \midrule
+     \makebox[5mm][l]{} & \makebox[10mm][l]{\texttt{r}} & \makebox[15mm][l]{\gtext{$L$}}    & \makebox[7mm][l]{}            & \makebox[28mm][l]{Declare root literal}\\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\bigskip
+
+\begin{itemize}
+\item Declare POG root
+\end{itemize}
+
+\bigskip
+
+{\bf Observations about CPOG format:}
+
+\medskip
+
+\begin{itemize}
+\item Builds on standard clausal proof formats
+\item Not based on any particular compilation method
+\end{itemize}  
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{CPOG Checking Requirements}
+
+\bigskip
+
+  \begin{itemize}
+  \item Partitioned product: ${\cal D}(\phi_1) \cap {\cal D}(\phi_2) = \emptyset$
+    \begin{itemize}
+    \bitem Track dependent variables for each operation
+    \bitem Check mutual exclusion for product operations
+    \end{itemize}
+\medskip
+  \item Partitioned sum: ${\cal M}(\phi_1) \cap {\cal M}(\phi_2) = \emptyset$
+    \begin{itemize}
+    \bitem Arguments $\lit_1$ and $\lit_2$
+    \bitem Check that RUP sequence justifies clause $[\oneg{\lit}_1 \lor \oneg{\lit}_2]$
+    \end{itemize}
+\medskip
+  \item Clause addition and deletion
+    \begin{itemize}
+      \bitem Check  RUP sequence 
+      \bitem Fast, since complete hint provided  
+    \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{CPOG Proof Structure:Forward Implication}
 
 {\bf Forward Implication Proof}
 \vskip -1.0em
@@ -727,35 +877,77 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}
-\frametitle{Forward Proof Generation}
-           \medskip
 
-           {\bf Direct Generation}
+\begin{frame}
+\frametitle{Forward Proof Generation:Direct Method}
+\vskip -1.0em
+\begin{eqnarray*}
+  \phi_I & \implies & \theta_P
+\end{eqnarray*}
+%\vskip -0.5em
+
+           {\bf Method:}
+
+           \medskip
+           
            \begin{itemize}
-             \item No assumption about how POG was generated
              \item Use SAT solver to generate proof that $\phi_I \land \neg \theta_P$ unsatisfiable
              \item Negate $\theta_P$ by replacing unit clause $[r]$ with $[\oneg{r}]$
+           \end{itemize}
+
+           \bigskip
+
+           {\bf Properties:}
+           
+           \medskip
+
+           \begin{itemize}
+           \item No assumption about how POG was generated
+             \begin{itemize}
+               \bitem Works when run preprocessor before D4
+             \end{itemize}
              \item Experimentally: Scales to POGs with  $\sim 10^6$ defining clauses
            \end{itemize}
 
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Forward Proof Generation:Structured Method}
+\vskip -1.0em
+\begin{eqnarray*}
+  \phi_I & \implies & \theta_P
+\end{eqnarray*}
+%\vskip -0.5em
+
+           {\bf Method:}
+
            \medskip
 
-           {\bf Structured Generation}
            \begin{itemize}
-           \item Assumes POG generated by top-down knowledge compiler
            \item Generate proof by recursive traversal of POG
            \item Call SAT solver for some subformulas
-           \item Avoid exponential expansion using lemma for each shared subgraph
-           \item Experimentally: Scales to POGs with $\sim 10^8$ defining clauses
+           \item Avoid exponential expansion using lemmas
+             \begin{itemize}
+               \bitem Prove lemma when encounter node with indegree $\geq 2$
+               \bitem Apply lemma and stop recursion when encounter again
+               \bitem Can express within CPOG framework
+             \end{itemize}
            \end{itemize}
+
+          {\bf Properties:}
+
+          \begin{itemize}
+           \item Assumes POG generated by top-down knowledge compiler
+           \item Experimentally: Scales to POGs with $\sim 10^8$ defining clauses
+          \end{itemize}
 
 \end{frame}
 
 
 
 \begin{frame}
-\frametitle{CPOG Proof Structure \#2}
+\frametitle{CPOG Proof Structure:Reverse Implication}
 
 {\bf Reverse Implication Proof}
 \vskip -1.0em

@@ -1,0 +1,62 @@
+# Representation of schema for 5-clause example
+# Colors
+c fillwhite 255:255:255
+
+# Nodes
+# Labeled nodes
+#n t   175 425 t=r r=20 e=fillwhite f=fillwhite l=$r$
+#n x1   25 300 t=r r=20 e=fillwhite f=fillwhite l=$x_1$
+#n x2   25 200 t=r r=20 e=fillwhite f=fillwhite l=$x_2$
+n x3   25 100 t=r r=20 e=fillwhite f=fillwhite l=$x_3$
+n x4   25   0 t=r r=20 e=fillwhite f=fillwhite l=$x_4$
+# Operators
+#n s10 175 350 l=$\lor^{\textsf{p}}$
+#n p9  125 250 l=$\land^{\textsf{p}}$
+#n p8  225 250 l=$\land^{\textsf{p}}$
+n s7  175 150 l=$\lor^{\textsf{p}}$
+n p6  125  50 l=$\land^{\textsf{p}}$
+n p5  225  50 l=$\land^{\textsf{p}}$
+# Connectors
+#n x1a  75 300 t=e
+#n x1b 175 300 t=e
+#n x1n 175 300 t=e
+#n x2a  75 200 t=e
+#n x2n  90 215 t=e
+n x3a  75 100 t=e
+n x3b 175 100 t=e
+n x3n 175 100 t=e
+n x4a  75   0 t=e
+n x4b 175   0 t=e
+n x4n 175   0 t=e
+# Edges
+# Between operators
+#e t s10
+#e s10 p9
+#e s10 p8
+#e  p9 s7
+#e  p8 s7
+e s7 p6
+e s7 p5
+# Inputs
+#e x1  x1b
+#e x1a  p9
+#e x1b  p8
+#e x1n x1n m=b r=7
+#e x2  x2a
+#e x2n x2n m=b r=7
+#e x2a  p9
+e x3  x3b
+e x3a p6
+e x3b p5 
+e x3n x3n m=b r=7
+e x4 x4b
+e x4a p6
+e x4b p5
+e x4n x4n m=b r=7
+# Tags
+# t s10 $\nodes_{10}$ p=r off=0
+# t  p9 $\nodep_{9}$ p=r off=0
+# t  p8 $\nodep_{8}$ p=r off=0
+ t  s7 $\nodes_{7}$ p=r off=0
+ t  p6 $\nodep_{6}$ p=r off=0
+ t  p5 $\nodep_{5}$ p=r off=0
