@@ -4,6 +4,9 @@ c fillwhite 255:255:255
 
 # Nodes
 # Labeled nodes
+# Dummy label to save space
+n d   200 425 t=r r=25 e=fillwhite f=fillwhite l=$\textcolor{white}{{\mathbf{R}}(\phi,~w)}$
+#
 n t   175 425 t=r r=20 e=fillwhite f=fillwhite l=$r$
 n x1   25 300 t=r r=20 e=fillwhite f=fillwhite l=$x_1$
 n x2   25 200 t=r r=20 e=fillwhite f=fillwhite l=$x_2$

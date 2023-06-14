@@ -120,6 +120,7 @@
 \newcommand{\btext}[1]{\textcolor{xblue}{#1}}
 \newcommand{\rtext}[1]{\textcolor{xred}{#1}}
 \newcommand{\gtext}[1]{\textcolor{xgreen}{#1}}
+\newcommand{\wtext}[1]{\textcolor{white}{#1}}
 
 \title{\LARGE Certified Knowledge Compilation \\
     with Application to \\Verified Model Counting}
@@ -616,7 +617,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Related Work \#1}
+  \frametitle{Related Work: CD4}
   \medskip
   
   {\bf CD4:} Certifying D4 \reference{CapLagMar-2021}
@@ -648,7 +649,7 @@
 
 
 \begin{frame}
-  \frametitle{Related Work \#2}
+  \frametitle{Related Work: MICE}
   \medskip
    {\bf MICE:} Proof framework for top-down model counters \reference{FicHecRol-2022}
    \begin{itemize}
@@ -732,6 +733,19 @@
   \frametitle{CPOG Format: Operations}
 
 \begin{center}
+\only<1>{
+%% Hold space for table.  This should be invisible
+\textcolor{white}{
+  \begin{tabular}{lllll}
+    \toprule
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
+    \midrule
+    \makebox[5mm][l]{\wtext{$C$}} & \makebox[10mm][l]{\texttt{p}}  & \makebox[15mm][l]{$\wtext{V} \; \wtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Declare $\pand$ operation} \\
+    \wtext{$C$}    & \texttt{s} & $\wtext{V} \; \wtext{L \; L}$    & \wtext{$C^{+}$} \texttt{0}  & Declare $\por$ operation \\
+    \bottomrule
+  \end{tabular}
+}} %% End of placeholder
+\only<2->{
   \begin{tabular}{lllll}
     \toprule
     \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
@@ -740,7 +754,7 @@
     \rtext{$C$}    & \texttt{s} & $\btext{V} \; \gtext{L \; L}$    & \rtext{$C^{+}$} \texttt{0}  & Declare $\por$ operation \\
     \bottomrule
   \end{tabular}
-
+}
   \medskip
 
     \begin{tabular}{llllll}
@@ -773,6 +787,7 @@
 
   \medskip
 
+\only<2->{
   \begin{itemize}
     \item Operation with $k$ arguments generates $k+1$ defining clauses
       \begin{itemize}
@@ -780,7 +795,7 @@
       \end{itemize}
     \item $\por$ operation includes clause IDs for mutual exclusion proof
   \end{itemize}
-
+}
 \end{frame}
 
 
@@ -987,6 +1002,10 @@
 \begin{itemize}
   \bitem Based on principle that compiled form allows efficient test of clausal entailment \reference{DarMar-2002}
 \end{itemize}
+\item Only POG declaration $\theta_P$ remains at end
+  \begin{itemize}
+    \item Completes transformation from $\phi_I$ to $\theta_P$.
+  \end{itemize}
 \end{itemize}
 
 
