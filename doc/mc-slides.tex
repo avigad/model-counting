@@ -544,7 +544,7 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{Trusting the Trusted Code}
+\frametitle{Verifying the Trusted Code}
 
 \bigskip
 \centering{
@@ -569,7 +569,7 @@
   \node[white] at (57,2.8) {\footnotesize Evaluator};
 
 
-  \node at (57,20) {\footnotesize Trusted Code};
+  \node at (57,20) {\footnotesize \textbf{Verified} Code};
 
   %% CNF
   \draw[line width=2pt] (0,20) -- (44,20) -- (44,16) [-latex] -- (51,16);
@@ -600,20 +600,36 @@
 
 \begin{minipage}{\textwidth}
 \medskip
-{\bf Within Lean 4 Proof Framework} \reference{DemUlr-2021}
+{\bf Using the Lean 4 theorem prover} \reference{DemUlr-2021}
 \begin{itemize}
 \item Soundness of proof system
   \begin{itemize}
-    \bitem Helped us identify some weaknesses in our proof rules
+    \bitem Helped us identify unsoundness in our prototype proof rules
   \end{itemize}
 \item Verified checker
   \begin{itemize}
   \bitem Around $6\times$ slower than one implemented in C
 %  \bitem Same asymptotic performance
   \end{itemize}
-\item Ring Evaluator: Over rationals
+\item Verified evaluator
 \end{itemize}
 \end{minipage}
+\end{frame}
+
+% WIP: WN
+\begin{frame}
+  \frametitle{Formally verified theorems}
+  \medskip
+
+  \begin{theorem}
+    If the CPOG proof checker has assembled POG $P$ with root node $\noder$ starting from input formula $\phi_I$, and the final check succeeds, then $\phi_I$ is logically equivalent to the formula denoting $P$.
+  \end{theorem}
+
+  \begin{theorem}
+    The ring evaluator behaves correctly on partitioned formulas, and returns the expected value ${\bf R}(\phi, w) = \sum_{\alpha \in {\cal M}(\phi)} \; \prod_{\ell_i \in \alpha} w(\ell_i)$.
+  \end{theorem}
+
+  % TODO(WN): Look at the Lean code to recall specifics.
 \end{frame}
 
 \begin{frame}
