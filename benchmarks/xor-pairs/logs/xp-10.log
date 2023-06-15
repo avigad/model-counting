@@ -1,0 +1,167 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./xp-10.cnf -dDNNF -out=./xp-10.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 120
+c Number of clauses: 400
+c Number of literals: 1200
+c Preproc options: 
+c
+c Preproc time: 0.000129
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -1 
+c top 5: -1 -2 
+c top 5: -1 -2 -3 
+c top 5: -1 -2 -3 -4 
+c unitLits 1048577 4194308 Bytes
+c top 5: -1 -2 -3 4 
+c top 5: -1 -2 3 
+c top 5: -1 -2 3 -4 
+c top 5: -1 -2 3 4 
+c top 5: -1 2 
+c top 5: -1 2 -3 
+c top 5: -1 2 -3 -4 
+c top 5: -1 2 -3 4 
+c top 5: -1 2 3 
+c top 5: -1 2 3 -4 
+c top 5: -1 2 3 4 
+c top 5: 1 
+c top 5: 1 -2 
+c top 5: 1 -2 -3 
+c top 5: 1 -2 -3 -4 
+c top 5: 1 -2 -3 4 
+c top 5: 1 -2 3 
+c top 5: 1 -2 3 -4 
+c top 5: 1 -2 3 4 
+c      16384 |       0.08 |          0 |       8195 |       7450 |        561 |     174196 |     189076 |          0 |       8195 |        7447 |          0 | 
+c top 5: 1 2 
+c top 5: 1 2 -3 
+c top 5: 1 2 -3 -4 
+c top 5: 1 2 -3 4 
+c top 5: 1 2 3 
+c top 5: 1 2 3 -4 
+c top 5: 1 2 3 4 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 22527
+c Number of split formula: 10240
+c Number of decision node: 11263
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 1024
+c Number of backbone calls: 0
+c Number of partitioner calls: 10241
+c Average number of assigned literal to obtain decomposable AND nodes: 10.00/120
+c Minimum number of assigned variable where a decomposable AND appeared: 10
+c 
+c [33mGraph Information[0m
+c Number of nodes: 239613
+c Number of edges: 260092
+c 
+c [1m[34mCache Information[0m
+c Memory used: 561 MB
+c
+c Number of positive hit: 0
+c Number of negative hit: 11263
+c Number of reduceCall: 0
+c
+c Final time: 0.101763
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.185 seconds
+D4 OUTCOME: normal
+xp-10. D4 NNF: LOG: size ./xp-10.nnf 45056 lines 1306016 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -C 2147483647 -L d2p.log ./xp-10.cnf ./xp-10.nnf ./xp-10.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
+c GEN: Time = 0.00.  Read input file with 120 variables and 400 clauses
+c Read D4 NNF file with 34815 nodes (12289 explicit) and 32767 edges
+c Compressed POG has 34813 nodes, root literal 34933, and 296951 defining clauses
+c GEN: Time = 0.09.  Generated POG representation
+c Time = 0.12.  Justifications of 3481 nodes completed.  301557 total clauses.  0 SAT calls
+c Time = 0.15.  Justifications of 6962 nodes completed.  306163 total clauses.  0 SAT calls
+c Time = 0.17.  Justifications of 10443 nodes completed.  310771 total clauses.  0 SAT calls
+c Time = 0.20.  Justifications of 13924 nodes completed.  315378 total clauses.  0 SAT calls
+c Time = 0.23.  Justifications of 17405 nodes completed.  319987 total clauses.  0 SAT calls
+c Time = 0.25.  Justifications of 20886 nodes completed.  324592 total clauses.  0 SAT calls
+c Time = 0.28.  Justifications of 24367 nodes completed.  329199 total clauses.  0 SAT calls
+c Time = 0.31.  Justifications of 27848 nodes completed.  333806 total clauses.  0 SAT calls
+c Time = 0.34.  Justifications of 31329 nodes completed.  338414 total clauses.  0 SAT calls
+c Time = 0.37.  Justifications of 34810 nodes completed.  343022 total clauses.  0 SAT calls
+c Time = 0.37.  Justifications of 34813 nodes, including root, completed.  343027 total clauses
+c GEN: Time = 0.39.  Deleted asserted clauses
+c GEN: Time = 1.07.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 120
+c GEN:    input clauses  : 400
+c GEN: POG nodes
+c GEN:    product   : 23549
+c GEN:    sum       : 11263
+c GEN:    node TOTAL: 34812
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 23550
+c GEN:    product/SAT: 0
+c GEN:    sum        : 11263
+c GEN:    visit TOTAL: 34813
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 296951
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 23550
+c GEN:    sum justification    : 22526
+c GEN:    literal justification: 0
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 343027
+c GEN: Time
+c GEN:   SAT execution  : 0.00
+c GEN:   other execution: 1.07
+c GEN:   time TOTAL     : 1.07
+GEN LOG: Elapsed time = 1.079 seconds
+GEN OUTCOME: normal
+xp-10. GEN: LOG: size ./xp-10.cpog 127365 lines 18986651 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./xp-10.cnf ./xp-10.cpog
+FCHECK LOG: Time limit 10000 seconds
+CHECK: Read CNF file with 120 variables and 400 clauses
+CHECK: Read CPOG file with 34813 operations,  46076 asserted + 296951 defining = 343027 clauses
+CHECK: Deleted 46475 input and asserted clauses
+CHECK: Final root literal 34933
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+Root ID = 34933
+CHECK: Regular model count = 1048576
+CHECK: Time to compute model counts: 0.018
+CHECK: Elapsed seconds: 0.578
+FCHECK LOG: Elapsed time = 0.580 seconds
+FCHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 1.879 seconds
+OVERALL OUTCOME: normal

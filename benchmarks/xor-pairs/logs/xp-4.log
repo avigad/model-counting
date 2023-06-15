@@ -1,0 +1,204 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./xp-4.cnf -dDNNF -out=./xp-4.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 24
+c Number of clauses: 64
+c Number of literals: 192
+c Preproc options: 
+c
+c Preproc time: 0.000048
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -5 
+c top 5: -5 -6 
+c top 5: -5 -6 -7 
+c top 5: -5 -6 -7 -8 
+c unitLits 1048577 4194308 Bytes
+c top 5: -5 -6 -7 -8 
+c top 5: -5 -6 -7 -8 
+c top 5: -5 -6 -7 -8 
+c top 5: -5 -6 -7 8 
+c top 5: -5 -6 -7 8 
+c top 5: -5 -6 -7 8 
+c top 5: -5 -6 -7 8 
+c top 5: -5 -6 7 
+c top 5: -5 -6 7 -8 
+c top 5: -5 -6 7 -8 
+c top 5: -5 -6 7 -8 
+c top 5: -5 -6 7 -8 
+c top 5: -5 -6 7 8 
+c top 5: -5 -6 7 8 
+c top 5: -5 -6 7 8 
+c top 5: -5 -6 7 8 
+c top 5: -5 6 
+c top 5: -5 6 -7 
+c top 5: -5 6 -7 -8 
+c top 5: -5 6 -7 -8 
+c top 5: -5 6 -7 -8 
+c top 5: -5 6 -7 -8 
+c top 5: -5 6 -7 8 
+c top 5: -5 6 -7 8 
+c top 5: -5 6 -7 8 
+c top 5: -5 6 -7 8 
+c top 5: -5 6 7 
+c top 5: -5 6 7 -8 
+c top 5: -5 6 7 -8 
+c top 5: -5 6 7 -8 
+c top 5: -5 6 7 -8 
+c top 5: -5 6 7 8 
+c top 5: -5 6 7 8 
+c top 5: -5 6 7 8 
+c top 5: -5 6 7 8 
+c top 5: 5 
+c top 5: 5 -6 
+c top 5: 5 -6 -7 
+c top 5: 5 -6 -7 -8 
+c top 5: 5 -6 -7 -8 
+c top 5: 5 -6 -7 -8 
+c top 5: 5 -6 -7 -8 
+c top 5: 5 -6 -7 8 
+c top 5: 5 -6 -7 8 
+c top 5: 5 -6 -7 8 
+c top 5: 5 -6 -7 8 
+c top 5: 5 -6 7 
+c top 5: 5 -6 7 -8 
+c top 5: 5 -6 7 -8 
+c top 5: 5 -6 7 -8 
+c top 5: 5 -6 7 -8 
+c top 5: 5 -6 7 8 
+c top 5: 5 -6 7 8 
+c top 5: 5 -6 7 8 
+c top 5: 5 -6 7 8 
+c top 5: 5 6 
+c top 5: 5 6 -7 
+c top 5: 5 6 -7 -8 
+c top 5: 5 6 -7 -8 
+c top 5: 5 6 -7 -8 
+c top 5: 5 6 -7 -8 
+c top 5: 5 6 -7 8 
+c top 5: 5 6 -7 8 
+c top 5: 5 6 -7 8 
+c top 5: 5 6 -7 8 
+c top 5: 5 6 7 
+c top 5: 5 6 7 -8 
+c top 5: 5 6 7 -8 
+c top 5: 5 6 7 -8 
+c top 5: 5 6 7 -8 
+c top 5: 5 6 7 8 
+c top 5: 5 6 7 8 
+c top 5: 5 6 7 8 
+c top 5: 5 6 7 8 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 159
+c Number of split formula: 64
+c Number of decision node: 79
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 16
+c Number of backbone calls: 0
+c Number of partitioner calls: 1
+c Average number of assigned literal to obtain decomposable AND nodes: 4.00/24
+c Minimum number of assigned variable where a decomposable AND appeared: 4
+c 
+c [33mGraph Information[0m
+c Number of nodes: 765
+c Number of edges: 892
+c 
+c [1m[34mCache Information[0m
+c Memory used: 560 MB
+c
+c Number of positive hit: 0
+c Number of negative hit: 79
+c Number of reduceCall: 0
+c
+c Final time: 0.000465
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.013 seconds
+D4 OUTCOME: normal
+xp-4. D4 NNF: LOG: size ./xp-4.nnf 320 lines 4457 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -C 2147483647 -L d2p.log ./xp-4.cnf ./xp-4.nnf ./xp-4.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:   yes
+c GEN:   Use lemmas:      yes
+c GEN:   Delete files:    yes
+c GEN:   One-sided:       no
+c GEN:   Monolithic mode: no
+c GEN:   DRAT threshold:  1000
+c GEN:   Clause limit:    2147483647
+c GEN:   BCP limit:       1
+c GEN:   Solver:          cadical
+c GEN: Time = 0.00.  Read input file with 24 variables and 64 clauses
+c Read D4 NNF file with 255 nodes (97 explicit) and 223 edges
+c Compressed POG has 253 nodes, root literal 277, and 1175 defining clauses
+c GEN: Time = 0.00.  Generated POG representation
+c Time = 0.00.  Justifications of 253 nodes, including root, completed.  1507 total clauses
+c GEN: Time = 0.00.  Deleted asserted clauses
+c GEN: Time = 0.00.  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 24
+c GEN:    input clauses  : 64
+c GEN: POG nodes
+c GEN:    product   : 173
+c GEN:    sum       : 79
+c GEN:    node TOTAL: 252
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 174
+c GEN:    product/SAT: 0
+c GEN:    sum        : 79
+c GEN:    visit TOTAL: 253
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 1175
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 174
+c GEN:    sum justification    : 158
+c GEN:    literal justification: 0
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 1507
+c GEN: Time
+c GEN:   SAT execution  : 0.00
+c GEN:   other execution: 0.00
+c GEN:   time TOTAL     : 0.00
+GEN LOG: Elapsed time = 0.010 seconds
+GEN OUTCOME: normal
+xp-4. GEN: LOG: size ./xp-4.cpog 981 lines 48517 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./xp-4.cnf ./xp-4.cpog
+FCHECK LOG: Time limit 10000 seconds
+CHECK: Read CNF file with 24 variables and 64 clauses
+CHECK: Read CPOG file with 253 operations,  332 asserted + 1175 defining = 1507 clauses
+CHECK: Deleted 395 input and asserted clauses
+CHECK: Final root literal 277
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+Root ID = 277
+CHECK: Regular model count = 256
+CHECK: Time to compute model counts: 0.000
+CHECK: Elapsed seconds: 0.002
+FCHECK LOG: Elapsed time = 0.003 seconds
+FCHECK OUTCOME: normal
+OVERALL LOG: Elapsed time = 0.027 seconds
+OVERALL OUTCOME: normal
