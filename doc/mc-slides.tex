@@ -453,28 +453,62 @@
 
 \medskip
 \begin{minipage}{0.49\textwidth}
+\begin{center}
+  {\bf Formula $\phi$}\\[0.25em]
+  \begin{tabular}{lc}
+    $[\oneg{x}_1 \lor \opos{x}_3 \lor \oneg{x}_4]$ & $\land$ \\
+    $[\oneg{x}_1 \lor \oneg{x}_3 \lor \opos{x}_4]$ & $\land$ \\
+    $[\opos{x}_1 \lor \opos{x}_3 \lor \oneg{x}_4]$ & $\land$ \\
+    $[\opos{x}_1 \lor \oneg{x}_3 \lor \opos{x}_4]$ & $\land$ \\
+    $[\oneg{x}_1 \lor \oneg{x}_2]$ &  \\
+  \end{tabular}
+%%  \begin{tabular}{ccccc}
+%%    $\oneg{x}_1$ & $\lor$ &  $\opos{x}_3$ & $\lor$ &  $\oneg{x}_4$ \\
+%%    $\oneg{x}_1$ & $\lor$ &  $\oneg{x}_3$ & $\lor$ &  $\opos{x}_4$ \\
+%%    $\opos{x}_1$ & $\lor$ &  $\opos{x}_3$ & $\lor$ &  $\oneg{x}_4$ \\
+%%    $\opos{x}_1$ & $\lor$ &  $\oneg{x}_3$ & $\lor$ &  $\opos{x}_4$ \\
+%%    $\oneg{x}_1$ & $\lor$ & $\oneg{x}_2$ \\
+%%  \end{tabular}
+\end{center}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
   \centering{
-  {\bf POG} \\[0.3em]
+%%  {\bf POG} \\[0.3em]
+  \input{dd/eg4-slides}
+  } % Centering
+\end{minipage}
+
+\medskip
+
+\begin{itemize}
+\item Directed graph representation of partitioned-operation formula
+\item Each edge can be negative or positive
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Ring Evaluation of POG}
+
+\medskip
+\begin{minipage}{0.49\textwidth}
+  \centering{
+%%  {\bf POG} \\[0.3em]
   \input{dd/eg4-slides}
   } % Centering
 \end{minipage}
 \begin{minipage}{0.49\textwidth}
-\only<2->{
   \centering{
-  {\bf Ring Evaluation} \\[0.3em]
+%%  {\bf Ring Evaluation} \\[0.3em]
   \input{dd/eg4-eval}
   } % Centering
-} %% \only
 \end{minipage}
 
+\medskip
+
 \begin{itemize}
-\only<1>{
-\item Directed graph representation of formula
-\item Each edge can be negative or positive
-}
-\only<2->{
 \item Evaluation: Number of ring operations linear in graph size
-}
 \end{itemize}
 
 \end{frame}
@@ -702,7 +736,7 @@
 
          \begin{itemize}
            \item Borne out by our own experience
-           \item Weaknesses can often be fixed by strengthening proof requirements
+           \item Weaknesses can often be fixed by strengthening proof obligations
            \item Framework + checker should withstand adversarial testing
          \end{itemize}
 
