@@ -51,7 +51,7 @@ def getNumber(fname):
     try:
         m = re.search(inumber, fname)
         n = int(m.group(0))
-        return str(n)
+        return m.group(0)
     except:
         print("Couldn't extract problem size from file name '%s'" % fname)
         return None

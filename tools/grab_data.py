@@ -22,13 +22,15 @@
 import sys
 import re
 
-# Generate csv of number specified on target line
-# Extracts problem size from file name.
+# Generate csv
+# with file root in first column
+# and number specified on target line in second column
+
 
 def usage(name):
     print("Usage: %s [nth] tphrase file ...")
-    print(" nth: Look for nth numeric field in line (count from 1).  -n to count from end backward")
-
+    print(" nth: Look for nth numeric field in line (count from 1).  -n to count from end backward.")
+    print("      Can also use 'f' to extract parameter from file name")
 
 # Will grep for line containing trigger phrase.
 # This should be provided as the first argument to the program.
