@@ -10,3 +10,4 @@ data:
 	$(INTERP) $(GRAB) "clause TOTAL" xp*.log > clauses-total.csv
 	$(INTERP) $(MERGE) -f problem-sizes.csv clauses-defining.csv > defining.csv
 	$(INTERP) $(MERGE) -f problem-sizes.csv clauses-total.csv > total.csv
+	$(INTERP) $(MERGE)  problem-sizes.csv clauses-defining.csv clauses-total.csv > all.csv
