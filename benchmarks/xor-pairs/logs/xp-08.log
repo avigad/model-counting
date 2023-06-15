@@ -1,4 +1,4 @@
-D4 LOG: Running /Users/bryant/repos/d4/d4 ./xp-8.cnf -dDNNF -out=./xp-8.nnf
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./xp-08.cnf -dDNNF -out=./xp-08.nnf
 D4 LOG: Time limit 4000 seconds
 c [33mBenchmark Information[0m
 c Number of variables: 80
@@ -6,7 +6,7 @@ c Number of clauses: 256
 c Number of literals: 768
 c Preproc options: 
 c
-c Preproc time: 0.000081
+c Preproc time: 0.000082
 c Integer mode 
 c
 c [1m[32mOption list [0m
@@ -72,19 +72,19 @@ c Number of nodes: 39933
 c Number of edges: 44028
 c 
 c [1m[34mCache Information[0m
-c Memory used: 560 MB
+c Memory used: 565 MB
 c
 c Number of positive hit: 0
 c Number of negative hit: 2303
 c Number of reduceCall: 0
 c
-c Final time: 0.008870
+c Final time: 0.008771
 c 
 s 0.000000
 D4 LOG: Elapsed time = 0.034 seconds
 D4 OUTCOME: normal
-xp-8. D4 NNF: LOG: size ./xp-8.nnf 9216 lines 219428 bytes
-GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -C 2147483647 -L d2p.log ./xp-8.cnf ./xp-8.nnf ./xp-8.cpog
+xp-08. D4 NNF: LOG: size ./xp-08.nnf 9216 lines 219428 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -C 2147483647 -L d2p.log ./xp-08.cnf ./xp-08.nnf ./xp-08.cpog
 GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:   yes
@@ -143,10 +143,10 @@ c GEN: Time
 c GEN:   SAT execution  : 0.00
 c GEN:   other execution: 0.15
 c GEN:   time TOTAL     : 0.15
-GEN LOG: Elapsed time = 0.159 seconds
+GEN LOG: Elapsed time = 0.157 seconds
 GEN OUTCOME: normal
-xp-8. GEN: LOG: size ./xp-8.cpog 26357 lines 2901455 bytes
-FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./xp-8.cnf ./xp-8.cpog
+xp-08. GEN: LOG: size ./xp-08.cpog 26357 lines 2901455 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check ./xp-08.cnf ./xp-08.cpog
 FCHECK LOG: Time limit 10000 seconds
 CHECK: Read CNF file with 80 variables and 256 clauses
 CHECK: Read CPOG file with 7165 operations,  9468 asserted + 51703 defining = 61171 clauses
@@ -156,8 +156,8 @@ CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
 Root ID = 7245
 CHECK: Regular model count = 65536
 CHECK: Time to compute model counts: 0.003
-CHECK: Elapsed seconds: 0.095
-FCHECK LOG: Elapsed time = 0.097 seconds
+CHECK: Elapsed seconds: 0.094
+FCHECK LOG: Elapsed time = 0.096 seconds
 FCHECK OUTCOME: normal
-OVERALL LOG: Elapsed time = 0.297 seconds
+OVERALL LOG: Elapsed time = 0.294 seconds
 OVERALL OUTCOME: normal
