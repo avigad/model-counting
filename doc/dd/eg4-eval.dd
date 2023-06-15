@@ -5,10 +5,10 @@ c fillwhite 255:255:255
 # Nodes
 # Labeled nodes
 n t   200 425 t=r r=25 e=fillwhite f=fillwhite l=${\mathbf{R}}(\phi,~w)$
-n x1   15 300 t=r r=40 e=fillwhite f=fillwhite l=$w(x_1)$
-n x2   15 200 t=r r=40 e=fillwhite f=fillwhite l=$w(x_2)$
-n x3   15 100 t=r r=40 e=fillwhite f=fillwhite l=$w(x_3)$
-n x4   15   0 t=r r=40 e=fillwhite f=fillwhite l=$w(x_4)$
+n x1   -25 300 t=r r=40 e=fillwhite f=fillwhite l=$w(x_1)$
+n x2   -25 200 t=r r=40 e=fillwhite f=fillwhite l=$w(x_2)$
+n x3   -25 100 t=r r=40 e=fillwhite f=fillwhite l=$w(x_3)$
+n x4   -25   0 t=r r=40 e=fillwhite f=fillwhite l=$w(x_4)$
 # Operators
 n s10 200 350 r=20 l=$+$
 n p9  125 250 r=20 l=$\times$
@@ -26,14 +26,18 @@ n nx1 200 300  r=15 l=$\sim$
 n x1a  75 300 t=e
 n x1b 200 300 t=e
 n x1n 200 300 t=e
+n x1t  65 300 t=e
 n x2a  75 200 t=e
 n x2n  90 215 t=e
+n x2t  65 200 t=e
 n x3a  75 100 t=e
 n x3b 200 100 t=e
 n x3n 200 100 t=e
+n x3t  65 100 t=e
 n x4a  75   0 t=e
 n x4b 200   0 t=e
 n x4n 200   0 t=e
+n x4t  65   0 t=e
 # Edges
 # Between operators
 e t s10
@@ -59,6 +63,11 @@ e x4 x4b
 e x4a p6
 e x4b p5
 e x4n x4n m=b
+# Arcs
+e x1 x1t a=t
+e x2 x2t a=t
+e x3 x3t a=t
+e x4 x4t a=t
 # Tags
 # t s10 $\nodes_{10}$ p=r off=0
 # t  p9 $\nodep_{9}$ p=r off=0

@@ -27,10 +27,11 @@ import math
 #       Position options: above, below, left, right
 
 # Edge
-#    e FID TID value=neutral mark=none radius=10 [only=XX]
+#    e FID TID value=neutral mark=none radius=10 arrow=none[only=XX]
 #       FID and TID are Ids of source and destination nodes
 #       value options: neutral, high, low, path
 #       mark options: none, bubble   
+#       arrow options: none, to, from, both
 
 # Graphic primitives
 #
@@ -333,6 +334,9 @@ class EdgeType:
     names = ["neutral", "high", "low", "path"]
     none, bubble = list(range(2))
     markNames = ["none", "bubble"]
+    arrowNone, arrowFrom, arrowTo, arrowBidirectional  = list(range(4))
+    arrowNames = ["none", "from", "to", "bidirectional"]
+    arrowFormat = ["", "[latex-]", "[-latex]", "[-latex-]"]
 
     def parse(self, prefix):
         return getIndex(prefix, self.names)
@@ -340,25 +344,33 @@ class EdgeType:
     def parseMark(self, prefix):
         return getIndex(prefix, self.markNames)
 
+    def parseArrow(self, prefix):
+        return getIndex(prefix, self.arrowNames)
+
 class Edge(Only):
     fromId = None
     fromNode = None
     toId = None
     toNode = None
-    etype = None
+    etype = EdgeType.neutral
     mtype = EdgeType.none
     edgeSpacing = 12.0
     edgeFraction = 0.65
     radius = NodeType.radius[NodeType.root]
+    arrow = EdgeType.arrowNone
 
-    def __init__(self, fromId=None, toId=None, etype=None, eradius = None):
+    def __init__(self, fromId=None, toId=None, etype=None, eradius = None, earrow = None):
         Only.__init__(self)
         self.fromId = fromId
         self.fromNode = None
         self.toId = toId
         self.toNode = None
-        self.etype = EdgeType.neutral if etype is None else etype
-        self.radius = NodeType.radius[NodeType.root] if eradius is None else eradius
+        if etype is not None:
+            self.etype = etype
+        if eradius is not None:
+            self.radius = eradius
+        if earrow is not None:
+            self.arrow = earrow
 
     def parse(self, line):
         fields = line.split()
@@ -372,7 +384,7 @@ class Edge(Only):
                 raise ParseException(line, "Invalid key=value syntax")
             prefix, value = info
             try:
-                key = parseLabel(prefix, ["type", "mark", "only", "radius"])
+                key = parseLabel(prefix, ["type", "mark", "only", "radius", "arrow"])
             except NoMatchException:
                 raise ParseException(line, "Invalid prefix '%s'" % prefix)
             except MultiMatchException:
@@ -398,6 +410,13 @@ class Edge(Only):
                     self.radius = int(value)
                 except:
                     raise ParseException(line, "Invalid radius")
+            elif key == "arrow":
+                try:
+                    self.arrow = EdgeType().parseArrow(value)
+                except NoMatchException:
+                    raise ParseException(line, "Invalid arrow '%s'" % value)
+                except MultiMatchException:
+                    raise ParseException(line, "Ambiguous arrow '%s'" % value)
         return self
         
     def renderTikz(self, outfile, lowerLeft, scale=1.0, scheme=Scheme.blackWhite):
@@ -417,10 +436,11 @@ class Edge(Only):
         elif self.etype == EdgeType.path:
             edge = "pathcolor"
         self.onlyPrefix(outfile)
+        arrowFormat = EdgeType.arrowFormat[self.arrow]
         if self.etype == EdgeType.low:
-            outfile.write("%s\\draw [%s,%s,dashed] (%.2f,%.2f) -- (%.2f,%.2f);\n" % (self.indent, line, edge, sx,sy,fx,fy))
+            outfile.write("%s\\draw [%s,%s,dashed] (%.2f,%.2f) %s -- (%.2f,%.2f);\n" % (self.indent, line, edge, sx,sy, arrowFormat, fx,fy))
         else:
-            outfile.write("%s\\draw (%.2f,%.2f) [%s,%s] -- (%.2f,%.2f);\n" % (self.indent, sx,sy,line,edge,fx,fy))
+            outfile.write("%s\\draw (%.2f,%.2f) [%s,%s] %s -- (%.2f,%.2f);\n" % (self.indent, sx,sy,line,edge, arrowFormat, fx,fy))
         if self.mtype == EdgeType.bubble:
             cx = (sx+fx)/2
             cy = (sy+fy)/2
