@@ -578,7 +578,7 @@
 \begin{frame}
 \frametitle{Verifying the Trusted Code}
 
-\bigskip
+\medskip
 \centering{
 \begin{tikzpicture}[scale=0.13]
   \draw[fill=blue!10!white] (48,-2) rectangle (65,22);
@@ -638,27 +638,31 @@
   \begin{itemize}
     \bitem Helped us identify unsoundness in our prototype proof rules
   \end{itemize}
-\item Verified checker
+\item Verified proof checker
   \begin{itemize}
   \bitem Around $6\times$ slower than one implemented in C
 %  \bitem Same asymptotic performance
   \end{itemize}
-\item Verified evaluator
+\item Verified ring evaluator
 \end{itemize}
 \end{minipage}
 \end{frame}
 
-% WIP: WN
 \begin{frame}
-  \frametitle{Formally verified theorems}
+  \frametitle{Formally Verified Theorems}
   \medskip
 
   \begin{theorem}
     If the CPOG proof checker has assembled POG $P$ with root node $\noder$ starting from input formula $\phi_I$, and the final check succeeds, then $\phi_I$ is logically equivalent to the formula denoting $P$.
   \end{theorem}
 
+  % TODO(WN): rephrase
   \begin{theorem}
     The ring evaluator behaves correctly on partitioned formulas, and returns the expected value ${\bf R}(\phi, w) = \sum_{\alpha \in {\cal M}(\phi)} \; \prod_{\ell_i \in \alpha} w(\ell_i)$.
+  \end{theorem}
+
+  \begin{theorem}[Correctness of efficient ring evaluation]
+    Ring evaluation of a POG $P$ correctly computes ${\bf R}(\theta_P, w)$.
   \end{theorem}
 
   % TODO(WN): Look at the Lean code to recall specifics.
