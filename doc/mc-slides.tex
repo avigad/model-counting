@@ -564,7 +564,7 @@
   \node [right] at (68,4) {$\textbf{R}(\phi_I, w)$};
 \end{tikzpicture}
 } %% Centering
-\vskip -1ex
+\vskip -1em
 
 \begin{itemize}
 \item {\em Knowledge Compiler} (D4 \reference{LagMar-2017}): Convert CNF into representation using only partitioned operations
@@ -574,6 +574,156 @@
 \end{itemize}
 
 \end{frame}
+
+\begin{frame}
+\frametitle{Verifying the Trusted Code}
+
+\medskip
+\centering{
+\begin{tikzpicture}[scale=0.13]
+  \draw[fill=blue!10!white] (48,-2) rectangle (65,22);
+
+  \draw[fill=structure] (8,10) rectangle (20,18);
+  \node[white] at (14,15.2) {\footnotesize Knowledge};
+  \node[white] at (14,12.8) {\footnotesize Compiler};
+
+  \draw[fill=structure] (28,10) rectangle (40,18);
+  \node[white] at (34,15.2) {\footnotesize Proof};
+  \node[white] at (34,12.8) {\footnotesize Generator};
+
+
+  \draw[fill=structure] (51,10) rectangle (63,18);
+  \node[white] at (57,15.2) {\footnotesize Proof};
+  \node[white] at (57,12.8) {\footnotesize Checker};
+
+  \draw[fill=structure] (51,0) rectangle (63,8);
+  \node[white] at (57,5.2) {\footnotesize Ring};
+  \node[white] at (57,2.8) {\footnotesize Evaluator};
+
+
+  \node at (57,20) {\footnotesize \textbf{Verified} Code};
+
+  %% CNF
+  \draw[line width=2pt] (0,20) -- (44,20) -- (44,16) [-latex] -- (51,16);
+  \draw[line width=2pt] (4,20) -- (4,16) [-latex] -- (8,16);
+  \draw[line width=2pt] (24,20) -- (24,16) [-latex] -- (28,16);
+  \node [left] at (-1,20) {$\phi_I$};
+  \node [above] at (2,20) {\footnotesize \texttt{.cnf}};
+
+  %% NNF
+  \draw[line width=2pt] (20,12) [-latex] -- (28,12);
+  \node [above] at (24,12) {\footnotesize \texttt{.ddnnf}};
+
+  %% CPOG
+  \draw[line width=2pt] (40,12) [-latex] -- (51,12);
+  \draw[line width=2pt] (44,12) -- (44,4) [-latex] -- (51,4);
+  \node [above] at (44,12) {\footnotesize \texttt{.cpog}};
+
+  %% OK/Not
+  \draw[line width=2pt] (63,14) [-latex] -- (68,14) ;
+  \node [right] at (68,15.2) {\footnotesize  OK /} ;
+  \node [right] at (68,12.8) {\footnotesize  Not OK} ;
+  \draw[line width=2pt] (63,4) [-latex] -- (68,4) ;
+  \node [right] at (68,4) {$\textbf{R}(\phi_I, w)$};
+\end{tikzpicture}
+} %% Centering
+
+\vskip -1em
+
+\begin{minipage}{\textwidth}
+\medskip
+{\bf Using the Lean 4 theorem prover} \reference{DemUlr-2021}
+\begin{itemize}
+\item Soundness of proof system
+  \begin{itemize}
+    \bitem Helped us identify unsoundness in our prototype proof rules
+  \end{itemize}
+\item Verified proof checker
+  \begin{itemize}
+  \bitem Around $6\times$ slower than one implemented in C
+%  \bitem Same asymptotic performance
+  \end{itemize}
+\item Verified ring evaluator
+\end{itemize}
+\end{minipage}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Related Work: CD4}
+  \medskip
+  
+  {\bf CD4:} Certifying D4 \reference{CapLagMar-2021}
+  \begin{itemize}
+  \item Modified version of D4
+    \begin{itemize}
+    \item Generates annotated output + clausal proof in DRAT format
+    \item Verify with checker + \textsc{drat-trim} \reference{HeuHunWet-2013}
+    \end{itemize}
+  \item Experiments: Scales very well
+  \end{itemize}
+   \medskip
+       {\bf Limitations:}
+       \begin{itemize}
+       \item Proof framework closely mirrors compiler operation
+         \begin{itemize}
+           \bitem Cannot certify when preprocessor enabled
+         \end{itemize}
+       \item No formal proof of soundness
+         \begin{itemize}
+         \bitem Found exploitable weakness
+         \bitem RAT rule does not require model preservation
+         \bitem Fix by adding option to \textsc{drat-trim}
+         \end{itemize}
+       \item No verified checker
+       \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Related Work: MICE}
+  \medskip
+   {\bf MICE:} Proof framework for top-down model counters \reference{FicHecRol-2022}
+   \begin{itemize}
+   \item Modify model counter or generate proof from D4 output
+   \item Generates series of proof obligations
+   \item Experiments: Scaling problems when many shared subgraphs
+   \end{itemize}
+   \medskip
+       {\bf Limitations:}
+       \begin{itemize}
+       \item Only verifies standard model counting
+       \item Proof framework closely mirrors compiler/counter operation
+         \begin{itemize}
+           \bitem Cannot certify when preprocessor enabled
+         \end{itemize}
+       \item No formal proof of soundness
+       \item No verified checker
+       \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Importance of Formal Verification}
+
+\bigskip
+    {\bf Claim:}
+    
+\medskip
+\begin{center}
+{\em\Large Any proof framework that has not been \\[0.3em] mechanically verified is unsound}
+\end{center}
+\medskip
+
+         \begin{itemize}
+           \item Borne out by our own experience
+           \item Weaknesses can often be fixed by strengthening proof obligations
+           \item Framework + checker should withstand adversarial testing
+         \end{itemize}
+
+\end{frame}
+
 
 \begin{frame}
 \frametitle{CPOG File: Declaration + Proof}
@@ -990,21 +1140,15 @@
 \end{tikzpicture}
 } %% Centering
 
-\vskip -1ex
+%%\vskip -1em
 
 \begin{minipage}{\textwidth}
 \medskip
 {\bf Using the Lean 4 theorem prover} \reference{DemUlr-2021}
+\medskip
 \begin{itemize}
 \item Soundness of proof system
-  \begin{itemize}
-    \bitem Helped us identify unsoundness in our prototype proof rules
-  \end{itemize}
 \item Verified proof checker
-  \begin{itemize}
-  \bitem Around $6\times$ slower than one implemented in C
-%  \bitem Same asymptotic performance
-  \end{itemize}
 \item Verified ring evaluator
 \end{itemize}
 \end{minipage}
@@ -1028,82 +1172,6 @@
   \end{theorem}
 
   % TODO(WN): Look at the Lean code to recall specifics.
-\end{frame}
-
-\begin{frame}
-  \frametitle{Related Work: CD4}
-  \medskip
-  
-  {\bf CD4:} Certifying D4 \reference{CapLagMar-2021}
-  \begin{itemize}
-  \item Modified version of D4
-    \begin{itemize}
-    \item Generates annotated output + clausal proof in DRAT format
-    \item Verify with checker + \textsc{drat-trim} \reference{HeuHunWet-2013}
-    \end{itemize}
-  \item Experiments: Scales very well
-  \end{itemize}
-   \medskip
-       {\bf Limitations:}
-       \begin{itemize}
-       \item Proof framework closely mirrors compiler operation
-         \begin{itemize}
-           \bitem Cannot certify when preprocessor enabled
-         \end{itemize}
-       \item No formal proof of soundness
-         \begin{itemize}
-         \bitem Found exploitable weakness
-         \bitem RAT rule does not require model preservation
-         \bitem Fix by adding option to \textsc{drat-trim}
-         \end{itemize}
-       \item No verified checker
-       \end{itemize}
-
-\end{frame}
-
-
-\begin{frame}
-  \frametitle{Related Work: MICE}
-  \medskip
-   {\bf MICE:} Proof framework for top-down model counters \reference{FicHecRol-2022}
-   \begin{itemize}
-   \item Modify model counter or generate proof from D4 output
-   \item Generates series of proof obligations
-   \item Experiments: Scaling problems when many shared subgraphs
-   \end{itemize}
-   \medskip
-       {\bf Limitations:}
-       \begin{itemize}
-       \item Only verifies standard model counting
-       \item Proof framework closely mirrors compiler/counter operation
-         \begin{itemize}
-           \bitem Cannot certify when preprocessor enabled
-         \end{itemize}
-       \item No formal proof of soundness
-       \item No verified checker
-       \end{itemize}
-\end{frame}
-
-
-
-\begin{frame}
-\frametitle{Importance of Formal Verification}
-
-\bigskip
-    {\bf Claim:}
-    
-\medskip
-\begin{center}
-{\em\Large Any proof framework that has not been \\[0.3em] mechanically verified is unsound}
-\end{center}
-\medskip
-
-         \begin{itemize}
-           \item Borne out by our own experience
-           \item Weaknesses can often be fixed by strengthening proof obligations
-           \item Framework + checker should withstand adversarial testing
-         \end{itemize}
-
 \end{frame}
 
 
