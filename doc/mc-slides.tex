@@ -161,8 +161,6 @@
 %\small\url{http://www.cs.cmu.edu/~bryant}
 \end{frame}
 
-
-
 \frame{
 \frametitle{Motivation: Automated Reasoning Programs}
 
@@ -777,6 +775,193 @@
          \end{itemize}
 
 \end{frame}
+
+\begin{frame}
+  \frametitle{CPOG Example: Formula}
+
+\bigskip
+
+\begin{minipage}{0.58\textwidth}
+  \begin{itemize}
+  \item Encode formula $x_1 \leftrightarrow x_2$.
+  \item CNF representation:\\[.3em]
+    \begin{itemize}
+      \item[] $[\opos{x}_1 \lor \oneg{x}_2] \land [\oneg{x}_1 \lor \opos{x}_2]$
+    \end{itemize}
+  \end{itemize}
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+{\bf Clauses}\\[0.5em]
+\begin{tabular}{rlll}
+\toprule
+  ID & Literals & Explanation\\
+\midrule
+  \rtext{1} & \gtext{\texttt{1 -2}} &   \\
+  \rtext{2} & \gtext{\texttt{-1 2}} &   \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{frame}
+
+\begin{frame}
+\frametitle{CPOG Example: POG Declaration}
+
+\begin{minipage}{0.58\textwidth}
+%%  {\bf POG Representation}\\[0.3em]
+  \input{dd/eg2a-slides}
+
+  {\bf POG Declaration}\\[0.5em]
+  \begin{tabular}{rll}
+  \toprule
+  \multicolumn{3}{c}{CPOG line}  \\
+  \midrule
+\only<1>{
+  \makebox[3mm][r]{\rtext{\texttt{3}}} & \texttt{p \btext{3} \gtext{-1 -2}} & \texttt{0} \\
+  \rtext{\texttt{6}} & \texttt{p \btext{4} \gtext{1 2}} & \texttt{0} \\
+}
+  \makebox[3mm][r]{\rtext{\texttt{9}}} & \texttt{s \btext{5} \gtext{3 4} \rtext{4 7}} & \texttt{0} \\
+  \bottomrule
+  \end{tabular}
+\only<2->{
+\medskip
+\begin{itemize}
+\item Sum declaration must justify mutual exclusion
+\item Resolving clauses 4 and 7 gives $\oneg{p}_3 \lor \oneg{p}_4$.
+\end{itemize}
+} %% only
+
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+{\bf Clauses}\\[0.5em]
+\begin{tabular}{rll}
+\toprule
+  ID & Literals &  Explanation\\
+\midrule
+  \rtext{1} & \gtext{\texttt{1 -2}} &  Input \\
+  \rtext{2} & \gtext{\texttt{-1 2}} &   \\
+\midrule
+  \rtext{3} & \gtext{\texttt{3 1 2}} &  $\nodep_3$ \\
+  \rtext{4} & \only<1>{\gtext{\texttt{-3 -1}}} \only<2->{\gtext{\texttt{\emph{-3 -1}}}} &   \\
+  \rtext{5} & \gtext{\texttt{-3 -2}} &   \\
+  \midrule
+  \rtext{6} & \gtext{\texttt{4 -1 -2}} &  $\nodep_4$ \\
+  \rtext{7} & \only<1>{\gtext{\texttt{-4 1}}} \only<2->{\gtext{\texttt{\emph{-4 1}}}} &   \\
+  \rtext{8} & \gtext{\texttt{-4 2}} &   \\
+  \midrule
+  \rtext{9} & \gtext{\texttt{-5 3 4}} &  $\nodes_5$ \\
+  \rtext{10} & \gtext{\texttt{5 -3}} &   \\
+  \rtext{11} & \gtext{\texttt{5 -4}} &   \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{frame}
+
+\begin{frame}
+  \frametitle{CPOG Example: Asserted Clauses}
+
+\medskip
+
+\begin{minipage}{0.58\textwidth}
+  {\bf Assertions}\\[0.5em]
+  \begin{tabular}{rllll}
+  \toprule
+  \multicolumn{5}{c}{CPOG line}  \\
+  \midrule
+  \makebox[3mm][r]{\rtext{\texttt{12}}} & \texttt{a \gtext{-2 5}} & \texttt{0} & \texttt{\rtext{11 1 6}} & \texttt{0} \\
+  \rtext{\texttt{13}} & \texttt{a \gtext{5}} & \texttt{0} & \texttt{\rtext{10 12 2 3}} & \texttt{0} \\
+  \bottomrule
+  \end{tabular}
+
+  \medskip
+
+  \begin{itemize}
+    \item All assertions must give justifying RUP sequence
+    \item Finishes with unit clause asserting root literal
+  \end{itemize}
+  
+
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+%%{\bf Defined Clauses}\\[0.5em]
+\begin{tabular}{rll}
+%%\toprule
+%%  ID & Literals & Explanation\\
+\midrule
+  \rtext{1} & \gtext{\texttt{1 -2}} &  Input \\
+  \rtext{2} & \gtext{\texttt{-1 2}} &   \\
+\midrule
+  \rtext{3} & \gtext{\texttt{3 1 2}} &  $\nodep_3$ \\
+  \rtext{4} & \gtext{\texttt{-3 -1}} &   \\
+  \rtext{5} & \gtext{\texttt{-3 -2}} &   \\
+  \midrule
+  \rtext{6} & \gtext{\texttt{4 -1 -2}} &  $\nodep_4$ \\
+  \rtext{7} & \gtext{\texttt{-4 1}} &   \\
+  \rtext{8} & \gtext{\texttt{-4 2}} &   \\
+  \midrule
+  \rtext{9} & \gtext{\texttt{-5 3 4}} &  $\nodes_5$ \\
+  \rtext{10} & \gtext{\texttt{5 -3}} &   \\
+  \rtext{11} & \gtext{\texttt{5 -4}} &   \\
+\midrule
+  \rtext{12} & \gtext{\texttt{-2 5}} &    \\
+  \rtext{13} & \gtext{\texttt{5}} &   Root literal \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{frame}
+
+\begin{frame}
+  \frametitle{CPOG Example: Clause Deletions}
+
+\medskip
+
+\begin{minipage}{0.58\textwidth}
+  {\bf Deletions}\\[0.5em]
+  \begin{tabular}{lrll}
+  \toprule
+  \multicolumn{4}{c}{CPOG line}  \\
+  \midrule
+  \texttt{d} & \texttt{\rtext{12}} & \texttt{\rtext{11 1 6}} & \texttt{0} \\
+  \texttt{d} & \texttt{\rtext{1}} & \texttt{\rtext{13 5 7 9}} & \texttt{0} \\
+  \texttt{d} & \texttt{\rtext{2}} & \texttt{\rtext{13 4 8 9}} & \texttt{0} \\
+  \bottomrule
+  \end{tabular}
+
+  \medskip
+
+  \begin{itemize}
+    \item All deletions must give justifying RUP sequence
+    \item At end, only have defining clauses + root literal
+  \end{itemize}
+
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+%%{\bf Defined Clauses}\\[0.5em]
+\begin{tabular}{rll}
+%%\toprule
+%%  ID & Literals & Explanation\\
+\midrule
+  \rtext{1} &  &  \emph{Deleted} \\
+  \rtext{2} &  &  \emph{Deleted} \\
+\midrule
+  \rtext{3} & \gtext{\texttt{3 1 2}} &  $\nodep_3$ \\
+  \rtext{4} & \gtext{\texttt{-3 -1}} &   \\
+  \rtext{5} & \gtext{\texttt{-3 -2}} &   \\
+  \midrule
+  \rtext{6} & \gtext{\texttt{4 -1 -2}} &  $\nodep_4$ \\
+  \rtext{7} & \gtext{\texttt{-4 1}} &   \\
+  \rtext{8} & \gtext{\texttt{-4 2}} &   \\
+  \midrule
+  \rtext{9} & \gtext{\texttt{-5 3 4}} &  $\nodes_5$ \\
+  \rtext{10} & \gtext{\texttt{5 -3}} &   \\
+  \rtext{11} & \gtext{\texttt{5 -4}} &   \\
+\midrule
+  \rtext{12} &  &   \emph{Deleted} \\
+  \rtext{13} & \gtext{\texttt{5}} &   Root literal \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{frame}
+
 
 
 \begin{frame}

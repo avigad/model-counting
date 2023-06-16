@@ -1,0 +1,43 @@
+# Representation of schema for 2-clause example
+# Colors
+c fillwhite 255:255:255
+
+# Nodes
+# Labeled nodes
+n t   175 225 t=r r=20 e=fillwhite f=fillwhite l=$r$
+n x1   0 100 t=r r=20 e=fillwhite f=fillwhite l=$x_1$
+n x2   0   0 t=r r=20 e=fillwhite f=fillwhite l=$x_2$
+# Operators
+n s5  175 150 l=$\lor^{\textsf{p}}$
+n p4  125  50 l=$\land^{\textsf{p}}$
+n p3  225  50 l=$\land^{\textsf{p}}$
+# Connectors
+n x1a  75 100 t=e
+n x1b 175 100 t=e
+n x1n 175 100 t=e
+n x1t  65 100 t=e
+n x2a  75   0 t=e
+n x2b 175   0 t=e
+n x2t  65   0 t=e
+n x2n 175   0 t=e
+# Edges
+# Between operators
+e t s5
+e s5 p4
+e s5 p3
+# Inputs
+e x1  x1b
+e x1a p4
+e x1b p3
+e x1n x1n m=b r=7
+e x2 x2b
+e x2a p4
+e x2b p3
+e x2n x2n m=b r=7
+# Arcs
+e x1 x1t a=t
+e x2 x2t a=t
+# Tags
+ t  s5 $\nodes_{5}$ p=r off=0
+ t  p4 $\nodep_{4}$ p=r off=0
+ t  p3 $\nodep_{3}$ p=r off=0

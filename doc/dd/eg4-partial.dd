@@ -5,10 +5,10 @@ c fillwhite 255:255:255
 # Nodes
 # Labeled nodes
 #n t   175 425 t=r r=20 e=fillwhite f=fillwhite l=$r$
-#n x1   25 300 t=r r=20 e=fillwhite f=fillwhite l=$x_1$
-#n x2   25 200 t=r r=20 e=fillwhite f=fillwhite l=$x_2$
-n x3   25 100 t=r r=20 e=fillwhite f=fillwhite l=$x_3$
-n x4   25   0 t=r r=20 e=fillwhite f=fillwhite l=$x_4$
+#n x1    0 300 t=r r=20 e=fillwhite f=fillwhite l=$x_1$
+#n x2    0 200 t=r r=20 e=fillwhite f=fillwhite l=$x_2$
+n x3   0 100 t=r r=20 e=fillwhite f=fillwhite l=$x_3$
+n x4   0   0 t=r r=20 e=fillwhite f=fillwhite l=$x_4$
 # Operators
 #n s10 175 350 l=$\lor^{\textsf{p}}$
 #n p9  125 250 l=$\land^{\textsf{p}}$
@@ -25,8 +25,10 @@ n p5  225  50 l=$\land^{\textsf{p}}$
 n x3a  75 100 t=e
 n x3b 175 100 t=e
 n x3n 175 100 t=e
+n x3t  65 100 t=e
 n x4a  75   0 t=e
 n x4b 175   0 t=e
+n x4t  65   0 t=e
 n x4n 175   0 t=e
 # Edges
 # Between operators
@@ -53,6 +55,11 @@ e x4 x4b
 e x4a p6
 e x4b p5
 e x4n x4n m=b r=7
+# Arcs
+#e x1 x1t a=t
+#e x2 x2t a=t
+e x3 x3t a=t
+e x4 x4t a=t
 # Tags
 # t s10 $\nodes_{10}$ p=r off=0
 # t  p9 $\nodep_{9}$ p=r off=0
