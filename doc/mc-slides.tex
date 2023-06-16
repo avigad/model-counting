@@ -596,10 +596,10 @@
              \item Unit clause $[r]$ for root node $\noder$
            \end{itemize}
 
-           \bigskip
+           \medskip
 
            {\bf Proof Objective}
-\vskip -1.0em
+\vskip -1.5em
            \begin{eqnarray*}
              \phi_I & \Longleftrightarrow & \theta_P
            \end{eqnarray*}
@@ -645,10 +645,10 @@
 %%  {\bf POG Representation}\\[0.3em]
   \input{dd/eg2a-slides}
 
-  {\bf POG Declaration}\\[0.5em]
+  {\bf CPOG Declarations}\\[0.5em]
   \begin{tabular}{rll}
-  \toprule
-  \multicolumn{3}{c}{CPOG line}  \\
+%%  \toprule
+%%  \multicolumn{3}{c}{CPOG line}  \\
   \midrule
 \only<1>{
   \makebox[3mm][r]{\rtext{\texttt{3}}} & \texttt{p \btext{3} \gtext{-1 -2}} & \texttt{0} \\
@@ -711,10 +711,14 @@
 \medskip
 
 \begin{minipage}{0.58\textwidth}
-  {\bf Assertions}\\[0.5em]
+  \begin{center}
+    \input{dd/eg2a-slides}
+  \end{center}
+
+  {\bf CPOG Assertions}\\[0.5em]
   \begin{tabular}{rllll}
-  \toprule
-  \multicolumn{5}{c}{CPOG line}  \\
+%%  \toprule
+%%  \multicolumn{5}{c}{CPOG line}  \\
   \midrule
   \makebox[3mm][r]{\rtext{\texttt{12}}} & \texttt{a \gtext{-2 5}} & \texttt{0} & \texttt{\rtext{11 1 6}} & \texttt{0} \\
   \rtext{\texttt{13}} & \texttt{a \gtext{5}} & \texttt{0} & \texttt{\rtext{10 12 2 3}} & \texttt{0} \\
@@ -724,8 +728,8 @@
   \medskip
 
   \begin{itemize}
-    \item All assertions must give justifying RUP sequence
-    \item Finishes with unit clause asserting root literal
+    \item Must give justifying RUP sequences
+    \item Finish with unit clause asserting root literal
   \end{itemize}
   
 
@@ -859,10 +863,10 @@
 \medskip
 
 \begin{minipage}{0.58\textwidth}
-  {\bf Deletions}\\[0.5em]
+  {\bf CPOG Deletions}\\[0.5em]
   \begin{tabular}{lrll}
-  \toprule
-  \multicolumn{4}{c}{CPOG line}  \\
+%  \toprule
+%  \multicolumn{4}{c}{CPOG line}  \\
   \midrule
   \texttt{d} & \texttt{\rtext{12}} & \texttt{\rtext{11 1 6}} & \texttt{0} \\
   \texttt{d} & \texttt{\rtext{1}} & \texttt{\rtext{13 5 7 9}} & \texttt{0} \\
