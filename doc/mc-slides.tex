@@ -742,14 +742,14 @@
 
 
 \begin{frame}
-\frametitle{CPOG Declaration + Proof}
+\frametitle{CPOG File: Declaration + Proof}
            \medskip
 
            {\bf Input Formula $\phi_I$}
 
            \medskip
            
-           {\bf POG Declaration $\theta_P$}
+           {\bf Clausal Representation of POG $\theta_P$}
            \begin{itemize}
              \item Tseitin encoding of POG
              \item Extension variable $u$ for each operation node  $\nodeu$
@@ -773,6 +773,7 @@
          \begin{itemize}
          \item Transform $\phi_I$ into $\theta_P$ via equivalence-preserving proof steps
          \end{itemize}
+           
 
 \end{frame}
 
@@ -856,8 +857,22 @@
 \end{minipage}
 \end{frame}
 
+
 \begin{frame}
-  \frametitle{CPOG Example: Asserted Clauses}
+\frametitle{CPOG Proof Structure: Forward Implication}
+
+\begin{eqnarray*}
+  \phi_I & \implies & \theta_P
+\end{eqnarray*}
+\begin{itemize}
+\item Add clauses by reverse unit propagation (RUP)
+\item Terminating with unit clause $[r]$
+\item {\em Any assignment satisfying $\phi_I$  causes the POG to evaluate to true}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{CPOG Example: Forward Implication}
 
 \medskip
 
@@ -910,245 +925,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{CPOG Example: Clause Deletions}
-
-\medskip
-
-\begin{minipage}{0.58\textwidth}
-  {\bf Deletions}\\[0.5em]
-  \begin{tabular}{lrll}
-  \toprule
-  \multicolumn{4}{c}{CPOG line}  \\
-  \midrule
-  \texttt{d} & \texttt{\rtext{12}} & \texttt{\rtext{11 1 6}} & \texttt{0} \\
-  \texttt{d} & \texttt{\rtext{1}} & \texttt{\rtext{13 5 7 9}} & \texttt{0} \\
-  \texttt{d} & \texttt{\rtext{2}} & \texttt{\rtext{13 4 8 9}} & \texttt{0} \\
-  \bottomrule
-  \end{tabular}
-
-  \medskip
-
-  \begin{itemize}
-    \item All deletions must give justifying RUP sequence
-    \item At end, only have defining clauses + root literal
-  \end{itemize}
-
-\end{minipage}
-\begin{minipage}{0.4\textwidth}
-%%{\bf Defined Clauses}\\[0.5em]
-\begin{tabular}{rll}
-%%\toprule
-%%  ID & Literals & Explanation\\
-\midrule
-  \rtext{1} &  &  \emph{Deleted} \\
-  \rtext{2} &  &  \emph{Deleted} \\
-\midrule
-  \rtext{3} & \gtext{\texttt{3 1 2}} &  $\nodep_3$ \\
-  \rtext{4} & \gtext{\texttt{-3 -1}} &   \\
-  \rtext{5} & \gtext{\texttt{-3 -2}} &   \\
-  \midrule
-  \rtext{6} & \gtext{\texttt{4 -1 -2}} &  $\nodep_4$ \\
-  \rtext{7} & \gtext{\texttt{-4 1}} &   \\
-  \rtext{8} & \gtext{\texttt{-4 2}} &   \\
-  \midrule
-  \rtext{9} & \gtext{\texttt{-5 3 4}} &  $\nodes_5$ \\
-  \rtext{10} & \gtext{\texttt{5 -3}} &   \\
-  \rtext{11} & \gtext{\texttt{5 -4}} &   \\
-\midrule
-  \rtext{12} &  &   \emph{Deleted} \\
-  \rtext{13} & \gtext{\texttt{5}} &   Root literal \\
-\bottomrule
-\end{tabular}
-\end{minipage}
-\end{frame}
-
-
-
-\begin{frame}
-  \frametitle{CPOG Format: Operations}
-
-\begin{center}
-\only<1>{
-%% Hold space for table.  This should be invisible
-\textcolor{white}{
-  \begin{tabular}{lllll}
-    \toprule
-    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
-    \midrule
-    \makebox[5mm][l]{\wtext{$C$}} & \makebox[10mm][l]{\texttt{p}}  & \makebox[15mm][l]{$\wtext{V} \; \wtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Declare $\pand$ operation} \\
-    \wtext{$C$}    & \texttt{s} & $\wtext{V} \; \wtext{L \; L}$    & \wtext{$C^{+}$} \texttt{0}  & Declare $\por$ operation \\
-    \bottomrule
-  \end{tabular}
-}} %% End of placeholder
-\only<2->{
-  \begin{tabular}{lllll}
-    \toprule
-    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
-    \midrule
-    \makebox[5mm][l]{\rtext{$C$}} & \makebox[10mm][l]{\texttt{p}}  & \makebox[15mm][l]{$\btext{V} \; \gtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Declare $\pand$ operation} \\
-    \rtext{$C$}    & \texttt{s} & $\btext{V} \; \gtext{L \; L}$    & \rtext{$C^{+}$} \texttt{0}  & Declare $\por$ operation \\
-    \bottomrule
-  \end{tabular}
-}
-  \medskip
-
-    \begin{tabular}{llllll}
-      \makebox[2mm][l]{\rtext{$C$}} & \makebox[18mm][l]{Clause ID} & 
-      \makebox[2mm][l]{\btext{$V$}} & \makebox[15mm][l]{Variable} &
-      \makebox[2mm][l]{\gtext{$L$}} & \makebox[15mm][l]{Literal} \\
-    \end{tabular}
-\end{center}
-
-  \medskip
-
-  \begin{minipage}{0.4\textwidth}
-  \centering{
-  \input{dd/eg4-partial}
-  }
-  \end{minipage}
-  \begin{minipage}{0.58\textwidth}
-  \centering{
-    \begin{tabular}{lll}
-    \toprule
-    \makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line}  \\
-    \midrule
-    \rtext{6} & \texttt{p \btext{5} \gtext{-3 -4}} & \texttt{0} \\
-    \rtext{9} & \texttt{p \btext{6} \gtext{3 4}} & \texttt{0} \\
-    \rtext{12} & \texttt{s \btext{7} \gtext{5 6} \rtext{7 10}} & \texttt{0} \\
-    \bottomrule
-    \end{tabular}
-  }
-  \end{minipage}
-
-  \medskip
-
-\only<2->{
-  \begin{itemize}
-    \item Operation with $k$ arguments generates $k+1$ defining clauses
-      \begin{itemize}
-        \bitem Operation with ID $i$ generates clauses $i$ through $i+k$
-      \end{itemize}
-    \item $\por$ operation includes clause IDs for mutual exclusion proof
-  \end{itemize}
-}
-\end{frame}
-
-
-\begin{frame}
-  \frametitle{CPOG Format: Clause addition and deletion}
-
-\bigskip
-
-\begin{center}
-  \begin{tabular}{lllll}
-    \toprule
-    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
-    \midrule
-    \makebox[5mm][l]{\rtext{$C$}} & \makebox[10mm][l]{\texttt{a}}  & \makebox[15mm][l]{$\gtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{$\rtext{C^{+}}$ \texttt{0}}  & \makebox[20mm][l]{Add RUP clause} \\
-     & \texttt{d} & \rtext{$C$}             & \rtext{$C^{+}$}  \texttt{0} & Delete RUP clause \\
-    \bottomrule
-  \end{tabular}
-\end{center}
-
-\bigskip
-
-\begin{itemize}
-\item $\gtext{L^{*}}$ declares literals in clause
-\item $\rtext{C^{+}}$ provides hint for reverse unit propagation (RUP) proof
-\item Can only add clause if it is implied by existing ones
-\item Can only delete clause if it is implied by remaining ones
-\end{itemize}
-
-\end{frame}
-
-
-
-\begin{frame}
-  \frametitle{CPOG Format: Root Literal}
-
-\bigskip
-
-\begin{center}
-  \begin{tabular}{lllll}
-    \toprule
-    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
-    \midrule
-     \makebox[5mm][l]{} & \makebox[10mm][l]{\texttt{r}} & \makebox[15mm][l]{\gtext{$L$}}    & \makebox[7mm][l]{}            & \makebox[28mm][l]{Declare root literal}\\
-    \bottomrule
-  \end{tabular}
-\end{center}
-
-\bigskip
-
-\begin{itemize}
-\item Declare POG root
-\end{itemize}
-
-\bigskip
-
-{\bf Observations about CPOG format:}
-
-\medskip
-
-\begin{itemize}
-\item Builds on standard clausal proof formats
-\item Not based on any particular compilation method
-\end{itemize}  
-
-\end{frame}
-
-\begin{frame}
-  \frametitle{CPOG Checking Requirements}
-
-\bigskip
-
-  \begin{itemize}
-  \item Partitioned product: ${\cal D}(\phi_1) \cap {\cal D}(\phi_2) = \emptyset$
-    \begin{itemize}
-    \bitem Track dependent variables for each operation
-    \bitem Check mutual exclusion for product operations
-    \end{itemize}
-\medskip
-  \item Partitioned sum: ${\cal M}(\phi_1) \cap {\cal M}(\phi_2) = \emptyset$
-    \begin{itemize}
-    \bitem Arguments $\lit_1$ and $\lit_2$
-    \bitem Check that RUP sequence justifies clause $[\oneg{\lit}_1 \lor \oneg{\lit}_2]$
-    \end{itemize}
-\medskip
-  \item Clause addition and deletion
-    \begin{itemize}
-      \bitem Check  RUP sequence 
-      \bitem Fast, since complete hint provided  
-    \end{itemize}
-  \end{itemize}
-
-\end{frame}
-
-\begin{frame}
-\frametitle{CPOG Proof Structure: Forward Implication}
-
-{\bf Forward Implication Proof}
-\vskip -1.0em
-\begin{eqnarray*}
-  \phi_I & \implies & \theta_P
-\end{eqnarray*}
-\vskip -0.5em
-\begin{itemize}
-\item Add clauses by reverse unit propagation (RUP)
-\item Terminating with unit clause $[r]$
-\item {\em Any assignment satisfying $\phi_I$  causes the POG to evaluate to true}
-\medskip
-\item Most difficult part of proof generation
-  \begin{itemize}
-    \item Potentially exponential in POG size
-    \item E.g., when $\phi_I$ is unsatisfiable
-  \end{itemize}
-\end{itemize}
-\end{frame}
-
-
-\begin{frame}
-\frametitle{Forward Proof Generation: Direct Method}
+\frametitle{Forward Proof Generation: Monolithic Method}
 \vskip -1.0em
 \begin{eqnarray*}
   \phi_I & \implies & \theta_P
@@ -1213,8 +990,6 @@
 
 \end{frame}
 
-
-
 \begin{frame}
 \frametitle{CPOG Proof Structure: Reverse Implication}
 
@@ -1237,12 +1012,90 @@
 \begin{itemize}
   \bitem Based on principle that compiled form allows efficient test of clausal entailment \reference{DarMar-2002}
 \end{itemize}
-\item Only POG declaration $\theta_P$ remains at end
+\item Only clausal representation of POG $\theta_P$ remains at end
   \begin{itemize}
     \item Completes transformation from $\phi_I$ to $\theta_P$.
   \end{itemize}
 \end{itemize}
+\end{frame}
 
+\begin{frame}
+  \frametitle{CPOG Example: Reverse Implication}
+
+\medskip
+
+\begin{minipage}{0.58\textwidth}
+  {\bf Deletions}\\[0.5em]
+  \begin{tabular}{lrll}
+  \toprule
+  \multicolumn{4}{c}{CPOG line}  \\
+  \midrule
+  \texttt{d} & \texttt{\rtext{12}} & \texttt{\rtext{11 1 6}} & \texttt{0} \\
+  \texttt{d} & \texttt{\rtext{1}} & \texttt{\rtext{13 5 7 9}} & \texttt{0} \\
+  \texttt{d} & \texttt{\rtext{2}} & \texttt{\rtext{13 4 8 9}} & \texttt{0} \\
+  \bottomrule
+  \end{tabular}
+
+  \medskip
+
+  \begin{itemize}
+    \item All deletions must give justifying RUP sequence
+    \item At end, only have defining clauses + root literal
+  \end{itemize}
+
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+%%{\bf Defined Clauses}\\[0.5em]
+\begin{tabular}{rll}
+%%\toprule
+%%  ID & Literals & Explanation\\
+\midrule
+  \rtext{1} &  &  \emph{Deleted} \\
+  \rtext{2} &  &  \emph{Deleted} \\
+\midrule
+  \rtext{3} & \gtext{\texttt{3 1 2}} &  $\nodep_3$ \\
+  \rtext{4} & \gtext{\texttt{-3 -1}} &   \\
+  \rtext{5} & \gtext{\texttt{-3 -2}} &   \\
+  \midrule
+  \rtext{6} & \gtext{\texttt{4 -1 -2}} &  $\nodep_4$ \\
+  \rtext{7} & \gtext{\texttt{-4 1}} &   \\
+  \rtext{8} & \gtext{\texttt{-4 2}} &   \\
+  \midrule
+  \rtext{9} & \gtext{\texttt{-5 3 4}} &  $\nodes_5$ \\
+  \rtext{10} & \gtext{\texttt{5 -3}} &   \\
+  \rtext{11} & \gtext{\texttt{5 -4}} &   \\
+\midrule
+  \rtext{12} &  &   \emph{Deleted} \\
+  \rtext{13} & \gtext{\texttt{5}} &   Root literal \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{frame}
+
+\begin{frame}
+  \frametitle{CPOG Checking Requirements}
+
+\bigskip
+
+  \begin{itemize}
+  \item Partitioned product: ${\cal D}(\phi_1) \cap {\cal D}(\phi_2) = \emptyset$
+    \begin{itemize}
+    \bitem Track dependent variables for each operation
+    \bitem Check mutual exclusion for product operations
+    \end{itemize}
+\medskip
+  \item Partitioned sum: ${\cal M}(\phi_1) \cap {\cal M}(\phi_2) = \emptyset$
+    \begin{itemize}
+    \bitem Arguments $\lit_1$ and $\lit_2$
+    \bitem Check that RUP sequence justifies clause $[\oneg{\lit}_1 \lor \oneg{\lit}_2]$
+    \end{itemize}
+\medskip
+  \item Clause addition and deletion
+    \begin{itemize}
+      \bitem Check  RUP sequence 
+      \bitem Fast, since complete hint provided  
+    \end{itemize}
+  \end{itemize}
 
 \end{frame}
 
@@ -1469,6 +1322,180 @@
 \end{minipage}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Old Slides}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{CPOG Declaration + Proof}
+           \medskip
+
+           {\bf Input Formula $\phi_I$}
+
+           \medskip
+           
+           {\bf POG Declaration $\theta_P$}
+           \begin{itemize}
+             \item Tseitin encoding of POG
+             \item Extension variable $u$ for each operation node  $\nodeu$
+             \item Node $\nodeu$ with $k$ children characterized  by $k+1$ defining clauses
+             \item Each child indicated by literal
+               \begin{itemize}
+                 \bitem Positive or negated argument
+                 \bitem Input variable or result from other operation
+               \end{itemize}
+             \item Unit clause $[r]$ for root node $\noder$
+           \end{itemize}
+
+           \bigskip
+
+           {\bf Proof Objective}
+\vskip -1.0em
+           \begin{eqnarray*}
+             \phi_I & \Longleftrightarrow & \theta_P
+           \end{eqnarray*}
+\vskip -0.5em
+         \begin{itemize}
+         \item Transform $\phi_I$ into $\theta_P$ via equivalence-preserving proof steps
+         \end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}
+  \frametitle{CPOG Format: Operations}
+
+\begin{center}
+\only<1>{
+%% Hold space for table.  This should be invisible
+\textcolor{white}{
+  \begin{tabular}{lllll}
+    \toprule
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
+    \midrule
+    \makebox[5mm][l]{\wtext{$C$}} & \makebox[10mm][l]{\texttt{p}}  & \makebox[15mm][l]{$\wtext{V} \; \wtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Declare $\pand$ operation} \\
+    \wtext{$C$}    & \texttt{s} & $\wtext{V} \; \wtext{L \; L}$    & \wtext{$C^{+}$} \texttt{0}  & Declare $\por$ operation \\
+    \bottomrule
+  \end{tabular}
+}} %% End of placeholder
+\only<2->{
+  \begin{tabular}{lllll}
+    \toprule
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
+    \midrule
+    \makebox[5mm][l]{\rtext{$C$}} & \makebox[10mm][l]{\texttt{p}}  & \makebox[15mm][l]{$\btext{V} \; \gtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{}  & \makebox[20mm][l]{Declare $\pand$ operation} \\
+    \rtext{$C$}    & \texttt{s} & $\btext{V} \; \gtext{L \; L}$    & \rtext{$C^{+}$} \texttt{0}  & Declare $\por$ operation \\
+    \bottomrule
+  \end{tabular}
+}
+  \medskip
+
+    \begin{tabular}{llllll}
+      \makebox[2mm][l]{\rtext{$C$}} & \makebox[18mm][l]{Clause ID} & 
+      \makebox[2mm][l]{\btext{$V$}} & \makebox[15mm][l]{Variable} &
+      \makebox[2mm][l]{\gtext{$L$}} & \makebox[15mm][l]{Literal} \\
+    \end{tabular}
+\end{center}
+
+  \medskip
+
+  \begin{minipage}{0.4\textwidth}
+  \centering{
+  \input{dd/eg4-partial}
+  }
+  \end{minipage}
+  \begin{minipage}{0.58\textwidth}
+  \centering{
+    \begin{tabular}{lll}
+    \toprule
+    \makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line}  \\
+    \midrule
+    \rtext{6} & \texttt{p \btext{5} \gtext{-3 -4}} & \texttt{0} \\
+    \rtext{9} & \texttt{p \btext{6} \gtext{3 4}} & \texttt{0} \\
+    \rtext{12} & \texttt{s \btext{7} \gtext{5 6} \rtext{7 10}} & \texttt{0} \\
+    \bottomrule
+    \end{tabular}
+  }
+  \end{minipage}
+
+  \medskip
+
+\only<2->{
+  \begin{itemize}
+    \item Operation with $k$ arguments generates $k+1$ defining clauses
+      \begin{itemize}
+        \bitem Operation with ID $i$ generates clauses $i$ through $i+k$
+      \end{itemize}
+    \item $\por$ operation includes clause IDs for mutual exclusion proof
+  \end{itemize}
+}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{CPOG Format: Clause addition and deletion}
+
+\bigskip
+
+\begin{center}
+  \begin{tabular}{lllll}
+    \toprule
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
+    \midrule
+    \makebox[5mm][l]{\rtext{$C$}} & \makebox[10mm][l]{\texttt{a}}  & \makebox[15mm][l]{$\gtext{L^{*}}$ \texttt{0}} & \makebox[15mm][l]{$\rtext{C^{+}}$ \texttt{0}}  & \makebox[20mm][l]{Add RUP clause} \\
+     & \texttt{d} & \rtext{$C$}             & \rtext{$C^{+}$}  \texttt{0} & Delete RUP clause \\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\bigskip
+
+\begin{itemize}
+\item $\gtext{L^{*}}$ declares literals in clause
+\item $\rtext{C^{+}}$ provides hint for reverse unit propagation (RUP) proof
+\item Can only add clause if it is implied by existing ones
+\item Can only delete clause if it is implied by remaining ones
+\end{itemize}
+
+\end{frame}
+
+
+
+\begin{frame}
+  \frametitle{CPOG Format: Root Literal}
+
+\bigskip
+
+\begin{center}
+  \begin{tabular}{lllll}
+    \toprule
+    \multicolumn{4}{c}{Rule} & \multicolumn{1}{l}{Description} \\
+    \midrule
+     \makebox[5mm][l]{} & \makebox[10mm][l]{\texttt{r}} & \makebox[15mm][l]{\gtext{$L$}}    & \makebox[7mm][l]{}            & \makebox[28mm][l]{Declare root literal}\\
+    \bottomrule
+  \end{tabular}
+\end{center}
+
+\bigskip
+
+\begin{itemize}
+\item Declare POG root
+\end{itemize}
+
+\bigskip
+
+{\bf Observations about CPOG format:}
+
+\medskip
+
+\begin{itemize}
+\item Builds on standard clausal proof formats
+\item Not based on any particular compilation method
+\end{itemize}  
+
+\end{frame}
 
 
 \end{document}
