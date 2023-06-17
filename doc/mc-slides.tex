@@ -365,7 +365,7 @@
 
    \frametitle{Algebraic Formulation}
    \begin{itemize}
-     \item Kimmig et al. \reference{KimVdbDra-2017}
+     \item Inspired by Kimmig et al. \reference{KimVdbDra-2017}
    \end{itemize}
 
 \medskip
@@ -411,7 +411,7 @@
 
 {\bf Weighted Model Counting}
 \begin{itemize}
-\item Variable $x_i$ and its negation $\oneg{x}_i$ can have weights such that $w(x_i) + w(\oneg{x}_i) \not = 1$
+\item Literals can have weights $W$ such that $W(x_i) + W(\oneg{x}_i) \not = 1$
 \item Handle by normalizing and scaling  
 \end{itemize}
 
@@ -1207,6 +1207,7 @@
 \begin{frame}
 \frametitle{Experimental Results: Toolchain Runtime}
 \bigskip
+\begin{minipage}{0.70\textwidth}
 \begin{center}
 \begin{tikzpicture}[scale = 0.52]
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log,
@@ -1250,11 +1251,31 @@
           \end{axis}
 \end{tikzpicture}
 \end{center}
+\end{minipage}
+\begin{minipage}{0.28\textwidth}
+{\bf Ratios}
+
+\medskip
+
+Min\\
+\-\hspace{2ex} 0.5$\times$
+
+\medskip
+
+Harmonic mean\\
+\-\hspace{2ex} 5.9$\times$
+
+\medskip
+
+Max\\
+\-\hspace{2ex} 465.8$\times$
+\end{minipage}
 \end{frame}
 
 \begin{frame}
 \frametitle{Experimental Results: CPOG Sizes}
 \bigskip
+\begin{minipage}{0.73\textwidth}
 \begin{center}
 \begin{tikzpicture}[scale = 0.53]
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10},
@@ -1300,6 +1321,25 @@
           \end{axis}
 \end{tikzpicture}
 \end{center}
+\end{minipage}
+\begin{minipage}{0.25\textwidth}
+{\bf Ratios}
+
+\medskip
+
+Min\\
+\-\hspace{2ex} 1.5$\times$
+
+\medskip
+
+Harmonic mean\\
+\-\hspace{2ex} 3.1$\times$
+
+\medskip
+
+Max\\
+\-\hspace{2ex} 6073.0$\times$
+\end{minipage}
 \end{frame}
 
 
@@ -1324,7 +1364,7 @@
   \begin{itemize}
   \item Improve speed and capacity of toolchain
   \item Handle outputs from other knowledge compilers
-  \item Support projected model counting
+  \item Certification of other automated reasoning tools
   \end{itemize}
 
 \end{frame}
