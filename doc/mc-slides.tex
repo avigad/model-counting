@@ -750,15 +750,16 @@
 
            \medskip
 
-           {\bf Proof Objective}
-\vskip -1.5em
-           \begin{eqnarray*}
-             \phi_I & \Longleftrightarrow & \theta_P
-           \end{eqnarray*}
-\vskip -0.5em
-         \begin{itemize}
-         \item Transform $\phi_I$ into $\theta_P$ via equivalence-preserving proof steps
-         \end{itemize}
+
+%% {\bf Proof Objective}
+%% \vskip -1.5em
+%%            \begin{eqnarray*}
+%%              \phi_I & \Longleftrightarrow & \theta_P
+%%            \end{eqnarray*}
+%% \vskip -0.5em
+%%          \begin{itemize}
+%%          \item Transform $\phi_I$ into $\theta_P$ via equivalence-preserving proof steps
+%%          \end{itemize}
 
 \end{frame}
 
@@ -809,7 +810,8 @@ For any assignment $\alpha$ to variables in $X$, either:
 \item $Z$: extension variables representing the POG operations
 \item Assignment $\alpha$ to $X$ satisfies $\phi_I$ if and only if there is a unique assignment to the POG variables such that $\theta_P$ is also satisfied
   \begin{itemize}
-    \bitem Including unit clause $[r]$
+    \bitem Defining clauses for POG
+    \bitem Unit clause $[r]$
   \end{itemize}
 \end{itemize}
 
@@ -1054,7 +1056,7 @@ For any assignment $\alpha$ to variables in $X$, either:
   \end{itemize}
 \item Including each input clause
 \begin{itemize}
-\bitem {\em When extended, any assignment falsifying the input clause causes  the POG to evaluate to false}
+\bitem {\em For any  assignment falsifying the input clause, extending it to satisfy the defining clauses causes the POG to evaluate to false}
 \end{itemize}
 \item One RUP proof step for each clause deleted
 \begin{itemize}
