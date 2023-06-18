@@ -769,46 +769,63 @@
 
   \begin{itemize}
   \item Formula $\psi(X, Z)$
-\begin{itemize}
-  \bitem Problem variables $X$
-  \bitem Tseitin variables $Z$
-\end{itemize}
-    \item For any assignment $\alpha$ to variables in $X$, there is a
-      unique assignment $\alpha^Z$ to the variables in $X \cup Z$ satisfying
-      all clauses containing variables in $Z$.
-  \end{itemize}
-  \medskip
-      {\bf Tseitin Equivalence}
+  \item Tseitin variables $Z$
+   \end{itemize}
+
+\medskip
+
+{\bf Tseitin Satisfiability}
+
 \smallskip
+
+For any assignment $\alpha$ to variables in $X$, either:
+  \begin{enumerate}
+    \item There is a unique assignment $\alpha^Z$ to the variables in $X \cup Z$ such that $\alpha^Z$ satisfies $\psi$, or
+    \item There is no assignment $\alpha^Z$ to the variables in $X \cup Z$ such that $\alpha^Z$ satisfies $\psi$
+   \end{enumerate}
+
+\medskip
+
+{\bf Tseitin Equivalence}
+\vskip -1ex
 \begin{eqnarray*}
   \psi_1(X, Z_1) & \tequiv & \psi_2(X, Z_2)
 \end{eqnarray*}
-
+\vskip -1ex
 \begin{itemize} 
-\item For any assignment $\alpha$, with extensions $\alpha^{Z_1}$ and $\alpha^{Z_2}$:
-  \begin{itemize}
-  \item[] $\alpha^{Z_1}$ satisfies $\psi_1$ if and only if $\alpha^{Z_2}$ satisfies $\psi_2$
-  \end{itemize}
-\end{itemize}      
+\item For any assignment $\alpha$ to the variables in $X$, either both $\psi_1$ and $\psi_2$ are Tseitin satisfiable, or neither are.
+\end{itemize}
 
-\medskip
-{\bf CPOG Proof Objective}
-\vskip -1.5em
+\end{frame}
+
+\begin{frame}
+\frametitle{CPOG Proof Objective}
+
            \begin{eqnarray*}
              \phi_I(X, \emptyset) & \tequiv & \theta_P(X, Z)
            \end{eqnarray*}
-\vskip -0.5em
+
 \begin{itemize}
 \item $Z$: extension variables representing the POG operations
+\item Assignment $\alpha$ to $X$ satisfies $\phi_I$ if and only if there is a unique assignment to the POG variables such that $\theta_P$ is also satisfied
+  \begin{itemize}
+    \bitem Including unit clause $[r]$
+  \end{itemize}
 \end{itemize}
-\end{frame}
-
-
-\begin{frame}
-  \frametitle{CPOG Example: Formula}
 
 \bigskip
 
+{\bf Proof Methodology}
+\begin{itemize}
+\item Tranform $\phi_I$ to $\theta_P$ by series of equivalence preserving proof steps
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{CPOG Example: Formula}
+\bigskip
 \begin{minipage}{0.58\textwidth}
   \begin{itemize}
   \item Encode formula $x_1 \leftrightarrow x_2$.
