@@ -65,6 +65,8 @@
 
 \newcommand{\pand}{\mathbin{\land^{\sf p}}}
 \newcommand{\por}{\mathbin{\lor^{\sf p}}}
+\newcommand{\tequiv}{\stackrel{\mathrm{T}}{\Longleftrightarrow}}
+\newcommand{\timply}{\stackrel{\mathrm{T}}{\Longrightarrow}}
 \newcommand{\pneg}{{\sim}}
 
 \definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
@@ -757,9 +759,50 @@
          \begin{itemize}
          \item Transform $\phi_I$ into $\theta_P$ via equivalence-preserving proof steps
          \end{itemize}
-           
 
 \end{frame}
+
+\begin{frame}
+
+  \frametitle{Proof Goal: Tseitin Equivalence}
+
+
+  \begin{itemize}
+  \item Formula $\psi(X, Z)$
+\begin{itemize}
+  \bitem Problem variables $X$
+  \bitem Tseitin variables $Z$
+\end{itemize}
+    \item For any assignment $\alpha$ to variables in $X$, there is a
+      unique assignment $\alpha^Z$ to the variables in $X \cup Z$ satisfying
+      all clauses containing variables in $Z$.
+  \end{itemize}
+  \medskip
+      {\bf Tseitin Equivalence}
+\smallskip
+\begin{eqnarray*}
+  \psi_1(X, Z_1) & \tequiv & \psi_2(X, Z_2)
+\end{eqnarray*}
+
+\begin{itemize} 
+\item For any assignment $\alpha$, with extensions $\alpha^{Z_1}$ and $\alpha^{Z_2}$:
+  \begin{itemize}
+  \item[] $\alpha^{Z_1}$ satisfies $\psi_1$ if and only if $\alpha^{Z_2}$ satisfies $\psi_2$
+  \end{itemize}
+\end{itemize}      
+
+\medskip
+{\bf CPOG Proof Objective}
+\vskip -1.5em
+           \begin{eqnarray*}
+             \phi_I(X, \emptyset) & \tequiv & \theta_P(X, Z)
+           \end{eqnarray*}
+\vskip -0.5em
+\begin{itemize}
+\item $Z$: extension variables representing the POG operations
+\end{itemize}
+\end{frame}
+
 
 \begin{frame}
   \frametitle{CPOG Example: Formula}
@@ -846,12 +889,12 @@
 \frametitle{CPOG Proof Structure: Forward Implication}
 
 \begin{eqnarray*}
-  \phi_I & \implies & \theta_P
+  \phi_I(X, \emptyset) & \timply & \theta_P(X, Z)
 \end{eqnarray*}
 \begin{itemize}
 \item Add clauses by reverse unit propagation (RUP)
 \item Terminating with unit clause $[r]$
-\item {\em Any assignment satisfying $\phi_I$  causes the POG to evaluate to true}
+\item {\em Any assignment satisfying $\phi_I$ (when extended)  causes the POG to evaluate to true}
 \end{itemize}
 \end{frame}
 
@@ -916,7 +959,7 @@
 \frametitle{Forward Proof Generation: Monolithic Method}
 \vskip -1.0em
 \begin{eqnarray*}
-  \phi_I & \implies & \theta_P
+  \phi_I(X, \emptyset) & \timply & \theta_P(X, \emptyset)
 \end{eqnarray*}
 %\vskip -0.5em
 
@@ -950,7 +993,7 @@
 \frametitle{Forward Proof Generation: Structural Method}
 \vskip -1.0em
 \begin{eqnarray*}
-  \phi_I & \implies & \theta_P
+  \phi_I(X, \emptyset) & \timply & \theta_P(X, Z)
 \end{eqnarray*}
 %\vskip -0.5em
 
@@ -984,7 +1027,7 @@
 {\bf Reverse Implication Proof}
 \vskip -1.0em
 \begin{eqnarray*}
-  \theta_P & \implies & \phi_I
+  \theta_P(X, Z) & \timply & \phi_I(X, \emptyset)
 \end{eqnarray*}
 \vskip -0.5em
 \begin{itemize}
@@ -994,7 +1037,7 @@
   \end{itemize}
 \item Including each input clause
 \begin{itemize}
-\bitem {\em Any assignment falsifying the input clause causes the POG to evaluate to false}
+\bitem {\em When extended, any assignment falsifying the input clause causes  the POG to evaluate to false}
 \end{itemize}
 \item One RUP proof step for each clause deleted
 \begin{itemize}
