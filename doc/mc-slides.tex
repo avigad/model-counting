@@ -1158,20 +1158,17 @@
   \frametitle{Formally Verified Theorems}
   \medskip
 
-  \begin{theorem}
-    If the CPOG proof checker has assembled POG $P$ with root node $\noder$ starting from input formula $\phi_I$, and the final check succeeds, then $\phi_I$ is logically equivalent to the formula denoting $P$.
-  \end{theorem}
-
-  % TODO(WN): rephrase
-  \begin{theorem}
-    The ring evaluator behaves correctly on partitioned formulas, and returns the expected value ${\bf R}(\phi, w) = \sum_{\alpha \in {\cal M}(\phi)} \; \prod_{\ell_i \in \alpha} w(\ell_i)$.
+  \begin{theorem}[Proof framework and checker correctness]
+    If the CPOG proof checker has assembled POG $P$ starting from input formula $\phi_I$, and the final check succeeds, then $\phi_I$ is logically equivalent to $P$.
   \end{theorem}
 
   \begin{theorem}[Correctness of efficient ring evaluation]
-    Ring evaluation of a POG $P$ correctly computes ${\bf R}(\theta_P, w)$.
+    For any POG $P$, the ring evaluator executed on $P$ with weights $w$ returns ${\bf R}(P, w)$.
   \end{theorem}
 
-  % TODO(WN): Look at the Lean code to recall specifics.
+  \begin{theorem}[Correctness of model counting]
+    For any POG $P$, the counting algorithm using ring evaluation correctly computes $|{\cal M}(P)|$.
+  \end{theorem}
 \end{frame}
 
 
