@@ -764,6 +764,42 @@
 \end{frame}
 
 \begin{frame}
+\frametitle{CPOG Proof Objective}
+
+\vskip -1ex
+           \begin{eqnarray*}
+             \phi_I(X) & \Longleftrightarrow & \exists!\,Z\; \theta_P(X, Z)
+           \end{eqnarray*}
+\vskip -0.5ex
+
+\begin{itemize}
+\item $\theta_P$: POG formula
+  \begin{itemize}
+    \bitem Defining clauses for POG
+    \bitem Unit clause $[r]$ for root literal
+  \end{itemize}
+\item $Z$: extension variables for the POG operations
+\item Assignment $\alpha$ to $X$
+\item Defining clauses induce unique extension $\alpha^{*}$ to $X \cup Z$
+\item $\alpha$ satisfies $\phi_I$ if and only if $\alpha^{*}(r) = 1$
+\end{itemize}
+
+\bigskip
+
+{\bf Proof Methodology}
+\begin{itemize}
+\item Tranform $\phi_I$ to $\theta_P$
+  \begin{itemize}
+    \bitem Via sequence of equivalence-preserving proof steps
+  \end{itemize}
+\end{itemize}
+
+
+\end{frame}
+
+
+
+\begin{frame}
 
   \frametitle{Proof Goal: Tseitin Equivalence}
 
