@@ -779,16 +779,18 @@
     \bitem Unit clause $[r]$ for root literal
   \end{itemize}
 \item $Z$: extension variables for the POG operations
-\item Assignment $\alpha$ to $X$
-\item Defining clauses induce unique extension $\alpha^{*}$ to $X \cup Z$
-\item $\alpha$ satisfies $\phi_I$ if and only if $\alpha^{*}(r) = 1$
+\item For any assignment $\alpha$ to $X$:
+  \begin{itemize}
+   \bitem Defining clauses induce unique extension $\alpha^{*}$ to $X \cup Z$
+   \bitem $\alpha$ satisfies $\phi_I$ if and only if $\alpha^{*}(r) = 1$
+\end{itemize}
 \end{itemize}
 
 \bigskip
 
 {\bf Proof Methodology}
 \begin{itemize}
-\item Tranform $\phi_I$ to $\theta_P$
+\item Transform $\phi_I$ to $\theta_P$
   \begin{itemize}
     \bitem Via sequence of equivalence-preserving proof steps
   \end{itemize}
@@ -855,7 +857,7 @@ For any assignment $\alpha$ to variables in $X$, either:
 
 {\bf Proof Methodology}
 \begin{itemize}
-\item Transform $\phi_I$ to $\theta_P$ by series of equivalence preserving proof steps
+\item Transform $\phi_I$ to $\theta_P$ by sequence of equivalence preserving proof steps
 \end{itemize}
 
 
