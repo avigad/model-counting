@@ -650,6 +650,25 @@
 \end{minipage}
 \end{frame}
 
+
+\begin{frame}
+  \frametitle{Formally Verified Theorems}
+  \medskip
+
+  \begin{theorem}[Proof framework and checker correctness]
+    If the CPOG proof checker has assembled POG $P$ starting from input formula $\phi_I$, and the final check succeeds, then $\phi_I$ is logically equivalent to the formula $\phi_P$ represented by $P$.
+  \end{theorem}
+
+  \begin{theorem}[Correctness of efficient ring evaluator]
+    For any POG $P$, the ring evaluator executed on $P$ with weights $w$ returns ${\bf R}(\phi_P, w)$.
+  \end{theorem}
+
+  \begin{theorem}[Correctness of model counter]
+    For any POG $P$, the model counting algorithm executed on $P$ correctly computes $|{\cal M}(\phi_P)|$.
+  \end{theorem}
+\end{frame}
+
+
 \begin{frame}
   \frametitle{Related Work: CD4}
   \medskip
@@ -1006,7 +1025,7 @@
              \begin{itemize}
                \bitem Prove lemma when encounter node with indegree $\geq 2$
                \bitem Apply lemma and stop recursion when encounter again
-               \bitem Can express within CPOG framework
+               \bitem Can express lemmas within CPOG framework
              \end{itemize}
            \end{itemize}
 
@@ -1117,6 +1136,7 @@
     \begin{itemize}
     \bitem Arguments $\lit_1$ and $\lit_2$
     \bitem Check that RUP sequence justifies clause $[\oneg{\lit}_1 \lor \oneg{\lit}_2]$
+    \bitem Disjointness of models must follow from POG defining clauses only, unsound otherwise
     \end{itemize}
 \medskip
   \item Clause addition and deletion
@@ -1126,90 +1146,6 @@
     \end{itemize}
   \end{itemize}
 
-\end{frame}
-
-\begin{frame}
-\frametitle{Verifying the Trusted Code}
-
-\medskip
-\centering{
-\begin{tikzpicture}[scale=0.13]
-  \draw[fill=blue!10!white] (48,-2) rectangle (65,22);
-
-  \draw[fill=structure] (8,10) rectangle (20,18);
-  \node[white] at (14,15.2) {\footnotesize Knowledge};
-  \node[white] at (14,12.8) {\footnotesize Compiler};
-
-  \draw[fill=structure] (28,10) rectangle (40,18);
-  \node[white] at (34,15.2) {\footnotesize Proof};
-  \node[white] at (34,12.8) {\footnotesize Generator};
-
-
-  \draw[fill=structure] (51,10) rectangle (63,18);
-  \node[white] at (57,15.2) {\footnotesize Proof};
-  \node[white] at (57,12.8) {\footnotesize Checker};
-
-  \draw[fill=structure] (51,0) rectangle (63,8);
-  \node[white] at (57,5.2) {\footnotesize Ring};
-  \node[white] at (57,2.8) {\footnotesize Evaluator};
-
-
-  \node at (57,20) {\footnotesize \textbf{Verified} Code};
-
-  %% CNF
-  \draw[line width=2pt] (0,20) -- (44,20) -- (44,16) [-latex] -- (51,16);
-  \draw[line width=2pt] (4,20) -- (4,16) [-latex] -- (8,16);
-  \draw[line width=2pt] (24,20) -- (24,16) [-latex] -- (28,16);
-  \node [left] at (-1,20) {$\phi_I$};
-  \node [above] at (2,20) {\footnotesize \texttt{.cnf}};
-
-  %% NNF
-  \draw[line width=2pt] (20,12) [-latex] -- (28,12);
-  \node [above] at (24,12) {\footnotesize \texttt{.ddnnf}};
-
-  %% CPOG
-  \draw[line width=2pt] (40,12) [-latex] -- (51,12);
-  \draw[line width=2pt] (44,12) -- (44,4) [-latex] -- (51,4);
-  \node [above] at (44,12) {\footnotesize \texttt{.cpog}};
-
-  %% OK/Not
-  \draw[line width=2pt] (63,14) [-latex] -- (68,14) ;
-  \node [right] at (68,15.2) {\footnotesize  OK /} ;
-  \node [right] at (68,12.8) {\footnotesize  Not OK} ;
-  \draw[line width=2pt] (63,4) [-latex] -- (68,4) ;
-  \node [right] at (68,4) {$\textbf{R}(\phi_I, w)$};
-\end{tikzpicture}
-} %% Centering
-
-%%\vskip -1em
-
-\begin{minipage}{\textwidth}
-\medskip
-{\bf Using the Lean 4 theorem prover} \reference{DemUlr-2021}
-\medskip
-\begin{itemize}
-\item Soundness of proof system
-\item Verified proof checker
-\item Verified ring evaluator
-\end{itemize}
-\end{minipage}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Formally Verified Theorems}
-  \medskip
-
-  \begin{theorem}[Proof framework and checker correctness]
-    If the CPOG proof checker has assembled POG $P$ starting from input formula $\phi_I$, and the final check succeeds, then $\phi_I$ is logically equivalent to $P$.
-  \end{theorem}
-
-  \begin{theorem}[Correctness of efficient ring evaluation]
-    For any POG $P$, the ring evaluator executed on $P$ with weights $w$ returns ${\bf R}(P, w)$.
-  \end{theorem}
-
-  \begin{theorem}[Correctness of model counting]
-    For any POG $P$, the counting algorithm using ring evaluation correctly computes $|{\cal M}(P)|$.
-  \end{theorem}
 \end{frame}
 
 
