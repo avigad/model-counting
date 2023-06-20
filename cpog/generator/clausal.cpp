@@ -1156,6 +1156,159 @@ bool Cnf_reasoner::enable_pog(Pog_writer *pw) {
     return true;
 }
 
+// BCP support.  Perform unit propagation
+// For given clause, have four possibilities:
+// 1. The clause is satisfied.  Return false
+// 2. The clause has >= 2 unassigned literals.  Set up watch pointers.  Return false
+// 3. The clause has 1 unassigned literal.  Add this to unit_literals.  Return false
+// 4. The clause has a conflict.  Return true
+
+// The behavior is a bit different if this is the initial setup (first_pass = true) vs. regular BCP:
+// In the first pass, ALL unassigned literals are moved to the beginning, and both watch pointers are assigned
+// In other passes, the loop can exit when it's found two unassigned literals, and only the second watch pointer need be assigned
+bool Cnf_reasoner::bcp_unit_propagate(int cid, bool first_pass) {
+    Clause *cp  = get_clause(cid);
+    int unassigned_count = 0;
+    for (int i = 0; i < cp->length; i++) {
+	int clit = (*cp)[idx];
+	if (unit_literals.find(clit) != unit_literals.end())
+	    // Clause satisfied
+	    return false;
+	else if (unit_literals.find(-clit) == unit.literals.end()) {
+	    // Literal unassigned.  Swap into place for next unassigned literal
+	    (*cp)[idx] = (*cp)[unassigned_count];
+	    (*cp)[unassigned_count++] = clit;
+	    if (!first_pass && unassigned_count >= 2)
+		break;
+	}
+    }
+    if (unsassigned_count == 0)
+	// Conflict
+	return true;
+    else if (unsassigned_count == 1)
+	// Unit literal
+	unit_queue.push_back((*cp)[0]);
+    else {
+	// Set up watch pointers
+	if (first_pass)
+	    // Need to set up both watch pointers
+	    watches.insert({(*cp)[0], cid});
+	watches.insert({(*cp)[1], cid});
+    }
+    return false;
+}
+
+// Perform Boolean constraint propagation
+// Return ID of any generated conflict clause (or 0)
+// Update set of active clauses
+int Cnf_reasoner::bcp(bool bounded) {
+    bool conflict = false;
+    int unit_count = 0; 
+    int ncid = 0;
+    int pcount = 0;
+
+
+    watches.clear();
+    unit_queue.clear();
+    // Set up watch pointers
+    for (int cid : *curr_active_clauses) {
+	conflict = bcp_unit_propagate(cid, true);
+	if (conflict)
+	    break;
+    }
+
+    while (!conflict && unit_count < unit_queue.size()) {
+	if (bounded && pcount >= bcp_limit && watches->size() >= 2 * drat_threshold)
+	    break;
+	pcount++;
+	int ulit = unit_queue[unit_count++];
+	auto bucket = watches.equal_range(ulit);
+	for (auto iter = bucket.first; iter != bucket.second; iter++) {
+	    int cid = iter->second;
+	    conflict = bcp_unit_propagate(cid, false);
+	}
+
+
+	if (verblevel >= 3) {
+	    report(3, "BCP Pass %d.  Active clauses:", pcount);
+	    for (int cid : *curr_active_clauses) {
+		report(3, " %d", cid);
+	    }
+	    report(3, "\n");
+	}
+	for (int cid : *curr_active_clauses) {
+	    if (conflict) {
+		// Skip through clauses after conflict
+		next_active_clauses->insert(cid);
+		continue;
+	    }
+	    int ulit = 0;
+	    bool multi_active = false;
+	    conflict = true;
+	    Clause *cp  = get_clause(cid);
+	    if (verblevel >= 3) {
+		report(3, "  Checking clause #%d: ", cid);
+		cp->show(stdout);
+		report(3, "  Unit literals:");
+		for (int ulit : unit_literals) {
+		    report(3, " %d", ulit);
+		}
+		report(3, "\n");
+	    }
+	    for (int idx = 0; idx < cp->length(); idx++) {
+		int clit = (*cp)[idx];
+		if (unit_literals.find(clit) != unit_literals.end()) {
+		    report(3, "    Clause satisfied by unit %d\n", clit);
+		    // Clause satisfied.
+		    ulit = 0;
+		    conflict = false;
+		    multi_active = false;
+		    push_clause(cid, false);
+		    break;
+		} else if (multi_active) {
+		    continue;
+		} else if (unit_literals.find(-clit) != unit_literals.end()) {
+		    report(3, "    Literal %d falsified\n", clit);
+		    continue;
+		} else if (ulit == 0) {
+		    report(3, "    Potential unit %d\n", clit);
+		    // Potential unit
+		    ulit = clit;
+		    conflict = false;
+		} else {
+		    report(3, "    Additional unassigned literal %d\n", clit);
+		    // Multiple unassigned literals
+		    ulit = 0;
+		    multi_active = true;
+		}
+	    }
+	    if (conflict) {
+		report(3, "    Conflict\n");
+		ncid = found_conflict(cid);
+		push_clause(cid, false);
+	    } else if (ulit != 0) {
+		report(3, "    Unit %d\n", ulit);
+		new_unit(ulit, cid, false);
+		converged = false;
+		push_clause(cid, false);
+	    } else if (multi_active) {
+		report(3, "    Still active\n");
+		next_active_clauses->insert(cid);
+	    }
+	}
+	// Swap active clause sets
+	std::set<int> *tmp =  curr_active_clauses;
+	curr_active_clauses = next_active_clauses;
+	next_active_clauses = tmp;
+	next_active_clauses->clear();
+    }
+    return ncid;
+}
+
+
+#if 0
+//// Old BCP code
+
 // Perform Boolean constraint propagation
 // Return ID of any generated conflict clause (or 0)
 // Each pass uses clauses from current active clauses and adds to next active clauses
@@ -1245,6 +1398,7 @@ int Cnf_reasoner::bcp(bool bounded) {
     }
     return ncid;
 }
+#endif
 
 // Generate set of hints for clause based on RUP validation
 // Add clause as assertion

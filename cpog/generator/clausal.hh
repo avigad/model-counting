@@ -324,6 +324,12 @@ private:
     std::set<int> *curr_active_clauses;
     std::set<int> *next_active_clauses;
 
+    // Support for two-watched literals in BCP
+    // Push new unit literals onto queue.  
+    std::vector<int> unit_queue;
+    // Watch lists.  Map from literal to set of clause Ids 
+    std::unordered_multimap<int,int> watches;
+
     // Are hints being added to an assertion?
     bool asserting;
     // Stack of vectors containing deletion information
@@ -451,6 +457,9 @@ public:
 
 
 private:
+
+    // Support for BCP
+    bool bcp_unit_propagate(int cid, bool first_pass);
 
     // Private methods for proof generation
 
