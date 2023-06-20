@@ -1135,8 +1135,11 @@
   \item Partitioned sum: ${\cal M}(\phi_1) \cap {\cal M}(\phi_2) = \emptyset$
     \begin{itemize}
     \bitem Arguments $\lit_1$ and $\lit_2$
-    \bitem Check that RUP sequence justifies clause $[\oneg{\lit}_1 \lor \oneg{\lit}_2]$
-    \bitem Disjointness of models must follow from POG defining clauses only, unsound otherwise
+    \bitem Check that RUP sequence justifies clause $[\oneg{\lit}_1 \lor \oneg{\lit}_2]$,
+    \item[] and that sequence contains only defining clauses
+    \begin{itemize}
+      \bitem Unsound if allow input clauses
+    \end{itemize}
     \end{itemize}
 \medskip
   \item Clause addition and deletion
