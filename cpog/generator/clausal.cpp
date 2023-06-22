@@ -602,7 +602,7 @@ bool Cnf_reduced::run_solver() {
     report(3, "Wrote file with %d clauses to %s\n", clause_count(), fname);
     
     double start = tod();
-#if SOLVER == CADICAL
+#if SOLVER == CADICAL || SOLVER == LCADICAL || SOLVER == TCADICAL
     snprintf(cmd, 150, "cadical --unsat -q --no-binary %s -", fname);
 #else
     snprintf(cmd, 150, "kissat --unsat -q --no-binary %s -", fname);
@@ -687,6 +687,10 @@ bool Cnf_reduced::run_hinting_solver() {
     double start = tod();
 #if SOLVER == CADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
+#elif SOLVER == LCADICAL
+    snprintf(cmd, 350, "cadical --no-binary --unsat -q --lrat=1 %s %s", cnfname, lratname);
+#elif SOLVER == TCADICAL
+    snprintf(cmd, 350, "cadical --no-binary --unsat -q --lrat=1 %s - | lrat-trim --no-binary - %s", cnfname, lratname);
 #else
     snprintf(cmd, 350, "kissat --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
 #endif
@@ -813,6 +817,59 @@ Clause * Cnf_reduced::get_proof_clause(std::vector<int> *context) {
     return nnp;
 }
 
+
+// Watch list support
+Watcher::Watcher() {
+    // Don't need to do anything
+}
+
+Watcher::~Watcher() {
+    for (auto iter : watch_lists) {
+	std::vector<int>* wlist = iter.second;
+	delete wlist;
+    }
+    watch_lists.clear();
+}
+
+void Watcher::add_clause_id(int cid, int lit) {
+    std::vector<int> *wlist = get_list(lit);
+    wlist->push_back(cid);
+}
+
+void Watcher::capture_state(std::unordered_map<int,int> &watch_state) {
+    watch_state.clear();
+    for (auto iter : watch_lists) {
+	int lit = iter.first;
+	std::vector<int> *wlist = iter.second;
+	watch_state[lit] = wlist->size();
+    }
+}
+
+void Watcher::restore_state(std::unordered_map<int, int> &watch_state) {
+    for (auto iter : watch_lists) {
+	int lit = iter.first;
+	std::vector<int> *wlist = iter.second;
+	auto finder = watch_state.find(lit);
+	if (finder == watch_state.end()) {
+	    delete wlist;
+	    watch_lists.erase(lit);
+	} else {
+	    int len = finder->second;
+	    wlist->resize(len);
+	}
+    }
+}
+
+std::vector<int> *Watcher::get_list(int lit) {
+    std::vector<int> *wlist;
+    auto finder = watch_lists.find(lit);
+    if (finder == watch_lists.end()) {
+	wlist = new std::vector<int>;
+	watch_lists[lit] = wlist;
+    } else 
+	wlist = finder->second;
+    return wlist;
+}
 
 
 // Proof related
@@ -1174,8 +1231,7 @@ bool Cnf_reasoner::enable_pog(Pog_writer *pw) {
 // The behavior is a bit different if this is the initial setup (first_pass = true) vs. regular BCP:
 // In the first pass, ALL unassigned literals are moved to the beginning, and both watch pointers are assigned
 // In other passes, the loop can exit when it's found two unassigned literals, and only the second watch pointer need be assigned
-int Cnf_reasoner::bcp_unit_propagate(int cid, bool first_pass,
-				     std::unordered_multimap<int,int> &watches) {
+int Cnf_reasoner::bcp_unit_propagate(int cid, bool first_pass, Watcher &watches) {
     Clause *cp  = get_clause(cid);
     int unassigned_count = 0;
     int watching[2] = {0, 0};
@@ -1214,11 +1270,11 @@ int Cnf_reasoner::bcp_unit_propagate(int cid, bool first_pass,
 	int wlit0 = (*cp)[0];
 	int wlit1 = (*cp)[1];
 	if (wlit0 != watching[0] && wlit0 != watching[1]) {
-	    watches.insert({-wlit0, cid});
+	    watches.add_clause_id(cid, -wlit0);
 	    report(3, "  Clause #%d put on watch list for literal %d\n", cid, -wlit0);
 	}
 	if (wlit1 != watching[0] && wlit1 != watching[1]) {
-	    watches.insert({-wlit1, cid});
+	    watches.add_clause_id(cid, -wlit1);
 	    report(3, "  Clause #%d put on watch list for literal %d\n", cid, -wlit1);
 	}
     }
@@ -1255,7 +1311,7 @@ int Cnf_reasoner::bcp(bool bounded) {
     // Push new unit literals onto queue.  
     std::vector<int> unit_queue;
     // Watch lists.  Map from literal to set of clause Ids 
-    std::unordered_multimap<int,int> watches;
+    Watcher watches;
 
     if (verblevel >= 3) {
 	report(3, "Starting BCP.  Active clauses:");
@@ -1289,19 +1345,14 @@ int Cnf_reasoner::bcp(bool bounded) {
 	pcount++;
 	
 	int plit = unit_queue[unit_count++];
-	auto bucket = watches.equal_range(plit);
-	// Must build list representation of bucket, since watch data structure will be modified 
-	std::vector<int> unit_list;
-	report(3, "Unit propagating on literal %d.  Watch list:", plit);
-	for (auto iter = bucket.first; iter != bucket.second; iter++) {
-	    int cid = iter->second;
-	    unit_list.push_back(cid);
-	    if (verblevel >= 3)
+	std::vector<int> *wlist = watches.get_list(plit);
+	if (verblevel >= 3) {
+	    report(3, "Unit propagating on literal %d.  Watch list:", plit);
+	    for (int cid : *wlist)
 		lprintf(" %d", cid);
-	}
-	if (verblevel >= 3)
 	    lprintf("\n");
-	for (int cid : unit_list) {
+	}
+	for (int cid : *wlist) {
 	    int ulit = bcp_unit_propagate(cid, false, watches);
 	    conflict = ulit == CONFLICT_LIT;
 	    if (conflict) {
@@ -1349,7 +1400,7 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
     // Push new unit literals onto queue.  
     std::vector<int> unit_queue;
     // Watch lists.  Map from literal to set of clause Ids 
-    std::unordered_multimap<int,int> watches;
+    Watcher watches;
 
     // List of clause Ids that have been used in unit propagation
     std::vector<int> prop_clauses;
@@ -1402,19 +1453,14 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
     // Unit propagation
     while (!conflict && unit_count < unit_queue.size()) {
 	int plit = unit_queue[unit_count++];
-	auto bucket = watches.equal_range(plit);
-	// Must build list representation of bucket, since watch data structure will be modified 
-	std::vector<int> unit_list;
-	report(3, "Unit propagating on literal %d.  Watch list:", plit);
-	for (auto iter = bucket.first; iter != bucket.second; iter++) {
-	    int cid = iter->second;
-	    unit_list.push_back(cid);
-	    if (verblevel >= 3)
+	std::vector<int> *wlist = watches.get_list(plit);
+	if (verblevel >= 3) {
+	    report(3, "Unit propagating on literal %d.  Watch list:", plit);
+	    for (int cid : *wlist)
 		lprintf(" %d", cid);
-	}
-	if (verblevel >= 3)
 	    lprintf("\n");
-	for (int cid : unit_list) {
+	}
+	for (int cid : *wlist) {
 	    int ulit = bcp_unit_propagate(cid, false, watches);
 	    conflict = ulit == CONFLICT_LIT;
 	    if (conflict) {

@@ -328,6 +328,22 @@ int main(int argc, char *const argv[]) {
 	pwriter = new Pog_writer();
 
     if (!early_quit) {
+	const char *sname;
+	switch (SOLVER) {
+	case KISSAT:
+	    sname = "kissat";
+	    break;
+	case CADICAL:
+	    sname = "cadical-drat";
+	    break;
+	case LCADICAL:
+	    sname = "cadical-lrat";
+	    break;
+	case TCADICAL:
+	    sname = "cadical-trimmed-lrat";
+	    break;
+	}
+
 	lprintf("%s Program options\n", prefix);
 	lprintf("%s   Multi-literal:   %s\n", prefix, multi_literal ? "yes" : "no");
 	lprintf("%s   Use lemmas:      %s\n", prefix, use_lemmas ? "yes" : "no");
@@ -337,7 +353,7 @@ int main(int argc, char *const argv[]) {
 	lprintf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
 	lprintf("%s   Clause limit:    %d\n", prefix, clause_limit);
 	lprintf("%s   BCP limit:       %d\n", prefix, bcp_limit);
-	lprintf("%s   Solver:          %s\n", prefix, SOLVER == CADICAL ? "cadical" : "kissat");
+	lprintf("%s   Solver:          %s\n", prefix, sname);
     }
     int return_code = 0;
     try {

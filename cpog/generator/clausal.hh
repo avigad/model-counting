@@ -26,8 +26,15 @@
 #pragma once
 
 // SOLVER options
+
+// Cadical.  Generate DRAT
 #define CADICAL 1
-#define KISSAT  2
+// Cadical.  Generate LRAT
+#define LCADICAL 2
+// Cadical.  Generate LRAT and trim with lrat-trim
+#define TCADICAL 3
+// KISSAT.  Generate DRAT
+#define KISSAT  4
 
 #ifndef SOLVER
 #define SOLVER CADICAL
@@ -290,6 +297,31 @@ public:
     void sign(int xvar, bool parent_or);
 };
 
+// Data structure to support BCP with two-watched literals
+class Watcher {
+
+public:
+    // Initialize watcher for specified number of variables
+    Watcher();
+
+    ~Watcher();
+
+    // Add clause to watch list
+    void add_clause_id(int cid, int lit);
+
+    void capture_state(std::unordered_map<int,int> &watch_state);
+
+    void restore_state(std::unordered_map<int,int> &watch_state);
+
+    std::vector<int> *get_list(int lit);
+
+private:
+
+    // Represent as dictionary of watch lists
+    std::unordered_map<int,std::vector<int>*> watch_lists;
+
+};
+
 // Augment clauses with reasoning and proof-generation capabilities 
 class Cnf_reasoner : public Cnf {
 private:
@@ -462,7 +494,7 @@ private:
 
     // Support for BCP
     int bcp_unit_propagate(int cid, bool first_pass,
-			   std::unordered_multimap<int,int> &watches);
+			   Watcher &watches);
 
     bool is_active(int cid);
 
