@@ -1338,6 +1338,8 @@ int Cnf_reasoner::bcp(bool bounded) {
 
 // Generate set of hints for clause based on RUP validation
 // Add clause as assertion
+// Does not change the set of active clauses
+
 // Return ID of proof clause (or 0)
 int Cnf_reasoner::rup_validate(Clause *cltp) {
     bool conflict = false;
@@ -1427,19 +1429,6 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 	    }
 	}
     }
-
-    // Sort active vs. inactive clauses
-    for (int cid : *curr_active_clauses) {
-	if (is_active(cid))
-	    next_active_clauses->insert(cid);
-	else
-	    push_clause(cid, true);
-    }
-    // Swap active clause sets
-    std::set<int> *tmp =  curr_active_clauses;
-    curr_active_clauses = next_active_clauses;
-    next_active_clauses = tmp;
-    next_active_clauses->clear();
 
     int ncid = 0;
     if (conflict) {
