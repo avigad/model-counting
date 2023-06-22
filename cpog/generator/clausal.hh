@@ -51,10 +51,16 @@
 #include <map>
 #include <stdio.h>
 #include <fstream>
+#include <limits>
+
 #include "ilist.h"
 #include "writer.hh"
 
 // Representations of clauses and sets of clauses
+
+/* Special value when unit propagation finds a conflict */
+#define CONFLICT_LIT INT_MIN
+
 
 // Clause is a vector of literals, each of which is a negative or positive integer.
 // Tautologies are detected and represented as clause of the form -x, x
@@ -90,6 +96,8 @@ public:
     bool tautology();
 
     int max_variable();
+
+    void swap_literals(int idx1, int idx2);
 
     void canonize();
 
@@ -324,12 +332,6 @@ private:
     std::set<int> *curr_active_clauses;
     std::set<int> *next_active_clauses;
 
-    // Support for two-watched literals in BCP
-    // Push new unit literals onto queue.  
-    std::vector<int> unit_queue;
-    // Watch lists.  Map from literal to set of clause Ids 
-    std::unordered_multimap<int,int> watches;
-
     // Are hints being added to an assertion?
     bool asserting;
     // Stack of vectors containing deletion information
@@ -459,7 +461,10 @@ public:
 private:
 
     // Support for BCP
-    bool bcp_unit_propagate(int cid, bool first_pass);
+    int bcp_unit_propagate(int cid, bool first_pass,
+			   std::unordered_multimap<int,int> &watches);
+
+    bool is_active(int cid);
 
     // Private methods for proof generation
 

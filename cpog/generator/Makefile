@@ -5,7 +5,7 @@ OPT=-O2
 CFLAGS=-g $(OPT) -Wno-nullability-completeness
 CPPFLAGS=-g $(OPT) -Wno-nullability-completeness -std=c++11
 
-all:  cpog-generate dcpog-generate
+all:  cpog-generate dcpog-generate ocpog-generate
 
 ilist.o: ilist.c ilist.h
 	$(CC) $(CFLAGS) -c ilist.c
@@ -19,6 +19,10 @@ counters.o: counters.c counters.h
 clausal.o: ilist.h counters.h clausal.hh writer.hh clausal.cpp
 	$(CXX) $(CPPFLAGS) -c clausal.cpp
 
+clausal-old.o: ilist.h counters.h clausal.hh writer.hh clausal.cpp
+	$(CXX) $(CPPFLAGS) -DOLD -c clausal.cpp -o clausal-old.o
+
+
 writer.o: ilist.h report.h writer.hh writer.cpp
 	$(CXX) $(CPPFLAGS) -c writer.cpp
 
@@ -27,6 +31,10 @@ pog.o: pog.hh clausal.hh counters.h pog.cpp
 
 cpog-generate: cpog-generate.cpp clausal.o ilist.o report.o counters.o writer.o pog.o
 	$(CXX) $(CPPFLAGS) -o cpog-generate cpog-generate.cpp clausal.o ilist.o report.o counters.o writer.o pog.o
+
+ocpog-generate: cpog-generate.cpp clausal-old.o ilist.o report.o counters.o writer.o pog.o
+	$(CXX) $(CPPFLAGS) -o ocpog-generate cpog-generate.cpp clausal-old.o ilist.o report.o counters.o writer.o pog.o
+
 
 clausal.do: ilist.h counters.h clausal.hh writer.hh clausal.cpp
 	$(CXX) $(CPPFLAGS) -DDEBUG -c clausal.cpp -o clausal.do
