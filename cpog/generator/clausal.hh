@@ -104,6 +104,7 @@ public:
 
     int max_variable();
 
+
     void swap_literals(int idx1, int idx2);
 
     void canonize();
@@ -128,7 +129,7 @@ public:
     void set_activating_literal(int alit);
 
     int get_activating_literal();
-
+    
     // Simplify a clause according to a set of assigned literals
     // Return NULL if clause becomes satisfied
     // Return original if clause unchanged
@@ -270,7 +271,7 @@ public:
     // Retrieve next clause in proof.  Convert it to one usable by parent solver
     Clause *get_proof_clause(std::vector<int> *prefix);
 
-
+    int get_proof_size() { return proof_clauses.size(); }
 };
  
 // Information required to generate and apply lemmas
@@ -297,11 +298,25 @@ public:
     void sign(int xvar, bool parent_or);
 };
 
-// Data structure to support BCP with two-watched literals
+// Data structures to support BCP with two-watched literals
+
+struct Tele {
+    int lit;
+    int cid;
+};
+
+struct Watch_state {
+    // Length of watch lists
+    std::unordered_map<int,int> lengths;
+    // Length of trail
+    int unit_count;
+    // How many trail elements have been propagated
+    int propagate_count;
+};
+
 class Watcher {
 
 public:
-    // Initialize watcher for specified number of variables
     Watcher();
 
     ~Watcher();
@@ -309,16 +324,33 @@ public:
     // Add clause to watch list
     void add_clause_id(int cid, int lit);
 
-    void capture_state(std::unordered_map<int,int> &watch_state);
+    // Add to trail
+    void add_unit(int lit, int cid);
 
-    void restore_state(std::unordered_map<int,int> &watch_state);
+    // Get next unit from queue.  Return 0 if none
+    int get_unit();
+
+    void capture_state(Watch_state &state);
+
+    void restore_state(Watch_state &state);
 
     std::vector<int> *get_list(int lit);
+
+    std::vector<Tele> *get_trail();
+
+    bool is_initialized() { return watch_lists.size() > 0; }
+
+    void clear();
 
 private:
 
     // Represent as dictionary of watch lists
     std::unordered_map<int,std::vector<int>*> watch_lists;
+    // Sequence of unit literals
+    std::vector<Tele> trail;
+    // How many trail elements have been propagated
+    int propagate_count;
+
 
 };
 
@@ -448,9 +480,13 @@ public:
     // Return ID of any generated conflict clause (or 0)
     int bcp(bool bounded);
 
+    // Setup watch pointers and do unit propagation.
+    // Return true if get conflict
+    bool watches_setup(Watcher &watches);
+
     // Validate clause by RUP.  Add clause as assertion 
     // Return ID of validating clause (or 0 if fail)
-    int rup_validate(Clause *cltp);
+    int rup_validate(Clause *cltp, Watcher &watches);
 
     // Possible modes for attempting literal validation
     typedef enum { 

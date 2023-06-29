@@ -824,11 +824,17 @@ Watcher::Watcher() {
 }
 
 Watcher::~Watcher() {
+    clear();
+}
+
+void Watcher::clear() {
     for (auto iter : watch_lists) {
 	std::vector<int>* wlist = iter.second;
 	delete wlist;
     }
     watch_lists.clear();
+    trail.clear();
+    propagate_count = 0;
 }
 
 void Watcher::add_clause_id(int cid, int lit) {
@@ -836,28 +842,57 @@ void Watcher::add_clause_id(int cid, int lit) {
     wlist->push_back(cid);
 }
 
-void Watcher::capture_state(std::unordered_map<int,int> &watch_state) {
-    watch_state.clear();
-    for (auto iter : watch_lists) {
-	int lit = iter.first;
-	std::vector<int> *wlist = iter.second;
-	watch_state[lit] = wlist->size();
-    }
+void Watcher::add_unit(int lit, int cid) {
+    trail.push_back({lit,cid});
 }
 
-void Watcher::restore_state(std::unordered_map<int, int> &watch_state) {
+int Watcher::get_unit() {
+    if (propagate_count >= trail.size())
+	return 0;
+    return trail[propagate_count++].lit;
+}
+
+void Watcher::capture_state(Watch_state &state) {
+    state.lengths.clear();
     for (auto iter : watch_lists) {
 	int lit = iter.first;
 	std::vector<int> *wlist = iter.second;
-	auto finder = watch_state.find(lit);
-	if (finder == watch_state.end()) {
-	    delete wlist;
-	    watch_lists.erase(lit);
+	state.lengths[lit] = wlist->size();
+    }
+    state.unit_count = trail.size();
+    state.propagate_count = propagate_count;
+}
+
+void Watcher::restore_state(Watch_state &state) {
+    report(3, "Restoring watch state\n");
+    for (auto iter : watch_lists) {
+	int lit = iter.first;
+	std::vector<int> *wlist = iter.second;
+	if (wlist == NULL) {
+	    err(false, "Literal %d has empty watch list\n", lit);
+	    continue;
+	}
+	auto finder = state.lengths.find(lit);
+	if (finder == state.lengths.end()) {
+	    if (verblevel >= 3 && wlist->size() > 0)
+		lprintf("  Literal %d.  Clearing list of length %d\n", lit, wlist->size());;
+	    wlist->clear();
 	} else {
 	    int len = finder->second;
+	    if (verblevel >= 3) {
+		int olen = wlist->size();
+		if (olen == len) {
+		    report(4, "  Literal %d.  Retaining list of length %d\n", lit, len);
+		} else 
+		    lprintf("  Literal %d.  Reducing list of length %d by %d\n", lit, olen, olen-len);
+	    }
 	    wlist->resize(len);
 	}
     }
+    propagate_count = state.propagate_count;
+    report(3, "Popping %d/%d elements from trail.  Setting propagate count to %d\n",
+	   trail.size() - state.unit_count, trail.size(), propagate_count);
+    trail.resize(state.unit_count);
 }
 
 std::vector<int> *Watcher::get_list(int lit) {
@@ -871,6 +906,9 @@ std::vector<int> *Watcher::get_list(int lit) {
     return wlist;
 }
 
+std::vector<Tele> *Watcher::get_trail() {
+    return &trail;
+}
 
 // Proof related
 Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) { 
@@ -1244,8 +1282,6 @@ int Cnf_reasoner::bcp_unit_propagate(int cid, bool first_pass, Watcher &watches)
 	int clit = (*cp)[idx];
 	if (unit_literals.find(clit) != unit_literals.end()) {
 	    // Clause satisfied
-	    // Move satisfied literal to front
-	    cp->swap_literals(0, idx);
 	    report(3, "  Clause #%d satisfied by unit %d\n", cid, clit);
 	    return ulit;
 	}
@@ -1377,82 +1413,134 @@ int Cnf_reasoner::bcp(bool bounded) {
     next_active_clauses = tmp;
     next_active_clauses->clear();
     if (verblevel >= 3) {
-	report(3, "  BCP completed.  Returning ncid %d.  New active clauses:", ncid);
-	for (int cid : *curr_active_clauses)
-	    lprintf(" %d", cid);
-	lprintf("\n");
+	if (ncid == 0) {
+	    report(3, "  BCP completed, but didn't find conflict\n");
+	} else {
+	    report(3, "  BCP completed.  Returning ncid %d.  New active clauses:", ncid);
+	    for (int cid : *curr_active_clauses)
+		lprintf(" %d", cid);
+	    lprintf("\n");
+	}
     }
     return ncid;
 }
 
 // New RUP code
 
+// Set up watch pointers and unit propagate assigned literals
+// Return true if get conflict
+bool Cnf_reasoner::watches_setup(Watcher &watches) {
+    bool conflict = false;
+
+    report(3, "Initializing watcher state\n");
+    // Initialize with all known units:
+    for (int ulit : unit_literals) {
+	auto fid = justifying_ids.find(ulit);
+	if (fid != justifying_ids.end()) {
+	    watches.add_unit(ulit, fid->second);
+	    report(3, "Added unit %d with justifying clause %d to watches\n", ulit, fid->second);
+	} else
+	    watches.add_unit(ulit, 0);
+    }
+
+    report(3, "Initializing watch pointers\n");
+    for (int cid : *curr_active_clauses) {
+	int ulit = bcp_unit_propagate(cid, true, watches);
+	conflict = ulit == CONFLICT_LIT;
+	if (conflict) {
+	    report(3, "   Conflict encountered with clause %d while setting up watch pointers\n", cid);
+	    break;
+	} else if (ulit != 0) {
+	    push_derived_literal(ulit, cid);
+	    watches.add_unit(ulit, cid);
+	    report(3, "   Propagated unit %d with clause %d while setting up watch pointers\n", ulit, cid);
+	}
+    }
+    // Unit propagate initial units
+    while (!conflict) {
+	int plit = watches.get_unit();
+	if (plit == 0)
+	    break;
+	std::vector<int> *wlist = watches.get_list(plit);
+	if (verblevel >= 3) {
+	    report(3, "Unit propagating on literal %d while setting up watch pointers.  Watch list:", plit);
+	    for (int cid : *wlist)
+		lprintf(" %d", cid);
+	    lprintf("\n");
+	}
+	for (int cid : *wlist) {
+	    int ulit = bcp_unit_propagate(cid, false, watches);
+	    conflict = ulit == CONFLICT_LIT;
+	    if (conflict) {
+		report(3, "   Conflict encountered with clause %d while setting up watch pointers (unit propagating)\n", cid);
+		break;
+	    } else if (ulit != 0) {
+		push_derived_literal(ulit, cid);
+		watches.add_unit(ulit, cid);
+		report(3, "   Propagated unit %d with clause %d while setting up watch pointers\n", ulit, cid);
+	    }
+	}
+    }
+    return conflict;
+}
+
 // Generate set of hints for clause based on RUP validation
 // Add clause as assertion
 // Does not change the set of active clauses
 
 // Return ID of proof clause (or 0)
-int Cnf_reasoner::rup_validate(Clause *cltp) {
-    bool conflict = false;
-
-    // Support for two-watched literals in BCP
-    int unit_count = 0; 
-    // Push new unit literals onto queue.  
-    std::vector<int> unit_queue;
-    // Watch lists.  Map from literal to set of clause Ids 
-    Watcher watches;
-
-    // List of clause Ids that have been used in unit propagation
-    std::vector<int> prop_clauses;
-    // Initialize with all known units:
-    for (int ulit : unit_literals) {
-	auto fid = justifying_ids.find(ulit);
-	if (fid != justifying_ids.end())
-	    prop_clauses.push_back(fid->second);
-    }
+int Cnf_reasoner::rup_validate(Clause *cltp, Watcher &watches) {
 
     if (verblevel >= 3) {
 	report(3, "Starting RUP derivation of clause ");
 	cltp->show(stdout);
-    }
-    new_context();
-    // Negate literals in target clause
-    for (int idx = 0; idx < cltp->length(); idx++) {
-	int tlit = (*cltp)[idx];
-	if (unit_literals.find(-tlit) == unit_literals.end()) {
-	    push_assigned_literal(-tlit);
-	}
-    }
-
-    if (verblevel >= 3) {
-	report(3, "Starting BCP in RUP validation.  Active clauses:");
-	for (int cid : *curr_active_clauses)
-	    lprintf(" %d", cid);
-	lprintf("\n  Unit literals:");
+	lprintf("   Unit literals:");
 	for (int ulit : unit_literals)
 	    lprintf(" %d", ulit);
 	lprintf("\n");
     }
 
-    // Set up watch pointers
-    for (int cid : *curr_active_clauses) {
-	int ulit = bcp_unit_propagate(cid, true, watches);
-	conflict = ulit == CONFLICT_LIT;
-	if (conflict) {
-	    prop_clauses.push_back(cid);
-	    report(3, "   Conflict encountered with clause %d while setting up watch pointers\n", cid);
-	    break;
-	} else if (ulit != 0) {
-	    prop_clauses.push_back(cid);
-	    push_derived_literal(ulit, cid);
-	    unit_queue.push_back(ulit);
-	    report(3, "   Propagated unit %d with clause %d while setting up watch pointers\n", ulit, cid);
+    Watch_state watch_state;
+
+    new_context();
+    watches.capture_state(watch_state);
+
+    // Negate literals in target clause
+    int lcount = 0;
+    for (int idx = 0; idx < cltp->length(); idx++) {
+	int tlit = (*cltp)[idx];
+	if (unit_literals.find(-tlit) == unit_literals.end()) {
+	    push_assigned_literal(-tlit);
+	    watches.add_unit(-tlit, 0);
+	    report(3, "  Pushed literal: %d\n", -tlit);
+	    lcount++;
+	} else
+	    report(3, "  Already have literal: %d\n", -tlit);
+    }
+
+    if (verblevel >= 3) {
+	if (lcount > 0)
+	    report(3, "Starting RUP.  All literals contradicted\n");
+	else {
+	    report(3, "Starting BCP in RUP validation.  Active clauses:");
+	    for (int cid : *curr_active_clauses)
+		lprintf(" %d", cid);
+	    lprintf("\n  Unit literals:");
+	    for (int ulit : unit_literals)
+		lprintf(" %d", ulit);
+	    lprintf("\n");
 	}
     }
 
+    int ncid = 0;
+    bool conflict = false;
+    int conflict_cid;
+
     // Unit propagation
-    while (!conflict && unit_count < unit_queue.size()) {
-	int plit = unit_queue[unit_count++];
+    while (!conflict) {
+	int plit = watches.get_unit();
+	if (plit == 0)
+	    break;
 	std::vector<int> *wlist = watches.get_list(plit);
 	if (verblevel >= 3) {
 	    report(3, "Unit propagating on literal %d.  Watch list:", plit);
@@ -1464,30 +1552,37 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 	    int ulit = bcp_unit_propagate(cid, false, watches);
 	    conflict = ulit == CONFLICT_LIT;
 	    if (conflict) {
-		prop_clauses.push_back(cid);
 		report(3, "   Conflict encountered with clause %d\n", cid);
+		// Hack: Put conflict clause at end of trail to pick up with hint
+		watches.add_unit(CONFLICT_LIT, cid);
+		conflict_cid = cid;
 		break;
 	    } else if (ulit != 0) {
-		prop_clauses.push_back(cid);
 		push_derived_literal(ulit, cid);
-		unit_queue.push_back(ulit);
+		watches.add_unit(ulit, cid);
 		report(3, "   Propagated unit %d with clause %d\n", ulit, cid);
 	    }
 	}
     }
 
-    int ncid = 0;
     if (conflict) {
+	if (conflict_cid == 0)
+	    err(false, "Couldn't find conflict clause during RUP validation\n");
+	else
+	    report(3, "Conflict clause found.  Constructing hints\n");
 	// Construct hints in reverse order
-	report(3, "Conflict found.  Constructing hints\n");
 	std::vector<int> hints;
 	std::unordered_set<int> used_set;
-	std::reverse(prop_clauses.begin(), prop_clauses.end());
-	used_set.insert(prop_clauses.front());
-	for (int hid : prop_clauses) {
+	std::vector<Tele> *trail = watches.get_trail();
+	if (conflict_cid > 0)
+	    used_set.insert(conflict_cid);
+	for (int idx = trail->size()-1; idx >= 0; idx--) {
+	    int hid = (*trail)[idx].cid;
+	    if (hid == 0)
+		continue;
 	    if (used_set.find(hid) != used_set.end()) {
 		hints.push_back(hid);
-		report(3, "  Clause #%d added to hints\n", hid);
+		report(4, "  Clause #%d added to hints\n", hid);
 		Clause *clp = get_clause(hid);
 		for (int idx = 0; idx < clp->length(); idx++) {
 		    int lit = (*clp)[idx];
@@ -1495,14 +1590,18 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 		    if (fid != justifying_ids.end()) {
 			int jid = fid->second;
 			used_set.insert(jid);
-			report(3, "    Literal %d justified by clause #%d\n", -lit, jid);
-		    } else {
-			report(3, "    No justifying clause found for literal %d\n", -lit);
-		    }
+			report(4, "    Literal %d justified by clause #%d\n", -lit, jid);
+		    } else
+			report(4, "    No justifying clause found for literal %d\n", -lit);
 		}
 	    } else
-		report(3, "  Clause #%d not needed as hint\n", hid);
+		report(4, "  Clause #%d not needed as hint\n", hid);
 	}
+
+	if (hints.size() == 0)
+	    err(false, "Couldn't generate hints for added clause %d\n", ncid);
+
+
 	// Put hints in proper order
 	std::reverse(hints.begin(), hints.end());
 	ncid = start_assertion(cltp);
@@ -1512,9 +1611,28 @@ int Cnf_reasoner::rup_validate(Clause *cltp) {
 	incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
 	activate_clause(ncid);
 	report(3, "  RUP validation completed.  Asserted clause %d\n", ncid);
+    } else {
+	err(false, "RUP validation failed\n");
+	printf("  Target clause: ");
+	cltp->show(stdout);
     }
     // Undo assignments
+    watches.restore_state(watch_state);
     pop_context();
+
+    // Set up watch pointers for the last added RUP clause
+    if (ncid != 0) {
+	int ulit = bcp_unit_propagate(ncid, true, watches);
+	conflict = ulit == CONFLICT_LIT;
+	if (conflict)
+	    report(3, "   Conflict encountered with clause %d generated by RUP step\n", ncid);
+	else if (ulit != 0) {
+	    push_derived_literal(ulit, ncid);
+	    watches.add_unit(ulit, ncid);
+	    report(3, "   Propagated unit %d with clause %d generated by RUP step\n", ulit, ncid);
+	}
+    }
+
     return ncid;
 }
 #else /* !NEW */
@@ -1617,11 +1735,14 @@ int Cnf_reasoner::bcp(bool bounded) {
     return ncid;
 }
 // Old RUP code
+bool Cnf_reasoner::watches_setup(Watcher &watches) {
+    return false;
+}
 
 // Generate set of hints for clause based on RUP validation
 // Add clause as assertion
 // Return ID of proof clause (or 0)
-int Cnf_reasoner::rup_validate(Clause *cltp) {
+int Cnf_reasoner::rup_validate(Clause *cltp, Watcher &watches) {
     // List of clause Ids that have been used in unit propagation
     std::vector<int> prop_clauses;
     // Initialize with all known units:
@@ -2063,35 +2184,52 @@ int Cnf_reasoner::reduce_run(int lit) {
 	int first_ncid = 0;
 	if (rcp->run_solver()) {
 	    const char *fname = rcp->get_file_name();
+	    report(3, "Adding proof clauses from SAT solver running on file %s to validate literal %d\n", fname, lit);
 	    pwriter->comment("Adding proof clauses from SAT solver running on file %s to validate literal %d", fname, lit);
 	    int pcount = 0;
+	    Watcher watches;
+	    bool fail = false;
+	    // Form local context for duration of RUP validation
+	    new_context();
 #if LOG
 	    double start = tod();
 #endif
-	    while (true) {
+	    // Shouldn't encounter conflict
+	    fail = watches_setup(watches);
+	    while (!fail) {
 		Clause *pnp = rcp->get_proof_clause(&assigned_literals);
 		if (pnp == NULL)
 		    break;
 		pcount++;
-		ncid = rup_validate(pnp);
+		ncid = rup_validate(pnp, watches);
 		if (first_ncid == 0)
 		    first_ncid = ncid;
-		if (ncid == 0) {
-		    err(false, "SAT solver running on file %s failed to validate proof clause #%d while validating literal %d\n",
-			fname, pcount, lit);
-		    if (verblevel >= 3)
+		fail = ncid == 0;
+		if (fail) {
+		    err(false, "SAT solver running on file %s failed to validate proof clause #%d/%d while validating literal %d\n",
+			fname, pcount, rcp->get_proof_size(), lit);
+		    if (verblevel >= 3) {
+			lprintf("Target clause: ");
 			pnp->show();
+		    }
 		}
 	    }
 #if LOG
 	    double micro = (tod() - start) * 1e6;
 	    log_data("r,%u,%d,%d,%.0f\n", rcp->hash(), rcp->clause_count(), pcount, micro);
 #endif
-	    pwriter->comment("End of proof clauses from SAT solver running on file %s", fname);
+	    pop_context();
+	    if (fail) {
+		report(3, "Completed adding proof clauses from SAT solver running on file %s to validate literal %d\n", fname, lit);
+		pwriter->comment("End of proof clauses from SAT solver running on file %s", fname);
+	    } else {
+		report(3, "Completed adding proof clauses from SAT solver running on file %s to validate literal %d\n", fname, lit);
+		pwriter->comment("End of proof clauses from SAT solver running on file %s", fname);
+	    }
 	    // The clauses used in generating this proof are no longer needed
 	    for (int cid = first_ncid; cid <= ncid; cid++)
 		deactivate_clause(cid);
-	} else {
+	}  else {
 	    const char *fname = rcp->get_file_name();
 	    pwriter->comment("SAT solver failed running on file %s to validate literal %d", fname, lit);
 	}
@@ -2218,6 +2356,8 @@ bool Cnf_reasoner::validate_literals(std::vector<int> &lits, std::vector<int> &j
     } else {
 	// Try doing the validations individually
 	deactivate_clause(defining_cid);
+	err(false, "Couldn't validate literal %d representing conjunction of %d literals\n", xvar, nleft);
+	return false;
 	err(false, "Couldn't validate literal %d representing conjunction of %d literals.  Try validating individually\n", xvar, nleft);
 	for (int i = 0; i < nleft; i++) {
 	    int nlit = (*anp)[i];
