@@ -290,8 +290,8 @@
 {\bf Definitions}
 \begin{itemize}
   \item Input variables $x_1, x_2, \ldots, x_n$
-  \item {\em Assignment}: $\alpha = \{ \ell_1, \ell_2, \ldots, \ell_n \}$ with each $\ell_i \in \{x_i, \xnot_i\}$
-  \item {\em Models}: ${\cal M}(\phi)$ is set of satisfying assignments for formula $\phi$
+  \item \structure{Assignment}: $\alpha = \{ \ell_1, \ell_2, \ldots, \ell_n \}$ with each $\ell_i \in \{x_i, \xnot_i\}$
+  \item \structure{Models}: ${\cal M}(\phi)$ is set of satisfying assignments for formula $\phi$
 \end{itemize}
 
 \medskip
@@ -390,7 +390,7 @@
 
 \begin{itemize}
 \item $w(x_i) = w(\oneg{x}_i) = 1/2$ for all $i$
-\item $\Delta(\phi, w)$ gives {\em density} of function
+\item $\Delta(\phi, w)$ gives \structure{density} of function
   \begin{itemize}
     \bitem Fraction of assignments that satisfy $\phi$
   \end{itemize}
@@ -542,16 +542,16 @@
   \node [right] at (68,15.2) {\footnotesize  OK /} ;
   \node [right] at (68,12.8) {\footnotesize  Not OK} ;
   \draw[line width=2pt] (63,4) [-latex] -- (68,4) ;
-  \node [right] at (68,4) {$\textbf{R}(\phi_I, w)$};
+  \node [right] at (68,4) {$\Delta (\phi_I, w)$};
 \end{tikzpicture}
 } %% Centering
 \vskip -1em
 
 \begin{itemize}
-\item {\em Knowledge Compiler} (D4 \reference{LagMar-2017}): Convert CNF into representation using only partitioned operations
-\item {\em Proof Generator}: Generate file combining POG definition + equivalence proof
-\item {\em Proof Checker}: Validate proof file 
-\item {\em Weighted Counter}: Compute standard or weighted model count
+\item \structure{Knowledge Compiler} (D4 \reference{LagMar-2017}): Convert CNF into representation using only partitioned operations
+\item \structure{Proof Generator}: Generate file combining POG definition + equivalence proof
+\item \structure{Proof Checker}: Validate proof file 
+\item \structure{Weighted Counter}: Compute standard or weighted model count
 \end{itemize}
 
 \end{frame}
@@ -605,7 +605,7 @@
   \node [right] at (68,15.2) {\footnotesize  OK /} ;
   \node [right] at (68,12.8) {\footnotesize  Not OK} ;
   \draw[line width=2pt] (63,4) [-latex] -- (68,4) ;
-  \node [right] at (68,4) {$\textbf{R}(\phi_I, w)$};
+  \node [right] at (68,4) {$\Delta (\phi_I, w)$};
 \end{tikzpicture}
 } %% Centering
 
@@ -859,7 +859,7 @@
   \rtext{2} & \gtext{\texttt{-1 2}} &  Input \\
 \midrule
   \rtext{3} & \gtext{\texttt{3 1 2}} &  $\nodep_3$ \\
-  \rtext{4} & \only<2-3>{\gtext{\texttt{-3 -1}}} \only<4>{\gtext{\texttt{\emph{-3 -1}}}} &   \\
+  \rtext{4} & \only<1-3>{\gtext{\texttt{-3 -1}}} \only<4>{\gtext{\texttt{\emph{-3 -1}}}} &   \\
   \rtext{5} & \gtext{\texttt{-3 -2}} &   \\
 \midrule
 \only<2->{
@@ -888,7 +888,7 @@
 \begin{itemize}
 \item Add clauses by reverse unit propagation (RUP)
 \item Terminating with unit clause $[r]$
-\item {\em Any assignment satisfying $\phi_I$ (when extended)  causes the POG to evaluate to true}
+\item \structure{Any assignment satisfying $\phi_I$ (when extended)  causes the POG to evaluate to true}
 \end{itemize}
 \end{frame}
 
@@ -989,7 +989,7 @@
 %% 
 %% \item Including each input clause
 %% \begin{itemize}
-%% \bitem {\em For any  assignment $\alpha$ falsifying the input clause, its extension $\alpha^{*}$ yields $\alpha^{*}(r) = 0$}.
+%% \bitem \structure{For any  assignment $\alpha$ falsifying the input clause, its extension $\alpha^{*}$ yields $\alpha^{*}(r) = 0$}.
 %% \end{itemize}
 %% \item One RUP proof step for each clause deleted
 %% \begin{itemize}
@@ -1013,7 +1013,9 @@
 %  \toprule
 %  \multicolumn{4}{c}{CPOG line}  \\
   \midrule
-  \texttt{d} & \texttt{\rtext{12}} & \texttt{\rtext{11 1 6}} & \texttt{0} \\
+\only<1->{
+\texttt{d} & \texttt{\rtext{12}} & \texttt{\rtext{11 1 6}} & \texttt{0} \\
+}
 \only<2->{
 \texttt{d} & \texttt{\rtext{1}} & \texttt{\rtext{13 5 7 9}} & \texttt{0} \\
 }
@@ -1384,35 +1386,35 @@ Max\\
 \item[CapLagMar-2021]
   F. Capelli, J.-M. Lagniez, and P. Marquis,
   ``Certifying top-down decision-{DNNF} compilers'',
-  {\em AAAI}, 2021
+  \structure{AAAI}, 2021
 
 \item[DarMar-2002]
   A. Darwiche and P. Marquis,
   ``A knowledge compilation map,''
-  {\em JAIR}, 2002
+  \structure{JAIR}, 2002
   
 \item[DemUlr-2021]
   L. de Moura and S. Ulrich,
   ``The Lean 4 theorem prover and programming language,''
-{\em CADE},  2021
+\structure{CADE},  2021
 
 \item[FicHecRol-2022]
   J. Fichte, M. Hecher, and V. Roland,
   ``Proofs for propositional model counting,''
-  {\em SAT} 2022.
+  \structure{SAT} 2022.
 
 \item[HeuHunWet-2013] M. J. H. Heule, W. A. Hunt, Jr., N. Wetzler,
   ``Trimming while checking clausal proofs,''
-  {\em FMCAD}, 2013.
+  \structure{FMCAD}, 2013.
 
 
 %%\item[KimVdbDra-2017] Angelika Kimmig, Guy Van den Broeck, and Luc De Raedt,
 %%  ``Algebraic model counting,''
-%%  {\em J. Applied Logic}, 2017
+%%  \structure{J. Applied Logic}, 2017
 
 \item[LagMar-2017] J.-M. Lagniez and  P. Marquis,
   ``An improved decision-DNNF compiler,''
-  {\em IJCAI}, 2017
+  \structure{IJCAI}, 2017
 \end{itemize}
 \end{minipage}
 \end{frame}
@@ -1454,7 +1456,7 @@ Max\\
 {\bf Model Counting}
 \begin{itemize}
 \item Let $w(x_i) = w(\oneg{x}_i) = 1/2$ for all $i$
-\item ${\bf R}(\phi, w)$ gives {\em density} of function
+\item ${\bf R}(\phi, w)$ gives \structure{density} of function
   \begin{itemize}
     \bitem Fraction of assignments that satisfy $\phi$
   \end{itemize}
