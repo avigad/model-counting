@@ -1179,14 +1179,14 @@
 \begin{center}
 \begin{tikzpicture}[scale = 0.52]
   \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log,
-      legend style={at={(0.30,0.96)}},
+      legend style={at={(0.4,0.96)}},
       legend cell align={left},
                               x post scale=1.8, y post scale=2.4,
                               xmode=log,xmin=0.01,xmax=4000,
                               xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
                               ymin=0.01, ymax=29000,
                               ytick={0.01, 0.1,1.0,10,100,1000,10000,100000}, yticklabels={0.01, 0.1, 1.0, 10, 100, {1,000},{10,000},{100,000}},
-                              xlabel={D4 runtime (seconds)}, ylabel={CPOG generation, checking, and weighted count  (seconds)},
+                              xlabel={\large D4 runtime (seconds)}, ylabel={\large CPOG generation, checking, and weighted count  (seconds)},
 %                              title={D4 Defining Clause Generation}
             ]
 %    \input{data-formatted/time-d4-verify}
@@ -1199,9 +1199,9 @@
 \addplot [only marks, color=darkgreen, mark=diamond*, mark options={scale=1.1}, opacity=0.7] coordinates { (2052.239,25000) (424.73,25000) (2636.562,25000) (1403.431,25000) (3070.214,25000) (2053.446,25000) (2790.169,25000)};
 
     \legend{
-      \scriptsize \textsf{Full validation},
-      \scriptsize \textsf{Reverse implication},
-      \scriptsize \textsf{No validation},
+      \scriptsize \textsf{\Large Full validation},
+      \scriptsize \textsf{\Large Reverse implication},
+      \scriptsize \textsf{\Large No validation},
     }
     \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,20000) (4000,20000)};
@@ -1262,7 +1262,7 @@ Max\\
                               ymode=log, ymin=100, ymax=2000000000, 
                               ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000},
                               yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
-                              xlabel={Defining Clauses}, ylabel={Defining + Proof Clauses},
+                              xlabel={\Large Defining Clauses}, ylabel={\Large Defining + Proof Clauses},
             ]
 %    \input{data-formatted/defining+total}
 \addplot [only marks, color=redorange, mark=*,  mark options={scale=0.8}, opacity=0.7] coordinates { (18271,161794) (1295,2397) (1659,4427) (127284,262373) (2325,6077) (359,554) (5373,14373) (314359,1213826) (44178,81780) (493,33207) (605988,1117440) (1141369,3809317) (1197649,2211944) (1001050,2393131) (2947,7851) (4991,13207) (355617,721935) (4897,13101) (2437497,5273728) (345,46079) (701346,1593947) (3191,26378) (5985623,28392373) (467550,940819) (1318024,2813565) (4713,23892) (1682059,3160386) (1406192,4043887) (899701,1704811) (4936014,11840667) (8038928,68469623) (70651620,197339867) (9567,251890) (39501,104182) (18007,187551) (125319627,374762287) (82194,297768) (269645146,770382773) (304,427342) (574062,8448281) (887,478450) (1757,399856) (78873354,503117290) (190248,429409) (2064844,13434107) (13737124,141587875) (50722,820648) (45923418,82243431) (83111464,188103550) (40776253,104351646) (79106742,265990284) (3133905,23973053) (16147,1697847) (45214,1277037) (72258,4612352) (905,2500003) (401032,840020) (355,2155900) (63050,4771522) (3195277,6098685) (1125105,4417869) (325251378,736764776) (6074672,13104909) (132891,287958) (65522,136116) (15561156,38336288) (143191,298755) (2851,7851) (5243,13911) (334862,681444) (2659,7335) (82585,317789) (447979,1612224) (905899,1733678) (433226,802268) (551970,1006319) (1891045,3387533) (1210098,2232426) (755273,1440924) (470934,1914084) (1178453,2188886) (3131,8575) (2515,6607) (1903735,4312279) (1107098,1868005) (1801878,3324418) (47556240,206213289) (24087642,83491057) (3109,8227) (16038150,101261480) (312728,642675) (3175308,7847036) (142059,747752) (20382514,69650789) (453769,1563728) (498246,1154507) (797866,6840229) (3835114,17412807) (5035130,10668725) (647011,9905453) (5189,1234644) (740235,2672407) (219979530,417455256) (402460,844395) (2295530,81147729) (1772352,119113610) (3975194,16763326) (8493275,41873955)};
@@ -1275,9 +1275,9 @@ Max\\
 \addplot [only marks, color=darkgreen, mark=diamond*, mark options={scale=1.1}, opacity=0.7] coordinates { (284769023,1500000000) (404276843,1500000000) (1765743261,1500000000) (869865958,1500000000) (2761457765,1500000000) (1258914451,1500000000) (1030698214,1500000000)};
 
     \legend{
-      \scriptsize \textsf{Full validation},
-      \scriptsize \textsf{Reverse implication},
-      \scriptsize \textsf{No validation},
+      \scriptsize \textsf{\Large Full validation},
+      \scriptsize \textsf{\Large Reverse implication},
+      \scriptsize \textsf{\Large No validation},
     }
     \addplot[mark=none, color=lightblue] coordinates{(100,1e9) (1e10,1e9)};
     \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
