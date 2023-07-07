@@ -2912,6 +2912,10 @@ int Cnf_reasoner::monolithic_validate_root(int root_literal) {
     double start = tod();
 #if SOLVER == CADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnf_name, cnf_name, lrat_name);
+#elif SOLVER == LCADICAL
+    snprintf(cmd, 350, "cadical --no-binary --unsat -q --lrat=1 %s %s", cnf_name, lrat_name);
+#elif SOLVER == TCADICAL
+    snprintf(cmd, 350, "cadical --no-binary --unsat -q --lrat=1 %s - | lrat-trim --no-binary -q - %s", cnf_name, lrat_name);
 #else
     snprintf(cmd, 350, "kissat --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnf_name, cnf_name, lrat_name);
 #endif
