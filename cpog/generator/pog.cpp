@@ -232,10 +232,12 @@ void Pog::topo_order(int rlit, std::vector<int> &rtopo, int *markers) {
 }
 
 bool Pog::optimize() {
+#if VLEVEL >= 5
     if (verblevel >= 5) {
 	report(5, "Before optimization:\n");
 	show(stdout);
     }
+#endif
 
     int defining_clause_count = 0;
 
@@ -301,11 +303,13 @@ bool Pog::optimize() {
 		// If one of the children is false, then replace this node with other child
 		int other_lit = nchildren[0] == -true_id ? nchildren[1] : nchildren[0];
 		remap[oid-max_input_var-1] = other_lit;
+#if VLEVEL >= 4
 		if (verblevel >= 4) {
 		    report(4, "  Node ");
 		    np->show(stdout);
 		    lprintf("  maps to %d\n", other_lit);
 		}
+#endif
 		continue;
 	    } else {
 		Pog_node *nnp = new Pog_node(POG_OR);
@@ -315,6 +319,7 @@ bool Pog::optimize() {
 		int nid = max_input_var + new_nodes.size();
 		nnp->set_xvar(nid);
 		remap[oid-max_input_var-1] = nid;
+#if VLEVEL >= 4
 		if (verblevel >= 4) {
 		    report(4, "  Converted node ");
 		    np->show(stdout);
@@ -322,6 +327,7 @@ bool Pog::optimize() {
 		    nnp->show(stdout);
 		    lprintf("\n");
 		}
+#endif
 	    }
 	} else {
 	    // AND
@@ -338,11 +344,13 @@ bool Pog::optimize() {
 		    else if (nchild_lit == -true_id) {
 			// Zero node
 			remap[oid-max_input_var-1] = -true_id;
+#if VLEVEL >= 4
 			if (verblevel >= 4) {
 			    report(4, "  Converted node ");
 			    np->show(stdout);
 			    lprintf(" to FALSE\n");
 			}
+#endif
 			zeroed = true;
 			break;
 		    } else
@@ -366,6 +374,7 @@ bool Pog::optimize() {
 		int nid = max_input_var + new_nodes.size();
 		nnp->set_xvar(nid);
 		remap[oid-max_input_var-1] = nid;
+#if VLEVEL >= 4
 		if (verblevel >= 4) {
 		    report(4, "  Converted node ");
 		    np->show(stdout);
@@ -373,6 +382,7 @@ bool Pog::optimize() {
 		    nnp->show(stdout);
 		    lprintf("\n");
 		}
+#endif
 	    }
 	}
     }
@@ -413,10 +423,12 @@ bool Pog::optimize() {
     
 
 bool Pog::concretize() {
+#if VLEVEL >= 5
     if (verblevel >= 5) {
 	report(5, "Before concretizing:\n");
 	show(stdout);
     }
+#endif
 
     if (verblevel >= 2) {
 	// Document input clauses

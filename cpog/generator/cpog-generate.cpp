@@ -18,7 +18,7 @@ static bool delete_files  =  true;
 static bool early_quit = false;
 static bool one_sided = false;
 static bool monolithic = false;
-static int drat_threshold = 1000;
+static int drat_threshold = 20;
 static int bcp_limit = 1;
 static int clause_limit = INT_MAX;
 
