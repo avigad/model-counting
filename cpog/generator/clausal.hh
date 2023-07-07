@@ -37,13 +37,21 @@
 #define KISSAT  4
 
 #ifndef SOLVER
-#define SOLVER CADICAL
+#define SOLVER TCADICAL
 #endif
 
 // Enable/disable more info in file comments
 #ifndef DEBUG
 #define DEBUG 0
 #endif
+
+// Enable/disable consistency checking with two-watch literals
+#ifndef TWL_CHECK
+#define TWL_CHECK 0
+#endif
+
+// optionally disable high verbosity
+#define VLEVEL 2
 
 // Used to convert literal to variable
 #define IABS(x) ((x)<0?-(x):(x))
@@ -62,6 +70,12 @@
 
 #include "ilist.h"
 #include "writer.hh"
+
+// Pairs of literals for two-watched literals
+struct Literal_pair {
+    int lit1;
+    int lit2;
+};
 
 // Representations of clauses and sets of clauses
 
@@ -104,8 +118,9 @@ public:
 
     int max_variable();
 
-
     void swap_literals(int idx1, int idx2);
+
+    void rearrange(Literal_pair &lits);
 
     void canonize();
 
@@ -305,15 +320,6 @@ struct Tele {
     int cid;
 };
 
-struct Watch_state {
-    // Length of watch lists
-    std::unordered_map<int,int> lengths;
-    // Length of trail
-    int unit_count;
-    // How many trail elements have been propagated
-    int propagate_count;
-};
-
 class Watcher {
 
 public:
@@ -330,10 +336,7 @@ public:
     // Get next unit from queue.  Return 0 if none
     int get_unit();
 
-    void capture_state(Watch_state &state);
-
-    void restore_state(Watch_state &state);
-
+    // Get specified watch list
     std::vector<int> *get_list(int lit);
 
     std::vector<Tele> *get_trail();
@@ -341,6 +344,20 @@ public:
     bool is_initialized() { return watch_lists.size() > 0; }
 
     void clear();
+
+    void checkpoint();
+
+    void restore();
+
+    void watching(int cid, int lit1, int lit2);
+
+    // Reasoner must fix up watched literals within clauses
+    std::unordered_map<int,Literal_pair> *get_watched_pairs();
+
+    // Debugging support
+    bool is_watching(int cid, int lit);
+    bool on_trail(int lit);
+
 
 private:
 
@@ -350,6 +367,19 @@ private:
     std::vector<Tele> trail;
     // How many trail elements have been propagated
     int propagate_count;
+
+    // Support to temporarily add new units and propagate them, with ability to restore to previous state
+    bool saving;
+    // These maps start empty and are updated only the first time a data structure gets changed
+    // Sparse map, indexed by literal, from giving lengths of modified watch lists
+    std::unordered_map<int,int> save_lengths;
+    // Sparse map, indexed by clause ID, identifying watched literals
+    std::unordered_map<int,Literal_pair> save_watched_pairs;
+    // Length of trail
+    int save_unit_count;
+    // How many trail elements have been propagated
+    int save_propagate_count;
+    
 
 
 };
@@ -533,6 +563,8 @@ private:
 			   Watcher &watches);
 
     bool is_active(int cid);
+
+    void check_watch_state(Watcher &watches, bool quiescent);
 
     // Private methods for proof generation
 
