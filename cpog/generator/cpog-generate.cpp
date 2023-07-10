@@ -17,20 +17,20 @@ static bool use_lemmas = true;
 static bool delete_files  =  true;
 static bool early_quit = false;
 static bool one_sided = false;
-static bool monolithic = false;
 static int drat_threshold = 20;
+static int monolithic_threshold = 100000;
 static int bcp_limit = 1;
 static int clause_limit = INT_MAX;
 
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-1] [-m] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.nnf [POG.cpog]\n", name);
+    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-1] [-m MONO] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.nnf [POG.cpog]\n", name);
     lprintf("  -h        Print this information\n");
     lprintf("  -v VLEVEL Set verbosity level\n");
     lprintf("  -L LOG    Record all results to file LOG\n");
     lprintf("  -p        Quit after determining POG size\n");
     lprintf("  -1        Generate a one-sided proof (only input clause deletions justified)\n");
-    lprintf("  -m        Monolithic mode: Do validation with single call to SAT solver\n");
+    lprintf("  -m MONO   Monolithically validate subgraphs with tree size <= MONO\n");
     lprintf("  -C CLIM   Limit total number of clauses in input + proof (default = %d)\n", clause_limit);
     lprintf("  -b BLIM   Limit depth of Boolean constraint propagation for contradiction proofs (default = %d)\n", bcp_limit);
     lprintf("  -t THRESH Use drat-trim on proofs when SAT problems are above THRESH clauses (default = %d)\n", drat_threshold);
@@ -194,6 +194,7 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     cnf.drat_threshold = drat_threshold;
     cnf.clause_limit = clause_limit;
     cnf.bcp_limit = bcp_limit;
+    cnf.monolithic_threshold = monolithic_threshold;
     Pog pog(&cnf);
     if (verblevel >= 2)
 	pwriter->enable_comments();
@@ -213,8 +214,6 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     int unit_cid = 0;
     if (one_sided)
 	unit_cid = cnf.assert_literal(root_literal);
-    else if (monolithic)
-	unit_cid = cnf.monolithic_validate_root(root_literal);
     else
 	unit_cid = pog.justify(root_literal, false, use_lemmas);
 
@@ -252,7 +251,7 @@ int main(int argc, char *const argv[]) {
     verblevel = 1;
     int c;
     set_panic(panic);
-    while ((c = getopt(argc, argv, "hp1mv:L:C:b:t:sek")) != -1) {
+    while ((c = getopt(argc, argv, "hp1m:v:L:C:b:t:sek")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -264,7 +263,7 @@ int main(int argc, char *const argv[]) {
 	    one_sided = true;
 	    break;
 	case 'm':
-	    monolithic = true;
+	    monolithic_threshold = atoi(optarg);
 	    break;
 	case 'v':
 	    verblevel = atoi(optarg);
@@ -345,15 +344,15 @@ int main(int argc, char *const argv[]) {
 	}
 
 	lprintf("%s Program options\n", prefix);
-	lprintf("%s   Multi-literal:   %s\n", prefix, multi_literal ? "yes" : "no");
-	lprintf("%s   Use lemmas:      %s\n", prefix, use_lemmas ? "yes" : "no");
-	lprintf("%s   Delete files:    %s\n", prefix, delete_files ? "yes" : "no");
-	lprintf("%s   One-sided:       %s\n", prefix, one_sided ? "yes" : "no");
-	lprintf("%s   Monolithic mode: %s\n", prefix, monolithic ? "yes" : "no");
-	lprintf("%s   DRAT threshold:  %d\n", prefix, drat_threshold);
-	lprintf("%s   Clause limit:    %d\n", prefix, clause_limit);
-	lprintf("%s   BCP limit:       %d\n", prefix, bcp_limit);
-	lprintf("%s   Solver:          %s\n", prefix, sname);
+	lprintf("%s   Multi-literal:       %s\n", prefix, multi_literal ? "yes" : "no");
+	lprintf("%s   Use lemmas:          %s\n", prefix, use_lemmas ? "yes" : "no");
+	lprintf("%s   Delete files:        %s\n", prefix, delete_files ? "yes" : "no");
+	lprintf("%s   One-sided:           %s\n", prefix, one_sided ? "yes" : "no");
+	lprintf("%s   DRAT threshold:      %d\n", prefix, drat_threshold);
+	lprintf("%s   Clause limit:        %d\n", prefix, clause_limit);
+	lprintf("%s   BCP limit:           %d\n", prefix, bcp_limit);
+	lprintf("%s   Monolithic threshold %d\n", prefix, monolithic_threshold);
+	lprintf("%s   Solver:              %s\n", prefix, sname);
     }
     int return_code = 0;
     try {

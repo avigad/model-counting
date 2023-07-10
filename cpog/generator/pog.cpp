@@ -40,6 +40,11 @@ const char pog_type_char[5] = { '\0', 't', 'f', 'a', 'o' };
 // Reporting parameters
 #define REPORT_MIN_INTERVAL 1000
 #define REPORT_MAX_COUNT 10
+
+// Monolithic proof thresholds
+// Added allowance on tree size when node is root of shared subgraph
+#define LEMMA_BIAS 1.5
+
 // Report status
 static int vreport_interval = INT_MAX;
 static int vreport_last = 0;
@@ -53,6 +58,7 @@ Pog_node::Pog_node() {
     children = NULL;
     indegree = 0;
     lemma = NULL;
+    tree_size = 1;
 }
 
 Pog_node::Pog_node(pog_type_t ntype) {
@@ -62,6 +68,7 @@ Pog_node::Pog_node(pog_type_t ntype) {
     children = NULL;
     indegree = 0;
     lemma = NULL;
+    tree_size = 1;
     if (type == POG_AND || type == POG_AND)
 	incr_count(COUNT_POG_AND);
     if (type == POG_OR)
@@ -129,6 +136,14 @@ void Pog_node::add_children(std::vector<int> *cvec) {
 
 int Pog_node::get_degree() {
     return degree;
+}
+
+long Pog_node::get_tree_size() {
+    return tree_size;
+}
+
+void Pog_node::set_tree_size(long size) {
+    tree_size = size;
 }
 
 int & Pog_node::operator[](int idx) {
@@ -445,11 +460,20 @@ bool Pog::concretize() {
 	int xvar = np->get_xvar();
 	int defining_cid = 0;
 	bool need_zero = false;
+	long tsize = 1;
 	switch (np->get_type()) {
 	case POG_TRUE:
 	case POG_AND:
 	    defining_cid = cnf->start_and(xvar, args);
 	    need_zero = false;
+	    for (int i = 0; i < np->get_degree(); i++) {
+		int child_lit = (*np)[i];
+		if (is_node(child_lit)) {
+		    Pog_node *cnp = get_node(child_lit);
+		    tsize += cnp->get_tree_size();
+		} else
+		    tsize += 1;
+	    }
 	    break;
 	case POG_OR:
 	    need_zero = true;
@@ -461,7 +485,9 @@ bool Pog::concretize() {
 		    Pog_node *cnp = get_node(child_lit);
 		    int hid = cnp->get_defining_cid() + 1;
 		    cnf->add_hint(hid);
-		}
+		    tsize += cnp->get_tree_size();
+		} else
+		    tsize += 1;
 	    }
 	    break;
 	default:
@@ -469,6 +495,7 @@ bool Pog::concretize() {
 	}
 	cnf->finish_command(need_zero);
 	np->set_defining_cid(defining_cid);
+	np->set_tree_size(tsize);
 	if (np->get_type() == POG_OR)
 	    cnf->document_or(defining_cid, xvar, args);
 	else
@@ -664,7 +691,7 @@ int Pog::first_literal(int rlit) {
 
 // Prove lemma if needed, and apply to this instance
 int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
-    report(3, "Attempting to prove/apply lemma for node .\n", rp->name());
+    report(3, "Attempting to prove/apply lemma for node %s.\n", rp->name());
     Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar(), parent_or);
     // Search for compatible lemma
     Lemma_instance *lemma = rp->get_lemma();
@@ -684,7 +711,10 @@ int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
 			      rp->name(), lemma->signature);
 #endif
 	cnf->setup_proof(lemma);
-	lemma->jid = justify(lemma->xvar, lemma->parent_or, false);
+	if (rp->get_tree_size() <= cnf->monolithic_threshold * LEMMA_BIAS)
+	lemma->jid = justify_monolithic(lemma->xvar, lemma->parent_or);
+	else
+	    lemma->jid = justify(lemma->xvar, lemma->parent_or, false);
 	if (lemma->jid == 0) {
 	    cnf->pwriter->diagnose("Proof of lemma for node %s, signature %u failed", rp->name(), lemma->signature);
 	    return 0;
@@ -721,6 +751,7 @@ int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
 // Special value used during OR justification
 #define TRIVIAL_ARGUMENT -1
 
+
 // Justify each position in POG within current context
 // Return ID of justifying clause
 int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
@@ -729,6 +760,8 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
+	if (rnp->get_tree_size() <= cnf->monolithic_threshold)
+	    return justify_monolithic(rlit, parent_or);
 	if (use_lemma && cnf->use_lemmas && rnp->want_lemma()) {
 	    int jid = apply_lemma(rnp, parent_or);
 	    if (jid == 0)
@@ -924,6 +957,101 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
     return jcid;
 }
 
+// Enumerate clauses in subgraph
+void Pog::export_subgraph(int rlit, Cnf_reduced *rcnf, std::unordered_set<int> *unit_literals, std::unordered_set<int> &sofar) {
+    int rvar = IABS(rlit);
+    if (is_node(rvar) && sofar.find(rvar) == sofar.end()) {
+	sofar.insert(rvar);
+	Pog_node *np = get_node(rvar);
+	// Recursively add children
+	for (int i = 0; i < np->get_degree(); i++)
+	    export_subgraph((*np)[i], rcnf, unit_literals, sofar);
+	// Add defining clauses
+	int degree = np->get_degree();
+	int start_cid = np->get_defining_cid();
+	//	cnf->pwriter->comment("Add defining clauses for node %s, starting with clause #%d", np->name(), start_cid);
+	for (int i = 0; i <= degree; i++) {
+	    int cid = i + start_cid;
+	    Clause *np = cnf->get_clause(cid);
+	    rcnf->add_clause(np, *unit_literals, cid);
+	}
+    }
+}
+
+// Justify subgraph using single call to SAT solver.
+// Return ID of justifying clause
+int Pog::justify_monolithic(int rlit, bool parent_or) {
+    int jcid = 0;
+    if (is_node(rlit)) {
+	int rvar = IABS(rlit);
+	Pog_node *rnp = get_node(rvar);
+	cnf->new_context();
+	cnf->push_assigned_literal(-rlit);
+	if (parent_or) {
+	    int clit = first_literal(rlit);
+	    cnf->push_assigned_literal(clit);
+	}
+	cnf->pwriter->comment("Preparing CNF to monolithically justify root node %s (tree size %ld)", rnp->name(), rnp->get_tree_size());
+	Cnf_reduced *rcp = cnf->extract_cnf();
+	int input_clause_count = rcp->clause_count();
+	std::unordered_set<int> real_units;
+	std::unordered_set<int> sofar;
+	export_subgraph(rlit, rcp, cnf->get_unit_literals(), sofar);
+	if (!rcp->run_hinting_solver())
+	    err(true, "Justifying subgraph with root %s.  Running SAT solver failed\n", rnp->name());
+	const char *fname = rcp->get_file_name();
+	cnf->pwriter->comment("Ran SAT solver on file %s (%d input clauses, %d defining clauses) to monolithically justify root node %s",
+			      fname, input_clause_count, rcp->clause_count() - input_clause_count, rnp->name());
+	int start_id = cnf->clause_count() + cnf->get_proof_size() + 1;
+	std::unordered_map<int, int> *justifying_ids = cnf->get_justifying_ids();
+	while (true) {
+	    Clause *php = rcp->get_proof_hint(start_id);
+	    Clause *pnp = rcp->get_proof_clause(cnf->get_assigned_literals());
+	    if (pnp == NULL)
+		break;
+	    jcid = cnf->start_assertion(pnp);
+	    // Add extra information about unit literals
+	    cnf->filter_units(pnp, php, real_units);
+	    for (int ulit : real_units) {
+		auto fid = justifying_ids->find(ulit);
+		if (fid != justifying_ids->end()) {
+		    int hid = fid->second;
+		    if (hid != jcid)
+			cnf->add_hint(hid);
+		}
+	    }
+	    cnf->add_hints(php);
+	    cnf->finish_command(true);
+	    incr_count(COUNT_MONOLITHIC_CLAUSE);
+	    delete php;
+	}
+	cnf->pop_context();
+	cnf->pwriter->comment("End of proof clauses from SAT solver running on file %s to justify root node %s",
+			      fname, rnp->name());
+    } else {
+	jcid = cnf->validate_literal(rlit, Cnf_reasoner::MODE_FULL);
+	if (jcid == 0) {
+	    cnf->pwriter->diagnose("Validation of literal %d failed", rlit);
+	    err(true, "Justifying .  Running SAT solver failed\n", rlit);
+	}
+    }
+    if (jcid > 0) {
+	report(4, "Subgraph with root literal %d in POG justified by clause %d\n", rlit, jcid);
+	vcount ++;
+	if (rlit == root_literal) {
+	    report(1, "Time = %.2f.  Justifications of %d nodes, including root, completed.  %d total clauses\n",
+		   get_elapsed(), vcount, jcid - cnf->clause_count());
+	} else if (vcount >= vreport_last + vreport_interval) {
+	    report(1, "Time = %.2f.  Justifications of %d nodes completed.  %d total clauses.  %d SAT calls\n",
+		   get_elapsed(), vcount, jcid - cnf->clause_count(), get_count(COUNT_SAT_CALL));
+	    vreport_last = vcount;
+	}
+    }
+    return jcid;
+}
+
+
+
 
 // Produce a partial assignment that satisfies the POG but contradicts the clause
 // Input includes vector indicating for each node whether it implies the given clause
@@ -1008,14 +1136,14 @@ bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause
 		}
 		if (!found) {
 		    // Failure
-		    err(false, "Couldn't generate counterexample at Pog node N%d. Couldn't satisfy either child\n",
-			np->name(), clit);
+		    err(false, "Couldn't generate counterexample at Pog node %s. Couldn't satisfy either child\n",
+			np->name());
 		    return false;
 		}
 	    }
 	    break;
 	default:
-	    err(true, "Unknown POG type %d for node N%d\n", (int) np->get_type(), np->get_xvar());
+	    err(true, "Unknown POG type %d for node %s\n", (int) np->get_type(), np->name());
 	}
     }
     // Now convert to list of literals
@@ -1089,7 +1217,7 @@ bool Pog::delete_input_clause(int cid, int unit_cid, std::vector<int> &overcount
 		dvp->push_back(np->get_defining_cid());
 	    break;
 	default:
-	    err(true, "Unknown POG type %d for node N%d\n", (int) np->get_type(), np->get_xvar());
+	    err(true, "Unknown POG type %d for node %s\n", (int) np->get_type(), np->name());
 	}
 	implies_clause[nidx] = implies;	    
     }

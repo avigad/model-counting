@@ -1,5 +1,5 @@
 /*========================================================================
-  Copyright (c) 2022 Randal E. Bryant, Carnegie Mellon University
+  Copyright (c) 2022, 2023 Randal E. Bryant, Carnegie Mellon University
   
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -707,12 +707,15 @@ bool Cnf_reduced::run_hinting_solver() {
     file_names.push_back(lratname);
 
     double start = tod();
+    const char *trimmer = "drat-trim";
 #if SOLVER == CADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
 #elif SOLVER == LCADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q --lrat=1 %s %s", cnfname, lratname);
+    trimmer="cadical";
 #elif SOLVER == TCADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q --lrat=1 %s - | lrat-trim --no-binary -q - %s", cnfname, lratname);
+    trimmer = "lrat-trim";
 #else
     snprintf(cmd, 350, "kissat --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnfname, cnfname, lratname);
 #endif
@@ -734,7 +737,7 @@ bool Cnf_reduced::run_hinting_solver() {
 	err(false, "Execution of command '%s' yielded no proof clauses\n", cmd);
 	return false;
     }
-    report(3, "Drat-trim.  %s %d problem clauses.  %d proof clauses\n", cnfname, clause_count(), proof_clauses.size()); 
+    report(3, "File %s.  Generating lrat with %s.  %d problem clauses.  %d proof clauses\n", cnfname, trimmer, clause_count(), proof_clauses.size()); 
     Clause *lnp = proof_clauses.back();
     if (lnp->length() != 0) {
 	err(false, "Execution of command '%s' did not generate empty clause\n", cmd);	
@@ -962,6 +965,7 @@ Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) {
     use_lemmas = true;
     delete_files = true;
     drat_threshold = 1000;
+    monolithic_threshold = 100000;
     clause_limit = INT_MAX;
     bcp_limit = 1;
     xvar_count = max_variable();
@@ -2077,6 +2081,10 @@ std::vector<int> *Cnf_reasoner::get_assigned_literals() {
     return &assigned_literals;
 }
 
+std::unordered_map<int, int> *Cnf_reasoner::get_justifying_ids() {
+    return &justifying_ids;
+}
+
 void Cnf_reasoner::push_assigned_literal(int lit) {
     //  For some strange reason, this warning gets triggered when it shouldn't.
     if (unit_literals.find(lit) != unit_literals.end()) {
@@ -2910,12 +2918,15 @@ int Cnf_reasoner::monolithic_validate_root(int root_literal) {
     fclose(cnf_out);
     
     double start = tod();
+    const char *trimmer = "";
 #if SOLVER == CADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnf_name, cnf_name, lrat_name);
 #elif SOLVER == LCADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q --lrat=1 %s %s", cnf_name, lrat_name);
+    trimmer="cadical";
 #elif SOLVER == TCADICAL
     snprintf(cmd, 350, "cadical --no-binary --unsat -q --lrat=1 %s - | lrat-trim --no-binary -q - %s", cnf_name, lrat_name);
+    trimmer="lrat-trim";
 #else
     snprintf(cmd, 350, "kissat --no-binary --unsat -q %s - | drat-trim %s -L %s > /dev/null", cnf_name, cnf_name, lrat_name);
 #endif
@@ -2941,7 +2952,7 @@ int Cnf_reasoner::monolithic_validate_root(int root_literal) {
 	return false;
     }
     int nclauses = proof_clauses.size() - starting_proof_size;
-    report(3, "Drat-trim.  %s %d problem clauses.  Added %d proof clauses\n", cnf_name, full_clause_count, nclauses); 
+    report(3, "File %s.  Generating lrat with %s.  %d problem clauses.  %d proof clauses\n", cnf_name, trimmer, full_clause_count, nclauses);
     incr_histo(HISTO_PROBLEM, full_clause_count);
     incr_histo(HISTO_PROOF, nclauses);
 

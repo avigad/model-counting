@@ -203,6 +203,7 @@ public:
 
     // Return number of (input) clauses
     size_t clause_count();
+
     // Return ID of maximum (input) variable encountered
     int max_variable();
 
@@ -222,6 +223,7 @@ public:
     // Semi-private methods for general CNF
     // Add a new clause
     void add(Clause *clp);
+    
 };
 
 // Special version of CNF that can store a reduced version of some larger CNF file
@@ -454,12 +456,16 @@ public:
     int drat_threshold;
     // Limit on number of clauses before aborting (not implemented)
     int clause_limit;
-    //  Limt of depth of BCP when looking for conflict.
+    //  Limit of depth of BCP when looking for conflict.
     int  bcp_limit;
-
+    // Upper threshold on tree size for generating monolithic proof
+    int monolithic_threshold;
     // Access input, proof, or auxilliary clause, with id 1 being first input clause
     Clause * get_clause(int cid);
     Clause * operator[](int);
+
+    // Get unit literals
+    std::unordered_set<int> *get_unit_literals() { return &unit_literals; }
 
     // POG generation.  Returns false if BCP shows formula is UNSAT
     bool enable_pog(Pog_writer *cw);
@@ -494,7 +500,7 @@ public:
     void push_clause(int cid, bool force);
     void clear_assigned_literals();
     std::vector<int> *get_assigned_literals();
-
+    std::unordered_map<int, int> *get_justifying_ids();
 
     // set/get active clauses
     void extract_active_clauses(std::set<int> *save_set);
@@ -556,6 +562,11 @@ public:
     int monolithic_validate_root(int root_literal);
 
 
+    // Filter out the unit literals that are required for proof, given the main clause and the hint clauses
+    void filter_units(Clause *pnp, Clause *php, std::unordered_set<int> &units);
+
+    int get_proof_size() { return proof_clauses.size(); }
+
 private:
 
     // Support for BCP
@@ -567,9 +578,6 @@ private:
     void check_watch_state(Watcher &watches, bool quiescent);
 
     // Private methods for proof generation
-
-    // Filter out the unit literals that are required for proof, given the main clause and the hint clauses
-    void filter_units(Clause *pnp, Clause *php, std::unordered_set<int> &units);
 
     // Run SAT solver on reduced set of clauses as part of effort to validate literal lit.
     // Incorporate generated conflict proof into larger proof

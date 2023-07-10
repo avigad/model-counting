@@ -57,6 +57,9 @@ private:
     int indegree;
     Lemma_instance *lemma;
 
+    // Measures for deciding when to justify monolithically
+    long tree_size;
+
 public:
     Pog_node();
 
@@ -70,6 +73,8 @@ public:
     int get_xvar();
     void set_defining_cid(int cid);
     int get_defining_cid();
+    long get_tree_size();
+    void set_tree_size(long size);
 
     // Store name in local buffer.
     const char *name();
@@ -131,6 +136,15 @@ public:
     // Return ID of justifying clause
     int justify(int rlit, bool parent_or, bool use_lemma);
 
+    // Enumerate clauses in subgraph
+    // These get simplified according to unit literals
+    // Track which ones have been exported to avoid repetitions when there are shared subgraphs
+    void export_subgraph(int rlit, Cnf_reduced *rcnf, std::unordered_set<int> *unit_literals, std::unordered_set<int> &sofar);
+
+    // Justify subgraph using single call to SAT solver.
+    // Return ID of justifying clause
+    int justify_monolithic(int rlit, bool parent_or);
+    
     bool delete_input_clause(int cid, int unit_cid, std::vector<int> &overcount_literals);
 
 private:
