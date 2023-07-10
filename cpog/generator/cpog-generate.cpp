@@ -19,18 +19,20 @@ static bool early_quit = false;
 static bool one_sided = false;
 static int drat_threshold = 20;
 static int monolithic_threshold = 100000;
+static float lemma_ratio = 5.0;
 static int bcp_limit = 1;
 static int clause_limit = INT_MAX;
 
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-1] [-m MONO] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.nnf [POG.cpog]\n", name);
+    lprintf("Usage: %s [-h] [-v VLEVEL] [-L LOG] [-p] [-1] [-m MONO] [-r RAT] [-C CLIM] [-b BLIM] [-t] [-s] [-e] [-k] FORMULA.cnf GRAPH.nnf [POG.cpog]\n", name);
     lprintf("  -h        Print this information\n");
     lprintf("  -v VLEVEL Set verbosity level\n");
     lprintf("  -L LOG    Record all results to file LOG\n");
     lprintf("  -p        Quit after determining POG size\n");
     lprintf("  -1        Generate a one-sided proof (only input clause deletions justified)\n");
     lprintf("  -m MONO   Monolithically validate subgraphs with tree size <= MONO\n");
+    lprintf("  -r RAT    Scale factor for tree size threshold when lemma\n");
     lprintf("  -C CLIM   Limit total number of clauses in input + proof (default = %d)\n", clause_limit);
     lprintf("  -b BLIM   Limit depth of Boolean constraint propagation for contradiction proofs (default = %d)\n", bcp_limit);
     lprintf("  -t THRESH Use drat-trim on proofs when SAT problems are above THRESH clauses (default = %d)\n", drat_threshold);
@@ -195,6 +197,7 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     cnf.clause_limit = clause_limit;
     cnf.bcp_limit = bcp_limit;
     cnf.monolithic_threshold = monolithic_threshold;
+    cnf.lemma_ratio = lemma_ratio;
     Pog pog(&cnf);
     if (verblevel >= 2)
 	pwriter->enable_comments();
@@ -250,8 +253,9 @@ int main(int argc, char *const argv[]) {
     Pog_writer *pwriter = NULL;
     verblevel = 1;
     int c;
+    float r;
     set_panic(panic);
-    while ((c = getopt(argc, argv, "hp1m:v:L:C:b:t:sek")) != -1) {
+    while ((c = getopt(argc, argv, "hp1r:m:v:L:C:b:t:sek")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -264,6 +268,10 @@ int main(int argc, char *const argv[]) {
 	    break;
 	case 'm':
 	    monolithic_threshold = atoi(optarg);
+	    break;
+	case 'r':
+	    r = atof(optarg);
+	    lemma_ratio = r < 100 ? r : r/100.0;
 	    break;
 	case 'v':
 	    verblevel = atoi(optarg);
@@ -352,6 +360,7 @@ int main(int argc, char *const argv[]) {
 	lprintf("%s   Clause limit:        %d\n", prefix, clause_limit);
 	lprintf("%s   BCP limit:           %d\n", prefix, bcp_limit);
 	lprintf("%s   Monolithic threshold %d\n", prefix, monolithic_threshold);
+	lprintf("%s   Lemma ratio          %.2f\n", prefix, lemma_ratio);
 	lprintf("%s   Solver:              %s\n", prefix, sname);
     }
     int return_code = 0;

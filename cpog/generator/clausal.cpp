@@ -966,6 +966,7 @@ Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) {
     delete_files = true;
     drat_threshold = 1000;
     monolithic_threshold = 100000;
+    lemma_ratio = 5.0;
     clause_limit = INT_MAX;
     bcp_limit = 1;
     xvar_count = max_variable();

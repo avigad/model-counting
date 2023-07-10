@@ -41,10 +41,6 @@ const char pog_type_char[5] = { '\0', 't', 'f', 'a', 'o' };
 #define REPORT_MIN_INTERVAL 1000
 #define REPORT_MAX_COUNT 10
 
-// Monolithic proof thresholds
-// Added allowance on tree size when node is root of shared subgraph
-#define LEMMA_BIAS 1.5
-
 // Report status
 static int vreport_interval = INT_MAX;
 static int vreport_last = 0;
@@ -711,8 +707,8 @@ int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
 			      rp->name(), lemma->signature);
 #endif
 	cnf->setup_proof(lemma);
-	if (rp->get_tree_size() <= cnf->monolithic_threshold * LEMMA_BIAS)
-	lemma->jid = justify_monolithic(lemma->xvar, lemma->parent_or);
+	if (rp->get_tree_size() <= cnf->monolithic_threshold * cnf->lemma_ratio)
+	    lemma->jid = justify_monolithic(lemma->xvar, lemma->parent_or);
 	else
 	    lemma->jid = justify(lemma->xvar, lemma->parent_or, false);
 	if (lemma->jid == 0) {
@@ -760,7 +756,8 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
-	if (rnp->get_tree_size() <= cnf->monolithic_threshold)
+	if (//rnp->get_type() == POG_OR &&
+	    rnp->get_tree_size() <= cnf->monolithic_threshold)
 	    return justify_monolithic(rlit, parent_or);
 	if (use_lemma && cnf->use_lemmas && rnp->want_lemma()) {
 	    int jid = apply_lemma(rnp, parent_or);

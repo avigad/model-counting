@@ -460,6 +460,8 @@ public:
     int  bcp_limit;
     // Upper threshold on tree size for generating monolithic proof
     int monolithic_threshold;
+    // Multiplier for Upper threshold on tree size when node is root of lemma
+    float lemma_ratio;
     // Access input, proof, or auxilliary clause, with id 1 being first input clause
     Clause * get_clause(int cid);
     Clause * operator[](int);
