@@ -29,12 +29,13 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-f] [-s n|g] [-m MONO] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-f] [-s n|g] [-m MONO] [-r RPCT] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -s n|g   Stop after NNF generation or CPOG generation (g)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -m MONO  Set tree size threshold for monolithic generation")
+    print("  -r RAT   Scale factor for tree size threshold when lemma")
     print("  -p       Preprocess (within D4).  Should then use monolithic mode for CPOG generation")
     print("  -L       Expand each node, rather than using lemmas")
     print("  -G       Prove each literal separately, rather than grouping into single proof")
@@ -51,6 +52,7 @@ standardTimeLimit = 60
 
 oneSided = False
 monolithic_threshold = None
+lemma_ratio = 1.00
 preprocess = False
 useLemma = True
 group = True
@@ -192,7 +194,7 @@ def runGen(root, home, logFile, force):
     if oneSided:
         cmd += ['-1']
     if monolithic_threshold is not None:
-        cmd += ['-m', str(monolithic_threshold)]
+        cmd += ['-m', str(monolithic_threshold), '-r', str(lemma_ratio)]
     if not useLemma:
         cmd += ['-e']
     if not group:
@@ -233,7 +235,7 @@ def runSequence(root, home, stopD4, stopGen, force):
     if oneSided:
         extension = "onesided_" + extension
     if monolithic_threshold is not None:
-        extension = "mono%d_" % monolithic_threshold + extension
+        extension = "mono%d+%d_" % (monolithic_threshold, int(lemma_ratio * monolithic_threshold)) + extension
     if preprocess:
         extension = "preprocess_" + extension
     if not useLemma:
@@ -296,12 +298,12 @@ def runBatch(home, fileList, stopD4, stopGen, force):
         runSequence(r, home, stopD4, stopGen, force)
 
 def run(name, args):
-    global useLemma, group, oneSided, monolithic_threshold, useLean, preprocess
+    global useLemma, group, oneSided, monolithic_threshold, lemma_ratio, useLean, preprocess
     home = "."
     stopD4 = False
     stopGen = False
     force = False
-    optList, args = getopt.getopt(args, "hf1m:pLGFs:t:")
+    optList, args = getopt.getopt(args, "hf1m:r:pLGFs:t:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -312,6 +314,8 @@ def run(name, args):
             oneSided = True
         elif opt == '-m':
             monolithic_threshold = int(val)
+        elif opt == '-r':
+            lemma_ratio = float(val)
         elif opt == '-p':
             preprocess = True
         elif opt == '-L':
