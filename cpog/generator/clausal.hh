@@ -168,6 +168,18 @@ public:
     void build_set(std::unordered_set<int> &dict);
 };
 
+// Representation of a set of literals for efficient containment checking
+class Literal_set {
+private:
+    std::vector<int> last_gen;
+    int current_generation;
+
+public:
+    Literal_set(int nvar);
+    void load_clause(Clause *cp);
+    bool contains(int lit);
+};
+
 // Base class Cnf is a collection of clauses.  Can read from a DIMACS format CNF file
 // Also can read DRAT format proofs
 class Cnf {

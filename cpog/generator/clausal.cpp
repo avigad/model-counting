@@ -383,6 +383,30 @@ bool Clause::is_equal(Clause *op) {
     return true;
 }
 
+Literal_set::Literal_set(int nvar) {
+    last_gen.resize(nvar);
+    memset(last_gen.data(), 0, nvar * sizeof(int));
+    current_generation = 1;
+}
+
+void Literal_set::load_clause(Clause *cp) {
+    current_generation++;
+    for (int i = 0; i < cp->length(); i++) {
+	int lit = (*cp)[i];
+	if (lit < 0)
+	    last_gen[-lit-1] = -current_generation;
+	else
+	    last_gen[lit-1] = current_generation;
+    }
+}
+
+bool Literal_set::contains(int lit) {
+    if (lit < 0)
+	return last_gen[-lit-1] == -current_generation;
+    else
+	return last_gen[lit-1] == current_generation;
+}
+
 Cnf::Cnf() { read_failed = false; proof_failed = false; max_input_var = 0; }
 
 Cnf::Cnf(FILE *infile) { 

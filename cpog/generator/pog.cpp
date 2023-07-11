@@ -1157,11 +1157,10 @@ bool Pog::get_deletion_counterexample(int cid, std::vector<bool> &implies_clause
 // I.e., that pog node logically implies clause
 // Return true if successful.
 // If fail, convert overcount_literals into vector of literals that satisfies the POG but not the clause
-bool Pog::delete_input_clause(int cid, int unit_cid, std::vector<int> &overcount_literals) {
+bool Pog::delete_input_clause(int cid, int unit_cid, Literal_set &lset, std::vector<int> &overcount_literals) {
     Clause *cp = cnf->get_input_clause(cid);
-    std::unordered_set<int> cset;
     // Convert to set representation
-    cp->build_set(cset);
+    lset.load_clause(cp);
     // Label each node by whether or not it is guaranteed to imply the clause
     std::vector<bool> implies_clause;
     implies_clause.resize(nodes.size());
@@ -1193,7 +1192,7 @@ bool Pog::delete_input_clause(int cid, int unit_cid, std::vector<int> &overcount
 			break;
 		    }
 		} else {
-		    implies = cset.find(clit) != cset.end();
+		    implies = lset.contains(clit);
 		    if (implies) {
 			dvp->push_back(np->get_defining_cid()+i+1);
 			break;
@@ -1213,7 +1212,7 @@ bool Pog::delete_input_clause(int cid, int unit_cid, std::vector<int> &overcount
 		    if (!implies)
 			break;
 		} else
-		    implies &= cset.find(clit) != cset.end();
+		    implies &= lset.contains(clit);
 		    if (!implies)
 			break;
 	    }

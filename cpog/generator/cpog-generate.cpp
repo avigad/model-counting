@@ -238,10 +238,11 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     elapsed = get_elapsed();
     lprintf("%s Time %.2f  Deleted asserted clauses\n", prefix, elapsed);
     pwriter->comment("Delete input clauses");
+    Literal_set lset(cnf.max_variable());
     std::vector<int> overcount_literals;
     bool overcount = false;
     for (int cid = 1; !overcount && cid <= cnf.clause_count(); cid++) {
-	bool deleted = pog.delete_input_clause(cid, unit_cid, overcount_literals);
+	bool deleted = pog.delete_input_clause(cid, unit_cid, lset, overcount_literals);
 	if (!deleted) {
 	    report(1, "OVERCOUNT.  Generating partial assignment that contradicts clause %d\n", cid);
 	    print_solution(overcount_literals);
