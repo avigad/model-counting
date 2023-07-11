@@ -154,7 +154,7 @@ private:
     // Return false if something wrong with original POG
     bool optimize();
     // Add POG declarations to file
-    bool concretize();
+    void concretize();
     // Helper routines
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
     // Recursively descend Pog until find input literal

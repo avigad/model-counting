@@ -431,9 +431,9 @@ bool Pog::optimize() {
 	vreport_interval = REPORT_MIN_INTERVAL;
     return true;
 }
-    
+   
 
-bool Pog::concretize() {
+void Pog::concretize() {
 #if VLEVEL >= 5
     if (verblevel >= 5) {
 	report(5, "Before concretizing:\n");
@@ -451,8 +451,13 @@ bool Pog::concretize() {
     // Insert declaration of root literal
     cnf->pwriter->declare_root(root_literal);
 
+    long last_tree_size = 0;
+    long dag_size = 0;
+
     for (Pog_node *np : nodes) {
-	ilist args = ilist_copy_list(&(*np)[0], np->get_degree());
+	int degree = np->get_degree();
+	ilist args = ilist_copy_list(&(*np)[0], degree);
+	dag_size += 1 + degree;
 	int xvar = np->get_xvar();
 	int defining_cid = 0;
 	bool need_zero = false;
@@ -492,6 +497,7 @@ bool Pog::concretize() {
 	cnf->finish_command(need_zero);
 	np->set_defining_cid(defining_cid);
 	np->set_tree_size(tsize);
+	last_tree_size = tsize;
 	if (np->get_type() == POG_OR)
 	    cnf->document_or(defining_cid, xvar, args);
 	else
@@ -499,7 +505,8 @@ bool Pog::concretize() {
 	ilist_free(args);
 	
     }
-    return true;
+    if (dag_size > 0)
+	report(1, "POG has DAG size %d and tree size %ld ratio = %.2f\n", dag_size, last_tree_size, (double) last_tree_size / dag_size);
 }
 
 
@@ -665,7 +672,8 @@ bool Pog::read_d4ddnnf(FILE *infile) {
 	   nnf_node_count, nnf_explicit_node_count, nnf_edge_count);
     if (!optimize())
 	return false;
-    return (concretize());
+    concretize();
+    return true;
 }
 
 // Descend Pog until find input literal

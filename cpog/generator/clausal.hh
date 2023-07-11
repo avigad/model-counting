@@ -536,9 +536,11 @@ public:
     // Return true if get conflict
     bool watches_setup(Watcher &watches);
 
-    // Validate clause by RUP.  Add clause as assertion 
-    // Return ID of validating clause (or 0 if fail)
-    int rup_validate(Clause *cltp, Watcher &watches);
+    // Validate clause by RUP.
+    //  If add_clause: Add clause as assertion and return ID of validating clause (or 0 if fail)
+    //  Otherwise, just fill in the hints
+
+    int rup_validate(Clause *cltp, bool add_clause, Watcher &watches, std::vector<int> &hints);
 
     // Possible modes for attempting literal validation
     typedef enum { 

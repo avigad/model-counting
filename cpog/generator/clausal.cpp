@@ -1657,7 +1657,7 @@ bool Cnf_reasoner::watches_setup(Watcher &watches) {
 // Does not change the set of active clauses
 
 // Return ID of proof clause (or 0)
-int Cnf_reasoner::rup_validate(Clause *cltp, Watcher &watches) {
+int Cnf_reasoner::rup_validate(Clause *cltp, bool add_clause, Watcher &watches, std::vector<int> &hints) {
 
 #if VLEVEL >= 3
     if (verblevel >= 3) {
@@ -1748,7 +1748,7 @@ int Cnf_reasoner::rup_validate(Clause *cltp, Watcher &watches) {
 	else
 	    report(3, "Conflict clause found.  Constructing hints\n");
 	// Construct hints in reverse order
-	std::vector<int> hints;
+	hints.clear();
 	std::unordered_set<int> used_set;
 	std::vector<Tele> *trail = watches.get_trail();
 	if (conflict_cid > 0)
@@ -1781,13 +1781,16 @@ int Cnf_reasoner::rup_validate(Clause *cltp, Watcher &watches) {
 
 	// Put hints in proper order
 	std::reverse(hints.begin(), hints.end());
-	ncid = start_assertion(cltp);
-	for (int hid : hints)
-	    add_hint(hid);
-	finish_command(true);
-	incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
-	activate_clause(ncid);
-	report(3, "  RUP validation completed.  Asserted clause #%d\n", ncid);
+	if (add_clause) {
+	    // Add clause to proof
+	    ncid = start_assertion(cltp);
+	    for (int hid : hints)
+		add_hint(hid);
+	    finish_command(true);
+	    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
+	    activate_clause(ncid);
+	    report(3, "  RUP validation completed.  Asserted clause #%d\n", ncid);
+	}
     } else {
 	err(false, "RUP validation failed\n");
 	printf("  Target clause: ");
@@ -1944,7 +1947,7 @@ bool Cnf_reasoner::watches_setup(Watcher &watches) {
 // Generate set of hints for clause based on RUP validation
 // Add clause as assertion
 // Return ID of proof clause (or 0)
-int Cnf_reasoner::rup_validate(Clause *cltp, Watcher &watches) {
+int Cnf_reasoner::rup_validate(Clause *cltp, bool add_clause, Watcher &watches, std::vector<int> &hints) {
     // List of clause Ids that have been used in unit propagation
     std::vector<int> prop_clauses;
     // Initialize with all known units:
@@ -2059,7 +2062,7 @@ int Cnf_reasoner::rup_validate(Clause *cltp, Watcher &watches) {
     if (conflict) {
 	// Construct hints in reverse order
 	report(3, "Conflict found.  Constructing hints\n");
-	std::vector<int> hints;
+	hints.clear();
 	std::unordered_set<int> used_set;
 	std::reverse(prop_clauses.begin(), prop_clauses.end());
 	used_set.insert(prop_clauses.front());
@@ -2084,13 +2087,15 @@ int Cnf_reasoner::rup_validate(Clause *cltp, Watcher &watches) {
 	}
 	// Put hints in proper order
 	std::reverse(hints.begin(), hints.end());
-	ncid = start_assertion(cltp);
-	for (int hid : hints)
-	    add_hint(hid);
-	finish_command(true);
-	incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
-	activate_clause(ncid);
-	report(3, "  RUP validation completed.  Asserted clause #%d\n", ncid);
+	if (add_clause) {
+	    ncid = start_assertion(cltp);
+	    for (int hid : hints)
+		add_hint(hid);
+	    finish_command(true);
+	    incr_count(COUNT_LITERAL_JUSTIFICATION_CLAUSE);
+	    activate_clause(ncid);
+	    report(3, "  RUP validation completed.  Asserted clause #%d\n", ncid);
+	}
     }
     // Undo assignments
     pop_context();
@@ -2400,6 +2405,7 @@ int Cnf_reasoner::reduce_run(int lit) {
 	    pwriter->comment("Adding proof clauses from SAT solver running on file %s to validate literal %d", fname, lit);
 	    int pcount = 0;
 	    Watcher watches;
+	    std::vector<int> hints;
 	    bool fail = false;
 	    // Form local context for duration of RUP validation
 	    new_context();
@@ -2413,7 +2419,7 @@ int Cnf_reasoner::reduce_run(int lit) {
 		if (pnp == NULL)
 		    break;
 		pcount++;
-		ncid = rup_validate(pnp, watches);
+		ncid = rup_validate(pnp, true, watches, hints);
 		if (first_ncid == 0)
 		    first_ncid = ncid;
 		fail = ncid == 0;

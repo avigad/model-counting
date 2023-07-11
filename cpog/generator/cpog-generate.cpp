@@ -218,6 +218,7 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     }
     double start_deletion = get_elapsed();
     // For one-sided, may need to delete clauses added by initial BCP
+    lprintf("%s Time %.2f  Completed forward implication proof\n", prefix, start_deletion);
     cnf.delete_assertions();
     elapsed = get_elapsed();
     lprintf("%s Time %.2f  Deleted asserted clauses\n", prefix, elapsed);
