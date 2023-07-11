@@ -41,7 +41,7 @@ typedef enum {
     COUNT_NUM
 } counter_t;
 
-typedef enum { TIME_TOTAL, TIME_SAT, TIME_NUM } timer_t;
+typedef enum { TIME_TOTAL, TIME_SETUP, TIME_SAT, TIME_DELETE, TIME_NUM } timer_t;
 
 typedef enum { HISTO_PROBLEM, HISTO_PROOF, HISTO_NUM } histogram_t;
 

@@ -149,11 +149,16 @@ static void stat_report() {
     lprintf("%s    lemma application    : %d\n", prefix, cla);
     lprintf("%s    monolithic proof     : %d\n", prefix, clm);
     lprintf("%s    clause TOTAL         : %d\n", prefix, cdp+cda+coj+caj+clj+cla+clm);
+    double setup_time = get_timer(TIME_SETUP);
     double sat_time = get_timer(TIME_SAT);
+    double delete_time = get_timer(TIME_DELETE);
     lprintf("%s Time\n", prefix);
-    lprintf("%s   SAT execution  : %.2f\n", prefix, sat_time);
-    lprintf("%s   other execution: %.2f\n", prefix, elapsed-sat_time);
-    lprintf("%s   time TOTAL     : %.2f\n", prefix, elapsed);
+    lprintf("%s   setup POG  : %.2f\n", prefix, setup_time);
+    lprintf("%s   forward implication: %.2f\n", prefix, elapsed-(setup_time+delete_time));
+    lprintf("%s           SAT execution  : %.2f\n", prefix, sat_time);
+    lprintf("%s           other forward  : %.2f\n", prefix, elapsed-(setup_time+delete_time+sat_time)); 
+    lprintf("%s   reverse implication: %.2f\n", prefix, delete_time);
+    lprintf("%s   time TOTAL : %.2f\n", prefix, elapsed);
 }
 
 void panic() {
@@ -184,7 +189,7 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     start_timer();
     Cnf_reasoner cnf(cnf_file);
     double elapsed = get_elapsed();
-    lprintf("%s Time = %.2f.  Read input file with %d variables and %d clauses\n", prefix, elapsed, cnf.max_variable(), (int) cnf.clause_count());
+    lprintf("%s Time %.2f  Read input file with %d variables and %d clauses\n", prefix, elapsed, cnf.max_variable(), (int) cnf.clause_count());
     fclose(cnf_file);
     if (cnf.failed()) {
 	fprintf(stderr, "Aborted\n");
@@ -207,11 +212,13 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	return 1;
     }
     elapsed = get_elapsed();
-    lprintf("%s Time = %.2f.  Generated POG representation\n", prefix, elapsed);
+    lprintf("%s Time %.2f  Generated POG representation\n", prefix, elapsed);
     if (early_quit) {
 	lprintf("%s POG created.  Exiting\n", prefix);
 	return 0;
     }
+    elapsed = get_elapsed();
+    incr_timer(TIME_SETUP, elapsed);
     int root_literal = pog.get_root();
     report(3, "Justifying root literal %d\n", root_literal);
     int unit_cid = 0;
@@ -225,10 +232,11 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	// Undercount
 	return 10;
     }
+    double start_deletion = get_elapsed();
     // For one-sided, may need to delete clauses added by initial BCP
     cnf.delete_assertions();
     elapsed = get_elapsed();
-    lprintf("%s Time = %.2f.  Deleted asserted clauses\n", prefix, elapsed);
+    lprintf("%s Time %.2f  Deleted asserted clauses\n", prefix, elapsed);
     pwriter->comment("Delete input clauses");
     std::vector<int> overcount_literals;
     bool overcount = false;
@@ -242,7 +250,8 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
 	}
     }
     elapsed = get_elapsed();
-    lprintf("%s Time = %.2f.  Deleted input clauses\n", prefix, elapsed);
+    lprintf("%s Time %.2f  Deleted input clauses\n", prefix, elapsed);
+    incr_timer(TIME_DELETE, elapsed-start_deletion);
     pwriter->finish_file();
     return overcount ? 20 : 0;
 }

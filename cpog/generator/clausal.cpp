@@ -186,6 +186,12 @@ bool Clause::contains(int lit) {
     return false;
 }
 
+void Clause::build_set(std::unordered_set<int> &dict) {
+    dict.clear();
+    for (int i = 0; i < ilist_length(contents); i++)
+	dict.insert(contents[i]);
+}
+
 static char buf[10000];
 
 void Clause::canonize() {
@@ -965,8 +971,8 @@ Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) {
     use_lemmas = true;
     delete_files = true;
     drat_threshold = 1000;
-    monolithic_threshold = 100000;
-    lemma_ratio = 5.0;
+    monolithic_threshold = 1000;
+    lemma_ratio = 10.0;
     clause_limit = INT_MAX;
     bcp_limit = 1;
     xvar_count = max_variable();

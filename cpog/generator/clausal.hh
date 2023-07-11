@@ -164,6 +164,8 @@ public:
     // Properties
     bool contains(int lit);
 
+    // Build set representation
+    void build_set(std::unordered_set<int> &dict);
 };
 
 // Base class Cnf is a collection of clauses.  Can read from a DIMACS format CNF file
