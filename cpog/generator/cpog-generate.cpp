@@ -153,12 +153,12 @@ static void stat_report() {
     double sat_time = get_timer(TIME_SAT);
     double delete_time = get_timer(TIME_DELETE);
     lprintf("%s Time\n", prefix);
-    lprintf("%s   setup POG  : %.2f\n", prefix, setup_time);
-    lprintf("%s   forward implication: %.2f\n", prefix, elapsed-(setup_time+delete_time));
-    lprintf("%s           SAT execution  : %.2f\n", prefix, sat_time);
-    lprintf("%s           other forward  : %.2f\n", prefix, elapsed-(setup_time+delete_time+sat_time)); 
-    lprintf("%s   reverse implication: %.2f\n", prefix, delete_time);
-    lprintf("%s   time TOTAL : %.2f\n", prefix, elapsed);
+    lprintf("%s   Setup POG           : %.2f\n", prefix, setup_time);
+    lprintf("%s   Forward implication : %.2f\n", prefix, elapsed-(setup_time+delete_time));
+    lprintf("%s             SAT execution  : %.2f\n", prefix, sat_time);
+    lprintf("%s             Other forward  : %.2f\n", prefix, elapsed-(setup_time+delete_time+sat_time)); 
+    lprintf("%s   Reverse implication : %.2f\n", prefix, delete_time);
+    lprintf("%s   Time TOTAL          : %.2f\n", prefix, elapsed);
 }
 
 void panic() {
