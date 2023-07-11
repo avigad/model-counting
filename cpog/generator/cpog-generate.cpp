@@ -167,22 +167,6 @@ void panic() {
     err(false, "Results not valid\n");
 }
 
-#define LPL 25
-
-static void print_solution(std::vector<int> &literals) {
-    int sidx;
-    report(1, "Printing counterexample with %d literals\n", literals.size());
-    for (sidx = 0; sidx < literals.size() - LPL; sidx += LPL) {
-	lprintf("s");
-	for (int i = sidx; i < sidx+LPL; i++)
-	    lprintf(" %d", literals[i]);
-	lprintf("\n");
-    }
-    lprintf("s");
-    for (int i = sidx; i < literals.size(); i++)
-	lprintf(" %d", literals[i]);
-    lprintf(" 0\n");
-}
 
 // Return value is return code for program
 static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
@@ -237,24 +221,12 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     cnf.delete_assertions();
     elapsed = get_elapsed();
     lprintf("%s Time %.2f  Deleted asserted clauses\n", prefix, elapsed);
-    pwriter->comment("Delete input clauses");
-    Literal_set lset(cnf.max_variable());
-    std::vector<int> overcount_literals;
-    bool overcount = false;
-    for (int cid = 1; !overcount && cid <= cnf.clause_count(); cid++) {
-	bool deleted = pog.delete_input_clause(cid, unit_cid, lset, overcount_literals);
-	if (!deleted) {
-	    report(1, "OVERCOUNT.  Generating partial assignment that contradicts clause %d\n", cid);
-	    print_solution(overcount_literals);
-	    report(1, "Skipping remaining deletions\n", cid);
-	    overcount = true;
-	}
-    }
+    bool ok = pog.delete_input_clauses(unit_cid);
     elapsed = get_elapsed();
     lprintf("%s Time %.2f  Deleted input clauses\n", prefix, elapsed);
     incr_timer(TIME_DELETE, elapsed-start_deletion);
     pwriter->finish_file();
-    return overcount ? 20 : 0;
+    return ok ? 0 : 20;
 }
 
 int main(int argc, char *const argv[]) {

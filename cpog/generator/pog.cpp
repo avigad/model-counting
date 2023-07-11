@@ -1235,3 +1235,38 @@ bool Pog::delete_input_clause(int cid, int unit_cid, Literal_set &lset, std::vec
     delete dvp;
     return proved;
 }
+
+#define LPL 25
+
+static void print_solution(std::vector<int> &literals) {
+    int sidx;
+    report(1, "Printing counterexample with %d literals\n", literals.size());
+    for (sidx = 0; sidx < literals.size() - LPL; sidx += LPL) {
+	lprintf("s");
+	for (int i = sidx; i < sidx+LPL; i++)
+	    lprintf(" %d", literals[i]);
+	lprintf("\n");
+    }
+    lprintf("s");
+    for (int i = sidx; i < literals.size(); i++)
+	lprintf(" %d", literals[i]);
+    lprintf(" 0\n");
+}
+
+
+bool Pog::delete_input_clauses(int unit_cid) {
+    cnf->pwriter->comment("Delete input clauses");
+    Literal_set lset(cnf->max_variable());
+    std::vector<int> overcount_literals;
+    bool overcount = false;
+    for (int cid = 1; !overcount && cid <= cnf->clause_count(); cid++) {
+	bool deleted = delete_input_clause(cid, unit_cid, lset, overcount_literals);
+	if (!deleted) {
+	    report(1, "OVERCOUNT.  Generating partial assignment that contradicts clause %d\n", cid);
+	    print_solution(overcount_literals);
+	    report(1, "Skipping remaining deletions\n", cid);
+	    overcount = true;
+	}
+    }
+    return !overcount;
+}

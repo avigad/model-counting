@@ -145,7 +145,7 @@ public:
     // Return ID of justifying clause
     int justify_monolithic(int rlit, bool parent_or);
     
-    bool delete_input_clause(int cid, int unit_cid, Literal_set &lset, std::vector<int> &overcount_literals);
+    bool delete_input_clauses(int unit_cid);
 
 private:
     // Simplify POG by eliminating constants,
@@ -163,4 +163,6 @@ private:
     int apply_lemma(Pog_node *rp, bool parent_or);
     // For generating counterexample when input deletion fails
     bool get_deletion_counterexample(int cid, std::vector<bool> &implies_clause, std::vector<int> &literals);
+    bool delete_input_clause(int cid, int unit_cid, Literal_set &lset, std::vector<int> &overcount_literals);
+
 };
