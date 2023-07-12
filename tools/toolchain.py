@@ -52,7 +52,7 @@ standardTimeLimit = 60
 
 oneSided = False
 monolithic_threshold = None
-lemma_ratio = 1.00
+lemma_ratio = 10.0
 preprocess = False
 useLemma = True
 group = True
