@@ -586,10 +586,12 @@ Cnf_reduced::~Cnf_reduced() {
 	if (np)
 	    delete np;
     }
-    // Could delete the temporary files here.
+    // Delete the temporary files
     for (const char *fname : file_names) {
-	if (delete_files)
-	    remove(fname);
+	if (delete_files) {
+	    if (remove(fname) != 0) 
+		err(false, "Attempt to delete file %s failed.  Error code = %d\n", fname, errno);
+	}
 	free((void *) fname);
     }
 }
@@ -2993,10 +2995,10 @@ int Cnf_reasoner::monolithic_validate_root(int root_literal) {
     incr_histo(HISTO_PROBLEM, full_clause_count);
     incr_histo(HISTO_PROOF, nclauses);
 
-    if (delete_files) {
-	remove(cnf_name);
-	remove(lrat_name);
-    }
+    //    if (delete_files) {
+    //	remove(cnf_name);
+    //	remove(lrat_name);
+    //    }
     return clause_count() + proof_clauses.size();
 }
  

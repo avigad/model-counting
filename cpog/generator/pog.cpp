@@ -461,7 +461,7 @@ void Pog::concretize() {
 	int xvar = np->get_xvar();
 	int defining_cid = 0;
 	bool need_zero = false;
-	long tsize = 1;
+	long tsize = degree+1;
 	switch (np->get_type()) {
 	case POG_TRUE:
 	case POG_AND:
@@ -472,8 +472,7 @@ void Pog::concretize() {
 		if (is_node(child_lit)) {
 		    Pog_node *cnp = get_node(child_lit);
 		    tsize += cnp->get_tree_size();
-		} else
-		    tsize += 1;
+		}
 	    }
 	    break;
 	case POG_OR:
@@ -487,8 +486,7 @@ void Pog::concretize() {
 		    int hid = cnp->get_defining_cid() + 1;
 		    cnf->add_hint(hid);
 		    tsize += cnp->get_tree_size();
-		} else
-		    tsize += 1;
+		}
 	    }
 	    break;
 	default:
@@ -1033,6 +1031,7 @@ int Pog::justify_monolithic(int rlit, bool parent_or) {
 	cnf->pop_context();
 	cnf->pwriter->comment("End of proof clauses from SAT solver running on file %s to justify root node %s",
 			      fname, rnp->name());
+	delete rcp;
     } else {
 	jcid = cnf->validate_literal(rlit, Cnf_reasoner::MODE_FULL);
 	if (jcid == 0) {
