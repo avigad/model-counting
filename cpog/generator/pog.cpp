@@ -482,14 +482,26 @@ void Pog::concretize() {
 	case POG_OR:
 	    need_zero = true;
 	    defining_cid = cnf->start_or(xvar, args);
-	    for (int i = 0; i < np->get_degree(); i++) {
-		// Find mutual exclusions
-		int child_lit = (*np)[i];
-		if (is_node(child_lit)) {
-		    Pog_node *cnp = get_node(child_lit);
-		    int hid = cnp->get_defining_cid() + 1;
-		    cnf->add_hint(hid);
-		    tsize += cnp->get_tree_size();
+	    if (np->get_degree() != 2)
+		err(true, "POG Node #%d.  OR node cannot have %d children", np->get_xvar(), np->get_degree());
+	    {
+		int clit1 = (*np)[0];
+		int clit2 = (*np)[1];
+		int splitting_variable = IABS(find_splitting_literal(clit1, clit2));
+		for (int i = 0; i < np->get_degree(); i++) {
+		    // Find mutual exclusions
+		    int child_lit = (*np)[i];
+		    if (is_node(child_lit)) {
+			Pog_node *cnp = get_node(child_lit);
+			for (int ci = 0; ci < cnp->get_degree(); ci++) {
+			    int lit = (*cnp)[ci];
+			    if (IABS(lit) == splitting_variable) {
+				int hid = cnp->get_defining_cid() + 1 + ci;
+				cnf->add_hint(hid);
+			    }
+			}
+			tsize += cnp->get_tree_size();
+		    }
 		}
 	    }
 	    break;
@@ -823,7 +835,7 @@ int Pog::justify(int rlit, int splitting_literal, bool use_lemma) {
 		    jid = justify(clit[i], splitting_literal, true);
 		    if (jid == 0) {
 			cnf->pwriter->diagnose("Justification of node %s failed.  Couldn't validate %s child %d.  Splitting literal = %d",
-					       rnp->name(), i == 0 ? "first" : "second", clit[i], first_literal(clit[i]));
+					       rnp->name(), i == 0 ? "first" : "second", clit[i], splitting_literal);
 			return 0;
 		    } else if (jid != TRIVIAL_ARGUMENT) {
 			jcount++;
@@ -834,9 +846,8 @@ int Pog::justify(int rlit, int splitting_literal, bool use_lemma) {
 		}
 		if (jcount > 1) {
 		    // Must prove in two steps
-		    int slit = first_literal(clit[0]);
 		    Clause *jclause0 = new Clause();
-		    jclause0->add(-slit);
+		    jclause0->add(-splitting_literal);
 		    jclause0->add(xvar);
 		    for (int alit : *cnf->get_assigned_literals())
 			jclause0->add(-alit);
@@ -928,6 +939,7 @@ int Pog::justify(int rlit, int splitting_literal, bool use_lemma) {
 			report(4, "Justifying node %s.  Partitioned clauses into %d sets\n", rnp->name(), rvar2cset.size());
 		    }
 		    if (partition) {
+			// Use first literal to identify partition
 			int llit = first_literal(clit);
 			auto fid = var2rvar.find(IABS(llit));
 			if (fid == var2rvar.end()) {
