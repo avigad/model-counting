@@ -309,8 +309,8 @@ public:
 class Lemma_instance {
 
 public:
-    // Is this for the child of an OR node?
-    bool parent_or;
+    // Is there a splitting variable?
+    int splitting_literal;
     // Mapping from lemma argument clause IDs to clauses from which these clauses arise
     std::map<int,int> inverse_cid;
     // Set of additional original clause that duplicate other argument clauses
@@ -326,7 +326,7 @@ public:
 
     // Methods
     // Assign value of hash signature.  Must do this to compare to other possible lemmas at node
-    void sign(int xvar, bool parent_or);
+    void sign(int xvar, int splitting_literal);
 };
 
 // Data structures to support BCP with two-watched literals
@@ -566,7 +566,7 @@ public:
     //// Lemma Support
 
     // Extract information required to define, prove, or apply a lemma
-    Lemma_instance *extract_lemma(int xvar, bool parent_or);
+    Lemma_instance *extract_lemma(int xvar, int splitting_literal);
 
     // Set up context for lemma proof
     void setup_proof(Lemma_instance *lemma);

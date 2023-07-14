@@ -87,6 +87,7 @@ public:
     // Access children
     int get_degree();
     int& operator[](int);
+    int *get_children();
 
     // Lemma support
     void increment_indegree();
@@ -134,7 +135,8 @@ public:
 
     // At each position in POG, generate justification within context
     // Return ID of justifying clause
-    int justify(int rlit, bool parent_or, bool use_lemma);
+    // Set splitting_literal to 0 when not argument of OR operation
+    int justify(int rlit, int splitting_literal, bool use_lemma);
 
     // Enumerate clauses in subgraph
     // These get simplified according to unit literals
@@ -143,7 +145,7 @@ public:
 
     // Justify subgraph using single call to SAT solver.
     // Return ID of justifying clause
-    int justify_monolithic(int rlit, bool parent_or);
+    int justify_monolithic(int rlit, int splitting_literal);
     
     bool delete_input_clauses(int unit_cid);
 
@@ -157,10 +159,12 @@ private:
     void concretize();
     // Helper routines
     void topo_order(int rlit, std::vector<int> &rtopo, int *markers);
+    // Finding splitting literal for two arguments to OR operation (based on phase of first argument)
+    int find_splitting_literal(int rlit1, int rlit2);
     // Recursively descend Pog until find input literal
     int first_literal(int rlit);
     // Create/Apply lemma at node.  Return ID of justifying clause (0 if failed)
-    int apply_lemma(Pog_node *rp, bool parent_or);
+    int apply_lemma(Pog_node *rp, int splitting_literal);
     // For generating counterexample when input deletion fails
     bool get_deletion_counterexample(int cid, std::vector<bool> &implies_clause, std::vector<int> &literals);
     bool delete_input_clause(int cid, int unit_cid, Literal_set &lset, std::vector<int> &overcount_literals);

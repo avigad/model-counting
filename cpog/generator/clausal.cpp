@@ -2673,13 +2673,13 @@ int Cnf_reasoner::find_or_make_aux_clause(ilist lits) {
 }
 
 // Lemma support
-void Lemma_instance::sign(int xv, bool p_or) {
+void Lemma_instance::sign(int xv, int split_lit) {
     next = NULL;
     jid = 0;
     xvar = xv;
-    parent_or = p_or;
+    splitting_literal = split_lit;
     unsigned sig = 1;
-    sig = next_hash_int(sig, parent_or ? 1 : -1);
+    sig = next_hash_int(sig, split_lit);
     for (auto fid : inverse_cid) {
 	int ncid = fid.first;
 	sig = next_hash_int(sig, ncid);
@@ -2722,7 +2722,7 @@ void Cnf_reasoner::add_lemma_argument(Lemma_instance *lemma, int cid) {
     ilist_free(slits);
 }
 
-Lemma_instance *Cnf_reasoner::extract_lemma(int xvar, bool parent_or) {
+Lemma_instance *Cnf_reasoner::extract_lemma(int xvar, int splitting_literal) {
     Lemma_instance *lemma = new Lemma_instance;
 #if DEBUG
     pwriter->comment("Identifying arguments for lemma at node N%d", xvar);
@@ -2730,7 +2730,7 @@ Lemma_instance *Cnf_reasoner::extract_lemma(int xvar, bool parent_or) {
     for (int cid : *curr_active_clauses) {
 	add_lemma_argument(lemma, cid);
     }
-    lemma->sign(xvar, parent_or);
+    lemma->sign(xvar, splitting_literal);
     pwriter->comment("Extracted lemma for node N%d.  Signature %u", xvar, lemma->signature);
     if (lemma->duplicate_cid.size() > 0)
 	pwriter->comment_container("  Duplicate clause IDs", lemma->duplicate_cid);
@@ -2819,8 +2819,8 @@ int Cnf_reasoner::apply_lemma(Lemma_instance *lemma, Lemma_instance *instance) {
     // Make sure they're compatible
     // Should have identical sets of new clause IDs
     bool ok = true;
-    if (lemma->parent_or != instance->parent_or) {
-	err(false, "Attempting to apply lemma for node N%d.  Lemma and instance differ on type of parenthood\n", lemma->xvar);
+    if (lemma->splitting_literal != instance->splitting_literal) {
+	err(false, "Attempting to apply lemma for node N%d.  Lemma and instance differ on splitting variables\n", lemma->xvar);
 	ok = false;
     }
     for (auto lfid : lemma->inverse_cid) {

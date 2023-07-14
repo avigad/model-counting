@@ -134,6 +134,10 @@ int Pog_node::get_degree() {
     return degree;
 }
 
+int *Pog_node::get_children() {
+    return children;
+}
+
 long Pog_node::get_tree_size() {
     return tree_size;
 }
@@ -691,10 +695,37 @@ int Pog::first_literal(int rlit) {
     return rlit;
 }
 
+// Descend Pogs until opposite input literals
+int Pog::find_splitting_literal(int rlit1, int rlit2) {
+    // Construct arrays of literals from the two arguments
+    int lcount1 = 1;
+    int *lits1 = &rlit1;
+    int lcount2 = 1;
+    int *lits2 = &rlit2;
+    if (is_node(rlit1)) {
+	Pog_node *np = get_node(IABS(rlit1));
+	lcount1 = np->get_degree();
+	lits1 = np->get_children();
+    }
+    if (is_node(rlit2)) {
+	Pog_node *np = get_node(IABS(rlit2));
+	lcount2 = np->get_degree();
+	lits2 = np->get_children();
+    }
+    for (int i1 = 0; i1 < lcount1; i1++) 
+	for (int i2 = 0; i2 < lcount2; i2++)
+	    if (lits1[i1] == -lits2[i2])
+		return lits1[i1];
+    // Didn't find one
+    err(false, "Couldn't find splitting literal from literals %d and %d\n", rlit1, rlit2);
+    return 0;
+}
+
+
 // Prove lemma if needed, and apply to this instance
-int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
+int Pog::apply_lemma(Pog_node *rp, int splitting_literal) {
     report(3, "Attempting to prove/apply lemma for node %s.\n", rp->name());
-    Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar(), parent_or);
+    Lemma_instance *instance = cnf->extract_lemma(rp->get_xvar(), splitting_literal);
     // Search for compatible lemma
     Lemma_instance *lemma = rp->get_lemma();
     while (lemma != NULL) {
@@ -714,9 +745,9 @@ int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
 #endif
 	cnf->setup_proof(lemma);
 	if (rp->get_tree_size() <= cnf->monolithic_threshold * cnf->lemma_ratio)
-	    lemma->jid = justify_monolithic(lemma->xvar, lemma->parent_or);
+	    lemma->jid = justify_monolithic(lemma->xvar, lemma->splitting_literal);
 	else
-	    lemma->jid = justify(lemma->xvar, lemma->parent_or, false);
+	    lemma->jid = justify(lemma->xvar, lemma->splitting_literal, false);
 	if (lemma->jid == 0) {
 	    cnf->pwriter->diagnose("Proof of lemma for node %s, signature %u failed", rp->name(), lemma->signature);
 	    return 0;
@@ -756,17 +787,16 @@ int Pog::apply_lemma(Pog_node *rp, bool parent_or) {
 
 // Justify each position in POG within current context
 // Return ID of justifying clause
-int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
+int Pog::justify(int rlit, int splitting_literal, bool use_lemma) {
     int jcid = 0;
     counter_t jtype = COUNT_LITERAL_JUSTIFICATION_CLAUSE;
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
-	if (//rnp->get_type() == POG_OR &&
-	    rnp->get_tree_size() <= cnf->monolithic_threshold)
-	    return justify_monolithic(rlit, parent_or);
+	if (rnp->get_tree_size() <= cnf->monolithic_threshold)
+	    return justify_monolithic(rlit, splitting_literal);
 	if (use_lemma && cnf->use_lemmas && rnp->want_lemma()) {
-	    int jid = apply_lemma(rnp, parent_or);
+	    int jid = apply_lemma(rnp, splitting_literal);
 	    if (jid == 0)
 		cnf->pwriter->diagnose("Failed lemma.  Giving up on validation of node %s", rnp->name());
 	    return jid;
@@ -782,15 +812,15 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 	case POG_OR:
 	    {
 		incr_count(COUNT_VISIT_OR);
-		int clit[2];
+		int clit[2] = { (*rnp)[0], (*rnp)[1] };
 		int jid;
 		int lhints[2][2];
 		int hcount[2] = {0,0};
 		int jcount = 0;
+		int splitting_literal = find_splitting_literal(clit[0], clit[1]);
 		for (int i = 0; i < 2; i++) {
-		    clit[i] = (*rnp)[i];
 		    lhints[i][hcount[i]++] = rnp->get_defining_cid()+i+1;
-		    jid = justify(clit[i], true, true);
+		    jid = justify(clit[i], splitting_literal, true);
 		    if (jid == 0) {
 			cnf->pwriter->diagnose("Justification of node %s failed.  Couldn't validate %s child %d.  Splitting literal = %d",
 					       rnp->name(), i == 0 ? "first" : "second", clit[i], first_literal(clit[i]));
@@ -799,6 +829,8 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 			jcount++;
 			lhints[i][hcount[i]++] = jid;
 		    }
+		    // Negate for second time around
+		    splitting_literal = -splitting_literal;
 		}
 		if (jcount > 1) {
 		    // Must prove in two steps
@@ -831,17 +863,16 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 	    {
 		incr_count(COUNT_VISIT_AND);
 		int cnext = 0;
-		// If parent is OR, first argument is splitting literal
-		if (parent_or) {
-		    int clit0 = (*rnp)[cnext++];
-		    cnf->push_assigned_literal(clit0);
-		    jclause->add(-clit0);
+		// If parent is OR, will have splitting variable
+		if (splitting_literal != 0) {
+		    cnf->push_assigned_literal(splitting_literal);
+		    jclause->add(-splitting_literal);
 		    cnf->pwriter->comment("Justify node %s, assuming literal %d",
-					  rnp->name(), clit0);
+					  rnp->name(), splitting_literal);
 		    // Assertion may enable BCP, but it shouldn't lead to a conflict
 		    if (cnf->bcp(false) > 0) {
 			cnf->pwriter->diagnose("BCP encountered conflict when attempting to justify node %s with assigned literal %d\n",
-					       rnp->name(), clit0);
+					       rnp->name(), splitting_literal);
 			return 0;
 		    }
 		} else {
@@ -854,7 +885,8 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 		    int clit = (*rnp)[cnext];
 		    if (is_node(clit))
 			break;
-		    lits.push_back(clit);
+		    if (clit != splitting_literal)
+			lits.push_back(clit);
 		}
 		if (lits.size() > 0) {
 #if DEBUG
@@ -910,7 +942,7 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 			// Restrict clauses to those relevant to this partition
 			cnf->set_active_clauses(pset);
 		    } 
-		    int jid = justify(clit, false, true);
+		    int jid = justify(clit, 0, true);
 		    if (jid == 0) {
 			cnf->pwriter->diagnose("Justification of node %s failed.  Argument = %d", rnp->name(), clit);
 			if (partition)
@@ -936,7 +968,7 @@ int Pog::justify(int rlit, bool parent_or, bool use_lemma) {
 	cnf->finish_command(true);
 	incr_count(jtype);
 	cnf->pop_context();
-    } else if (parent_or) {
+    } else if (splitting_literal != 0) {
 	// Special value to let OR verification proceed
 	jcid = TRIVIAL_ARGUMENT;
     } else {
@@ -983,17 +1015,15 @@ void Pog::export_subgraph(int rlit, Cnf_reduced *rcnf, std::unordered_set<int> *
 
 // Justify subgraph using single call to SAT solver.
 // Return ID of justifying clause
-int Pog::justify_monolithic(int rlit, bool parent_or) {
+int Pog::justify_monolithic(int rlit, int splitting_literal) {
     int jcid = 0;
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
 	cnf->new_context();
 	cnf->push_assigned_literal(-rlit);
-	if (parent_or) {
-	    int clit = first_literal(rlit);
-	    cnf->push_assigned_literal(clit);
-	}
+	if (splitting_literal != 0)
+	    cnf->push_assigned_literal(splitting_literal);
 	cnf->pwriter->comment("Preparing CNF to monolithically justify root node %s (tree size %ld)", rnp->name(), rnp->get_tree_size());
 	Cnf_reduced *rcp = cnf->extract_cnf();
 	int input_clause_count = rcp->clause_count();
