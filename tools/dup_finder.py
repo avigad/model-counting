@@ -11,8 +11,8 @@ def usage(name):
 
 def match(fname1, fname2):
     try:
-        cnf1 = readwrite.CnfReader(fname1)
-        cnf2 = readwrite.CnfReader(fname2)
+        cnf1 = readwrite.CnfReader(fname1, check = False)
+        cnf2 = readwrite.CnfReader(fname2, check = False)
     except Exception as ex:
         print("Oops.  Couldn't test match (%s).  Exiting" % str(ex))
         sys.exit(1)
