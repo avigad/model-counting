@@ -29,11 +29,12 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-f] [-s n|g] [-m MONO] [-r RPCT] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-2] [-f] [-s n|g] [-m MONO] [-r RPCT] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -s n|g   Stop after NNF generation or CPOG generation (g)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
+    print("  -2       Use D4 version 2")
     print("  -m MONO  Set tree size threshold for monolithic generation")
     print("  -r RAT   Scale factor for tree size threshold when lemma")
     print("  -p       Preprocess (within D4).  Should then use monolithic mode for CPOG generation")
@@ -57,11 +58,14 @@ preprocess = False
 useLemma = True
 group = True
 useLean = False
+d4v2 = False
 
 # Pathnames
 homePath = "/Users/bryant/repos"
 d4Path = homePath + "/d4"
 d4Program = d4Path + "/d4"
+d4v2Path = homePath + "/d4v2"
+d4v2Program = d4v2Path + "/d4"
 
 genHome = homePath + "/model-counting/cpog/generator"
 genProgram = genHome + "/cpog-generate"
@@ -162,9 +166,13 @@ def runD4(root, home, logFile, force):
     nnfName = nnfNamer(root, home)
     if not force and os.path.exists(nnfName):
         return True
-    cmd = [d4Program, cnfName, "-dDNNF", "-out=" + nnfName]
-    if preprocess:
-        cmd += ["-preproc=backbone+vivification+occElimination"]
+
+    if d4v2:
+        cmd = [d4v2Program, "-i", cnfName, "-m", "ddnnf-compiler", "--dump-ddnnf", nnfName]
+    else:
+        cmd = [d4Program, cnfName, "-dDNNF", "-out=" + nnfName]
+        if preprocess:
+            cmd += ["-preproc=backbone+vivification+occElimination"]
     ok = runProgram("D4", root, cmd, logFile)
     if ok:
         checkFile(root + ". D4 NNF", nnfName, logFile)
@@ -298,12 +306,12 @@ def runBatch(home, fileList, stopD4, stopGen, force):
         runSequence(r, home, stopD4, stopGen, force)
 
 def run(name, args):
-    global useLemma, group, oneSided, monolithic_threshold, lemma_ratio, useLean, preprocess
+    global useLemma, group, oneSided, monolithic_threshold, lemma_ratio, useLean, preprocess, d4v2
     home = "."
     stopD4 = False
     stopGen = False
     force = False
-    optList, args = getopt.getopt(args, "hf1m:r:pLGFs:t:")
+    optList, args = getopt.getopt(args, "hf12m:r:pLGFs:t:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -312,6 +320,8 @@ def run(name, args):
             force = True
         elif opt == '-1':
             oneSided = True
+        elif opt == '-2':
+            d4v2 = True
         elif opt == '-m':
             monolithic_threshold = int(val)
         elif opt == '-r':
