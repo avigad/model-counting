@@ -9,14 +9,14 @@ VLEVEL = 2
 GEN_OPTIONS=
 
 .SUFFIXES: .cnf .nnf .cpog .check_data \
-	.mcpog .mcheck_data .ecpog .echeck_data \
+	.mcpog .mcheck_data \
 	.ocpog .ocheck_data
 
 .cnf.nnf:
 	$(D4) $< -dDNNF -out=$@ | tee $*.d4nnf_data
 
 .nnf.cpog:
-	$(GEN) -v $(VLEVEL) $(GEN_OPTIONS) $*.cnf $< $@ | tee $*.cpog_data
+	$(GEN) -m 0 -v $(VLEVEL) $(GEN_OPTIONS) $*.cnf $< $@ | tee $*.cpog_data
 
 .cpog.check_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
@@ -29,15 +29,9 @@ GEN_OPTIONS=
 
 
 .nnf.mcpog:
-	$(GEN) -m -v $(VLEVEL) $(GEN_OPTIONS) $*.cnf $< $@ | tee $*.mcpog_data
+	$(GEN) -m 1000000000 -r 1.0 -v $(VLEVEL) $(GEN_OPTIONS) $*.cnf $< $@ | tee $*.mcpog_data
 
 .mcpog.mcheck_data:
-	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
-
-.nnf.ecpog:
-	$(GEN) -m -v $(VLEVEL) $(GEN_OPTIONS) $*.cnf $< $@ | tee $*.ecpog_data
-
-.ecpog.echeck_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
 
 
