@@ -1039,6 +1039,10 @@ void Cnf_reasoner::deactivate_clause(int cid) {
     curr_active_clauses->erase(cid);
 }
 
+void Cnf_reasoner::deactivate_all_clauses() {
+    curr_active_clauses->clear();
+}
+
 int Cnf_reasoner::add_proof_clause(Clause *clp) {
     int pcid = clause_count() + proof_clauses.size();
     if (pcid == clause_limit) {
@@ -1419,6 +1423,8 @@ void Cnf_reasoner::check_watch_state(Watcher &watches, bool quiescent) {
 // In other passes, the loop can exit when it's found two unassigned literals, and only the second watch pointer need be assigned
 int Cnf_reasoner::bcp_unit_propagate(int cid, bool first_pass, Watcher &watches) {
     Clause *cp  = get_clause(cid);
+    if (!cp)
+	err(true, "Oops.  Couldn't get clause # %d\n", cid);
     int unassigned_count = 0;
     int watching[2] = {0, 0};
     int ulit = 0;
@@ -1655,10 +1661,9 @@ bool Cnf_reasoner::watches_setup(Watcher &watches) {
 }
 
 // Generate set of hints for clause based on RUP validation
-// Add clause as assertion
+// Optionally Add clause as assertion
+// With add_clause = true, return ID of proof clause.  Otherwise return 0
 // Does not change the set of active clauses
-
-// Return ID of proof clause (or 0)
 int Cnf_reasoner::rup_validate(Clause *cltp, bool add_clause, Watcher &watches, std::vector<int> &hints) {
 
 #if VLEVEL >= 3

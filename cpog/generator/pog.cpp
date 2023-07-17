@@ -1304,6 +1304,9 @@ static void print_solution(std::vector<int> &literals) {
 
 
 bool Pog::delete_input_clauses(int unit_cid) {
+    //    2023-07-16.  Found that using RUP validation is MUCH slower
+    //    return delete_input_clauses_rup(unit_cid);
+
     cnf->pwriter->comment("Delete input clauses");
     Literal_set lset(cnf->max_variable());
     std::vector<int> overcount_literals;
@@ -1319,3 +1322,39 @@ bool Pog::delete_input_clauses(int unit_cid) {
     }
     return !overcount;
 }
+
+bool Pog::delete_input_clauses_rup(int unit_cid) {
+    cnf->pwriter->comment("Delete input clauses using reverse unit propagation");
+    report(3, "Delete input clauses using reverse unit propagation\n");
+    // Shift to perform BCP only on POG clauses
+    Watcher watches;
+    cnf->deactivate_all_clauses();
+
+    // Add justifying clause
+    cnf->activate_clause(unit_cid);
+    // Add defining clauses
+    for (Pog_node *np : nodes) {
+	int degree = np->get_degree();
+	int start_cid = np->get_defining_cid();
+	for (int ci = 0; ci <= np->get_degree(); ci++) 
+	    cnf->activate_clause(start_cid + ci);
+    }
+    cnf->watches_setup(watches);
+    // Delete each input clause
+    std::vector<int> hints;
+    std::vector<int> dvec;
+    int input_clause_count = cnf->clause_count();
+    for (int cid = 1; cid <= input_clause_count; cid++) {
+	report(3, "Deleting input clause #%d\n", cid);
+	hints.clear();
+	Clause *icp  = cnf->get_clause(cid);
+	cnf->rup_validate(icp, false, watches, hints);
+	dvec.clear();
+	dvec.push_back(cid);
+	for (int hint : hints)
+	    dvec.push_back(hint);
+	cnf->pwriter->clause_deletion(&dvec);
+    }
+    return true;
+}    
+

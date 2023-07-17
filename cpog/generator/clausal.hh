@@ -51,7 +51,9 @@
 #endif
 
 // optionally disable high verbosity
+#ifndef VLEVEL
 #define VLEVEL 2
+#endif
 
 // Used to convert literal to variable
 #define IABS(x) ((x)<0?-(x):(x))
@@ -476,7 +478,7 @@ public:
     int monolithic_threshold;
     // Multiplier for Upper threshold on tree size when node is root of lemma
     float lemma_ratio;
-    // Access input, proof, or auxilliary clause, with id 1 being first input clause
+    // Access input, defining, proof, or auxilliary clause, with id 1 being first input clause
     Clause * get_clause(int cid);
     Clause * operator[](int);
 
@@ -585,6 +587,12 @@ public:
 
     int get_proof_size() { return proof_clauses.size(); }
 
+    // Include/Exclude clause in BCP
+    void activate_clause(int clit);
+    void deactivate_clause(int clit);
+    void deactivate_all_clauses();
+
+
 private:
 
     // Support for BCP
@@ -601,10 +609,6 @@ private:
     // Incorporate generated conflict proof into larger proof
     // Identify literals that will become unit and their justifying IDs
     int reduce_run(int lit);
-
-    // Include/Exclude clause in BCP
-    void activate_clause(int clit);
-    void deactivate_clause(int clit);
 
     int add_proof_clause(Clause *clp);
     // Private methods for search support
