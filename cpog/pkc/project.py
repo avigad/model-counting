@@ -20,7 +20,7 @@ class ProjectionException(Exception):
 class ClauseManager:
 
     contextLiterals = set([])
-    ignoreLiterals = set([])
+    ignoreVariables = set([])
     nvar = 0
     clauses = []
     verbLevel = 0
@@ -33,55 +33,61 @@ class ClauseManager:
         self.ignoreLits = set([])
 
 
-    def setContext(self, contextLits, ignoreLits):
+    def setContext(self, contextLits, ignoreVars):
         self.contextLiterals = contextLits
-        self.ignoreLiterals = ignoreLits
+        self.ignoreVariables = ignoreVars
 
-    def reduceClause(self, lits):
+    def reduceClause(self, lits, varSet):
         nlits = []
         lits = readwrite.cleanClause(lits)
         if lits == readwrite.tautologyId:
             return lits
         for lit in lits:
-            if lit in self.ignoreLiterals:
+            if abs(lit) in self.ignoreVariables:
                 continue
             if lit in self.contextLiterals:
                 return readwrite.tautologyId
             if -lit in self.contextLiterals:
                 continue
             nlits.append(lit)
+            varSet.add(abs(lit))
         tup = tuple(nlits)
         return tup
 
     def reduce(self):
+        varSet = set([])
         clauseSet = set([])
         clauseList = []
         for clause in self.clauses:
-            nclause = self.reduceClause(clause)
+            nclause = self.reduceClause(clause, varSet)
             if nclause == readwrite.tautologyId:
                 continue
             if nclause in clauseSet:
                 continue
             clauseList.append(nclause)
             clauseSet.add(nclause)
-        return clauseList
+        return clauseList, varSet
 
-    def store(self, fname, clauseList):
+    def store(self, fname, clauseList, showVariables):
         cwriter = readwrite.CnfWriter(self.nvar, fname, self.verbLevel)
+        cwriter.doHeaderComment("t pmc")
         if self.verbLevel >= 2:
             cwriter.doComment("Reduction of %d clauses to %d" % (len(self.clauses), len(clauseList)))
         slist = [str(lit) for lit in sorted(self.contextLiterals, key = lambda lit : abs(lit))]
         cwriter.doComment("Context literals: %s" % (" ".join(slist)))
-        slist = [str(lit) for lit in sorted(self.ignoreLiterals)]
-        cwriter.doComment("Ignored literals: %s" % (" ".join(slist)))
+        slist = [str(v) for v in sorted(self.ignoreVariables)]
+        cwriter.doComment("Ignored variables: %s" % (" ".join(slist)))
         for clause in clauseList:
             cwriter.doClause(clause)
+        slist = [str(v) for v in sorted(showVariables)]
+        cwriter.doComment("p show %s 0" % " ".join(slist))
         cwriter.finish()
 
-    def generate(self, fname, contextLiterals, ignoreLiterals):
-        self.setContext(contextLiterals, ignoreLiterals)
-        clauseList = self.reduce()
-        self.store(fname, clauseList)
+    def generate(self, fname, contextLiterals, ignoreVariables, projectionVariables):
+        self.setContext(contextLiterals, ignoreVariables)
+        clauseList, varSet = self.reduce()
+        showVariables = varSet - projectionVariables
+        self.store(fname, clauseList, showVariables)
         if self.verbLevel >= 2:
             print("GEN: File %s: %d original clauses --> %d reduced clauses" % (fname, len(self.clauses), len(clauseList)))
 
@@ -123,7 +129,7 @@ def cnf2pog(cnfName, nnfName, verbLevel):
 
 class Projector:
     pog = None
-    projectionLiterals = None
+    projectionVariables = None
     sequenceNumber = 0
     cmgr = None
     verbLevel = 1
@@ -133,14 +139,9 @@ class Projector:
         creader = readwrite.CnfReader(cnfName, verbLevel)
         cfields = cnfName.split(".")[:-1]
         self.rootName = ".".join(cfields)
-        pvars = creader.projectionVariables()
-        self.projectionLiterals = set([])
-        for v in pvars:
-            self.projectionLiterals.add(v)
-            self.projectionLiterals.add(-v)
-        if verbLevel >= 2 and len(pvars) > 0:
-            ilist = sorted([v for v in pvars])
-            slist = [str(v) for v in ilist]
+        self.projectionVariables = creader.projectionVariables()
+        if verbLevel >= 2 and len(self.projectionVariables) > 0:
+            slist = [str(v) for v in sorted(self.projectionVariables)]
             print("GEN: Projection variables: {%s}" % ", ".join(slist))
         self.sequenceNumber = 0
         self.verbLevel = verbLevel
@@ -170,7 +171,7 @@ class Projector:
             else:
                 contextLiterals.add(clit)
                 contextAddedLits.append(clit)
-                if clit not in self.projectionLiterals:
+                if abs(clit) not in self.projectionVariables:
                     nlits.append(clit)
         nchildren = [self.pog.getRef(lit) for lit in nlits]
         nref = self.pog.addProduct(nchildren)
@@ -185,21 +186,28 @@ class Projector:
         if not ref.phase:
             raise ProjectionException("Can't traverse negated node %s" % str(ref))
         nlits = [self.traverse(c.literal(), contextLiterals) for c in node.children]
-        splitLiteral = node.findSplittingLiteral()
-        if splitLiteral is None:
-            raise ProjectionException("Can't find splitting literal for node %s" % str(ref))
-        if splitLiteral in self.projectionLiterals:
+        nchildren = [self.pog.getRef(lit) for lit in nlits]
+        dvar = node.findDecisionVariable()
+        if dvar is None:
+            raise ProjectionException("Can't find decision variable for node %s" % str(ref))
+        nref = None
+        if abs(dvar) in self.projectionVariables:
             if self.verbLevel >= 3:
-                print("  Splitting literal = %d" % splitLiteral)
+                print("  Decision variable = %d" % dvar)
             cnfName = self.nextCnfName()
-            ignoreLiterals = set([splitLiteral, -splitLiteral])
-            self.cmgr.generate(cnfName, contextLiterals, ignoreLiterals)
+            ignoreVariables = set([dvar])
+            self.cmgr.generate(cnfName, contextLiterals, ignoreVariables, self.projectionVariables)
             if isSat(cnfName):
-                print("  WARNING: Traversing %s.  CNF file %s satisfiable" % (str(ref), cnfName))
+                xpog = cnf2ppog(cnfName, self.verbLevel)
+                xref = self.pog.integrate(xpog)
+                mref = self.pog.addSum([nchildren[0].negate(), xref])
+                nref = self.pog.addSum([mref.negate(), nchildren[1]])
+                if self.verbLevel >= 3:
+                    print("   Traversing %s.  Integrated exclusionary term from CNF file %s" % (str(ref), cnfName))
             elif self.verbLevel >= 3:
                 print("  Traversing %s.  CNF file %s unsatisfiable" % (str(ref), cnfName))
-        nchildren = [self.pog.getRef(lit) for lit in nlits]
-        nref = self.pog.addSum(nchildren)
+        if nref is None:
+            nref = self.pog.addSum(nchildren)
         nlit = nref.literal()
         return nlit
 
@@ -215,7 +223,7 @@ class Projector:
                 nlit = self.traverseProduct(lit, contextLiterals)
             else:
                 nlit = self.traverseSum(lit, contextLiterals)
-        elif lit in self.projectionLiterals:
+        elif abs(lit) in self.projectionVariables:
             nlit = readwrite.TautologyId
         else:
             nlit = lit
@@ -239,3 +247,7 @@ class Projector:
             print("GEN: Projected POG:")
             self.pog.summarize()
         
+def cnf2ppog(cnfName, verbLevel):
+    pr = Projector(cnfName, verbLevel)
+    pr.run()
+    return pr.pog

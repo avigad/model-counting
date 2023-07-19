@@ -686,6 +686,7 @@ class DratWriter(Writer):
 # Creating CNF
 class CnfWriter(Writer):
     clauseCount = 0
+    headerList = []
     outputList = []
     # Track which variables actually occur
     vset = set([])
@@ -693,11 +694,15 @@ class CnfWriter(Writer):
     def __init__(self, count, fname = None, verbLevel = 1):
         Writer.__init__(self, count, fname, verbLevel = verbLevel)
         self.clauseCount = 0
+        self.headerList = []
         self.outputList = []
         self.vset = set([])
 
     # With CNF, must accumulate all of the clauses, since the file header
     # requires providing the number of clauses.
+
+    def doHeaderComment(self, line):
+        self.headerList.append("c " + line)
 
     def doComment(self, line):
         self.outputList.append("c " + line)
@@ -721,6 +726,8 @@ class CnfWriter(Writer):
             return
         if self.outfile is None:
             return
+        for line in self.headerList:
+            self.show(line)
         if incremental:
             self.show("p inccnf")
         else:

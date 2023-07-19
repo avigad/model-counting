@@ -35,6 +35,9 @@ class NodeRef:
     def __str__(self):
         return str(self.node) if self.phase else '!' + str(self.node)
 
+    def __hash__(self):
+        return self.literal()
+
 class Node:
     ntype = None
     xvar = 0
@@ -65,7 +68,7 @@ class Node:
             s += "(%s)" % ", ".join(refs)
         print(s)
 
-    def findSplittingLiteral(self):
+    def findDecisionVariable(self):
         if self.ntype != NodeType.sum:
             return None
         child1 = self.children[0]
@@ -89,9 +92,11 @@ class Node:
         for lit1 in lits1:
             for lit2 in lits2:
                 if lit1 == -lit2:
-                    return lit1
+                    return abs(lit1)
         return None
 
+    def __hash__(self):
+        return self.xvar
 
 class Tautology(Node):
 
@@ -298,6 +303,31 @@ class Pog:
         scount = self.nodeCounts[NodeType.sum]
         ccount = self.definingClauseCount
         print("GEN: POG has %d nodes (%d Product + %d Sum) and %d defining clauses" % (pcount+scount, pcount, scount, ccount))
+
+    # Integrate the nodes of another POG into this one.  Return reference for the remapped root
+    def integrate(self, opog):
+        # Mapping from old node to new node
+        remap = {}
+        rref = None
+        for onode in opog.nodes:
+            olit = onode.xvar
+            if onode.ntype in [NodeType.product, NodeType.sum]:
+                cnodes = [c.node for c in onode.children]
+                cphases = [c.phase for c in onode.children]
+                nnodes = [remap[node] for node in cnodes]
+                nchildren = [NodeRef(node, phase) for node, phase in zip(nnodes, cphases)]
+                nref = self.addProduct(nchildren) if onode.ntype == NodeType.product else self.addSum(nchildren)
+            else:
+                nref = self.getRef(olit)
+            remap[onode] = nref.node
+            if self.verbLevel >= 3:
+                print("Integration: Remapping POG node %s to node %s" % (str(onode), str(nref.node)))
+            if olit == abs(opog.rootLiteral):
+                rref = nref if opog.rootLiteral > 0 else nref.negate()
+        if self.verbLevel >= 3:
+            print("Integration mapped sub-POG root %d to main-POG %s" % (opog.rootLiteral, str(rref)))
+        return rref
+
 
     def show(self):
         for node in self.nodes:
