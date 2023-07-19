@@ -50,12 +50,24 @@ mode = directMode
 def pij(i, j):
     return (i-1)*pigeonCount + j
 
+# For weighted model counting.
+# Weight is scaled by 1000
+def wij(i, j):
+    # Scale by 1000000
+    # Bias so that pigeon i wants to be in hole j
+    restWeight = 500 // holeCount
+    homeWeight = 1000 - restWeight * holeCount
+    return 0.001 * (homeWeight if i == j else restWeight)
+    
+
 def generate(froot):
     cwriter = writer.LazyCnfWriter(froot, verbLevel = 2 if verbose else 1)
     if verbose:
-        cwriter.doComment("Encoding of pigeonhole problem for %d holes and %d pigeons" % (holeCount, pigeonCount))
-        cwriter.doComment("Use %s encoding of at-most-one constraints" % modeNames[mode])
+        cwriter.doHeaderComment("Encoding of pigeonhole problem for %d holes and %d pigeons" % (holeCount, pigeonCount))
+        cwriter.doHeaderComment("Use %s encoding of at-most-one constraints" % modeNames[mode])
+    cwriter.doHeaderComment("t pmc" if mode == directMode else "t wpmc")
     cwriter.newVariables(holeCount * pigeonCount)
+    
     # Every pigeon must be in some hole
     for j in range(1, pigeonCount+1):
         pvars = [pij(i, j) for i in range(1, holeCount+1)]
@@ -69,6 +81,12 @@ def generate(froot):
             cnf_utilities.atMostOneTseitin(cwriter, hvars, verbose)
         else:
             cnf_utilities.atMostOneDirect(cwriter, hvars, verbose)
+    if mode != directMode:
+        slist = [str(i) for i in range(1, holeCount * pigeonCount + 1)]
+        cwriter.doComment("p show %s 0" % " ".join(slist))
+    for i in range(1, holeCount+1):
+        for j in range(1, pigeonCount+1):
+            cwriter.doComment("p weight %d %.3f 0" % (pij(i, j), wij(i, j)))
     cwriter.finish()
 
 def run(name, args):

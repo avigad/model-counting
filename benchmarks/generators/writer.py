@@ -83,15 +83,20 @@ class Writer:
 # Creating CNF
 class CnfWriter(Writer):
     clauseCount = 0
+    headerList = []
     outputList = []
 
     def __init__(self, count, froot, verbLevel = 1):
         Writer.__init__(self, count, froot, suffix = "cnf", verbLevel = verbLevel)
         self.clauseCount = 0
         self.outputList = []
+        self.headerList = []
 
     # With CNF, must accumulate all of the clauses, since the file header
     # requires providing the number of clauses.
+
+    def doHeaderComment(self, line):
+        self.headerList.append("c " + line)
 
     def doComment(self, line):
         self.outputList.append("c " + line)
@@ -111,6 +116,8 @@ class CnfWriter(Writer):
             return
         if self.outfile is None:
             return
+        for line in self.headerList:
+            self.show(line)
         self.show("p cnf %d %d" % (self.expectedVariableCount, self.clauseCount))
         for line in self.outputList:
             self.show(line)
@@ -163,6 +170,7 @@ class Permuter:
 class LazyCnfWriter:
 
     variableCount = 0
+    headerList = []
     # Set of tuples (T/F, item)
     # Boolean T for clause F for comment
     # item: list of literals for clause, string for comment
@@ -173,11 +181,14 @@ class LazyCnfWriter:
 
     def __init__(self, froot, permuter = None, verbLevel = 1):
         self.variableCount = 0
+        self.headerList = []
         self.items = []
         self.froot = froot
         self.permuter = permuter
         self.verbLevel = verbLevel
 
+    def doHeaderComment(self, line):
+        self.headerList.append(line)
 
     def newVariable(self):
         self.variableCount += 1
@@ -207,6 +218,8 @@ class LazyCnfWriter:
 
     def finish(self):
         writer = CnfWriter(self.variableCount, self.froot, self.verbLevel)
+        for line in self.headerList:
+            writer.doHeaderComment(line)
         for (isClause, value) in self.items:
             if isClause:
                 writer.doClause(value)
