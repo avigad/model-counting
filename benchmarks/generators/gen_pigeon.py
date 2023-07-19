@@ -65,7 +65,7 @@ def generate(froot):
     if verbose:
         cwriter.doHeaderComment("Encoding of pigeonhole problem for %d holes and %d pigeons" % (holeCount, pigeonCount))
         cwriter.doHeaderComment("Use %s encoding of at-most-one constraints" % modeNames[mode])
-    cwriter.doHeaderComment("t pmc" if mode == directMode else "t wpmc")
+    cwriter.doHeaderComment("t wmc" if mode == directMode else "t pwmc")
     cwriter.newVariables(holeCount * pigeonCount)
     
     # Every pigeon must be in some hole
