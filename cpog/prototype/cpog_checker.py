@@ -1003,7 +1003,8 @@ class OperationManager:
     def count(self, root, weights = None, finalScale = None):
         if weights is None:
             weights = { v : P52(1,-1,0) for v in range(1, self.inputVariableCount+1) }
-            finalScale = P52(1, self.inputVariableCount, 0)
+            vcount = self.inputVariableCount if self.cmgr.projectionVariables is None else self.inputVariableCount - len(self.cmgr.projectionVariables)
+            finalScale = P52(1, vcount, 0)
         pval = self.pnumCount(root, weights, finalScale)
         return pval
 
@@ -1406,11 +1407,11 @@ def run(name, args):
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     print("CHECKER: Elapsed time for check: %.2f seconds" % seconds)
-    count = prover.count(weights)
-    if weights is None:
-        print("CHECKER: Unweighted count = %s" % count.render())
-    else:
-        print("CHECKER: Weighted count = %s" % count.render())
+    ucount = prover.count(None)
+    print("CHECKER: Unweighted count = %s" % ucount.render())
+    if weights is not None:
+        wcount = prover.count(weights)
+        print("CHECKER: Weighted count = %s" % wcount.render())
     
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
