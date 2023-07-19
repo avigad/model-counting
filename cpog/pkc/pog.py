@@ -210,7 +210,7 @@ class Pog:
             return nchildren[0]
         else:
             node = self.findOrMake(NodeType.product, args = nchildren)
-            return node
+            return NodeRef(node, True)
 
     def addSum(self, children):
         nchildren = []
@@ -229,8 +229,7 @@ class Pog:
             return nchildren[0]
         else:
             node = self.findOrMake(NodeType.sum, args = nchildren)
-            return node
-
+            return NodeRef(node, True)
 
     def setRoot(self, rootLiteral):
         self.rootLiteral = rootLiteral

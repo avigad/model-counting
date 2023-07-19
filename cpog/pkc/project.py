@@ -118,7 +118,7 @@ def cnf2pog(cnfName, nnfName, verbLevel):
 
 class Projector:
     pog = None
-    projectionVariables = None
+    projectionLiterals = None
     sequenceNumber = 0
     cmgr = None
     verbLevel = 1
@@ -128,9 +128,14 @@ class Projector:
         creader = readwrite.CnfReader(cnfName, verbLevel)
         cfields = cnfName.split(".")[:-1]
         self.rootName = ".".join(cfields)
-        self.projectionVariables = creader.projectionVariables()
-        if verbLevel >= 2 and len(self.projectionVariables) > 0:
-            slist = sorted([str(v) for v in self.projectionVariables])
+        pvars = creader.projectionVariables()
+        self.projectionLiterals = set([])
+        for v in pvars:
+            self.projectionLiterals.add(v)
+            self.projectionLiterals.add(-v)
+        if verbLevel >= 2 and len(pvars) > 0:
+            ilist = sorted([v for v in pvars])
+            slist = [str(v) for v in ilist]
             print("GEN: Projection variables: {%s}" % ", ".join(slist))
         self.sequenceNumber = 0
         self.verbLevel = verbLevel
@@ -158,13 +163,13 @@ class Projector:
                 nclit = self.traverse(clit, contextLiterals, ignoreLiterals)
                 nodeLits.append(nclit)
             else:
-                if clit not in ignoreLiterals:
+                if clit not in self.projectionLiterals:
                     literalLits.append(clit)
                     contextLiterals.add(clit)
         nlits = literalLits + nodeLits
         nchildren = [self.pog.getRef(lit) for lit in nlits]
-        nnode = self.pog.addProduct(nchildren)
-        nlit = nnode.xvar
+        nref = self.pog.addProduct(nchildren)
+        nlit = nref.literal()
         for lit in literalLits:
             contextLiterals.remove(lit)
         return nlit
@@ -179,15 +184,15 @@ class Projector:
             raise ProjectionException("Can't find splitting literal for node %s" % str(ref))
         if self.verbLevel >= 3:
             print("  Splitting literal = %d" % splitLiteral)
-        if abs(splitLiteral) in self.projectionVariables:
+        if splitLiteral in self.projectionLiterals:
             ignoreLiterals.add(splitLiteral)
             ignoreLiterals.add(-splitLiteral)
         nlits = [self.traverse(c.literal(), contextLiterals, ignoreLiterals) for c in node.children]
         # Should insert exclusion term here
         nchildren = [self.pog.getRef(lit) for lit in nlits]
-        nnode = self.pog.addSum(nchildren)
-        nlit = nnode.xvar
-        if abs(splitLiteral) in self.projectionVariables:
+        nref = self.pog.addSum(nchildren)
+        nlit = nref.literal()
+        if splitLiteral in self.projectionLiterals:
             ignoreLiterals.remove(splitLiteral)
             ignoreLiterals.remove(-splitLiteral)
         return nlit
@@ -205,7 +210,7 @@ class Projector:
                 nlit = self.traverseProduct(lit, contextLiterals, ignoreLiterals)
             else:
                 nlit = self.traverseSum(lit, contextLiterals, ignoreLiterals)
-        elif lit in ignoreLiterals:
+        elif lit in self.projectionLiterals:
             nlit = readwrite.TautologyId
         else:
             nlit = lit

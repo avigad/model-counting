@@ -130,7 +130,7 @@ class Node:
     ntype = None
     id = None
     children = []
-    # Corresponding POG node
+    # Corresponding POG Ref
     pref = None
 
     def __init__(self, ntype, id, children):
@@ -368,11 +368,9 @@ class Nnf:
             elif node.ntype == NodeType.leaf:
                 node.pref = pg.getRef(node.lit)
             elif node.ntype == NodeType.conjunction:
-                nroot = pg.addProduct(pchildren)
-                node.pref = pog.NodeRef(nroot, True)
+                node.pref = pg.addProduct(pchildren)
             elif node.ntype == NodeType.disjunction:
-                nroot = pg.addSum(pchildren)
-                node.pref = pog.NodeRef(nroot, True)
+                node.pref = pg.addSum(pchildren)
             if self.verbLevel >= 3:
                 print("NNF node %s --> POG node %s" % (str(node), str(node.pref)))
         pg.setRoot(self.nodes[-1].pref.literal())
