@@ -357,7 +357,6 @@ class CnfReader():
                 self.fail(msg)
                 return
 
-
     def processShow(self, fields):
         for s in fields[3:-1]:
             try:
@@ -598,7 +597,7 @@ class ClauseManager:
     # Clauses that haven't been deleted (only in verbose mode)
     liveClauseSet = set([])
     # Final root 
-    root = None
+    actualRoot = None
     # Literal declared in file
     declaredRoot = None
     verbose = False
@@ -627,7 +626,7 @@ class ClauseManager:
         self.totalHintCount = 0
         self.addedHintCount = 0
         self.liveClauseSet = set([])
-        self.root = None
+        self.actualRoot = None
 
     def findClause(self, id):
         if id not in self.clauseDict:
@@ -808,7 +807,7 @@ class ClauseManager:
         # All but single unit clause should have been deleted
         notDeleted = []
         # Should only be one unit clause
-        self.root = None
+        self.actualRoot = None
 
         for id in sorted(self.clauseDict.keys()):
             if id in self.definingClauseSet:
@@ -818,21 +817,21 @@ class ClauseManager:
                 continue
             if len(entry) == 1:
                 nroot = entry[0]
-                if self.root is not None:
-                    return (False, "At least two possible roots: %d, %d" % (self.root, nroot))
-                self.root = nroot
+                if self.actualRoot is not None:
+                    return (False, "At least two possible roots: %d, %d" % (self.actualRoot, nroot))
+                self.actualRoot = nroot
             else:
                 notDeleted.append(id)
 
         if not self.countMode and len(notDeleted) > 0:
             return (False, "Clauses %s not deleted" % str(notDeleted))
                 
-        if self.root is None:
+        if self.countMode and self.actualRoot is None:
+            self.actualRoot = self.declaredRoot
+        if self.actualRoot is None:
             return (False, "No root found")
-        if self.declaredRoot is not None and self.declaredRoot != self.root:
-            return (False, "Declared root %d does not match literal %d in final unit clause" % (self.declaredRoot, self.root))
-        if len(self.projectionVariables) > 0:
-            return (False, "Have not deleted projection variables %s" % str(list(self.projectionVariables)))
+        if self.declaredRoot is not None and self.declaredRoot != self.actualRoot:
+            return (False, "Declared root %d does not match literal %d in final unit clause" % (self.declaredRoot, self.actualRoot))
         return (True, "")
 
 class OperationManager:
@@ -1136,11 +1135,11 @@ class Prover:
         self.checkProof()
             
     def count(self, weights = None):
-        root = self.cmgr.root
+        root = self.cmgr.declaredRoot
         if root is None:
             print("CHECKER: Can't determine count.  Don't know root")
             return P52()
-        return self.omgr.count(self.cmgr.root, weights)
+        return self.omgr.count(self.cmgr.actualRoot, weights)
 
     def invalidCommand(self, cmd):
         self.flagError("Invalid command '%s' in proof" % cmd)
@@ -1390,11 +1389,14 @@ def run(name, args):
         return
     if weights is None:
         if creader.weights is not None:
-            print("Obtained weights from CNF file")
+            print("CHECKER: Obtained weights from CNF file")
             weights = creader.weights
-    if weights is not None and len(weights) != creader.nvar:
-        print("Invalid set of weights.  Should provide %d.  Got %d" % (creader.nvar, len(weights)))
-        return
+    if weights is not None:
+        pvars = creader.projectionVariables()
+        needWeight = [str(v) for v in range(1, creader.nvar+1) if v not in pvars and v not in weights]
+        if len(needWeight) > 0:
+            print("Invalid set of weights.  Don't have weights for variables %s" % " ".join(needWeight))
+            return
     verbose = verbLevel > 1
     cpogWriter = None
     if cpogName is not None:
