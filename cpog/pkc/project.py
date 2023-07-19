@@ -34,8 +34,8 @@ class ClauseManager:
 
 
     def setContext(self, contextLits, ignoreLits):
-        self.contextLiterals = set([]) if contextLits is None else contextLits
-        self.ignoreLits = set([]) if ignoreLits is None else ignoreLits
+        self.contextLiterals = contextLits
+        self.ignoreLiterals = ignoreLits
 
     def reduceClause(self, lits):
         nlits = []
@@ -50,7 +50,8 @@ class ClauseManager:
             if -lit in self.contextLiterals:
                 continue
             nlits.append(lit)
-        return tuple(nlits)
+        tup = tuple(nlits)
+        return tup
 
     def reduce(self):
         clauseSet = set([])
@@ -61,8 +62,8 @@ class ClauseManager:
                 continue
             if nclause in clauseSet:
                 continue
-            clauseList.append(clause)
-            clauseSet.add(clause)
+            clauseList.append(nclause)
+            clauseSet.add(nclause)
         return clauseList
 
     def store(self, fname, clauseList):
@@ -77,12 +78,12 @@ class ClauseManager:
             cwriter.doClause(clause)
         cwriter.finish()
 
-    def generate(self, fname, contextLiterals = None, ignoreLiterals = None):
+    def generate(self, fname, contextLiterals, ignoreLiterals):
         self.setContext(contextLiterals, ignoreLiterals)
         clauseList = self.reduce()
         self.store(fname, clauseList)
         if self.verbLevel >= 2:
-            print("File %s: %d original clauses --> %d reduced clauses" % (fname, len(self.clauses), len(clauseList)))
+            print("GEN: File %s: %d original clauses --> %d reduced clauses" % (fname, len(self.clauses), len(clauseList)))
 
 
 def runD4(cnfName, nnfName):
@@ -92,6 +93,12 @@ def runD4(cnfName, nnfName):
         sys.stdout.write("D4 dump:\n")
         sys.stdout.write(str(proc.stdout))
         raise ProjectionException("Running D4 on file %s gave return code %d" % (cnfName, proc.returncode))
+
+def isSat(cnfName):
+    cmd = ["cadical", "-q", cnfName]
+    proc = subprocess.run(cmd, shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return proc.returncode != 20
+    
 
 def cnf2pog(cnfName, nnfName, verbLevel):
     try:
@@ -112,8 +119,6 @@ def cnf2pog(cnfName, nnfName, verbLevel):
     if verbLevel >= 2: 
        print("GEN: Input NNF DAG has %d inputs, %d nodes" % (dag.inputCount, dag.nodeCount()))
     pg = dag.makePog(creader.clauses)
-    if verbLevel >= 2: 
-        pg.summarize()
     return pg
 
 class Projector:
@@ -148,68 +153,68 @@ class Projector:
 
     def nextCnfName(self):
         self.sequenceNumber += 1
-        return "%s-1%.6d.cnf" % self.rootName, self.sequenceNumber
+        return "%s-xxxx-1%.6d.cnf" % (self.rootName, self.sequenceNumber)
 
-    def traverseProduct(self, lit, contextLiterals, ignoreLiterals):
+    def traverseProduct(self, lit, contextLiterals):
         ref = self.pog.getRef(lit)
         node = ref.node
         if not ref.phase:
             raise ProjectionException("Can't traverse negated node %s" % str(ref))
-        literalLits = []
-        nodeLits = []
+        contextAddedLits = []
+        nlits = []
         for cref in node.children:
             clit = cref.literal()
             if self.pog.isNode(clit):
-                nclit = self.traverse(clit, contextLiterals, ignoreLiterals)
-                nodeLits.append(nclit)
+                nclit = self.traverse(clit, contextLiterals)
+                nlits.append(nclit)
             else:
+                contextLiterals.add(clit)
+                contextAddedLits.append(clit)
                 if clit not in self.projectionLiterals:
-                    literalLits.append(clit)
-                    contextLiterals.add(clit)
-        nlits = literalLits + nodeLits
+                    nlits.append(clit)
         nchildren = [self.pog.getRef(lit) for lit in nlits]
         nref = self.pog.addProduct(nchildren)
         nlit = nref.literal()
-        for lit in literalLits:
+        for lit in contextAddedLits:
             contextLiterals.remove(lit)
         return nlit
 
-    def traverseSum(self, lit, contextLiterals, ignoreLiterals):
+    def traverseSum(self, lit, contextLiterals):
         ref = self.pog.getRef(lit)
         node = ref.node
         if not ref.phase:
             raise ProjectionException("Can't traverse negated node %s" % str(ref))
+        nlits = [self.traverse(c.literal(), contextLiterals) for c in node.children]
         splitLiteral = node.findSplittingLiteral()
         if splitLiteral is None:
             raise ProjectionException("Can't find splitting literal for node %s" % str(ref))
-        if self.verbLevel >= 3:
-            print("  Splitting literal = %d" % splitLiteral)
         if splitLiteral in self.projectionLiterals:
-            ignoreLiterals.add(splitLiteral)
-            ignoreLiterals.add(-splitLiteral)
-        nlits = [self.traverse(c.literal(), contextLiterals, ignoreLiterals) for c in node.children]
-        # Should insert exclusion term here
+            if self.verbLevel >= 3:
+                print("  Splitting literal = %d" % splitLiteral)
+            cnfName = self.nextCnfName()
+            ignoreLiterals = set([splitLiteral, -splitLiteral])
+            self.cmgr.generate(cnfName, contextLiterals, ignoreLiterals)
+            if isSat(cnfName):
+                print("  WARNING: Traversing %s.  CNF file %s satisfiable" % (str(ref), cnfName))
+            elif self.verbLevel >= 3:
+                print("  Traversing %s.  CNF file %s unsatisfiable" % (str(ref), cnfName))
         nchildren = [self.pog.getRef(lit) for lit in nlits]
         nref = self.pog.addSum(nchildren)
         nlit = nref.literal()
-        if splitLiteral in self.projectionLiterals:
-            ignoreLiterals.remove(splitLiteral)
-            ignoreLiterals.remove(-splitLiteral)
         return nlit
 
     # Given literal, replace by result of projection
-    def traverse(self, lit, contextLiterals, ignoreLiterals):
+    def traverse(self, lit, contextLiterals):
         nlit = lit
         if self.verbLevel >= 3:
             sclist = [str(lit) for lit in sorted(contextLiterals, key = lambda lit : abs(lit))]
-            silist = [str(lit) for lit in sorted(ignoreLiterals, key = lambda lit : abs(lit))]
-            print("Traversing %s.  Context = {%s}, Ignore = {%s}" % (str(self.pog.getRef(lit)), ", ".join(sclist), ", ".join(silist)))
+            print("Traversing %s.  Context = {%s}" % (str(self.pog.getRef(lit)), ", ".join(sclist)))
         if self.pog.isNode(lit):
             node = self.pog.getRef(lit).node
             if node.ntype == pog.NodeType.product:
-                nlit = self.traverseProduct(lit, contextLiterals, ignoreLiterals)
+                nlit = self.traverseProduct(lit, contextLiterals)
             else:
-                nlit = self.traverseSum(lit, contextLiterals, ignoreLiterals)
+                nlit = self.traverseSum(lit, contextLiterals)
         elif lit in self.projectionLiterals:
             nlit = readwrite.TautologyId
         else:
@@ -220,18 +225,17 @@ class Projector:
                 
     def run(self):
         contextLiterals = set([])
-        ignoreLiterals = set([])
         if self.verbLevel >= 2:
-            print("Initial POG:")
+            print("GEN: Initial POG:")
             self.pog.summarize()
         if self.verbLevel >= 3:
             self.pog.show()
-        nroot = self.traverse(self.pog.rootLiteral, contextLiterals, ignoreLiterals)
+        nroot = self.traverse(self.pog.rootLiteral, contextLiterals)
         if self.verbLevel >= 2:
-            print("Changed root literal from %d to %d" % (self.pog.rootLiteral, nroot))
+            print("GEN: Changed root literal from %d to %d" % (self.pog.rootLiteral, nroot))
         self.pog.setRoot(nroot)
         self.pog.compress()
         if self.verbLevel >= 2:
-            print("Projected POG:")
+            print("GEN: Projected POG:")
             self.pog.summarize()
         

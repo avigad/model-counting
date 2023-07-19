@@ -708,7 +708,7 @@ class CnfWriter(Writer):
             if var <= 0 or var > self.expectedVariableCount:
                 raise ReadWriteException("Variable %d out of range 1--%d" % (var, self.expectedVariableCount))
             self.vset.add(var)
-        ilist = literals + [0]
+        ilist = list(literals) + [0]
         self.outputList.append(" ".join([str(i) for i in ilist]))
         self.clauseCount += 1
         return self.clauseCount
