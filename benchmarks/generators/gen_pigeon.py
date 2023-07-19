@@ -26,18 +26,23 @@ import cnf_utilities
 
 # Generate CNF file for pigeonhole problem
 def usage(name):
-    print("Usage: %s [-h] [-v] [-S] -r ROOT -n N [-p P]" % name) 
+    print("Usage: %s [-h] [-v] [-m d|s|t] -r ROOT -n N [-p P]" % name) 
     print("  -h       Print this message")
     print("  -v       Run in verbose mode")
-    print("  -L       Use Linear encoding of at-most-one constraints")
+    print("  -m NODE  Specify encoding method: direct (d), Sinz (s), or Tseitin (t)")
     print("  -r ROOT  Specify root name for files.  Will generate ROOT.cnf")
     print("  -n N     Specify number of holes")
     print("  -p P     Specify number of pigeons (default = N+1)")
 
+directMode, sinzMode, tseitinMode = list(range(3))
+modeDict = {'d' : directMode, 's' : sinzMode, 't' : tseitinMode}
+modeNames = {directMode : 'Direct', sinzMode : 'Sinz', tseitinMode : 'Tseitin' }
+
+
 verbose = False
 holeCount = 8
 pigeonCount = None
-linear = False
+mode = directMode
 
 # Get variable encoding whether pigeon j (numbered from 1) is
 # in hole i (numbered from 1)
@@ -49,10 +54,7 @@ def generate(froot):
     cwriter = writer.LazyCnfWriter(froot, verbLevel = 2 if verbose else 1)
     if verbose:
         cwriter.doComment("Encoding of pigeonhole problem for %d holes and %d pigeons" % (holeCount, pigeonCount))
-        if linear:
-            cwriter.doComment("Use linear encoding of at-most-one constraints")
-        else:
-            cwriter.doComment("Use direct encoding of at-most-one constraints")
+        cwriter.doComment("Use %s encoding of at-most-one constraints" % modeNames[mode])
     cwriter.newVariables(holeCount * pigeonCount)
     # Every pigeon must be in some hole
     for j in range(1, pigeonCount+1):
@@ -61,18 +63,20 @@ def generate(froot):
     # Every hole can contain at most one pigeon
     for i in range(1, holeCount+1):
         hvars = [pij(i, j) for j in range(1, pigeonCount+1)]
-        if linear:
-            cnf_utilities.atMostOneLinear(cwriter, hvars, verbose)
+        if mode == sinzMode:
+            cnf_utilities.atMostOneSinz(cwriter, hvars, verbose)
+        elif mode == tseitinMode:
+            cnf_utilities.atMostOneTseitin(cwriter, hvars, verbose)
         else:
             cnf_utilities.atMostOneDirect(cwriter, hvars, verbose)
     cwriter.finish()
 
 def run(name, args):
-    global verbose, holeCount, pigeonCount, linear
+    global verbose, holeCount, pigeonCount, mode
     froot = None
     holeCount = None
     pigeonCount = None
-    optlist, args = getopt.getopt(args, "hvr:n:p:L")
+    optlist, args = getopt.getopt(args, "hvr:n:p:m:")
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
@@ -85,8 +89,13 @@ def run(name, args):
             holeCount = int(val)
         elif opt == '-p':
             pigeonCount = int(val)
-        elif opt == '-L':
-            linear = True
+        elif opt == '-m':
+            if val in modeDict:
+                mode = modeDict[val]
+            else:
+                print("Unknown encoding mode '%s'" % val)
+                usage(name)
+                return
     if holeCount is None:
         print("Must have value for n")
         usage(name)

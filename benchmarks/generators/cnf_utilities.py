@@ -43,7 +43,7 @@ def atMostOneDirect(writer, lits, verbose = False):
 # You need to supply the detailed code for functions lconEncode and rconEncode
 
 # Your implementation of the left constraint LCON
-def lconEncode(writer, x1, x2, z, verbose = False):
+def lconEncode(writer, x1, x2, z, complete = True, verbose = False):
     if verbose:
         writer.doComment("Left constraint for variables [%d, %d, %d]" % (x1, x2, z))
     ## Make calls to writer.doClause
@@ -53,7 +53,8 @@ def lconEncode(writer, x1, x2, z, verbose = False):
     writer.doClause([-x2, z])
     writer.doClause([-x1, -x2])
     # Complete constraint to make z unique
-    writer.doClause([x1, x2, -z])
+    if complete:
+        writer.doClause([x1, x2, -z])
 
 # Your implementation of the right constraint RCON
 def rconEncode(writer, zp, xn, verbose = False):
@@ -63,17 +64,32 @@ def rconEncode(writer, zp, xn, verbose = False):
     writer.doClause([-zp, -xn])
 
 
-def atMostOneLinear(writer, lits, verbose = False):
+def atMostOneTseitin(writer, lits, verbose = False):
     if verbose:
         slist = [str(lit) for lit in lits]
-        writer.doComment("Linear encoding of at-most-one constraint for literals [%s]" % (", ".join(slist)))
+        writer.doComment("Tseitin encoding of at-most-one constraint for literals [%s]" % (", ".join(slist)))
     if len(lits) <= 3:
         atMostOneDirect(writer, lits, False)
     else:
         while len(lits) > 2:
             l1, l2 = lits[0], lits[1]
             z = writer.newVariable()
-            lconEncode(writer, l1, l2, z, verbose)
+            lconEncode(writer, l1, l2, z, complete = True, verbose = verbose)
+            lits = [z] + lits[2:]
+        zp, xn = lits[0], lits[1]
+        rconEncode(writer, zp, xn, verbose)
+
+def atMostOneSinz(writer, lits, verbose = False):
+    if verbose:
+        slist = [str(lit) for lit in lits]
+        writer.doComment("Sinz encoding of at-most-one constraint for literals [%s]" % (", ".join(slist)))
+    if len(lits) <= 3:
+        atMostOneDirect(writer, lits, False)
+    else:
+        while len(lits) > 2:
+            l1, l2 = lits[0], lits[1]
+            z = writer.newVariable()
+            lconEncode(writer, l1, l2, z, complete = False, verbose = verbose)
             lits = [z] + lits[2:]
         zp, xn = lits[0], lits[1]
         rconEncode(writer, zp, xn, verbose)
