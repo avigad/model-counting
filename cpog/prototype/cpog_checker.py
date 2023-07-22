@@ -161,6 +161,14 @@ class PNumException(Exception):
     def __str__(self):
         return "P52 Number exception %s" % self.msg
 
+class VariableException(Exception):
+    var = 0
+
+    def __init__(self, v):
+        self.var = v
+
+    def __str__(self):
+        return "Variable exception for variable %d" % self.var
 
 
 # Represent numbers of form a * 2**m2 + 5**m5
@@ -555,7 +563,7 @@ class CpogWriter(Writer):
     def doDeleteClause(self, id, hints=None):
         if hints is None:
             hints = ['*']
-        self.doLine(['dc', id] + hints + [0])
+        self.doLine(['d', id] + hints + [0])
 
     def doDeleteOperation(self, exvar, clauseId):
         self.doLine(['do', exvar])
@@ -982,6 +990,8 @@ class OperationManager:
             wts = []
             for arg in args:
                 var = abs(arg)
+                if var not in weights:
+                    raise VariableException(var)
                 val = weights[var]
                 if arg < 0:
                     val = val.oneminus()
@@ -1000,12 +1010,21 @@ class OperationManager:
     
 
     # Optionally provide dictionary of weights.  Otherwise assume unweighted
+    # Raise VariableException if no weight assigned for variables
     def count(self, root, weights = None, finalScale = None):
         if weights is None:
             weights = { v : P52(1,-1,0) for v in range(1, self.inputVariableCount+1) }
             vcount = self.inputVariableCount if self.cmgr.projectionVariables is None else self.inputVariableCount - len(self.cmgr.projectionVariables)
             finalScale = P52(1, vcount, 0)
-        pval = self.pnumCount(root, weights, finalScale)
+        try:
+            pval = self.pnumCount(root, weights, finalScale)
+        except VariableException as ex:
+            v = ex.var
+            if v in self.cmgr.projectionVariables:
+                print("CHECKER: Encountered projected variable %d" % v)
+            else:
+                print("CHECKER: Unknown projected variable %d" % v)
+            pval = P52()
         return pval
 
 class ProofException(Exception):
@@ -1039,7 +1058,7 @@ class Prover:
         self.cpogWriter = cpogWriter
         self.failed = False
         self.subsetOK = False
-        self.ruleCounters = { 'i' : 0, 'r' : 0, 'a' : 0, 'dc' : 0, 'p' : 0, 's' : 0, 'do' : 0, 'dv' : 0 }
+        self.ruleCounters = { 'i' : 0, 'r' : 0, 'a' : 0, 'dc' : 0, 'd' : 0, 'p' : 0, 's' : 0, 'do' : 0, 'dv' : 0 }
 
         id = 0
         for clause in creader.clauses:
@@ -1398,7 +1417,7 @@ def run(name, args):
         if len(needWeight) > 0:
             print("Invalid set of weights.  Don't have weights for variables %s" % " ".join(needWeight))
             return
-    verbose = verbLevel > 1
+    verbose = verbLevel > 2
     cpogWriter = None
     if cpogName is not None:
         cpogWriter = CpogWriter(creader.nvar, creader.clauses, cpogName, verbLevel)
