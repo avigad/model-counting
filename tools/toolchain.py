@@ -29,9 +29,10 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-2] [-f] [-s n|g] [-m MONO] [-r RPCT] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m MONO] [-r RPCT] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
+    print("  -v       Set verbosity level")
     print("  -s n|g   Stop after NNF generation or CPOG generation (g)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -2       Use D4 version 2")
@@ -51,6 +52,7 @@ sleepTime = 60
 # Defaults
 standardTimeLimit = 60
 
+verbLevel = 1
 oneSided = False
 monolithic_threshold = None
 lemma_ratio = 10.0
@@ -85,7 +87,9 @@ commentChar = 'c'
 
 def setTimeLimit(t):
     global timeLimits
-    timeLimits["GEN"] = t
+    for key in timeLimits.keys():
+        if t < timeLimits[key]:
+            timeLimits[key] = t
 
 def waitWhileBlocked():
     first = True
@@ -184,7 +188,7 @@ def runPartialGen(root, home, logFile, force):
     cnfName = home + "/" + root + ".cnf"
     nnfName = nnfNamer(root, home)
     cpogName = home + "/" + root + ".cpog"
-    cmd = [genProgram, "-p", cnfName, nnfName, cpogName]
+    cmd = [genProgram, "-v", str(verbLevel), "-p", cnfName, nnfName, cpogName]
     ok = runProgram("GEN", root, cmd, logFile)
     if not ok and os.path.exists(cpogName):
         os.remove(cpogName)
@@ -199,6 +203,7 @@ def runGen(root, home, logFile, force):
 #    if not force and os.path.exists(cpogName):
 #        return True
     cmd = [genProgram]
+    cmd += ["-v", str(verbLevel)]
     if oneSided:
         cmd += ['-1']
     if monolithic_threshold is not None:
@@ -219,6 +224,7 @@ def runCheck(root, home, logFile):
     cnfName = home + "/" + root + ".cnf"
     cpogName = home + "/" + root + ".cpog"
     cmd = [checkProgram]
+    cmd += ["-v", str(verbLevel)]
     if oneSided:
         cmd += ['-1']
     cmd += [cnfName, cpogName]
@@ -306,16 +312,18 @@ def runBatch(home, fileList, stopD4, stopGen, force):
         runSequence(r, home, stopD4, stopGen, force)
 
 def run(name, args):
-    global useLemma, group, oneSided, monolithic_threshold, lemma_ratio, useLean, preprocess, d4v2
+    global verbLevel, useLemma, group, oneSided, monolithic_threshold, lemma_ratio, useLean, preprocess, d4v2
     home = "."
     stopD4 = False
     stopGen = False
     force = False
-    optList, args = getopt.getopt(args, "hf12m:r:pLGFs:t:")
+    optList, args = getopt.getopt(args, "hfv:12m:r:pLGFs:t:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             return
+        if opt == '-v':
+            verbLevel = int(val)
         elif opt == '-f':
             force = True
         elif opt == '-1':
