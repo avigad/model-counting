@@ -7,6 +7,25 @@ import readwrite
 import pog
 import ddnnf
 
+sequenceNumber = 10 * 1000 * 1000
+root = None
+
+
+def nextSequence():
+    global sequenceNumber
+    sequenceNumber += 1
+    return sequenceNumber
+    
+def setRoot(cnfName):
+    global root
+    if root is None:
+        fields = cnfName.split(".")
+        fields = fields[:-1]
+        root = ".".join(fields)
+
+def tmpName(extension):
+    lroot = "pog-process" if root is None else root
+    return "%s-xxxx-%d.%s" % (lroot, nextSequence(), extension)
 
 class ProjectionException(Exception):
 
@@ -16,6 +35,28 @@ class ProjectionException(Exception):
     def __str__(self):
         return "Projection Exception: " + str(self.value)
 
+# Mapping from CNF files to POGs
+class PogCache:
+
+    entries = {}
+
+    def __init__(self):
+        self.entries = {}
+    
+    def signature(self, clauseList):
+        return tuple(sorted([hash(clause) for clause in clauseList]))
+
+    def insert(self, clauseList, pog):
+        self.entries[self.signature(clauseList)] = pog
+
+    def find(self, clauseList):
+        sig = self.signature(clauseList)
+        if sig in self.entries:
+            return self.entries[sig]
+        else:
+            return None
+
+pcache = PogCache()
 
 class ClauseManager:
 
@@ -83,11 +124,11 @@ class ClauseManager:
         cwriter.doComment("p show %s 0" % " ".join(slist))
         cwriter.finish()
 
-    def generate(self, fname, contextLiterals, ignoreVariables, projectionVariables):
+    def generate(self, fname, contextLiterals, ignoreVariables, showVariables):
         self.setContext(contextLiterals, ignoreVariables)
         clauseList, varSet = self.reduce()
-        showVariables = varSet - projectionVariables
-        self.store(fname, clauseList, showVariables)
+        nshowVariables = varSet & showVariables
+        self.store(fname, clauseList, nshowVariables)
         if self.verbLevel >= 2:
             print("GEN: File %s: %d original clauses --> %d reduced clauses" % (fname, len(self.clauses), len(clauseList)))
 
@@ -129,8 +170,7 @@ def cnf2pog(cnfName, nnfName, verbLevel):
 
 class Projector:
     pog = None
-    projectionVariables = None
-    sequenceNumber = 0
+    showVariables = None
     cmgr = None
     verbLevel = 1
     rootName = None
@@ -139,22 +179,19 @@ class Projector:
         creader = readwrite.CnfReader(cnfName, verbLevel)
         cfields = cnfName.split(".")[:-1]
         self.rootName = ".".join(cfields)
-        self.projectionVariables = creader.projectionVariables()
-        if verbLevel >= 2 and len(self.projectionVariables) > 0:
-            slist = [str(v) for v in sorted(self.projectionVariables)]
-            print("GEN: Projection variables: {%s}" % ", ".join(slist))
-        self.sequenceNumber = 0
+        self.showVariables = creader.showVariables
+        if verbLevel >= 2:
+            slist = [str(v) for v in sorted(self.showVariables)]
+            print("GEN: Show variables: {%s}" % ", ".join(slist))
         self.verbLevel = verbLevel
+        setRoot(cnfName)
         self.cmgr = ClauseManager(creader.nvar, creader.clauses, verbLevel)
         nnfName = readwrite.changeExtension(cnfName, "nnf")
         self.pog = cnf2pog(cnfName, nnfName, verbLevel)
 
+
     def write(self, fname):
         self.pog.write(fname)
-
-    def nextCnfName(self):
-        self.sequenceNumber += 1
-        return "%s-xxxx-1%.6d.cnf" % (self.rootName, self.sequenceNumber)
 
     def traverseProduct(self, lit, contextLiterals):
         ref = self.pog.getRef(lit)
@@ -171,7 +208,7 @@ class Projector:
             else:
                 contextLiterals.add(clit)
                 contextAddedLits.append(clit)
-                if abs(clit) not in self.projectionVariables:
+                if abs(clit) in self.showVariables:
                     nlits.append(clit)
         nchildren = [self.pog.getRef(lit) for lit in nlits]
         nref = self.pog.addProduct(nchildren)
@@ -191,12 +228,12 @@ class Projector:
         if dvar is None:
             raise ProjectionException("Can't find decision variable for node %s" % str(ref))
         nref = None
-        if abs(dvar) in self.projectionVariables:
+        if dvar not in self.showVariables:
             if self.verbLevel >= 3:
                 print("  Decision variable = %d" % dvar)
-            cnfName = self.nextCnfName()
+            cnfName = tmpName("cnf")
             ignoreVariables = set([dvar])
-            self.cmgr.generate(cnfName, contextLiterals, ignoreVariables, self.projectionVariables)
+            self.cmgr.generate(cnfName, contextLiterals, ignoreVariables, self.showVariables)
             if isSat(cnfName):
                 xpog = cnf2ppog(cnfName, self.verbLevel)
                 xref = self.pog.integrate(xpog)
@@ -223,10 +260,10 @@ class Projector:
                 nlit = self.traverseProduct(lit, contextLiterals)
             else:
                 nlit = self.traverseSum(lit, contextLiterals)
-        elif abs(lit) in self.projectionVariables:
-            nlit = readwrite.TautologyId
-        else:
+        elif abs(lit) in self.showVariables:
             nlit = lit
+        else:
+            nlit = readwrite.tautologyId
         if self.verbLevel >= 3:
             print("Traversing %s yields %s" % (str(self.pog.getRef(lit)), str(self.pog.getRef(nlit))))
         return nlit
@@ -248,6 +285,17 @@ class Projector:
             self.pog.summarize()
         
 def cnf2ppog(cnfName, verbLevel):
-    pr = Projector(cnfName, verbLevel)
-    pr.run()
-    return pr.pog
+    creader = readwrite.CnfReader(cnfName, verbLevel, check = False)
+    clauseList = readwrite.cleanClauses(creader.clauses, check=False)
+    pog = pcache.find(clauseList)
+    if pog is None:
+        pr = Projector(cnfName, verbLevel)
+        pr.run()
+        pog = pr.pog
+        pcache.insert(clauseList, pog)
+        if verbLevel >= 2:
+            print("Pcache miss.  %d clauses --> %d POG nodes" % (len(clauseList), len(pog.nodes)))
+    elif verbLevel >= 2:
+            print("Pcache hit.  %d clauses --> %d POG nodes" % (len(clauseList), len(pog.nodes)))
+    return pog
+

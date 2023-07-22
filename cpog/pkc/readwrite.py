@@ -75,13 +75,13 @@ def cleanClause(literalList):
 
 # Fix up set of input clauses
 # Flag error if any tautologies
-def cleanClauses(clist):
+def cleanClauses(clist, check = True):
     nlist = []
     id = 0
     for clause in clist:
         id += 1
         nclause = cleanClause(clause)
-        if nclause == tautologyId:
+        if nclause == tautologyId and check:
             raise ReadWriteException("Tautologous clause #%d: %s" % (id, str(clause)))
         nlist.append(nclause)
     return nlist
@@ -321,8 +321,11 @@ class CnfReader():
             raise ex
         if opened:
             self.file.close()
+        if self.showVariables is None:
+            self.showVariables = set(range(1, self.nvar+1))
 
     def processShow(self, fields):
+        self.showVariables = set([])
         for s in fields[3:-1]:
             try:
                 var = int(s)
@@ -344,12 +347,6 @@ class CnfReader():
             fields = line.split()
             if self.showVariables is not None and len(fields) >= 3 and fields[1] == 'p' and fields[2] == 'show':
                 self.processShow(fields)
-
-    def projectionVariables(self):
-        if self.showVariables is None:
-            return set([])
-        allVars = set([v for v in range(1, self.nvar+1)])
-        return allVars - self.showVariables
 
     def readCnf(self, check):
         lineNumber = 0
