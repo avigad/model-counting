@@ -1,0 +1,76 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2023_track1_007.cnf -dDNNF -out=./mc2023_track1_007.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 3727
+c Number of clauses: 14565
+c Number of literals: 36225
+c Preproc options: 
+c
+c Preproc time: 0.002057
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -237 
+c top 5: -237 -239 
+c top 5: -237 -239 -236 
+c top 5: -237 -239 -236 -238 
+c unitLits 1048577 4194308 Bytes
+c top 5: -237 -239 -236 238 
+c top 5: -237 239 
+c top 5: -237 239 -236 
+c top 5: -237 239 -236 -238 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 1939
+c Number of split formula: 358
+c Number of decision node: 969
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 156
+c Number of backbone calls: 0
+c Number of partitioner calls: 174
+c Average number of assigned literal to obtain decomposable AND nodes: 2213.24/3727
+c Minimum number of assigned variable where a decomposable AND appeared: 399
+c 
+c [33mGraph Information[0m
+c Number of nodes: 132592
+c Number of edges: 133763
+c 
+c [1m[34mCache Information[0m
+c Memory used: 573 MB
+c
+c Number of positive hit: 344
+c Number of negative hit: 980
+c Number of reduceCall: 0
+c
+c Final time: 0.420984
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.542 seconds
+D4 OUTCOME: normal
+mc2023_track1_007. D4 NNF: LOG: size ./mc2023_track1_007.nnf 3447 lines 737495 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2023_track1_007.cnf ./mc2023_track1_007.nnf ./mc2023_track1_007.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time 0.00  Read input file with 3727 variables and 14565 clauses
+c Read D4 NNF file with 3089 nodes (1139 explicit) and 2308 edges
+c Compressed POG has 2537 nodes, root literal 6264, and 136842 defining clauses
+c POG has DAG size 136842 and tree size 177355 ratio = 1.30
+c GEN: Time 0.04  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 0.042 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 0.586 seconds
+OVERALL OUTCOME: normal

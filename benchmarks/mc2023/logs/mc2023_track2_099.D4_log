@@ -1,0 +1,154 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2023_track2_099.cnf -dDNNF -out=./mc2023_track2_099.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 16162
+c Number of clauses: 65874
+c Number of literals: 165212
+c Preproc options: 
+c
+c Preproc time: 0.009566
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -591 
+c top 5: -591 -594 
+c top 5: -591 -594 -592 
+c top 5: -591 -594 -592 -593 
+c unitLits 1048577 4194308 Bytes
+c unitLits 2097153 8388612 Bytes
+c unitLits 3145729 12582916 Bytes
+c      16384 |      12.82 |      14169 |       8209 |      13795 |        612 |    2226474 |    2243957 |          0 |       8199 |        2046 |          0 | 
+c unitLits 4194305 16777220 Bytes
+c unitLits 5242881 20971524 Bytes
+c      32768 |      32.55 |      30470 |      16419 |      29718 |        623 |    5058402 |    5095050 |          0 |      16400 |        4132 |          0 | 
+c unitLits 6291457 25165828 Bytes
+c unitLits 7340033 29360132 Bytes
+c unitLits 8388609 33554436 Bytes
+c unitLits 9437185 37748740 Bytes
+c      49152 |      59.06 |      55826 |      24612 |      54875 |        658 |    8552134 |    8615974 |          0 |      24589 |        6296 |          0 | 
+c unitLits 10485761 41943044 Bytes
+c unitLits 11534337 46137348 Bytes
+c      65536 |      82.17 |      74553 |      32809 |      73823 |        667 |   11461242 |   11546239 |          0 |      32777 |        8397 |          0 | 
+c unitLits 12582913 50331652 Bytes
+c unitLits 13631489 54525956 Bytes
+c unitLits 14680065 58720260 Bytes
+c unitLits 15728641 62914564 Bytes
+c unitLits 16777217 67108868 Bytes
+c      81920 |     140.91 |     104326 |      41003 |     104754 |        687 |   16347119 |   16462873 |          0 |      40971 |       10569 |          0 | 
+c unitLits 17825793 71303172 Bytes
+c unitLits 18874369 75497476 Bytes
+c unitLits 19922945 79691780 Bytes
+c unitLits 20971521 83886084 Bytes
+c unitLits 22020097 88080388 Bytes
+c unitLits 23068673 92274692 Bytes
+c      98304 |     231.73 |     143152 |      49192 |     145824 |        718 |   22938795 |   23094064 |          0 |      49159 |       12731 |          0 | 
+c unitLits 24117249 96468996 Bytes
+c unitLits 25165825 100663300 Bytes
+c unitLits 26214401 104857604 Bytes
+c unitLits 27262977 109051908 Bytes
+c unitLits 28311553 113246212 Bytes
+c     114688 |     301.08 |     171571 |      57389 |     175392 |        729 |   27879256 |   28064352 |          0 |      57351 |       14854 |          0 | 
+c unitLits 29360129 117440516 Bytes
+c unitLits 30408705 121634820 Bytes
+c unitLits 31457281 125829124 Bytes
+c unitLits 32505857 130023428 Bytes
+c unitLits 33554433 134217732 Bytes
+c unitLits 34603009 138412036 Bytes
+c unitLits 35651585 142606340 Bytes
+c     131072 |     382.41 |     211813 |      65584 |     218001 |        759 |   35168056 |   35394125 |          0 |      65544 |       17144 |          0 | 
+c unitLits 36700161 146800644 Bytes
+c unitLits 37748737 150994948 Bytes
+c top 5: -591 -594 -592 593 
+c unitLits 38797313 155189252 Bytes
+c Allocate a new page for the cache 2754648
+c unitLits 39845889 159383556 Bytes
+c unitLits 40894465 163577860 Bytes
+c     147456 |     430.49 |     236017 |      73784 |     242297 |       1298 |   40874539 |   41127559 |          0 |      73732 |       19252 |          0 | 
+c unitLits 41943041 167772164 Bytes
+c top 5: -591 594 
+c top 5: -591 594 -592 
+c top 5: -591 594 -592 -593 
+c unitLits 42991617 171966468 Bytes
+c unitLits 44040193 176160772 Bytes
+c unitLits 45088769 180355076 Bytes
+c     163840 |     465.90 |     255800 |      81994 |     261904 |       1315 |   44230778 |   44505666 |          0 |      81935 |       21557 |          0 | 
+c unitLits 46137345 184549380 Bytes
+c unitLits 47185921 188743684 Bytes
+c unitLits 48234497 192937988 Bytes
+c     180224 |     498.71 |     278765 |      90181 |     284954 |       1327 |   47551581 |   47850477 |          0 |      90120 |       23556 |          0 | 
+c unitLits 49283073 197132292 Bytes
+c unitLits 50331649 201326596 Bytes
+c unitLits 51380225 205520900 Bytes
+c unitLits 52428801 209715204 Bytes
+c     196608 |     554.00 |     306405 |      98373 |     312717 |       1344 |   51947234 |   52275469 |          0 |      98311 |       25867 |          0 | 
+c unitLits 53477377 213909508 Bytes
+c unitLits 54525953 218103812 Bytes
+c unitLits 55574529 222298116 Bytes
+c     212992 |     584.16 |     326623 |     106575 |     332690 |       1357 |   55186646 |   55537242 |          0 |     106508 |       28111 |          0 | 
+c unitLits 56623105 226492420 Bytes
+c unitLits 57671681 230686724 Bytes
+c unitLits 58720257 234881028 Bytes
+c     229376 |     607.45 |     345776 |     114772 |     351426 |       1369 |   58236181 |   58607831 |          0 |     114703 |       30056 |          0 | 
+c unitLits 59768833 239075332 Bytes
+c unitLits 60817409 243269636 Bytes
+c unitLits 61865985 247463940 Bytes
+c unitLits 62914561 251658244 Bytes
+c     245760 |     652.25 |     367229 |     122961 |     372424 |       1397 |   62537380 |   62932737 |          0 |     122886 |       32257 |          0 | 
+c unitLits 63963137 255852548 Bytes
+c unitLits 65011713 260046852 Bytes
+c unitLits 66060289 264241156 Bytes
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 250083
+c Number of split formula: 382283
+c Number of decision node: 125041
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 101365
+c Number of backbone calls: 0
+c Number of partitioner calls: 32756
+c Average number of assigned literal to obtain decomposable AND nodes: 11969.00/16162
+c Minimum number of assigned variable where a decomposable AND appeared: 941
+c 
+c [33mGraph Information[0m
+c Number of nodes: 65101128
+c Number of edges: 65507087
+c 
+c [1m[34mCache Information[0m
+c Memory used: 1398 MB
+c
+c Number of positive hit: 377215
+c Number of negative hit: 125117
+c Number of reduceCall: 0
+c
+c Final time: 675.277711
+c 
+s 0.000000
+D4 LOG: Elapsed time = 686.677 seconds
+D4 OUTCOME: normal
+mc2023_track2_099. D4 NNF: LOG: size ./mc2023_track2_099.nnf 858927 lines 403614377 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2023_track2_099.cnf ./mc2023_track2_099.nnf ./mc2023_track2_099.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time 0.03  Read input file with 16162 variables and 65874 clauses
+c Read D4 NNF file with 476644 nodes (226485 explicit) and 632442 edges
+c Compressed POG has 467801 nodes, root literal 483963, and 66183787 defining clauses
+c POG has DAG size 66183787 and tree size 2104306001 ratio = 31.79
+c GEN: Time 16.02  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 16.120 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 703.106 seconds
+OVERALL OUTCOME: normal

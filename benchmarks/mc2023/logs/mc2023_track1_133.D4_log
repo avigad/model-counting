@@ -1,0 +1,503 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2023_track1_133.cnf -dDNNF -out=./mc2023_track1_133.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 44805
+c Number of clauses: 149118
+c Number of literals: 387736
+c Preproc options: 
+c
+c Preproc time: 0.023914
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -1507 
+c top 5: -1507 -1523 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -1499 
+c unitLits 1048577 4194308 Bytes
+c unitLits 2097153 8388612 Bytes
+c unitLits 3145729 12582916 Bytes
+c unitLits 4194305 16777220 Bytes
+c unitLits 5242881 20971524 Bytes
+c unitLits 6291457 25165828 Bytes
+c      16384 |      46.02 |      19099 |       8233 |      19202 |        646 |    5420350 |    5442555 |          0 |       8202 |        2892 |          0 | 
+c unitLits 7340033 29360132 Bytes
+c unitLits 8388609 33554436 Bytes
+c      32768 |      63.93 |      33467 |      16449 |      32453 |        655 |    8215957 |    8255239 |          0 |      16393 |        5871 |          0 | 
+c unitLits 9437185 37748740 Bytes
+c unitLits 10485761 41943044 Bytes
+c unitLits 11534337 46137348 Bytes
+c unitLits 12582913 50331652 Bytes
+c unitLits 13631489 54525956 Bytes
+c      49152 |      99.93 |      52547 |      24678 |      50676 |        682 |   12848230 |   12908814 |          0 |      24585 |        8972 |          0 | 
+c unitLits 14680065 58720260 Bytes
+c unitLits 15728641 62914564 Bytes
+c unitLits 16777217 67108868 Bytes
+c unitLits 17825793 71303172 Bytes
+c unitLits 18874369 75497476 Bytes
+c unitLits 19922945 79691780 Bytes
+c unitLits 20971521 83886084 Bytes
+c      65536 |     177.56 |      79006 |      32886 |      76873 |        711 |   20731815 |   20820580 |          0 |      32774 |       12011 |          0 | 
+c unitLits 22020097 88080388 Bytes
+c unitLits 23068673 92274692 Bytes
+c unitLits 24117249 96468996 Bytes
+c unitLits 25165825 100663300 Bytes
+c unitLits 26214401 104857604 Bytes
+c unitLits 27262977 109051908 Bytes
+c unitLits 28311553 113246212 Bytes
+c unitLits 29360129 117440516 Bytes
+c unitLits 30408705 121634820 Bytes
+c      81920 |     274.02 |     107841 |      41114 |     105834 |        753 |   29608618 |   29727758 |          0 |      40965 |       15139 |          0 | 
+c unitLits 31457281 125829124 Bytes
+c unitLits 32505857 130023428 Bytes
+c unitLits 33554433 134217732 Bytes
+c unitLits 34603009 138412036 Bytes
+c unitLits 35651585 142606340 Bytes
+c unitLits 36700161 146800644 Bytes
+c unitLits 37748737 150994948 Bytes
+c unitLits 38797313 155189252 Bytes
+c unitLits 39845889 159383556 Bytes
+c      98304 |     383.35 |     138460 |      49329 |     136737 |        789 |   39546984 |   39698326 |          0 |      49158 |       18403 |          0 | 
+c unitLits 40894465 163577860 Bytes
+c unitLits 41943041 167772164 Bytes
+c unitLits 42991617 171966468 Bytes
+c unitLits 44040193 176160772 Bytes
+c unitLits 45088769 180355076 Bytes
+c unitLits 46137345 184549380 Bytes
+c unitLits 47185921 188743684 Bytes
+c unitLits 48234497 192937988 Bytes
+c     114688 |     491.60 |     165713 |      57531 |     163970 |        822 |   48162286 |   48342508 |          0 |      57352 |       21570 |          0 | 
+c unitLits 49283073 197132292 Bytes
+c unitLits 50331649 201326596 Bytes
+c unitLits 51380225 205520900 Bytes
+c unitLits 52428801 209715204 Bytes
+c unitLits 53477377 213909508 Bytes
+c unitLits 54525953 218103812 Bytes
+c unitLits 55574529 222298116 Bytes
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 -1499 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -79 
+c top 5: -1507 -1523 -1493 79 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -88 
+c top 5: -1507 -1523 -1493 88 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -97 
+c top 5: -1507 -1523 -1493 97 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -106 
+c top 5: -1507 -1523 -1493 106 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -115 
+c top 5: -1507 -1523 -1493 115 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -124 
+c top 5: -1507 -1523 -1493 124 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -133 
+c top 5: -1507 -1523 -1493 133 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -136 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -169 
+c top 5: -1507 -1523 -1493 169 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -178 
+c top 5: -1507 -1523 -1493 178 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -187 
+c top 5: -1507 -1523 -1493 187 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -196 
+c top 5: -1507 -1523 -1493 196 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -205 
+c top 5: -1507 -1523 -1493 205 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -214 
+c top 5: -1507 -1523 -1493 214 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -223 
+c top 5: -1507 -1523 -1493 223 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -232 
+c top 5: -1507 -1523 -1493 232 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -241 
+c top 5: -1507 -1523 -1493 241 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -250 
+c top 5: -1507 -1523 -1493 250 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -259 
+c top 5: -1507 -1523 -1493 259 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -268 
+c top 5: -1507 -1523 -1493 268 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -277 
+c top 5: -1507 -1523 -1493 277 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -286 
+c top 5: -1507 -1523 -1493 286 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -295 
+c top 5: -1507 -1523 -1493 295 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -304 
+c top 5: -1507 -1523 -1493 304 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -331 
+c top 5: -1507 -1523 -1493 331 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -340 
+c top 5: -1507 -1523 -1493 340 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -343 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -358 
+c top 5: -1507 -1523 -1493 358 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -367 
+c top 5: -1507 -1523 -1493 367 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -376 
+c top 5: -1507 -1523 -1493 376 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -385 
+c top 5: -1507 -1523 -1493 385 
+c top 5: -1507 -1523 -1493 
+c top 5: -1507 -1523 -1493 -388 
+c freeVariables 1048577
+c top 5: -1507 
+c top 5: -1507 -655 
+c top 5: -1507 -655 -652 
+c top 5: -1507 655 
+c top 5: -1507 
+c top 5: -1507 -664 
+c top 5: -1507 -664 -661 
+c top 5: -1507 664 
+c top 5: -1507 
+c top 5: -1507 -673 
+c top 5: -1507 -673 -670 
+c top 5: -1507 673 
+c top 5: -1507 
+c top 5: -1507 -682 
+c top 5: -1507 -682 -679 
+c top 5: -1507 682 
+c top 5: -1507 
+c top 5: -1507 -691 
+c top 5: -1507 -691 -688 
+c top 5: -1507 691 
+c top 5: -1507 
+c top 5: -1507 -700 
+c top 5: -1507 -700 -697 
+c top 5: -1507 700 
+c top 5: -1507 
+c top 5: -1507 -709 
+c top 5: -1507 -709 -706 
+c top 5: -1507 709 
+c top 5: -1507 
+c top 5: -1507 -718 
+c top 5: -1507 -718 -717 
+c top 5: -1507 718 
+c top 5: -1507 
+c top 5: -1507 
+c top 5: -1507 -745 
+c top 5: -1507 -745 -742 
+c top 5: -1507 745 
+c top 5: -1507 
+c top 5: -1507 -754 
+c top 5: -1507 -754 -751 
+c top 5: -1507 754 
+c top 5: -1507 
+c top 5: -1507 -763 
+c top 5: -1507 -763 -760 
+c top 5: -1507 763 
+c top 5: -1507 
+c top 5: -1507 -772 
+c top 5: -1507 -772 -769 
+c top 5: -1507 772 
+c top 5: -1507 
+c top 5: -1507 -781 
+c top 5: -1507 -781 -778 
+c top 5: -1507 781 
+c top 5: -1507 
+c top 5: -1507 -790 
+c top 5: -1507 -790 -787 
+c top 5: -1507 790 
+c top 5: -1507 
+c top 5: -1507 -799 
+c top 5: -1507 -799 -796 
+c top 5: -1507 799 
+c top 5: -1507 
+c top 5: -1507 -808 
+c top 5: -1507 -808 -805 
+c top 5: -1507 808 
+c top 5: -1507 
+c top 5: -1507 -817 
+c top 5: -1507 -817 -814 
+c top 5: -1507 817 
+c top 5: -1507 
+c top 5: -1507 -826 
+c top 5: -1507 -826 -823 
+c top 5: -1507 826 
+c top 5: -1507 
+c top 5: -1507 -835 
+c top 5: -1507 -835 -832 
+c top 5: -1507 835 
+c top 5: -1507 
+c top 5: -1507 -844 
+c top 5: -1507 -844 -841 
+c top 5: -1507 844 
+c top 5: -1507 
+c top 5: -1507 -853 
+c top 5: -1507 -853 -850 
+c top 5: -1507 853 
+c top 5: -1507 
+c top 5: -1507 -862 
+c top 5: -1507 -862 -859 
+c top 5: -1507 862 
+c top 5: -1507 
+c top 5: -1507 -871 
+c top 5: -1507 -871 -868 
+c top 5: -1507 871 
+c top 5: -1507 
+c top 5: -1507 -880 
+c top 5: -1507 -880 -877 
+c top 5: -1507 880 
+c top 5: -1507 
+c top 5: -1507 -907 
+c top 5: -1507 -907 -904 
+c top 5: -1507 907 
+c top 5: -1507 
+c top 5: -1507 -916 
+c top 5: -1507 -916 -913 
+c top 5: -1507 916 
+c top 5: -1507 
+c top 5: -1507 -925 
+c top 5: -1507 -925 -922 
+c top 5: -1507 925 
+c top 5: -1507 
+c top 5: -1507 -934 
+c top 5: -1507 -934 -931 
+c top 5: -1507 934 
+c top 5: -1507 
+c top 5: -1507 -943 
+c top 5: -1507 -943 -940 
+c top 5: -1507 943 
+c top 5: -1507 
+c top 5: -1507 -952 
+c top 5: -1507 -952 -949 
+c top 5: -1507 952 
+c top 5: -1507 
+c top 5: -1507 -961 
+c top 5: -1507 -961 -958 
+c top 5: -1507 961 
+c top 5: -1507 
+c top 5: -1507 -970 
+c top 5: -1507 -970 -967 
+c top 5: -1507 970 
+c top 5: -1507 
+c top 5: -1507 -979 
+c top 5: -1507 -979 -976 
+c top 5: -1507 979 
+c top 5: -1507 
+c top 5: -1507 -988 
+c top 5: -1507 -988 -985 
+c top 5: -1507 988 
+c top 5: -1507 
+c top 5: -1507 -997 
+c top 5: -1507 -997 -994 
+c top 5: -1507 997 
+c top 5: -1507 
+c top 5: -1507 -1006 
+c top 5: -1507 -1006 -1003 
+c top 5: -1507 1006 
+c top 5: -1507 
+c top 5: -1507 -1015 
+c top 5: -1507 -1015 -1012 
+c top 5: -1507 1015 
+c top 5: -1507 
+c top 5: -1507 -1024 
+c top 5: -1507 -1024 -1021 
+c top 5: -1507 1024 
+c top 5: -1507 
+c top 5: -1507 -1033 
+c top 5: -1507 -1033 -1030 
+c top 5: -1507 1033 
+c top 5: -1507 
+c top 5: -1507 -1042 
+c top 5: -1507 -1042 -1039 
+c top 5: -1507 1042 
+c top 5: -1507 
+c top 5: -1507 -1069 
+c top 5: -1507 -1069 -1066 
+c top 5: -1507 1069 
+c top 5: -1507 
+c top 5: -1507 -1078 
+c top 5: -1507 -1078 -1075 
+c top 5: -1507 1078 
+c top 5: -1507 
+c top 5: -1507 -1087 
+c top 5: -1507 -1087 -1084 
+c top 5: -1507 1087 
+c top 5: -1507 
+c top 5: -1507 -1096 
+c top 5: -1507 -1096 -1093 
+c top 5: -1507 1096 
+c top 5: -1507 
+c top 5: -1507 -1105 
+c top 5: -1507 -1105 -1102 
+c top 5: -1507 1105 
+c top 5: -1507 
+c top 5: -1507 -1114 
+c top 5: -1507 -1114 -1111 
+c top 5: -1507 1114 
+c top 5: -1507 
+c top 5: -1507 -1123 
+c top 5: -1507 -1123 -1120 
+c top 5: -1507 1123 
+c top 5: -1507 
+c top 5: -1507 -1132 
+c top 5: -1507 -1132 -1129 
+c top 5: -1507 1132 
+c top 5: -1507 
+c top 5: -1507 -1141 
+c top 5: -1507 -1141 -1138 
+c top 5: -1507 1141 
+c top 5: -1507 
+c top 5: -1507 -1150 
+c top 5: -1507 -1150 -1147 
+c top 5: -1507 1150 
+c top 5: -1507 
+c top 5: -1507 -1159 
+c top 5: -1507 -1159 -1156 
+c top 5: -1507 1159 
+c top 5: -1507 
+c top 5: -1507 -1168 
+c top 5: -1507 -1168 -1165 
+c top 5: -1507 1168 
+c top 5: -1507 
+c top 5: -1507 -1177 
+c top 5: -1507 -1177 -1174 
+c top 5: -1507 1177 
+c top 5: -1507 
+c top 5: -1507 -1186 
+c top 5: -1507 -1186 -1183 
+c top 5: -1507 1186 
+c top 5: -1507 
+c top 5: -1507 -1195 
+c top 5: -1507 -1195 -1192 
+c top 5: -1507 1195 
+c top 5: -1507 
+c top 5: -1507 -1204 
+c top 5: -1507 -1204 -1201 
+c top 5: -1507 1204 
+c top 5: -1507 
+c top 5: -1507 -1231 
+c top 5: -1507 -1231 -1228 
+c top 5: -1507 1231 
+c top 5: -1507 
+c top 5: -1507 -1240 
+c top 5: -1507 -1240 -1237 
+c top 5: -1507 1240 
+c top 5: -1507 
+c top 5: -1507 -1249 
+c top 5: -1507 -1249 -1246 
+c top 5: -1507 1249 
+c top 5: -1507 
+c top 5: -1507 -1258 
+c top 5: -1507 -1258 -1255 
+c top 5: -1507 1258 
+c top 5: -1507 
+c top 5: -1507 -1267 
+c top 5: -1507 -1267 -1264 
+c top 5: -1507 1267 
+c top 5: -1507 
+c top 5: -1507 -1276 
+c top 5: -1507 -1276 -1273 
+c top 5: -1507 1276 
+c top 5: -1507 
+c top 5: -1507 -1285 
+c top 5: -1507 -1285 -1282 
+c top 5: -1507 1285 
+c top 5: -1507 
+c top 5: -1507 -1294 
+c top 5: -1507 -1294 -1291 
+c top 5: -1507 1294 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 126931
+c Number of split formula: 184282
+c Number of decision node: 63465
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 45601
+c Number of backbone calls: 0
+c Number of partitioner calls: 23744
+c Average number of assigned literal to obtain decomposable AND nodes: 40678.19/44805
+c Minimum number of assigned variable where a decomposable AND appeared: 31027
+c 
+c [33mGraph Information[0m
+c Number of nodes: 55068764
+c Number of edges: 55270910
+c 
+c [1m[34mCache Information[0m
+c Memory used: 866 MB
+c
+c Number of positive hit: 185912
+c Number of negative hit: 63649
+c Number of reduceCall: 0
+c
+c Final time: 578.027962
+c 
+s 0.000000
+D4 LOG: Elapsed time = 592.843 seconds
+D4 OUTCOME: normal
+mc2023_track1_133. D4 NNF: LOG: size ./mc2023_track1_133.nnf 420650 lines 357094185 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2023_track1_133.cnf ./mc2023_track1_133.nnf ./mc2023_track1_133.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time 0.04  Read input file with 44805 variables and 149118 clauses
+c Read D4 NNF file with 236368 nodes (109253 explicit) and 311397 edges
+c Compressed POG has 227181 nodes, root literal 271986, and 55600336 defining clauses
+c POG has DAG size 55600336 and tree size 139886817 ratio = 2.52
+c GEN: Time 12.58  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 12.636 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 605.677 seconds
+OVERALL OUTCOME: normal

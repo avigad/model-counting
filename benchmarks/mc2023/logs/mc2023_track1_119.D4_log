@@ -1,0 +1,100 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2023_track1_119.cnf -dDNNF -out=./mc2023_track1_119.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 37821
+c Number of clauses: 124485
+c Number of literals: 323039
+c Preproc options: 
+c
+c Preproc time: 0.019507
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -395 
+c top 5: -395 -857 
+c top 5: -395 -857 -25149 
+c top 5: -395 -857 -25149 -13 
+c unitLits 1048577 4194308 Bytes
+c unitLits 2097153 8388612 Bytes
+c unitLits 3145729 12582916 Bytes
+c unitLits 4194305 16777220 Bytes
+c top 5: -395 -857 -25149 -13 
+c top 5: -395 -857 -25149 13 
+c unitLits 5242881 20971524 Bytes
+c unitLits 6291457 25165828 Bytes
+c unitLits 7340033 29360132 Bytes
+c top 5: -395 -857 -25149 
+c top 5: -395 857 
+c top 5: -395 857 -641 
+c top 5: -395 857 -641 -645 
+c unitLits 8388609 33554436 Bytes
+c top 5: -395 857 -641 645 
+c unitLits 9437185 37748740 Bytes
+c unitLits 10485761 41943044 Bytes
+c unitLits 11534337 46137348 Bytes
+c      16384 |     141.15 |      30082 |       8247 |      30784 |        661 |   11070466 |   11104407 |          0 |       8196 |        5015 |          0 | 
+c top 5: -395 857 641 
+c top 5: -395 857 641 -645 
+c unitLits 12582913 50331652 Bytes
+c unitLits 13631489 54525956 Bytes
+c unitLits 14680065 58720260 Bytes
+c unitLits 15728641 62914564 Bytes
+c top 5: -395 857 641 645 
+c unitLits 16777217 67108868 Bytes
+c unitLits 17825793 71303172 Bytes
+c unitLits 18874369 75497476 Bytes
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 25751
+c Number of split formula: 48113
+c Number of decision node: 12875
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 8409
+c Number of backbone calls: 0
+c Number of partitioner calls: 7126
+c Average number of assigned literal to obtain decomposable AND nodes: 32856.10/37821
+c Minimum number of assigned variable where a decomposable AND appeared: 11227
+c 
+c [33mGraph Information[0m
+c Number of nodes: 17902606
+c Number of edges: 17955185
+c 
+c [1m[34mCache Information[0m
+c Memory used: 691 MB
+c
+c Number of positive hit: 47513
+c Number of negative hit: 12929
+c Number of reduceCall: 0
+c
+c Final time: 204.943296
+c 
+s 0.000000
+D4 LOG: Elapsed time = 212.751 seconds
+D4 OUTCOME: normal
+mc2023_track1_119. D4 NNF: LOG: size ./mc2023_track1_119.nnf 95259 lines 115037118 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2023_track1_119.cnf ./mc2023_track1_119.nnf ./mc2023_track1_119.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time 0.03  Read input file with 37821 variables and 124485 clauses
+c Read D4 NNF file with 47146 nodes (21341 explicit) and 73918 edges
+c Compressed POG has 46437 nodes, root literal 84258, and 18025856 defining clauses
+c POG has DAG size 18025856 and tree size 60047126 ratio = 3.33
+c GEN: Time 4.12  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 4.143 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 216.955 seconds
+OVERALL OUTCOME: normal

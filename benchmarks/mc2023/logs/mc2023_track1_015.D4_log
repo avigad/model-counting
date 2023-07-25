@@ -1,0 +1,101 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2023_track1_015.cnf -dDNNF -out=./mc2023_track1_015.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 16099
+c Number of clauses: 28896
+c Number of literals: 51160
+c Preproc options: 
+c
+c Preproc time: 0.003473
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -11499 
+c top 5: -11499 -11117 
+c top 5: -11499 -11117 -11641 
+c top 5: -11499 -11117 -11641 -12277 
+c unitLits 1048577 4194308 Bytes
+c top 5: -11499 -11117 -11641 12277 
+c top 5: -11499 -11117 11641 
+c top 5: -11499 -11117 11641 -4264 
+c top 5: -11499 -11117 11641 -4264 
+c top 5: -11499 -11117 11641 4264 
+c unitLits 2097153 8388612 Bytes
+c top 5: -11499 11117 
+c top 5: -11499 11117 -2509 
+c top 5: -11499 11117 -2509 2559 
+c top 5: -11499 11117 2509 
+c top 5: -11499 11117 2509 -2519 
+c top 5: -11499 11117 2509 2519 
+c      16384 |       1.46 |      27391 |       8198 |      28322 |        588 |    1263865 |    1291880 |          0 |       8198 |        1751 |          0 | 
+c top 5: 11499 
+c top 5: 11499 -4279 
+c top 5: 11499 -4279 -4607 
+c top 5: 11499 -4279 -4607 -2519 
+c top 5: 11499 -4279 -4607 -2519 
+c top 5: 11499 -4279 -4607 2519 
+c top 5: 11499 -4279 -4607 2519 
+c top 5: 11499 -4279 4607 
+c top 5: 11499 -4279 
+c top 5: 11499 4279 
+c top 5: 11499 4279 -4607 
+c top 5: 11499 4279 -4607 -2519 
+c top 5: 11499 4279 -4607 2519 
+c top 5: 11499 4279 4607 
+c top 5: 11499 4279 4607 -2519 
+c top 5: 11499 4279 4607 2519 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 19851
+c Number of split formula: 34769
+c Number of decision node: 9925
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 10179
+c Number of backbone calls: 0
+c Number of partitioner calls: 2139
+c Average number of assigned literal to obtain decomposable AND nodes: 15368.38/16099
+c Minimum number of assigned variable where a decomposable AND appeared: 13844
+c 
+c [33mGraph Information[0m
+c Number of nodes: 1583397
+c Number of edges: 1617912
+c 
+c [1m[34mCache Information[0m
+c Memory used: 588 MB
+c
+c Number of positive hit: 33828
+c Number of negative hit: 9925
+c Number of reduceCall: 0
+c
+c Final time: 1.890066
+c 
+s 0.000000
+D4 LOG: Elapsed time = 2.346 seconds
+D4 OUTCOME: normal
+mc2023_track1_015. D4 NNF: LOG: size ./mc2023_track1_015.nnf 74727 lines 10385711 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2023_track1_015.cnf ./mc2023_track1_015.nnf ./mc2023_track1_015.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time 0.01  Read input file with 16099 variables and 28896 clauses
+c Read D4 NNF file with 39958 nodes (20107 explicit) and 54620 edges
+c Compressed POG has 39939 nodes, root literal 56038, and 1685386 defining clauses
+c POG has DAG size 1685386 and tree size 32324117 ratio = 19.18
+c GEN: Time 0.45  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 0.486 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 2.850 seconds
+OVERALL OUTCOME: normal
