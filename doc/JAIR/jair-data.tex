@@ -1,0 +1,493 @@
+\documentclass[twoside,11pt]{article}
+\usepackage{jair, theapa, rawfonts}
+
+\jairheading{1}{2024}{1--16}{10/22}{03/24}
+
+\ShortHeadings{Certified Knowledge Compilation}{Bryant, Nawrocki, Avigad, \& Heule}
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\newcommand{\pand}{\mathbin{\land^{\sf p}}}
+\newcommand{\por}{\mathbin{\lor^{\sf p}}}
+\DeclareMathOperator*{\Pand}{\bigwedge^{\sf v}}
+\DeclareMathOperator*{\Por}{\bigvee^{\sf a}}
+\newcommand{\boolnot}{\neg}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\oneminus}{{\sim}}
+\newcommand{\lit}{\ell}
+
+\newcommand{\varset}{X}
+\newcommand{\exvarset}{Z}
+\newcommand{\dependencyset}{{\cal D}}
+\newcommand{\litset}{{\cal L}}
+\newcommand{\ring}{{\cal R}}
+\newcommand{\dset}{{\cal A}}
+\newcommand{\rep}{\textbf{R}}
+\newcommand{\radd}{+}
+\newcommand{\rmul}{\times}
+\newcommand{\addident}{\textbf{0}}
+\newcommand{\mulident}{\textbf{1}}
+\newcommand{\imply}{\Rightarrow}
+
+\newcommand{\assign}{\alpha}
+\newcommand{\passign}{\rho}
+\newcommand{\uassign}{{\cal U}}
+\newcommand{\modelset}{{\cal M}}
+
+\newcommand{\indegree}{\textrm{indegree}}
+\newcommand{\outdegree}{\textrm{outdegree}}
+\newcommand{\validate}{\textsf{validate}}
+
+\newcommand{\makenode}[1]{\mathbf{#1}}
+\newcommand{\nodeu}{\makenode{u}}
+\newcommand{\nodev}{\makenode{v}}
+\newcommand{\nodes}{\makenode{s}}
+\newcommand{\nodep}{\makenode{p}}
+\newcommand{\noder}{\makenode{r}}
+
+\newcommand{\simplify}[2]{#1|_{#2}}
+\newcommand{\prov}{\mathit{Prov}}
+
+\bibliographystyle{theapa}
+
+\title{Certified Knowledge Compilation \\ with Application to Verified Model Counting \\ Experimental Details }
+
+\author{\name Randal E. Bryant \email rebryant@cmu.edu \\
+  \name Wojciech Nawrocki \email wjnawrock@cmu.edu \\
+  \name Jeremy Avigad \email avigad@cmu.edu \\
+  \name Marijn J. H. Heule \email marijn@cmu.edu \\
+  \addr Carnegie Mellon University \\ Pittsburgh, PA  USA}
+
+\newcommand{\program}[1]{\textsc{#1}}
+\newcommand{\lean}{\program{lean4}}
+
+\begin{document}
+
+\maketitle
+
+\definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
+\definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
+\definecolor{clearyellow}{rgb}{0.964706, 0.745098, 0}
+\definecolor{clearorange}{rgb}{0.917647, 0.462745, 0}
+\definecolor{mildgray}{rgb}{0.54902, 0.509804, 0.47451}
+\definecolor{softblue}{rgb}{0.643137, 0.858824, 0.909804}
+\definecolor{bluegray}{rgb}{0.141176, 0.313725, 0.603922}
+\definecolor{lightgreen}{rgb}{0.709804, 0.741176, 0}
+\definecolor{darkgreen}{rgb}{0.152941, 0.576471, 0.172549}
+\definecolor{redpurple}{rgb}{0.835294, 0, 0.196078}
+\definecolor{midblue}{rgb}{0, 0.592157, 0.662745}
+\definecolor{clearpurple}{rgb}{0.67451, 0.0784314, 0.352941}
+\definecolor{browngreen}{rgb}{0.333333, 0.313725, 0.145098}
+\definecolor{darkestpurple}{rgb}{0.396078, 0.113725, 0.196078}
+\definecolor{greypurple}{rgb}{0.294118, 0.219608, 0.298039}
+\definecolor{darkturquoise}{rgb}{0, 0.239216, 0.298039}
+\definecolor{darkbrown}{rgb}{0.305882, 0.211765, 0.160784}
+\definecolor{midgreen}{rgb}{0.560784, 0.6, 0.243137}
+\definecolor{darkred}{rgb}{0.576471, 0.152941, 0.172549}
+\definecolor{darkpurple}{rgb}{0.313725, 0.027451, 0.470588}
+\definecolor{darkestblue}{rgb}{0, 0.156863, 0.333333}
+\definecolor{lightpurple}{rgb}{0.776471, 0.690196, 0.737255}
+\definecolor{softgreen}{rgb}{0.733333, 0.772549, 0.572549}
+\definecolor{offwhite}{rgb}{0.839216, 0.823529, 0.768627}
+\definecolor{medgreen}{rgb}{0.15, 0.6, 0.15}
+
+\begin{abstract}
+  This document gives details on the experiments
+\end{abstract}
+  
+
+\section*{Benchmark machine}
+\begin{itemize}
+\item 2021 MacBook Pro 18,4
+  \begin{itemize}
+  \item 3.2 Ghz Apple M1 processor
+  \item 64 GB Ram
+  \end{itemize}
+\item  Samsung T7 solid-state disk
+  \begin{itemize}
+  \item 2TB capacity
+  \item Up to 1 GB/s R/W
+  \item Critical for performance.  Wrote and read files of over 162 GB.
+  \end{itemize}
+\end{itemize}
+
+\section*{Methodology}
+\begin{enumerate}
+   \item Retrieved 200 public model counting benchmarks from 2022 Model Counting Competition website
+     \begin{center}
+       \url{https://mccompetition.org/2022/mc_description.html}
+     \end{center}
+     \begin{itemize}
+     \item 100 public instances from Track 1 (unweighted model counting)
+     \item 100 public instances from Track 2 (weighted model counting)
+     \end{itemize}
+   \item Removed duplicates
+     \begin{itemize}
+    \item  20 instances were duplicated in the two tracks.  
+     \item Reduced set of benchmarks to 180 by including some from Track 1 and some from Track 2
+     \end{itemize}
+   \item Ran D4 on 180 instances with time limit of 4000 seconds
+     \begin{itemize}
+     \item Completed for 123 instances
+     \end{itemize}
+   \item Generated POG representations from dDNNF graphs
+     \begin{itemize}
+     \item Simplifications via constant propagation
+       \begin{itemize}
+       \item Number of POG nodes around ranged between $0.35\times$
+         and $1.0\times$ number of dDNNF nodes (harmonic mean =
+         $0.81\times$).  Greater optimizations with smaller
+         benchmarks.
+       \end{itemize}
+     \item Used heuristics to identify root node, and then put in topological order with root node at end.
+     \item Successfully generated POG representation for 122 benchmarks
+       \begin{itemize}
+         \item One failed with too many defining clauses (2,761,457,765).  That count exceeded the 32-bit signed integer used to represent clause identifiers.
+       \end{itemize}
+       
+     \item Measure complexity by number of defining clauses $D$
+       \begin{itemize}
+       \item Product or sum node with degree $k$ requires $k+1$ clauses
+       \item $D$ also equals sum of number of edges and number of nodes
+       \item For 122 instances, Min = 304, Median = 848,784, Mean = 93,107,937, Max = 2,761,457,765
+       \end{itemize}
+
+     \item Also measure \emph{tree ratio}: $D_t / D$.
+       \begin{itemize}
+       \item $D_t$ Number of defining clauses if graph were expanded to have no shared subgraphs (i.e., a tree)
+       \item $D$ Number of defining clauses for the POG representation
+       \item Provides an indication of the importance of exploiting shared subgraphs in the POG generation
+       \end{itemize}
+
+
+     \item Performance (122 instances):
+       \begin{itemize}
+       \item Times: Min = 0.012 secs, Max = 2804.5 secs, Median = 3.46 secs
+       \item Defining clauses: Min = 304, Max = 1,765,743,261, Median = 774,883
+       \item Tree ratio: Min = 1.0, Max = 52,409.7, Median = 11.61, Harmonic Mean = 3.21
+       \item Tree Sizes ($D_t$): Min = 304, max = 14,924,670,455,484, median = 7,669,582.
+       \end{itemize}
+     \end{itemize}
+\end{enumerate}
+
+\section*{Selecting Reduced Benchmark Set}
+       
+To make the experiments tractable, want to select set of benchmarks that are more tractable.
+Limit set to the 92 with at most $10^7$ defining clauses.
+
+D4 Performance (92 instances):
+       \begin{itemize}
+       \item Times: Min = 0.012 secs, Max = 1672.9 secs, Median = 1.85 secs
+       \item Defining clauses: Min = 304, Max = 8,493,275, Median = 378,325
+       \item Tree ratio: Min = 1.0, Max = 363.9, Median = 9.37, Harmonic Mean = 2.87
+       \item Tree Sizes ($D_t$): Min = 304, max = 1,205,743,897, median = 2,690,776
+       \end{itemize}
+
+\section*{CPOG Generation}
+
+We have devised two different approaches to generating the forward implication proof from the dec-DNNF generated by {\sc D4}:
+\begin{description}
+\item[Monolithic:] Make a single call to a proof generating SAT solver.
+\item[Structured:] Traverse the POG top-down and recursively generate a forward implication proof for each node encountered.  Lemmas can be introduced to avoid an exponential expansion of the POG into a tree.
+\end{description}
+
+Our implementation also allows a hybrid of these approaches: at any
+point in the traversal, it can generate a proof for a node via a
+single call to a SAT solver.  This capability supports both full
+monolithic generation (perform monolithic generation at the POG root),
+full structured generation (continue traversing to the POG leaves), or
+a balance between the two.
+The challenge is then to devise a
+heuristic criterion for deciding whether to continue the traversal below
+some node or to generate a proof for that node monolithically.
+
+Our first set of experiments applies full monolithic and full structured generation to the reduced benchmark set.  We set a time limit of 1000 seconds for the proof generation.
+
+\end{document}
+
+\section*{Computing Counts and Weighted Counts}
+
+\begin{itemize}
+\item Implemented C package to represent numbers of form $a \cdot 2^b \cdot 5^c$.
+  \begin{itemize}
+  \item For unweighted counts, first compute density and then scale by $2^n$
+  \item For unweighted counts, perform exact decimal arithmetic
+  \item The set of numbers of this form is not closed under a reciprocal operation, but the weights in the competion are either of the form
+    $w(x) + w(\overline{x}) = 1.0$ or $w(x) = w(\overline{x}) = 1$.  The latter case sums to 2, with reciprocal $1/2$.
+  \end{itemize}
+\item Can implement having $a$ be integer of arbitrary size and $b$ and $c$ being 32-bit integers.
+  \begin{itemize}
+    \item Represent $a$ by ``digits,'' each ranging in value from $0$ to $10^9-1$.
+    \item Fits in 32-bit number
+    \item Easy scaling by 10
+    \item Easy conversion to/from decimal string
+  \end{itemize}
+\item Weighted counts ranged up to 260,909 decimal digits.
+\end{itemize}
+
+
+\section*{Time to Generate, Validate, and Count CPOG}
+
+\begin{itemize}
+\item Min 0.012, Average 1,329.8, Max 13,198.3, Median 75.4
+\item Ratio to time for D4: Min 0.51, Harmonic Mean 5.87, Max 465.8
+\end{itemize}
+
+
+\input{figure-runtime-d4-verify}
+
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 0.90]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=3000000000,
+      legend style={at={(0.30,0.98)}},
+      legend cell align={left},
+                              x post scale=1.8, y post scale=1.8,
+                              xmode=log, xmin=0.01,xmax=4000,
+                              xtick={0.01, 0.1,1.0,10,100,1000,10000}, xticklabels={0.01, 0.1, 1.0, 10, 100, {1,000}, {10,000}},
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000, 1e10}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$,$10^{10}$},
+                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \input{data-formatted/time+defining-success}
+    \input{data-formatted/time+defining-onesided-only}
+    \input{data-formatted/time+defining-failure}
+    \legend{
+      \scriptsize \textsf{Full validation},
+      \scriptsize \textsf{One-sided validation},
+      \scriptsize \textsf{Resource limit exceeded},
+    }
+ \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Number of defining clauses in generated POG as function of D4 runtime}
+\label{fig:generate:d4:log}
+\end{figure}
+
+\section*{Generated CPOG Files}
+
+\begin{itemize}
+\item Proof Clauses: Min 554, Median 1,719,245, Average 45,001,945, Max 770,382,773
+\item Ratio to number of defining clauses: Min 1.54, Harmonic Mean 3.13, Max 6072.96
+\end{itemize}
+
+
+\input{figure-clauses-d4-result}
+
+
+
+\section*{Benefits of Optimizations}
+
+Two optimizations were implemented within the CPOG framework:
+\begin{description}
+\item[Lemmas:] Nodes with indegree greater than one were validated with separate lemmas, avoiding the possibly exponential expansion of the POG into a tree during the proof construction.
+
+\item[Literal grouping:] For a product node with multiple literal
+  arguments, those that cannot be validated by BCP are combined as
+  arguments to a newly defined product node.  The extension variable
+  associated with this node is validated, and the proof is then used
+  to validate the literals.  This reduces the number of
+  calls to the SAT solver to at most one per product node.
+\end{description}
+
+
+\input{figure-clauses-optimizations}
+
+
+We conducted a set of experiments using the 80 benchmark instances for
+which the total number of proof clauses when both optimizations are
+performed was limited to $10^7$.  We then made three additional runs
+of the CPOG generator and checker, with each of the two optimizations
+disabled individually and in combination.  Figures
+\ref{fig:optimized:partially-optimized}--\ref{fig:optimized:lessoptimized} illustrates the effect of the two
+optimizations.  Each set of points shows the number of clauses when
+both optimizations are performed for the $X$ value and the number with
+one or both of these optimizations disabled as the $Y$ value.
+
+The ratios between the number of clauses when either or both optimizations is disabled versus when both are enabled can be summarized as:
+\begin{description}
+\item[Without lemmas:] Min 1.00, Max 52.54, Harmonic mean 2.11
+\item[Without literal grouping:] Min 0.84, Max 39.60, Harmonic mean 1.18
+\item[Without either optimization:] Min 0.99, Max 52.54, Harmonic mean 2.95
+\end{description}
+
+Here are other ways to summarize the impact on proof length:
+\begin{itemize}
+\item None of the 80 benchmarks require more than $10^7$
+proof clauses when both optimizations are used.  Without lemmas, 19
+rise above that threshold.  Without literal merging, 7 do.  Without
+either, 25 rise above the threshold.  Two of the benchmarks require
+more than $10^8$ proof clauses without lemmas.
+\item
+  Of the 80 benchmark problems evaluated, and comparing with both
+  optimizations disabled, 47 had the number of proof clauses reduced
+  by a factor of 2 by using lemmas, 14 by using literal merging, and
+  60 by enabling both optimizations.
+\end{itemize}
+
+The time performance is less dramatic, but still significant.
+Comparing the sum of CPOG generation and checking times for each of
+the four combinations of options, we get the following times relative
+to the one with both optimizations enabled:
+\begin{description}
+\item[Without lemmas:] Min 0.89, Max 39.2, Harmonic mean 1.71
+\item[Without literal grouping:] Min 0.80, Max 3.77, Harmonic mean 1.11
+\item[Without either optimization:] Min 0.96, Max 43.69, Harmonic mean 2.20
+\end{description}
+
+Here is another way to summarize the impact on the combined time to generate and validate the CPOG file:
+\begin{itemize}
+\item Of the 80 benchmark problems evaluated, and comparing with both
+  optimizations disabled, 40 had the time reduced by at least a factor of 2
+  using lemmas, 6 by using literal merging, and 48 by enabling both
+  optimizations.
+\end{itemize}
+
+\section{Comparing Monolithic and Structured Validation}
+
+\input{figure-runtime-monolithic}
+
+\input{figure-clauses-monolithic}
+
+Ran all benchmarks for which generation + checking could complete in 1000 seconds.  Total = 83.  All completed in less than 1000 seconds with structured.
+Compare both runtimes and total number of clauses for structured vs. monolithic:
+\begin{itemize}
+\item Structured complete 83.
+\item Monolithic completed  70,timed out on 13.
+\item Of the 70 completed, 23 were faster with monolithic, 47 were slower (min ratio = 0.013, max ratio = 9.60, hmean = 0.36)
+\item Of the 70 completed, 60 had fewer total clauses with monolithic, 10 had more (min ratio = 0.07, max ratio = 1.09, hmean = 0.49)
+\end{itemize}
+
+\section{Preprocessing}
+
+\input{figure-runtime-preprocess}
+\input{figure-clauses-preprocess}
+
+Use preprocessor in D4.  Enable its three preprocessing methods
+(backbone, vivification, occElimination), all of which preserve
+equivalence.  Cannot use structured mode for forward implication
+proof, since modified clauses do not decompose in the way anticipated.
+
+Consider same 83 benchmarks used to compare monolithic vs. structured mode.
+Incorporate time to run D4 into evaluation, since differs according to
+how D4 runs.
+
+Runtime results:
+\begin{itemize}
+\item Monolithic without preprocessing completes 70  of them with an overall time less than 1000 seconds.
+\item Monolithic with prepreprocessing completes 69 (the one due to too much time on preprocessing)
+\item Of the 69, 53 run faster with preprocessing and 15 run slower (mininum ratio 0.04, maximum ratio 1.65, harmonic mean 0.38)
+\end{itemize}
+
+Clause results:
+\begin{itemize}
+\item Consider the 69 cases that completed for both with overall time less than 1000 seconds.
+\item 31 had fewer clauses with preprocessing, 17 were identical, and 21 had more.
+\item Min = 0.21, Max = 2.34, Harmonic mean = 0.85
+\end{itemize}
+
+
+\section{Benchmarking the \lean{} Proof Checker}
+
+Ran \lean{} checker on the benchmarks yielding at most $10^7$ clauses, with time limit of 1000 seconds.
+\begin{itemize}
+\item 80 total
+\item All ran to completion
+\item All but three ran within factor of $8\times$.  Outliers were small ones
+\item Harmonic mean = $5.43\times$.
+\end{itemize}
+
+\input{figure-check}
+
+
+\section{Comparison with MICE}
+
+\input{figure-mice-cpog}
+
+
+For comparison, we also ran the MICE tool chain for certifying model
+counters~\cite{fichte:sat:2022}.  Figure~\ref{fig:mice} compares the
+runtimes of our toolchain versus theirs.  The X-axis shows the sum of
+the elapsed times for our generator and checker/counter, while the
+Y-axis shows the sum of the elapsed times for \textsc{nnf2trace},
+generating a file in their trace format from a d-DNNF graph generated
+by D4, and for \textsc{sharptrace}, a checker and unweighted counter for the trace format
+The plot shows data points for those benchmarks for at least one of
+the two tools completed in less than 1000 seconds.
+
+In the figure, red dots indicate cases where neither program had an
+error, but it possibly timed out.  The time-out cases are shown along
+the upper edge (MICE) or the righthand edge (CPOG).
+
+As can be seen, there is not a strong correlation between the program
+runtimes.  This is, in part, because the two tools perform different
+roles: one validates the algorithmic steps used by a top-down model
+counting problem, while the other verifies the logical equivalence of
+a Boolean formula and a representation for which model counting can be
+done efficiently.
+
+Overall, we can summarize the results as:
+\begin{itemize}
+\item 84 total data points
+\item 76 were completed by both programs in under 1000 seconds
+\item Of those 21 were faster with MICE, 55 with CPOG
+\item 7 completed with CPOG under 1000 seconds but exceeded that threshold for MICE
+\item 1 completed with MICE under 1000 seconds but exceeded that threshold for CPOG
+\end{itemize}
+
+
+\section{Comparison with CD4 Toolchain}
+
+\input{figure-cd4-cpog}  
+
+Ran D4 with certificate logging enabled (by specifying DRAT file).
+Used 114 benchmarks for which regular D4 ran in under 1000 seconds.
+Measure time for entire toolchains (compilation, proof generation,
+checking).  Checking for CD4 includes running drat-trim.
+\begin{itemize}
+\item Completed 80 in under 1000 seconds for both
+  \begin{itemize}
+    \item 7 ran faster with POG framework, up to $2.8\times$; 73 ran slower, up to $119.8\times$.  Harmonic mean = $19.63\times$ slower.
+  \end{itemize}
+\item 2 completed in under 1000 seconds  with POGs but timed out with CD4.  Both had very few models and with long unsatisfiability proofs
+\item 28 completed in under 1000 seconds with CD4 but either timed out or failed with POGs.
+\item Remaining 4 exceeded 1000 seconds for both toolchains
+\end{itemize}
+
+Found that CD4 cannot handle files that are first preprocessed with D4's built-in preprocessors.
+
+\bibliography{references}
+
+
+\end{document}
+
+
+\begin{figure}
+\centering{%
+\begin{tikzpicture}[scale = 0.90]
+  \begin{axis}[mark options={scale=0.55},grid=both, grid style={black!10}, ymode=log, ymin=100, ymax=1000000000, 
+                              x post scale=1.8, y post scale=1.8,
+                              xmin=0,xmax=1000,
+                              xtick = {0,100,200,300,400,500,600,700,800,900,1000},
+                              ytick={100,1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000}, yticklabels={$10^2$,$10^3$,$10^4$,$10^5$,$10^6$,$10^7$,$10^8$,$10^9$},
+                              xlabel={D4 runtime (seconds)}, ylabel={Defining Clauses},
+%                              title={D4 Defining Clause Generation}
+            ]
+    \input{data-formatted/time+defining-success}
+    \input{data-formatted/time+defining-failure}
+          \end{axis}
+\end{tikzpicture}
+} % centering
+\caption{Number of defining clauses in generated POG as function of D4 runtime (X linear scale)}
+\label{fig:generate:d4}
+\end{figure}
+
+\end{description}
+
