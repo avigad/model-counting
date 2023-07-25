@@ -29,7 +29,7 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m MONO] [-r RPCT] [-p] [-L] [-G] [-F] [-t TIME] FILE.EXT ..." % name)
+    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m MONO] [-r RPCT] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -v       Set verbosity level")
@@ -42,7 +42,8 @@ def usage(name):
     print("  -L       Expand each node, rather than using lemmas")
     print("  -G       Prove each literal separately, rather than grouping into single proof")
     print("  -F       Run Lean checker to formally check")
-    print("  -t TIME  Limit time for generator")
+    print("  -t TIME  Limit time for each of the programs")
+    print("  -l NFILE Specify file containing root names")
     print("  EXT      Can be any extension for wild-card matching (e.g., cnf, nnf)")
 
 # Blocking file.  If present in directory, won't proceed.  Recheck every sleepTime seconds
@@ -61,6 +62,8 @@ useLemma = True
 group = True
 useLean = False
 d4v2 = False
+
+nameFile = None
 
 # Pathnames
 homePath = "/Users/bryant/repos"
@@ -84,6 +87,11 @@ timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 10000, "LCHECK" : 10000}
 clauseLimit = (1 << 31) - 1
 
 commentChar = 'c'
+
+def trim(s):
+    while len(s) > 0 and s[-1] in '\r\n':
+        s = s[:-1]
+    return s
 
 def setTimeLimit(t):
     global timeLimits
@@ -249,7 +257,8 @@ def runSequence(root, home, stopD4, stopGen, force):
     if oneSided:
         extension = "onesided_" + extension
     if monolithic_threshold is not None:
-        extension = "mono%d+%d_" % (monolithic_threshold, int(lemma_ratio * monolithic_threshold)) + extension
+        prefix = "mono" if monolithic_threshold < 0 else "structured" if monolithic_threshold == 0 else "m%d" % monolithic_threshold
+        extension = prefix + "_" + extension
     if preprocess:
         extension = "preprocess_" + extension
     if not useLemma:
@@ -312,12 +321,12 @@ def runBatch(home, fileList, stopD4, stopGen, force):
         runSequence(r, home, stopD4, stopGen, force)
 
 def run(name, args):
-    global verbLevel, useLemma, group, oneSided, monolithic_threshold, lemma_ratio, useLean, preprocess, d4v2
+    global verbLevel, useLemma, group, oneSided, monolithic_threshold, lemma_ratio, useLean, preprocess, d4v2, nameFile
     home = "."
     stopD4 = False
     stopGen = False
     force = False
-    optList, args = getopt.getopt(args, "hfv:12m:r:pLGFs:t:")
+    optList, args = getopt.getopt(args, "hfv:12m:r:pLGFs:t:l:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -353,11 +362,26 @@ def run(name, args):
                 return
         elif opt == '-t':
             setTimeLimit(int(val))
+        elif opt == '-l':
+            nameFile = val
         else:
             print("Unknown option '%s'" % opt)
             usage(name)
             return
-    runBatch(home, args, stopD4, stopGen, force)
+    fileList = args
+    if nameFile is not None:
+        try:
+            nfile = open(nameFile, 'r')
+        except:
+            print("Couldn't open name file '%s'" % nameFile)
+            usage(name)
+            return
+        for line in nfile:
+            fname = trim(line)
+            fileList.append(fname)
+        nfile.close
+            
+    runBatch(home, fileList, stopD4, stopGen, force)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
