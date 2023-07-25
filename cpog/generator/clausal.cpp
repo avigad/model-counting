@@ -997,7 +997,7 @@ Cnf_reasoner::Cnf_reasoner(FILE *infile) : Cnf(infile) {
     use_lemmas = true;
     delete_files = true;
     drat_threshold = 1000;
-    monolithic_threshold = 1000;
+    monolithic_threshold = 0;
     lemma_ratio = 10.0;
     clause_limit = INT_MAX;
     bcp_limit = 1;

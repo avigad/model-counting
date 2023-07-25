@@ -756,7 +756,7 @@ int Pog::apply_lemma(Pog_node *rp, int splitting_literal) {
 			      rp->name(), lemma->signature);
 #endif
 	cnf->setup_proof(lemma);
-	if (rp->get_tree_size() <= cnf->monolithic_threshold * cnf->lemma_ratio)
+	if (cnf->monolithic_threshold < 0 || rp->get_tree_size() <= cnf->monolithic_threshold * cnf->lemma_ratio)
 	    lemma->jid = justify_monolithic(lemma->xvar, lemma->splitting_literal);
 	else
 	    lemma->jid = justify(lemma->xvar, lemma->splitting_literal, false);
@@ -805,7 +805,7 @@ int Pog::justify(int rlit, int splitting_literal, bool use_lemma) {
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
-	if (rnp->get_tree_size() <= cnf->monolithic_threshold)
+	if (cnf->monolithic_threshold < 0 || rnp->get_tree_size() <= cnf->monolithic_threshold)
 	    return justify_monolithic(rlit, splitting_literal);
 	if (use_lemma && cnf->use_lemmas && rnp->want_lemma()) {
 	    int jid = apply_lemma(rnp, splitting_literal);

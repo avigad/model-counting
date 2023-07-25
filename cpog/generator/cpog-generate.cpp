@@ -31,7 +31,7 @@ void usage(const char *name) {
     lprintf("  -L LOG    Record all results to file LOG\n");
     lprintf("  -p        Quit after determining POG size\n");
     lprintf("  -1        Generate a one-sided proof (only input clause deletions justified)\n");
-    lprintf("  -m MONO   Monolithically validate subgraphs with tree size <= MONO\n");
+    lprintf("  -m MONO   Monolithically validate subgraphs with tree size <= MONO (use -1 for unbounded)\n");
     lprintf("  -r RAT    Scale factor for tree size threshold when lemma\n");
     lprintf("  -C CLIM   Limit total number of clauses in input + proof (default = %d)\n", clause_limit);
     lprintf("  -b BLIM   Limit depth of Boolean constraint propagation for contradiction proofs (default = %d)\n", bcp_limit);
@@ -342,7 +342,10 @@ int main(int argc, char *const argv[]) {
 	lprintf("%s   DRAT threshold:      %d\n", prefix, drat_threshold);
 	lprintf("%s   Clause limit:        %d\n", prefix, clause_limit);
 	lprintf("%s   BCP limit:           %d\n", prefix, bcp_limit);
-	lprintf("%s   Monolithic threshold %d\n", prefix, monolithic_threshold);
+	if (monolithic_threshold >= 0)
+	    lprintf("%s   Monolithic threshold %d\n", prefix, monolithic_threshold);
+	else
+	    lprintf("%s   Monolithic threshold unbounded\n", prefix);
 	lprintf("%s   Lemma ratio          %.2f\n", prefix, lemma_ratio);
 	lprintf("%s   Solver:              %s\n", prefix, sname);
     }
