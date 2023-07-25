@@ -1,0 +1,326 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2023_track2_025.cnf -dDNNF -out=./mc2023_track2_025.nnf
+D4 LOG: Time limit 4000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 2649
+c Number of clauses: 6674
+c Number of literals: 16166
+c Preproc options: 
+c
+c Preproc time: 0.000879
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -96 
+c top 5: -96 -80 
+c top 5: -96 -80 -72 
+c top 5: -96 -80 -72 -68 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -96 -80 -72 68 
+c top 5: -96 -80 72 
+c top 5: -96 -80 72 -76 
+c top 5: -96 -80 72 76 
+c top 5: -96 80 
+c top 5: -96 80 -88 
+c top 5: -96 80 -88 -84 
+c top 5: -96 80 -88 84 
+c top 5: -96 80 88 
+c top 5: -96 80 88 -92 
+c top 5: -96 80 88 92 
+c top 5: 96 
+c top 5: 96 -112 
+c top 5: 96 -112 -104 
+c top 5: 96 -112 -104 -100 
+c top 5: 96 -112 -104 100 
+c top 5: 96 -112 104 
+c top 5: 96 -112 104 -108 
+c top 5: 96 -112 104 108 
+c top 5: 96 112 
+c top 5: 96 112 -120 
+c top 5: 96 112 -120 -116 
+c top 5: 96 112 -120 116 
+c top 5: 96 112 120 
+c top 5: 96 112 120 -124 
+c top 5: 96 112 120 124 
+c top 5: -223 
+c top 5: -223 -207 
+c top 5: -223 -207 -199 
+c top 5: -223 -207 -199 -195 
+c top 5: -223 -207 -199 195 
+c top 5: -223 -207 199 
+c top 5: -223 -207 199 -203 
+c top 5: -223 -207 199 203 
+c top 5: -223 207 
+c top 5: -223 207 -215 
+c top 5: -223 207 -215 -211 
+c top 5: -223 207 -215 211 
+c top 5: -223 207 215 
+c top 5: -223 207 215 -219 
+c top 5: -223 207 215 219 
+c top 5: 223 
+c top 5: 223 -239 
+c top 5: 223 -239 -231 
+c top 5: 223 -239 -231 -227 
+c top 5: 223 -239 -231 227 
+c top 5: 223 -239 231 
+c top 5: 223 -239 231 -235 
+c top 5: 223 -239 231 235 
+c top 5: 223 239 
+c top 5: 223 239 -247 
+c top 5: 223 239 -247 -243 
+c top 5: 223 239 -247 243 
+c top 5: 223 239 247 
+c top 5: 223 239 247 -251 
+c top 5: 223 239 247 251 
+c top 5: -679 
+c top 5: -679 -668 
+c top 5: -679 -668 -663 
+c top 5: -679 -668 -663 -660 
+c top 5: -679 -668 -663 -660 
+c top 5: -679 -668 -663 -660 
+c top 5: -679 -668 -663 -660 
+c top 5: -679 -668 -663 660 
+c top 5: -679 -668 -663 
+c top 5: -679 -668 -663 
+c top 5: -679 -668 -663 
+c top 5: -679 -668 -663 
+c top 5: -679 -668 -663 
+c top 5: -679 -668 663 
+c top 5: -679 -668 663 -665 
+c top 5: -679 -668 663 665 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 -668 
+c top 5: -679 668 
+c top 5: -679 668 -673 
+c top 5: -679 668 -673 -670 
+c top 5: -679 668 -673 670 
+c top 5: -679 668 673 
+c top 5: -679 668 673 -676 
+c top 5: -679 668 673 676 
+c top 5: -679 
+c top 5: -679 
+c top 5: -679 
+c top 5: -679 
+c top 5: -679 
+c top 5: -679 
+c top 5: -679 
+c top 5: -679 
+c top 5: -679 
+c top 5: -679 
+c top 5: 679 
+c top 5: 679 -689 
+c top 5: 679 -689 -684 
+c top 5: 679 -689 -684 -681 
+c top 5: 679 -689 -684 681 
+c top 5: 679 -689 684 
+c top 5: 679 -689 684 -686 
+c top 5: 679 -689 684 686 
+c top 5: -626 
+c top 5: -626 -610 
+c top 5: -626 -610 -602 
+c top 5: -626 -610 -602 -598 
+c top 5: -626 -610 -602 598 
+c top 5: -626 -610 602 
+c top 5: -626 -610 602 -606 
+c top 5: -626 -610 602 606 
+c top 5: -626 610 
+c top 5: -626 610 -618 
+c top 5: -626 610 -618 -614 
+c top 5: -626 610 -618 614 
+c top 5: -626 610 618 
+c top 5: -626 610 618 -622 
+c top 5: -626 610 618 622 
+c top 5: 626 
+c top 5: 626 -642 
+c top 5: 626 -642 -634 
+c top 5: 626 -642 -634 -630 
+c top 5: 626 -642 -634 630 
+c top 5: 626 -642 634 
+c top 5: 626 -642 634 -638 
+c top 5: 626 -642 634 638 
+c top 5: 626 642 
+c top 5: 626 642 -650 
+c top 5: 626 642 -650 -646 
+c top 5: 626 642 -650 646 
+c top 5: 626 642 650 
+c top 5: 626 642 650 -654 
+c top 5: 626 642 650 654 
+c top 5: -816 
+c top 5: -816 -800 
+c top 5: -816 -800 -792 
+c top 5: -816 -800 -792 -788 
+c top 5: -816 -800 -792 788 
+c top 5: -816 -800 792 
+c top 5: -816 -800 792 -796 
+c top 5: -816 -800 792 796 
+c top 5: -816 800 
+c top 5: -816 800 -808 
+c top 5: -816 800 -808 -804 
+c top 5: -816 800 -808 804 
+c top 5: -816 800 808 
+c top 5: -816 800 808 -812 
+c top 5: -816 800 808 812 
+c top 5: 816 
+c top 5: 816 -832 
+c top 5: 816 -832 -824 
+c top 5: 816 -832 -824 -820 
+c top 5: 816 -832 -824 820 
+c top 5: 816 -832 824 
+c top 5: 816 -832 824 -828 
+c top 5: 816 -832 824 828 
+c top 5: 816 832 
+c top 5: 816 832 -840 
+c top 5: 816 832 -840 -836 
+c top 5: 816 832 -840 836 
+c top 5: 816 832 840 
+c top 5: 816 832 840 -844 
+c top 5: 816 832 840 844 
+c top 5: -997 
+c top 5: -997 -1297 
+c top 5: -997 -1297 -1471 
+c top 5: -997 -1297 -1471 -2414 
+c top 5: -997 -1297 -1471 2414 
+c top 5: -997 1297 
+c top 5: -997 1297 -1471 
+c top 5: -997 1297 -1471 -920 
+c top 5: -997 1297 -1471 920 
+c top 5: -997 1297 1471 
+c top 5: -997 1297 1471 -920 
+c top 5: -997 1297 1471 920 
+c top 5: 997 
+c top 5: 997 -920 
+c top 5: 997 -920 -1012 
+c top 5: 997 -920 -1012 -1485 
+c top 5: 997 -920 1012 
+c top 5: 997 -920 1012 -912 
+c top 5: 997 -920 1012 912 
+c top 5: 997 -920 1012 912 
+c top 5: 997 -920 1012 912 
+c top 5: 997 920 
+c top 5: 997 920 -1485 
+c top 5: 997 920 -1485 -923 
+c top 5: 997 920 -1485 923 
+c top 5: -1118 
+c top 5: -1118 -1103 
+c top 5: -1118 -1103 -1096 
+c top 5: -1118 -1103 -1096 -1092 
+c top 5: -1118 -1103 -1096 1092 
+c top 5: -1118 -1103 1096 
+c top 5: -1118 -1103 1096 -1099 
+c top 5: -1118 -1103 1096 1099 
+c top 5: -1118 1103 
+c top 5: -1118 1103 -1110 
+c top 5: -1118 1103 -1110 -1106 
+c top 5: -1118 1103 -1110 1106 
+c top 5: -1118 1103 1110 
+c top 5: -1118 1103 1110 -1114 
+c top 5: -1118 1103 1110 1114 
+c top 5: 1118 
+c top 5: 1118 -1132 
+c top 5: 1118 -1132 -1125 
+c top 5: 1118 -1132 -1125 -1121 
+c top 5: 1118 -1132 -1125 1121 
+c top 5: 1118 -1132 1125 
+c top 5: 1118 -1132 1125 -1128 
+c top 5: 1118 -1132 1125 1128 
+c top 5: 1118 1132 
+c top 5: 1118 1132 -1139 
+c top 5: 1118 1132 -1139 -1135 
+c top 5: 1118 1132 -1139 1135 
+c top 5: 1118 1132 1139 
+c top 5: 1118 1132 1139 -1143 
+c top 5: 1118 1132 1139 1143 
+c top 5: -1239 
+c top 5: -1239 -1224 
+c top 5: -1239 -1224 -1217 
+c top 5: -1239 -1224 -1217 -1213 
+c top 5: -1239 -1224 -1217 1213 
+c top 5: -1239 -1224 1217 
+c top 5: -1239 -1224 1217 -1220 
+c top 5: -1239 -1224 1217 1220 
+c top 5: -1239 1224 
+c top 5: -1239 1224 -1231 
+c top 5: -1239 1224 -1231 -1227 
+c top 5: -1239 1224 -1231 1227 
+c top 5: -1239 1224 1231 
+c top 5: -1239 1224 1231 -1235 
+c top 5: -1239 1224 1231 1235 
+c top 5: 1239 
+c top 5: 1239 -1253 
+c top 5: 1239 -1253 -1246 
+c top 5: 1239 -1253 -1246 -1242 
+c top 5: 1239 -1253 -1246 1242 
+c top 5: 1239 -1253 1246 
+c top 5: 1239 -1253 1246 -1249 
+c top 5: 1239 -1253 1246 1249 
+c top 5: 1239 1253 
+c top 5: 1239 1253 -1260 
+c top 5: 1239 1253 -1260 -1256 
+c top 5: 1239 1253 -1260 1256 
+c top 5: 1239 1253 1260 
+c top 5: 1239 1253 1260 -1264 
+c top 5: 1239 1253 1260 1264 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 3183
+c Number of split formula: 1090
+c Number of decision node: 1591
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 308
+c Number of backbone calls: 0
+c Number of partitioner calls: 385
+c Average number of assigned literal to obtain decomposable AND nodes: 1400.19/2649
+c Minimum number of assigned variable where a decomposable AND appeared: 800
+c 
+c [33mGraph Information[0m
+c Number of nodes: 46989
+c Number of edges: 49362
+c 
+c [1m[34mCache Information[0m
+c Memory used: 563 MB
+c
+c Number of positive hit: 970
+c Number of negative hit: 1591
+c Number of reduceCall: 0
+c
+c Final time: 0.090079
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.126 seconds
+D4 OUTCOME: normal
+mc2023_track2_025. D4 NNF: LOG: size ./mc2023_track2_025.nnf 6175 lines 308577 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -p ./mc2023_track2_025.cnf ./mc2023_track2_025.nnf ./mc2023_track2_025.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Time 0.00  Read input file with 2649 variables and 6674 clauses
+c Read D4 NNF file with 5085 nodes (1902 explicit) and 4273 edges
+c Compressed POG has 4810 nodes, root literal 7459, and 56346 defining clauses
+c POG has DAG size 56346 and tree size 131369 ratio = 2.33
+c GEN: Time 0.02  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 0.026 seconds
+GEN OUTCOME: normal
+OVERALL LOG: Elapsed time = 0.154 seconds
+OVERALL OUTCOME: normal
