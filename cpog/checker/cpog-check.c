@@ -1503,7 +1503,6 @@ q25_ptr rescale = NULL;
 q25_ptr ring_evaluate(q25_ptr *input_weights) {
     int id;
     q25_ptr val;
-    printf("Root ID = %d\n", declared_root);
     for (id = input_variable_count+1; id <= declared_root; id++) {
 	node_t *np = node_find(id);
 	val = q25_from_32(np->type == NODE_PRODUCT ? 1 : 0);
