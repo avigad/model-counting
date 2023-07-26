@@ -104,11 +104,11 @@ def nextFile(fname, first, subset):
         globalEntries = merge(globalEntries, globalCount, entries, ccount, subset)
         globalCount += ccount
 
-def sumEntries(sumSet):
+def sumEntries(sumList):
     global globalEntries, globalCount
     for k in globalEntries.keys():
         fields = globalEntries[k]
-        sfields = [fields[i] for i in range(globalCount) if i+1 in sumSet]
+        sfields = [fields[i] for i in range(globalCount) if i+1 in sumList]
         try:
             nums = [float(field) if len(field) > 0 else 0.0 for field in sfields]
         except:
@@ -118,11 +118,15 @@ def sumEntries(sumSet):
         fields.append(sval)
     globalCount += 1
 
-def divideEntries(ratioSet):
+def divideEntries(ratioList):
     global globalEntries, globalCount
     for k in globalEntries.keys():
         fields = globalEntries[k]
-        sfields = [fields[i] for i in range(globalCount) if i+1 in ratioSet]
+        try:
+            sfields = [fields[i-1] for i in ratioList]
+        except:
+            print("Couldn't get fields %s from line with key %s.  Fields: %s" % (str(ratioList), k, str(fields)))
+            sys.exit(1)
         try:
             nums = [float(field) if len(field) > 0 else 0.0 for field in sfields]
         except:
@@ -133,15 +137,15 @@ def divideEntries(ratioSet):
     globalCount += 1
 
 
-def build(lstring, flist, doFilter, sumSet, ratioSet):
+def build(lstring, flist, doFilter, sumList, ratioList):
     first = True
     for fname in flist:
         nextFile(fname, first, doFilter)
         first = False
-    if sumSet is not None:
-        sumEntries(sumSet)
-    if ratioSet is not None:
-        divideEntries(ratioSet)
+    if sumList is not None:
+        sumEntries(sumList)
+    if ratioList is not None:
+        divideEntries(ratioList)
     if len(lstring) > 0:
         print(lstring)
     for k in sorted(globalEntries.keys()):
@@ -150,8 +154,8 @@ def build(lstring, flist, doFilter, sumSet, ratioSet):
 
 def run(name, args):
     doFilter = False
-    sumSet = None
-    ratioSet = None
+    sumList = None
+    ratioList = None
     lstring = ""
     optList, args = getopt.getopt(args, "hfs:r:l:")
     for (opt, val) in optList:
@@ -165,10 +169,10 @@ def run(name, args):
             try:
                 ivals = [int(field) for field in fields]
                 if opt == '-s':
-                    sumSet = set(ivals)
+                    sumList = ivals
                 else:
-                    ratioSet = set(ivals)
-                    if len(ratioSet) != 2:
+                    ratioList = ivals
+                    if len(ratioList) != 2:
                         eprint("Ratio can only be between two elements")
                         usage(name)
                         sys.exit(1)
@@ -182,7 +186,7 @@ def run(name, args):
             eprint("Unknown option '%s'" % opt)
             usage(name)
             sys.exit(1)
-    build(lstring, args, doFilter, sumSet, ratioSet)
+    build(lstring, args, doFilter, sumList, ratioList)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
