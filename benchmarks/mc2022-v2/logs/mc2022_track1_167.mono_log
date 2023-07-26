@@ -1,0 +1,26 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m -1 -r 10.0 -C 2147483647 -L d2p.log ./mc2022_track1_167.cnf ./mc2022_track1_167.nnf ./mc2022_track1_167.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1
+c GEN:   Monolithic threshold unbounded
+c GEN:   Lemma ratio          10.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.14  Read input file with 349990 variables and 579972 clauses
+c Read D4 NNF file with 47155 nodes (15720 explicit) and 31435 edges
+c Compressed POG has 45716 nodes, root literal 395706, and 3195277 defining clauses
+c POG has DAG size 3195277 and tree size 3195277 ratio = 1.00
+c GEN: Time 1.17  Generated POG representation
+c Time = 148.36.  Justifications of 1 nodes, including root, completed.  3622657 total clauses
+c GEN: Time 148.36  Completed forward implication proof
+c GEN: Time 150.57  Deleted asserted clauses
+GEN ERROR: Timeout after 1000 seconds
+GEN LOG: Elapsed time = 1000.060 seconds
+GEN OUTCOME: Timeout
+mono LOG: Elapsed time = 1000.076 seconds
+mono OUTCOME: failed

@@ -1,0 +1,31 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 10.0 -C 2147483647 -L d2p.log ./mc2022_track1_049.cnf ./mc2022_track1_049.nnf ./mc2022_track1_049.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1
+c GEN:   Monolithic threshold 0
+c GEN:   Lemma ratio          10.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 7032 variables and 6191 clauses
+c Read D4 NNF file with 560786 nodes (306335 explicit) and 734379 edges
+c Compressed POG has 560437 nodes, root literal 567469, and 5985623 defining clauses
+c POG has DAG size 5985623 and tree size 1205757384 ratio = 201.44
+c GEN: Time 2.04  Generated POG representation
+c Time = 64.63.  Justifications of 56043 nodes completed.  7454327 total clauses.  6234 SAT calls
+c Time = 187.62.  Justifications of 112086 nodes completed.  9739199 total clauses.  15175 SAT calls
+c Time = 301.48.  Justifications of 168129 nodes completed.  11795685 total clauses.  23572 SAT calls
+c Time = 418.10.  Justifications of 224172 nodes completed.  14006786 total clauses.  32109 SAT calls
+c Time = 538.52.  Justifications of 280215 nodes completed.  16258966 total clauses.  40434 SAT calls
+c Time = 657.32.  Justifications of 336258 nodes completed.  18412608 total clauses.  48673 SAT calls
+c Time = 772.51.  Justifications of 392301 nodes completed.  20386875 total clauses.  57739 SAT calls
+c Time = 912.11.  Justifications of 448344 nodes completed.  22825977 total clauses.  67744 SAT calls
+GEN ERROR: Timeout after 1000 seconds
+GEN LOG: Elapsed time = 1000.167 seconds
+GEN OUTCOME: Timeout
+structured LOG: Elapsed time = 1023.681 seconds
+structured OUTCOME: failed

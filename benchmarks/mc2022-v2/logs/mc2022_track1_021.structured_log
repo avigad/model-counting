@@ -1,0 +1,92 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 10.0 -C 2147483647 -L d2p.log ./mc2022_track1_021.cnf ./mc2022_track1_021.nnf ./mc2022_track1_021.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1
+c GEN:   Monolithic threshold 0
+c GEN:   Lemma ratio          10.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 586 variables and 1189 clauses
+c Read D4 NNF file with 8582 nodes (3703 explicit) and 7620 edges
+c Compressed POG has 8505 nodes, root literal 9091, and 44178 defining clauses
+c POG has DAG size 44178 and tree size 230785 ratio = 5.22
+c GEN: Time 0.02  Generated POG representation
+c Time = 0.03.  Justifications of 1000 nodes completed.  48196 total clauses.  0 SAT calls
+c Time = 0.06.  Justifications of 2000 nodes completed.  52722 total clauses.  1 SAT calls
+c Time = 0.08.  Justifications of 3000 nodes completed.  57671 total clauses.  2 SAT calls
+c Time = 0.10.  Justifications of 4000 nodes completed.  62632 total clauses.  2 SAT calls
+c Time = 0.13.  Justifications of 5000 nodes completed.  67690 total clauses.  3 SAT calls
+c Time = 0.17.  Justifications of 6000 nodes completed.  72751 total clauses.  5 SAT calls
+c Time = 0.19.  Justifications of 7000 nodes completed.  76857 total clauses.  7 SAT calls
+c Time = 0.20.  Justifications of 8000 nodes completed.  80190 total clauses.  7 SAT calls
+c Time = 0.21.  Justifications of 8505 nodes, including root, completed.  81825 total clauses
+c GEN: Time 0.21  Completed forward implication proof
+c GEN: Time 0.22  Deleted asserted clauses
+c GEN: Time 0.39  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 586
+c GEN:    input clauses  : 1189
+c GEN: POG nodes
+c GEN:    product   : 6100
+c GEN:    sum       : 2404
+c GEN:    node TOTAL: 8504
+c GEN: Other nodes
+c GEN:    aux product: 604
+c GEN: Node visits
+c GEN:    product/BCP: 6094
+c GEN:    product/SAT: 7
+c GEN:    sum        : 2404
+c GEN:    visit TOTAL: 8505
+c GEN: Lemmas
+c GEN:    definitions : 779
+c GEN:    applications: 3357
+c GEN:    duplicates  : 0
+c GEN:    merged args : 4
+c GEN: SAT Problem Clause Counts (7 instances)
+c GEN:    PROBLEM TOTAL : 353
+c GEN:    PROBLEM MIN   : 21
+c GEN:    PROBLEM AVG   : 50.43
+c GEN:    PROBLEM MAX   : 94
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 84
+c GEN:    PROOF MIN   : 8
+c GEN:    PROOF AVG   : 12.00
+c GEN:    PROOF MAX   : 14
+c GEN: Clauses
+c GEN:    POG definition       : 44178
+c GEN:    AUX definition       : 1813
+c GEN:    product justification: 6101
+c GEN:    sum justification    : 4804
+c GEN:    literal justification: 12791
+c GEN:    lemma application    : 12142
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 81829
+c GEN: Time
+c GEN:   Setup POG           : 0.02
+c GEN:   Forward implication : 0.19
+c GEN:             SAT execution  : 0.03
+c GEN:             Other forward  : 0.17
+c GEN:   Reverse implication : 0.18
+c GEN:   Time TOTAL          : 0.39
+GEN LOG: Elapsed time = 0.405 seconds
+GEN OUTCOME: normal
+mc2022_track1_021. GEN: LOG: size ./mc2022_track1_021.cpog 81966 lines 5769190 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track1_021.cnf ./mc2022_track1_021.cpog
+FCHECK LOG: Time limit 1000 seconds
+CHECK: Read CNF file with 586 variables and 1189 clauses
+CHECK: Read CPOG file with 9109 operations,  35834 asserted + 45991 defining = 81825 clauses
+CHECK: Deleted 37022 input and asserted clauses
+CHECK: Final root literal 9091
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 784637825987894704862177297051569632016580688841015296000
+CHECK: Time to compute model counts: 0.003
+CHECK: Elapsed seconds: 0.175
+FCHECK LOG: Elapsed time = 0.177 seconds
+FCHECK OUTCOME: normal
+structured LOG: Elapsed time = 0.598 seconds
+structured OUTCOME: normal

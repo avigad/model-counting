@@ -1,0 +1,85 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m -1 -r 10.0 -C 2147483647 -L d2p.log ./mc2022_track2_051.cnf ./mc2022_track2_051.nnf ./mc2022_track2_051.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1
+c GEN:   Monolithic threshold unbounded
+c GEN:   Lemma ratio          10.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 130 variables and 393 clauses
+c Read D4 NNF file with 246059 nodes (102794 explicit) and 209216 edges
+c Compressed POG has 243455 nodes, root literal 243585, and 1117827 defining clauses
+c POG has DAG size 1117827 and tree size 201040965 ratio = 179.85
+c GEN: Time 0.49  Generated POG representation
+c Time = 896.74.  Justifications of 1 nodes, including root, completed.  3701878 total clauses
+c GEN: Time 896.74  Completed forward implication proof
+c GEN: Time 900.51  Deleted asserted clauses
+c GEN: Time 902.40  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 130
+c GEN:    input clauses  : 393
+c GEN: POG nodes
+c GEN:    product   : 172910
+c GEN:    sum       : 70544
+c GEN:    node TOTAL: 243454
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 0
+c GEN:    product/SAT: 0
+c GEN:    sum        : 0
+c GEN:    visit TOTAL: 0
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (1 instances)
+c GEN:    PROBLEM TOTAL : 1118169
+c GEN:    PROBLEM MIN   : 1118169
+c GEN:    PROBLEM AVG   : 1118169.00
+c GEN:    PROBLEM MAX   : 1118169
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 2584041
+c GEN:    PROOF MIN   : 2584041
+c GEN:    PROOF AVG   : 2584041.00
+c GEN:    PROOF MAX   : 2584041
+c GEN: Clauses
+c GEN:    POG definition       : 1117827
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 0
+c GEN:    sum justification    : 0
+c GEN:    literal justification: 10
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 2584041
+c GEN:    clause TOTAL         : 3701878
+c GEN: Time
+c GEN:   Setup POG           : 0.49
+c GEN:   Forward implication : 896.26
+c GEN:             SAT execution  : 876.30
+c GEN:             Other forward  : 19.96
+c GEN:   Reverse implication : 5.66
+c GEN:   Time TOTAL          : 902.41
+GEN LOG: Elapsed time = 902.464 seconds
+GEN OUTCOME: normal
+mc2022_track2_051. GEN: LOG: size ./mc2022_track2_051.cpog 5411950 lines 976281889 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track2_051.cnf ./mc2022_track2_051.cpog
+FCHECK LOG: Time limit 1000 seconds
+CHECK: Read CNF file with 130 variables and 393 clauses
+CHECK: Read CPOG file with 243455 operations,  2584051 asserted + 1117827 defining = 3701878 clauses
+CHECK: Deleted 2584443 input and asserted clauses
+CHECK: Final root literal 243585
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 745889456677218468
+CHECK: Weighted model count = 0.3900851255907583385119910464156671523526476348444069808809460515381663212237590375263275751376325727432951047837103528736197273913219938098460330063285724688473156420701650068982514016237859720083466601002289300723075227753604553568835892672772504301729180747462149312370092808665855848398456779044735109203749344671055850119545463545655538155202118979151305007081207677226957782060046838785929695590253842959934472981744706706189712795477578376821077649171512459313283512698014607791370117111612380760891070755862844469081894402407965220728720245066530988441642100757562916999663285578124433448883890527662995240209490186325834921557219796163527316121060976214070096230869641113955238205590212634512140691534779367280798946095448205952123527041497668272064767713543218830703752631639222134771189534497162208743377931493825438542176668217002139067583714796353330290069312702316443699479136146341690383235143615954629856913573125021835641105955317062736745128801494813510308452293964430573568
+CHECK: Time to compute model counts: 0.232
+CHECK: Elapsed seconds: 30.630
+FCHECK LOG: Elapsed time = 30.663 seconds
+FCHECK OUTCOME: normal
+mono LOG: Elapsed time = 934.505 seconds
+mono OUTCOME: normal
