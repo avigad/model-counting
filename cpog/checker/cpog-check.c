@@ -543,7 +543,7 @@ token_t token_next() {
 		token_last[token_pos] = '\0';
 		token_value = sign * mag;
 	    }
-	} else if (isspace(c)) {
+	} else if (isspace(c) || c == EOF) {
 	    if (c == '\n') {
 		ungetc(c, token_file);
 	    }
