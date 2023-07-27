@@ -29,15 +29,14 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m MONO] [-r RPCT] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
+    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m (m|s|h)] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -v       Set verbosity level")
     print("  -s n|g   Stop after NNF generation or CPOG generation (g)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -2       Use D4 version 2")
-    print("  -m MONO  Set tree size threshold for monolithic generation")
-    print("  -r RAT   Scale factor for tree size threshold when lemma")
+    print("  -m m|s|h Generation mode: monolithic (m), structured (s), or hybrid (h)")
     print("  -p       Preprocess (within D4).  Should then use monolithic mode for CPOG generation")
     print("  -L       Expand each node, rather than using lemmas")
     print("  -G       Prove each literal separately, rather than grouping into single proof")
@@ -55,8 +54,9 @@ standardTimeLimit = 60
 
 verbLevel = 1
 oneSided = False
-monolithic_threshold = None
-lemma_ratio = 10.0
+monolithic_threshold = 1000 * 1000
+tree_ratio_threshold = 5.0
+mode = 'h'
 preprocess = False
 useLemma = True
 group = True
@@ -204,6 +204,13 @@ def runPartialGen(root, home, logFile, force):
 
 
 def runGen(root, home, logFile, force):
+    global monolithic_threshold, tree_ratio_threshold
+    if mode == 'm':
+        monolithic_threshold = -1
+        tree_ratio_threshold = 1e12
+    elif mode == 's':
+        monolithic_threshold = 0
+        tree_ratio_threshold = 0
     extraLogName = "d2p.log"
     cnfName = home + "/" + root + ".cnf"
     nnfName = nnfNamer(root, home)
@@ -214,8 +221,7 @@ def runGen(root, home, logFile, force):
     cmd += ["-v", str(verbLevel)]
     if oneSided:
         cmd += ['-1']
-    if monolithic_threshold is not None:
-        cmd += ['-m', str(monolithic_threshold), '-r', str(lemma_ratio)]
+    cmd += ['-m', str(monolithic_threshold), '-r', str(tree_ratio_threshold)]
     if not useLemma:
         cmd += ['-e']
     if not group:
@@ -256,9 +262,8 @@ def runSequence(root, home, stopD4, stopGen, force):
     extension = "log"
     if oneSided:
         extension = "onesided_" + extension
-    if monolithic_threshold is not None:
-        prefix = "mono" if monolithic_threshold < 0 else "structured" if monolithic_threshold == 0 else "m%d" % monolithic_threshold
-        extension = prefix + "_" + extension
+    prefix = "mono" if mode == 'm' else "structured" if mode == 's' else "hybrid"
+    extension = prefix + "_" + extension
     if preprocess:
         extension = "preprocess_" + extension
     if not useLemma:
@@ -268,7 +273,7 @@ def runSequence(root, home, stopD4, stopGen, force):
     if useLean:
         extension = "lean_" + extension
     if stopD4:
-        extension = "D4_" + extension
+        extension = "D4_log"
     if stopGen:
         extension = "d2p_" + extension
     logName = root + "." + extension
@@ -321,12 +326,12 @@ def runBatch(home, fileList, stopD4, stopGen, force):
         runSequence(r, home, stopD4, stopGen, force)
 
 def run(name, args):
-    global verbLevel, useLemma, group, oneSided, monolithic_threshold, lemma_ratio, useLean, preprocess, d4v2, nameFile
+    global verbLevel, useLemma, group, oneSided, mode, useLean, preprocess, d4v2, nameFile
     home = "."
     stopD4 = False
     stopGen = False
     force = False
-    optList, args = getopt.getopt(args, "hfv:12m:r:pLGFs:t:l:")
+    optList, args = getopt.getopt(args, "hfv:12m:pLGFs:t:l:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -340,9 +345,11 @@ def run(name, args):
         elif opt == '-2':
             d4v2 = True
         elif opt == '-m':
-            monolithic_threshold = int(val)
-        elif opt == '-r':
-            lemma_ratio = float(val)
+            mode = val
+            if val not in "hms":
+                print("Unknown mode '%s'" % val)
+                usage(name)
+                return
         elif opt == '-p':
             preprocess = True
         elif opt == '-L':
