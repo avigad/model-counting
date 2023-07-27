@@ -29,7 +29,7 @@ GEN_OPTIONS=
 
 
 .nnf.mcpog:
-	$(GEN) -m 1000000000 -r 1.0 -v $(VLEVEL) $(GEN_OPTIONS) $*.cnf $< $@ | tee $*.mcpog_data
+	$(GEN) -m 1000000000 -r 10000.0 -v $(VLEVEL) $(GEN_OPTIONS) $*.cnf $< $@ | tee $*.mcpog_data
 
 .mcpog.mcheck_data:
 	$(CHECK) -v $(VLEVEL) $*.cnf $< | tee $@
