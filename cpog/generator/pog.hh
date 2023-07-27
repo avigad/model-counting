@@ -107,6 +107,8 @@ private:
     std::vector<Pog_node *> nodes;
     // Root literal can refer to either an input variable or the last node
     int root_literal;
+    // Ratio of tree size to dag size
+    double tree_ratio;
 
 public:
     Pog();

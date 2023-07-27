@@ -19,7 +19,7 @@ static bool early_quit = false;
 static bool one_sided = false;
 static int drat_threshold = 20;
 static int monolithic_threshold = 100000;
-static float lemma_ratio = 5.0;
+static double tree_ratio_threshold = 5.0;
 static int bcp_limit = 1;
 static int clause_limit = INT_MAX;
 
@@ -32,7 +32,7 @@ void usage(const char *name) {
     lprintf("  -p        Quit after determining POG size\n");
     lprintf("  -1        Generate a one-sided proof (only input clause deletions justified)\n");
     lprintf("  -m MONO   Monolithically validate subgraphs with tree size <= MONO (use -1 for unbounded)\n");
-    lprintf("  -r RAT    Scale factor for tree size threshold when lemma\n");
+    lprintf("  -r RAT    Upper limit on tree ratio for using any monolithic validation\n");
     lprintf("  -C CLIM   Limit total number of clauses in input + proof (default = %d)\n", clause_limit);
     lprintf("  -b BLIM   Limit depth of Boolean constraint propagation for contradiction proofs (default = %d)\n", bcp_limit);
     lprintf("  -t THRESH Use drat-trim on proofs when SAT problems are above THRESH clauses (default = %d)\n", drat_threshold);
@@ -186,7 +186,7 @@ static int run(FILE *cnf_file, FILE *nnf_file, Pog_writer *pwriter) {
     cnf.clause_limit = clause_limit;
     cnf.bcp_limit = bcp_limit;
     cnf.monolithic_threshold = monolithic_threshold;
-    cnf.lemma_ratio = lemma_ratio;
+    cnf.tree_ratio_threshold = tree_ratio_threshold;
     Pog pog(&cnf);
     if (verblevel >= 2)
 	pwriter->enable_comments();
@@ -253,8 +253,7 @@ int main(int argc, char *const argv[]) {
 	    monolithic_threshold = atoi(optarg);
 	    break;
 	case 'r':
-	    r = atof(optarg);
-	    lemma_ratio = r < 100 ? r : r/100.0;
+	    tree_ratio_threshold = atof(optarg);
 	    break;
 	case 'v':
 	    verblevel = atoi(optarg);
@@ -346,7 +345,7 @@ int main(int argc, char *const argv[]) {
 	    lprintf("%s   Monolithic threshold %d\n", prefix, monolithic_threshold);
 	else
 	    lprintf("%s   Monolithic threshold unbounded\n", prefix);
-	lprintf("%s   Lemma ratio          %.2f\n", prefix, lemma_ratio);
+	lprintf("%s   Tree ratio threshold %.2f\n", prefix, tree_ratio_threshold);
 	lprintf("%s   Solver:              %s\n", prefix, sname);
     }
     int return_code = 0;

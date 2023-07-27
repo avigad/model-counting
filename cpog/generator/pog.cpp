@@ -184,6 +184,7 @@ Pog::Pog() {
     root_literal = 0;
     cnf = NULL;
     max_input_var = 0;
+    tree_ratio = 1.0;
 }
 
 Pog::Pog(Cnf_reasoner *cset) {
@@ -519,8 +520,10 @@ void Pog::concretize() {
 	ilist_free(args);
 	
     }
-    if (dag_size > 0)
-	report(1, "POG has DAG size %d and tree size %ld ratio = %.2f\n", dag_size, last_tree_size, (double) last_tree_size / dag_size);
+    if (dag_size > 0) {
+	tree_ratio = (double) last_tree_size / dag_size;
+	report(1, "POG has DAG size %d and tree size %ld ratio = %.2f\n", dag_size, last_tree_size, tree_ratio);
+    }
 }
 
 
@@ -756,7 +759,7 @@ int Pog::apply_lemma(Pog_node *rp, int splitting_literal) {
 			      rp->name(), lemma->signature);
 #endif
 	cnf->setup_proof(lemma);
-	if (cnf->monolithic_threshold < 0 || rp->get_tree_size() <= cnf->monolithic_threshold * cnf->lemma_ratio)
+	if (tree_ratio <= cnf->tree_ratio_threshold && (cnf->monolithic_threshold < 0 || rp->get_tree_size() <= cnf->monolithic_threshold))
 	    lemma->jid = justify_monolithic(lemma->xvar, lemma->splitting_literal);
 	else
 	    lemma->jid = justify(lemma->xvar, lemma->splitting_literal, false);
@@ -805,7 +808,7 @@ int Pog::justify(int rlit, int splitting_literal, bool use_lemma) {
     if (is_node(rlit)) {
 	int rvar = IABS(rlit);
 	Pog_node *rnp = get_node(rvar);
-	if (cnf->monolithic_threshold < 0 || rnp->get_tree_size() <= cnf->monolithic_threshold)
+	if (tree_ratio <= cnf->tree_ratio_threshold && (cnf->monolithic_threshold < 0 || rnp->get_tree_size() <= cnf->monolithic_threshold))
 	    return justify_monolithic(rlit, splitting_literal);
 	if (use_lemma && cnf->use_lemmas && rnp->want_lemma()) {
 	    int jid = apply_lemma(rnp, splitting_literal);
