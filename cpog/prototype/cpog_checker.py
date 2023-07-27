@@ -57,10 +57,10 @@ earlyRup = True
 # HINT: Either Id+ or *
 
 #     r Lit                  -- Declare root literal
-# Id  a [Lit*] 0    HINT 0   -- RUP clause addition
+# [Id]  a [Lit*] 0    HINT 0   -- RUP clause addition
 #    dc Id          HINT 0   -- RUP clause deletion (can also use 'd')
-# Id  p Var Lit*         0   -- And operation
-# Id  a Var Lit Lit HINT 0   -- Or operation
+# [Id]  p Var Lit*         0   -- And operation
+# [Id]  a Var Lit Lit HINT 0   -- Or operation
 #    do Var                  -- Operation deletion
 #    dv Var Id+          0   -- Delete projection variable.  Provide IDs of all resolvents
 
@@ -1047,7 +1047,7 @@ class Prover:
     countMode = False
     # Make copy of CPOG file with hints
     cpogWriter = None
-
+    clauseCount = 0
 
     def __init__(self, creader, verbose = False, laxMode = False, requireHintsMode=False, countMode=False, cpogWriter=None):
         self.verbose = verbose
@@ -1059,6 +1059,7 @@ class Prover:
         self.failed = False
         self.subsetOK = False
         self.ruleCounters = { 'i' : 0, 'r' : 0, 'a' : 0, 'dc' : 0, 'd' : 0, 'p' : 0, 's' : 0, 'do' : 0, 'dv' : 0 }
+        self.clauseCount = 0
 
         id = 0
         for clause in creader.clauses:
@@ -1071,6 +1072,7 @@ class Prover:
             if not ok:
                 self.failProof(msg)
                 break
+        self.clauseCount = id
 
     def flagError(self, msg):
         print("CHECKER: ERROR.  Line %d: %s" % (self.lineNumber, msg))
@@ -1115,13 +1117,14 @@ class Prover:
             if len(fields) == 0 or fields[0][0] == 'c':
                 continue
             id = None
-            if fields[0] not in ['dc', 'd', 'do', 'dv', 'r']:
-                try:
-                    id = int(fields[0])
-                except:
-                    self.flagError("Looking for clause Id.  Got '%s'" % fields[0])
-                    break
+            try:
+                id = int(fields[0])
                 fields = fields[1:]
+                if fields[0] in ['dc', 'd', 'do', 'dv', 'r']:
+                    self.flagError("Cannot have clause identifier before '%s' command" % fields[0])
+                    break
+            except:
+                id = self.clauseCount + 1
             cmd = fields[0]
             rest = fields[1:]
             # Dispatch on command
@@ -1200,6 +1203,7 @@ class Prover:
             self.flagError("Couldn't add clause #%d: %s" % (id, msg))
         if self.cpogWriter is not None:
             self.cpogWriter.doClause(lits, hints, id = id)
+        self.clauseCount += 1
 
     def doDeleteRup(self, id, rest):
         if len(rest) < 1:
@@ -1262,6 +1266,7 @@ class Prover:
             self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
         if self.cpogWriter is not None:
             self.cpogWriter.doAnd(args[1:], xvar=args[0], id=id)
+        self.clauseCount += 1 + len(args)
 
     def doSum(self, id, rest):
         if len(rest) < 3:
@@ -1289,6 +1294,7 @@ class Prover:
             return
         if self.cpogWriter is not None:
             self.cpogWriter.doOr(args[1], args[2], hints = hints, xvar=args[0], id=id)
+        self.clauseCount += 1 + len(args)
 
     def doDeleteOperation(self, id, rest):
         if len(rest) != 1:
