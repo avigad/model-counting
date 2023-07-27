@@ -1,5 +1,5 @@
 GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 10.0 -C 2147483647 -L d2p.log ./mc2022_track1_167.cnf ./mc2022_track1_167.nnf ./mc2022_track1_167.cpog
-GEN LOG: Time limit 1000 seconds
+GEN LOG: Time limit 4000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:       yes
 c GEN:   Use lemmas:          yes
@@ -11,26 +11,84 @@ c GEN:   BCP limit:           1
 c GEN:   Monolithic threshold 0
 c GEN:   Lemma ratio          10.00
 c GEN:   Solver:              cadical-trimmed-lrat
-c GEN: Time 0.14  Read input file with 349990 variables and 579972 clauses
+c GEN: Time 0.16  Read input file with 349990 variables and 579972 clauses
 c Read D4 NNF file with 47155 nodes (15720 explicit) and 31435 edges
 c Compressed POG has 45716 nodes, root literal 395706, and 3195277 defining clauses
 c POG has DAG size 3195277 and tree size 3195277 ratio = 1.00
-c GEN: Time 1.16  Generated POG representation
-c Time = 5.97.  Justifications of 4571 nodes completed.  3690645 total clauses.  192 SAT calls
-c Time = 10.47.  Justifications of 9142 nodes completed.  3956354 total clauses.  391 SAT calls
-c Time = 13.46.  Justifications of 13713 nodes completed.  4277550 total clauses.  496 SAT calls
-c Time = 16.93.  Justifications of 18284 nodes completed.  4459109 total clauses.  653 SAT calls
-c Time = 19.09.  Justifications of 22855 nodes completed.  4744070 total clauses.  704 SAT calls
-c Time = 23.37.  Justifications of 27426 nodes completed.  5271334 total clauses.  821 SAT calls
-c Time = 27.90.  Justifications of 31997 nodes completed.  5538335 total clauses.  988 SAT calls
-c Time = 31.70.  Justifications of 36568 nodes completed.  5770314 total clauses.  1138 SAT calls
-c Time = 34.62.  Justifications of 41139 nodes completed.  5995626 total clauses.  1248 SAT calls
-c Time = 36.04.  Justifications of 45710 nodes completed.  6120231 total clauses.  1299 SAT calls
-c Time = 36.06.  Justifications of 45716 nodes, including root, completed.  6120240 total clauses
-c GEN: Time 36.06  Completed forward implication proof
-c GEN: Time 37.41  Deleted asserted clauses
-GEN ERROR: Timeout after 1000 seconds
-GEN LOG: Elapsed time = 1000.020 seconds
-GEN OUTCOME: Timeout
-structured LOG: Elapsed time = 1000.028 seconds
-structured OUTCOME: failed
+c GEN: Time 1.39  Generated POG representation
+c Time = 7.37.  Justifications of 4571 nodes completed.  3690645 total clauses.  192 SAT calls
+c Time = 13.03.  Justifications of 9142 nodes completed.  3956354 total clauses.  391 SAT calls
+c Time = 16.92.  Justifications of 13713 nodes completed.  4277550 total clauses.  496 SAT calls
+c Time = 21.25.  Justifications of 18284 nodes completed.  4459109 total clauses.  653 SAT calls
+c Time = 24.19.  Justifications of 22855 nodes completed.  4744070 total clauses.  704 SAT calls
+c Time = 29.57.  Justifications of 27426 nodes completed.  5271334 total clauses.  821 SAT calls
+c Time = 34.91.  Justifications of 31997 nodes completed.  5538335 total clauses.  988 SAT calls
+c Time = 39.31.  Justifications of 36568 nodes completed.  5770314 total clauses.  1138 SAT calls
+c Time = 42.77.  Justifications of 41139 nodes completed.  5995626 total clauses.  1248 SAT calls
+c Time = 44.45.  Justifications of 45710 nodes completed.  6120231 total clauses.  1299 SAT calls
+c Time = 44.48.  Justifications of 45716 nodes, including root, completed.  6120240 total clauses
+c GEN: Time 44.48  Completed forward implication proof
+c GEN: Time 46.10  Deleted asserted clauses
+c GEN: Time 3163.88  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 349990
+c GEN:    input clauses  : 579972
+c GEN: POG nodes
+c GEN:    product   : 30716
+c GEN:    sum       : 14999
+c GEN:    node TOTAL: 45715
+c GEN: Other nodes
+c GEN:    aux product: 1299
+c GEN: Node visits
+c GEN:    product/BCP: 29418
+c GEN:    product/SAT: 1299
+c GEN:    sum        : 14999
+c GEN:    visit TOTAL: 45716
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (1299 instances)
+c GEN:    PROBLEM TOTAL : 241108
+c GEN:    PROBLEM MIN   : 44
+c GEN:    PROBLEM AVG   : 185.61
+c GEN:    PROBLEM MAX   : 5466
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 11591
+c GEN:    PROOF MIN   : 7
+c GEN:    PROOF AVG   : 8.92
+c GEN:    PROOF MAX   : 13
+c GEN: Clauses
+c GEN:    POG definition       : 3195277
+c GEN:    AUX definition       : 10479
+c GEN:    product justification: 30717
+c GEN:    sum justification    : 29998
+c GEN:    literal justification: 2853769
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 6120240
+c GEN: Time
+c GEN:   Setup POG           : 1.39
+c GEN:   Forward implication : 43.10
+c GEN:             SAT execution  : 26.32
+c GEN:             Other forward  : 16.78
+c GEN:   Reverse implication : 3119.40
+c GEN:   Time TOTAL          : 3163.89
+GEN LOG: Elapsed time = 3163.916 seconds
+GEN OUTCOME: normal
+mc2022_track1_167. GEN: LOG: size ./mc2022_track1_167.cpog 6455955 lines 817972964 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track1_167.cnf ./mc2022_track1_167.cpog
+FCHECK LOG: Time limit 4000 seconds
+CHECK: Read CNF file with 349990 variables and 579972 clauses
+CHECK: Read CPOG file with 47015 operations,  2914484 asserted + 3205756 defining = 6120240 clauses
+CHECK: Deleted 3494455 input and asserted clauses
+CHECK: Final root literal 395706
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 15000
+CHECK: Time to compute model counts: 0.209
+CHECK: Elapsed seconds: 47.413
+FCHECK LOG: Elapsed time = 47.423 seconds
+FCHECK OUTCOME: normal
+structured LOG: Elapsed time = 3212.986 seconds
+structured OUTCOME: normal

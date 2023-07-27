@@ -1,5 +1,5 @@
 GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m -1 -r 10.0 -C 2147483647 -L d2p.log ./mc2022_track2_005.cnf ./mc2022_track2_005.nnf ./mc2022_track2_005.cpog
-GEN LOG: Time limit 1000 seconds
+GEN LOG: Time limit 4000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:       yes
 c GEN:   Use lemmas:          yes
@@ -15,9 +15,9 @@ c GEN: Time 0.00  Read input file with 100 variables and 250 clauses
 c Read D4 NNF file with 1649004 nodes (848296 explicit) and 1811204 edges
 c Compressed POG has 1648967 nodes, root literal 1649067, and 6074672 defining clauses
 c POG has DAG size 6074672 and tree size 208371949 ratio = 34.30
-c GEN: Time 3.03  Generated POG representation
-GEN ERROR: Timeout after 1000 seconds
-GEN LOG: Elapsed time = 1000.030 seconds
+c GEN: Time 3.24  Generated POG representation
+GEN ERROR: Timeout after 4000 seconds
+GEN LOG: Elapsed time = 4000.069 seconds
 GEN OUTCOME: Timeout
-mono LOG: Elapsed time = 1000.031 seconds
+mono LOG: Elapsed time = 4000.069 seconds
 mono OUTCOME: failed
