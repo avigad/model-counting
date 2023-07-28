@@ -812,8 +812,12 @@ class ClauseManager:
         return (False, "RUP failed: No conflict found", hints)
 
     def checkFinal(self):
+        if self.countMode:
+            self.actualRoot = self.declaredRoot
+            return (True, "")
         # All but single unit clause should have been deleted
         notDeleted = []
+
         # Should only be one unit clause
         self.actualRoot = None
 
@@ -831,11 +835,9 @@ class ClauseManager:
             else:
                 notDeleted.append(id)
 
-        if not self.countMode and len(notDeleted) > 0:
+        if  len(notDeleted) > 0:
             return (False, "Clauses %s not deleted" % str(notDeleted))
                 
-        if self.countMode and self.actualRoot is None:
-            self.actualRoot = self.declaredRoot
         if self.actualRoot is None:
             return (False, "No root found")
         if self.declaredRoot is not None and self.declaredRoot != self.actualRoot:
@@ -996,8 +998,8 @@ class OperationManager:
                 if arg < 0:
                     val = val.oneminus()
                 wts.append(val)
-            result = wts[0]
-            for w in wts[1:]:
+            result = P52(1)
+            for w in wts:
                 result = result.mul(w) if op == self.conjunction else result.add(w)
             weights[outVar] = result
         rootVar = abs(root)
