@@ -18,9 +18,9 @@ static bool delete_files  =  true;
 static bool early_quit = false;
 static bool one_sided = false;
 static int drat_threshold = 20;
-static int monolithic_threshold = 100000;
+static int monolithic_threshold = 1000 * 1000;
 static double tree_ratio_threshold = 5.0;
-static int bcp_limit = 1;
+static int bcp_limit = 1000;
 static int clause_limit = INT_MAX;
 
 
