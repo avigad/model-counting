@@ -1000,16 +1000,18 @@ class OrderWriter(Writer):
 
 class PogWriter(Writer):
     stepCount = 0
+    numberSteps = True
 
-    def __init__(self, variableCount, clauseList, fname, verbLevel = 1):
+    def __init__(self, variableCount, clauseList, fname, verbLevel = 1, numberSteps = True):
         Writer.__init__(self, variableCount, fname, verbLevel=verbLevel, isNull=False)
         self.stepCount = len(clauseList)
+        self.numberSteps = numberSteps
 
         if verbLevel >= 2 and len(clauseList) > 0:
             self.doComment("Input clauses")
         for s in range(1, len(clauseList)+1):
             lits = clauseList[s-1]
-            if verbLevel >= 2:
+            if lits != tautologyId and verbLevel >= 2:
                 self.doLine(['c', s, 'i'] + list(lits) + [0])
 
     def incrStep(self, delta = 1):
@@ -1026,14 +1028,20 @@ class PogWriter(Writer):
         
     def doProduct(self, xvar, lits):
         step = self.incrStep(len(lits) + 1)
-        self.doLine([step, 'p', xvar] + list(lits) + [0])
+        items = ['p', xvar] + list(lits) + [0]
+        if self.numberSteps:
+            items = [step] + items
+        self.doLine(items)
         return step
 
     def doSum(self, xvar, lits, hints = None):
         step = self.incrStep(len(lits) + 1)
         if hints is None:
             hints = ['*']
-        self.doLine([step, 's', xvar] + list(lits) + hints + [0])
+        items = ['s', xvar] + list(lits) + hints + [0]
+        if self.numberSteps:
+            items = [step] + items
+        self.doLine(items)
         return step
 
     def doRoot(self, lit):

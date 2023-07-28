@@ -12,82 +12,56 @@ class PogException(Exception):
     def __str__(self):
         return "Pog Exception: " + str(self.value)
 
+# Only represent product and sum nodes
+# Variables and Tautology are represented by integer values
 class NodeType:
-    tcount = 4
-    tautology, variable, product, sum = range(4)
-    typeName = ["taut", "var", "product", "sum"]
-
-
-class NodeRef:
-    node = None
-    phase = True
-    def __init__(self, node, phase):
-        self.node = node
-        self.phase = phase
-
-    def literal(self):
-        weight = 1 if self.phase else -1
-        return self.node.xvar * weight
-
-    def negate(self):
-        return NodeRef(self.node, not self.phase)
-
-    def __str__(self):
-        return str(self.node) if self.phase else '!' + str(self.node)
-
-    def __hash__(self):
-        return self.literal()
+    tcount = 2
+    product, sum = range(2)
+    typeName = ["product", "sum"]
 
 class Node:
     ntype = None
     xvar = 0
-    children = []  # List of node references
+    children = []  # List of literals
     mark = False
+    # Added lazily
+    dset = None
 
     def __init__(self, ntype, xvar, children):
         self.xvar = xvar
         self.ntype = ntype
         self.children = children
+        self.dset = None
+
+    def string(self, long = True):
+        s = 'UNK_' + str(self.xvar)
+        if self.ntype == NodeType.product:
+            s = 'P_' + str(self.xvar)
+        elif self.ntype == NodeType.sum:
+            s = 'S_' + str(self.xvar)
+        if long and len(self.children) > 0:
+            refs = [str(c) for c in self.children]
+            s += "(%s)" % ", ".join(refs)
+        return s
 
     def __str__(self):
-        if self.ntype == NodeType.tautology:
-            return "TAUT"
-        elif self.ntype == NodeType.variable:
-            return 'V' + str(self.xvar)
-        elif self.ntype == NodeType.product:
-            return 'P_' + str(self.xvar)
-        elif self.ntype == NodeType.sum:
-            return 'S_' + str(self.xvar)
-        else:
-            return 'UNK_' + str(self.xvar)
+        return self.string(long = False)
 
-    def show(self):
-        s = str(self)
-        if len(self.children) > 0:
-            refs = [str(c.literal()) for c in self.children]
-            s += "(%s)" % ", ".join(refs)
-        print(s)
-
-    def findDecisionVariable(self):
+    def findDecisionVariable(self, pog):
         if self.ntype != NodeType.sum:
             return None
         child1 = self.children[0]
-        n1, p1 = child1.node, child1.phase
-        if n1.ntype == NodeType.variable:
-            lits1 = [child1.literal()]
-        elif n1.ntype  == NodeType.product and p1:
-            lits1 = [c.literal() for c in n1.children]
+        if pog.isNode(child1):
+            n1 = pog.getNode(child1)
+            lits1 = n1.children
         else:
-            return None
-
+            lits1 = [child1]
         child2 = self.children[1]
-        n2, p2 = child2.node, child2.phase
-        if n2.ntype == NodeType.variable:
-            lits2 = [child2.literal()]
-        elif n2.ntype  == NodeType.product and p2:
-            lits2 = [c.literal() for c in n2.children]
+        if pog.isNode(child2):
+            n2 = pog.getNode(child2)
+            lits2 = n2.children
         else:
-            return None
+            lits2 = [child2]
 
         for lit1 in lits1:
             for lit2 in lits2:
@@ -95,18 +69,21 @@ class Node:
                     return abs(lit1)
         return None
 
+    def dependencySet(self, pog):
+        if self.dset is not None:
+            return self.dset
+        else:
+            dset = set([])
+            for child in self.children:
+                if pog.isNode(child):
+                    dset = dset | pog.getNode(child).dependencySet(pog)
+                else:
+                    dset = dset | set([abs(child)])
+            self.dset = dset
+            return dset
+
     def __hash__(self):
         return self.xvar
-
-class Tautology(Node):
-
-    def __init__(self):
-        Node.__init__(self, NodeType.tautology, readwrite.tautologyId, [])
-        
-class Variable(Node):
-    def __init__(self, id):
-        Node.__init__(self, NodeType.variable, id, [])
-
 
 class ProductNode(Node):
     def __init__(self, xvar, children):
@@ -118,12 +95,17 @@ class SumNode(Node):
             raise PogException("Can't have Sum node with %d children" % len(children))
         Node.__init__(self, NodeType.sum, xvar, children)
 
+def leafPog(variableCount, root):
+    pg = Pog(variableCount, 0)
+    pg.setRoot(root)
+    return pg
+
 # Represent overall POG
 class Pog:
     
     inputVariableCount = 0
     variableCount = 0
-    # Constant Node references
+    # Constant Node literals
     leaf1 = None
     leaf0 = None
     # map from type + args to node
@@ -134,169 +116,171 @@ class Pog:
     varMap = {}
     # Verbosity level
     verbLevel = 1
-    inputClauseList = []
     rootLiteral = None
     # Node counts by node type
     nodeCounts = {}
     # Number of defining clauses
     definingClauseCount = 0
 
-    def __init__(self, variableCount, inputClauseList, verbLevel):
+    def __init__(self, variableCount, verbLevel):
         self.verbLevel = verbLevel
         self.inputVariableCount = variableCount
         self.variableCount = variableCount
-        self.inputClauseList = readwrite.cleanClauses(inputClauseList)
         self.nodeMap = {}
         self.nodes = []
         self.varMap = {}
         self.nodeCounts = { t : 0 for t in range(NodeType.tcount) }
         self.definingClauseCount = 0
-        one = self.findOrMake(NodeType.tautology)
-        self.leaf1 = NodeRef(one, True)
-        self.leaf0 = NodeRef(one, False)
-        for i in range(1, variableCount+1):
-            v = self.findOrMake(NodeType.variable, i)
+        # Assume don't need leaves
+        self.leaf1 = None
+        self.leaf0 = None
         self.rootLiteral = None
 
-    def buildKey(self, ntype, xvar = None, args = None):
-        key = [ntype]
-        if xvar is not None:
-            key.append(xvar)
-        if args is not None:
-            key = key + [arg.literal() for arg in args]
-        return tuple(key)
+    def addLeaves(self):
+        if self.leaf1 is not None:
+            return
+        one = self.findOrMake(NodeType.product, [])
+        self.leaf1 = one.xvar
+        self.leaf0 = -self.leaf1
 
-    def nodeKey(self, node):
-        ntype = node.ntype
-        xvar = None if ntype == NodeType.tautology else node.xvar
-        args = None if ntype in [NodeType.tautology, NodeType.variable] else node.children
-        return self.buildKey(ntype, xvar, args)
+    # Create a POG consisting of just a constant or the literal of an input variable
+    def leafPog(self, root):
+        return leafPog(self.inputVariableCount, root)
 
-    def findOrMake(self, ntype, xvar = None, args = None):
-        if args is not None:
-            args.sort(key=lambda r : r.node.xvar)
-        key = self.buildKey(ntype, xvar, args)
+    def findOrMake(self, ntype, args):
+        args = sorted(args, key=lambda a : abs(a))
+        key = tuple([ntype] + args)
         if key in self.nodeMap:
             return self.nodeMap[key]
-        if ntype == NodeType.tautology:
-            node = Tautology()
-        elif ntype == NodeType.variable:
-            node = Variable(xvar)
-        elif ntype == NodeType.product:
-            self.variableCount += 1
-            xvar = self.variableCount
+        self.variableCount += 1        
+        xvar = self.variableCount
+        if ntype == NodeType.product:
             node = ProductNode(xvar, args) 
         elif ntype == NodeType.sum:
-            self.variableCount += 1
-            xvar = self.variableCount
             node = SumNode(xvar, args) 
         self.nodeMap[key] = node
         self.nodes.append(node)
         self.varMap[node.xvar] = node
         self.nodeCounts[ntype] += 1
-        if ntype in [NodeType.product, NodeType.sum]:
-            self.definingClauseCount += 1 + len(args)
+        self.definingClauseCount += 1 + len(args)
         return node
 
     def addProduct(self, children):
         nchildren = []
         for child in children:
-            node, phase = child.node, child.phase
-            if node.ntype == NodeType.tautology:
-                if phase:
-                    continue
-                else:
-                    return self.leaf0
-            else:
-                nchildren.append(child)
+            if self.leaf0 is not None and child == self.leaf0:
+                return child
+            elif self.leaf1 is not None and child == self.leaf1:
+                continue
+            nchildren.append(child)
         if len(nchildren) == 0:
+            self.addLeaves()
             return self.leaf1
         elif len(nchildren) == 1:
             return nchildren[0]
         else:
-            node = self.findOrMake(NodeType.product, args = nchildren)
-            return NodeRef(node, True)
+            node = self.findOrMake(NodeType.product, nchildren)
+            return node.xvar
 
     def addSum(self, children):
         nchildren = []
         for child in children:
-            node, phase = child.node, child.phase
-            if node.ntype == NodeType.tautology:
-                if phase:
-                    return self.leaf1
-                else:
-                    continue
-            else:
-                nchildren.append(child)
+            if self.leaf1 is not None and child == self.leaf1:
+                return child
+            elif self.leaf0 is not None and child == self.leaf0:
+                continue
+            nchildren.append(child)
         if len(nchildren) == 0:
+            self.addLeaves()
             return self.leaf0
         elif len(nchildren) == 1:
             return nchildren[0]
         else:
-            node = self.findOrMake(NodeType.sum, args = nchildren)
-            return NodeRef(node, True)
+            node = self.findOrMake(NodeType.sum, nchildren)
+            return node.xvar
 
     def setRoot(self, rootLiteral):
+        if abs(rootLiteral) == readwrite.tautologyId:
+            self.addLeaves()
+            rootLiteral = self.leaf1 if rootLiteral > 0 else self.leaf0
         self.rootLiteral = rootLiteral
-      
 
-    def getRef(self, lit):
+    def getNode(self, lit):
         var = abs(lit)
         try:
             node = self.varMap[var]
         except:
             raise PogException("Literal %d invalid" % lit)
-        phase = lit > 0
-        return NodeRef(node, phase)
+        return node
 
     def isNode(self, lit):
-        ref = self.getRef(lit)
-        return ref.node.ntype in [NodeType.product, NodeType.sum]
+        var = abs(lit)
+        return var in self.varMap
 
     def mark(self, lit):
-        node = self.getRef(lit).node
+        if not self.isNode(lit):
+            return
+        node = self.getNode(lit)
         if node.mark:
             return
         node.mark = True
         for c in node.children:
-            self.mark(c.literal())
+            self.mark(c)
 
-    def compress(self):
+    # Create a new POG consisting of a subgraph with root lit
+    def extractSubgraph(self, rootLiteral):
+        if not self.isNode(rootLiteral):
+            return self.leafPog(rootLiteral)
         # Marking
         for node in self.nodes:
             node.mark = False
-        self.mark(self.rootLiteral)
-        nnodes = []
-        nvarMap = {}
-        nnodeMap = {}
-        nnodeCounts = { t : 0 for t in range(NodeType.tcount) }
-
+        self.mark(rootLiteral)
+        # Map from old xvars to new ones
+        plits = [v for v in range(1, self.inputVariableCount+1)]
+        nlits = [-v for v in plits]
+        o2nLit = {lit : lit for lit in plits + nlits}
+        npog = Pog(self.inputVariableCount, self.verbLevel)
         for node in self.nodes:
-            if not node.mark and node.ntype in [NodeType.product, NodeType.sum]:
+            nnode = None
+            if not node.mark:
                 continue
-            nnodes.append(node)
-            nvarMap[node.xvar] = node
-            key = self.nodeKey(node)
-            nnodeMap[key] = node
-            nnodeCounts[node.ntype] += 1
-        self.nodes = nnodes
-        self.varMap = nvarMap
-        self.nodeMap = nnodeMap
-        self.nodeCounts = nnodeCounts
-        
+            else:
+                nchildren = [o2nLit[c] for c in node.children]
+                nnode = npog.findOrMake(node.ntype, nchildren)
+                o2nLit[node.xvar] = nnode.xvar
+                o2nLit[-node.xvar] = -nnode.xvar
+        npog.setRoot(o2nLit[rootLiteral])
+        return npog
 
-    def write(self, fname):
-        pwriter = readwrite.PogWriter(self.inputVariableCount, self.inputClauseList, fname, self.verbLevel)
+    def compress(self):
+        if self.verbLevel >= 3:
+            sys.stdout.write("Before compression: ")
+            self.summarize()
+        npog = self.extractSubgraph(self.rootLiteral)
+        self.nodes = npog.nodes
+        self.varMap = npog.varMap
+        self.nodeMap = npog.nodeMap
+        self.nodeCounts = npog.nodeCounts
+        self.definingClauseCount = npog.definingClauseCount
+        self.rootLiteral = npog.rootLiteral
+        if self.verbLevel >= 3:
+            sys.stdout.write("After compression: ")
+            self.summarize()
+
+    def write(self, fname, numberLines = False):
+        pwriter = readwrite.PogWriter(self.inputVariableCount, [], fname, self.verbLevel, numberLines)
         pwriter.doComment("POG nodes")
         for node in self.nodes:
             if node.ntype == NodeType.product:
-                pwriter.doProduct(node.xvar, [c.literal() for c in node.children])
+                pwriter.doProduct(node.xvar, node.children)
             if node.ntype == NodeType.sum:
-                pwriter.doSum(node.xvar, [c.literal() for c in node.children])
+                pwriter.doSum(node.xvar, node.children)
         if self.rootLiteral is not None:
             pwriter.doRoot(self.rootLiteral)
         pwriter.finish()
 
+    def nodeCount(self):
+        return self.nodeCounts[NodeType.product] + self.nodeCounts[NodeType.sum]
 
     def summarize(self):
         pcount = self.nodeCounts[NodeType.product]
@@ -306,33 +290,36 @@ class Pog:
 
     # Integrate the nodes of another POG into this one.  Return reference for the remapped root
     def integrate(self, opog):
-        # Mapping from old node to new node
-        remap = {}
-        rref = None
+        if not opog.isNode(opog.rootLiteral):
+            return opog.rootLiteral
+        # Mapping from old literals to new literals
+        plits = [v for v in range(1, self.inputVariableCount+1)]
+        nlits = [-v for v in plits]
+        remap = {lit : lit for lit in plits + nlits}
+        rlit = None
         for onode in opog.nodes:
-            olit = onode.xvar
-            if onode.ntype in [NodeType.product, NodeType.sum]:
-                cnodes = [c.node for c in onode.children]
-                cphases = [c.phase for c in onode.children]
-                nnodes = [remap[node] for node in cnodes]
-                nchildren = [NodeRef(node, phase) for node, phase in zip(nnodes, cphases)]
-                nref = self.addProduct(nchildren) if onode.ntype == NodeType.product else self.addSum(nchildren)
-            else:
-                nref = self.getRef(olit)
-            remap[onode] = nref.node
-            if self.verbLevel >= 3:
-                print("Integration: Remapping POG node %s to node %s" % (str(onode), str(nref.node)))
-            if olit == abs(opog.rootLiteral):
-                rref = nref if opog.rootLiteral > 0 else nref.negate()
+            oxvar = onode.xvar
+            nchildren = [remap[child] for child in onode.children]
+            nnode = self.findOrMake(onode.ntype, nchildren)
+            nxvar = nnode.xvar
+            remap[oxvar] = nxvar
+            remap[-oxvar] = -nxvar
+        rlit = remap[opog.rootLiteral]
         if self.verbLevel >= 3:
-            print("Integration mapped sub-POG root %d to main-POG %s" % (opog.rootLiteral, str(rref)))
-        return rref
+            print("Integration mapped sub-POG root %d to main-POG %d" % (opog.rootLiteral, rlit))
+        return rlit
 
 
     def show(self):
         for node in self.nodes:
-            if node.ntype in  [NodeType.tautology, NodeType.variable]:
-                continue
-            node.show()
+            print(node.string())
         print("Root = %d" % self.rootLiteral)
             
+    def showSubgraph(self, lit):
+        for node in self.nodes:
+            node.mark = False
+        self.mark(lit)
+        print("Subgraph with root %d:" % lit)
+        for node in self.nodes:
+            if node.mark:
+                print(node.string())
