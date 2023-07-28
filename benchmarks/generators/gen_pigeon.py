@@ -21,8 +21,11 @@
 
 import sys
 import  getopt
+import random
+
 import writer
 import cnf_utilities
+
 
 # Generate CNF file for pigeonhole problem
 def usage(name):
@@ -53,12 +56,8 @@ def pij(i, j):
 # For weighted model counting.
 # Weight is scaled by 1000
 def wij(i, j):
-    # Scale by 1000000
-    # Bias so that pigeon i wants to be in hole j
-    restWeight = 500 // holeCount
-    homeWeight = 1000 - restWeight * holeCount
-    return 0.001 * (homeWeight if i == j else restWeight)
-    
+    random.seed(pij(i,j))
+    return random.randint(1,999) * 0.001
 
 def generate(froot):
     cwriter = writer.LazyCnfWriter(froot, verbLevel = 2 if verbose else 1)
