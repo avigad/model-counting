@@ -17,6 +17,13 @@ class ProjectionException(Exception):
     def __str__(self):
         return "Projection Exception: " + str(self.value)
 
+# Data gathering
+productTraversals = 0
+excludingSumTraversals = 0
+mutexSumTraversals = 0
+showSumTraversals = 0
+
+
 # Create cache of previous solutions
 # Indexed by both packed CNF representation and by previous POG
 
@@ -65,11 +72,13 @@ class Projector:
         self.pog = self.pcnf.makePog(self.verbLevel, trySimple = False)
 
     def traverseProduct(self, node, pcnf):
+        global productTraversals
         if self.verbLevel >= 3:
             print("Product traversal of node %s" % node.string())
         contextLiterals = set([])
         nchildren = []
         nodeLits = []
+        productTraversals += 1
         for child in node.children:
             if self.pog.isNode(child):
                 nodeLits.append(child)
@@ -92,6 +101,7 @@ class Projector:
         return nlit
 
     def traverseSum(self, node, pcnf):
+        global showSumTraversals, mutexSumTraversals, excludingSumTraversals
         if self.verbLevel >= 3:
             print("Sum traversal of node %s" % node.string())
         nchildren = [self.traverse(child, pcnf) for child in node.children]
@@ -99,11 +109,14 @@ class Projector:
         if dvar is None:
             raise ProjectionException("Can't find decision variable for node %s" % node.string())
         nlit = None
-        if dvar not in self.showVariables:
+        if dvar in self.showVariables:
+            showSumTraversals += 1
+        else:
             if self.verbLevel >= 3:
                 print("  Factoring decision variable %d" % dvar)
             mpcnf = pcnf.reduce(ignoredVariables = set([dvar]))
             if mpcnf.isSat():
+                excludingSumTraversals += 1
                 xpog = pcnf2ppog(mpcnf, self.showVariables, self.verbLevel)
                 if (self.verbLevel >= 3):
                     print("  Exclusionary term")
@@ -113,8 +126,10 @@ class Projector:
                 nlit = self.pog.addSum([-mlit, nchildren[1]])
                 if self.verbLevel >= 3:
                     print("   Traversing %s.  Integrated exclusionary term %d" % (node.string(), xlit))
-            elif self.verbLevel >= 3:
-                print("  Traversing %s.  Exclusionary term unsatisfiable" % (node.string()))
+            else:
+                mutexSumTraversals += 1
+                if self.verbLevel >= 3:
+                    print("  Traversing %s.  Exclusionary term unsatisfiable" % (node.string()))
         if nlit is None:
             nlit = self.pog.addSum(nchildren)
         pcache.insert(pcnf, self.pog.extractSubgraph(nlit))

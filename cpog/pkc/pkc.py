@@ -60,6 +60,9 @@ def run(name, args):
     delta = datetime.datetime.now() - start
     seconds = delta.seconds + 1e-6 * delta.microseconds
     rtime = seconds - (cnf.satTime + cnf.d4Time)
+    print("GEN: Calls: %d  D4, %d SAT solver" % (cnf.d4Calls, cnf.satCalls))
+    print("GEN: Node traversals: %d product, %d show variable sum, %d already mutex sum, %d added exclusion sum" % (
+        project.productTraversals, project.showSumTraversals, project.mutexSumTraversals, project.excludingSumTraversals))
     print("GEN: Elapsed time for generation: %.2f seconds" % seconds)
     print("GEN:    Time for SAT:  %.2f seconds" %  cnf.satTime)
     print("GEN:    Time for D4:   %.2f seconds" %  cnf.d4Time)
