@@ -1,0 +1,95 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 1000000 -r 5.0 -C 2147483647 -L d2p.log ./mc2022_track2_139.cnf ./mc2022_track2_139.nnf ./mc2022_track2_139.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold 1000000
+c GEN:   Tree ratio threshold 5.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 225 variables and 1280 clauses
+c Read D4 NNF file with 64576964 nodes (25505130 explicit) and 68244197 edges
+c Compressed POG has 63326195 nodes, root literal 63326420, and 219979530 defining clauses
+c POG has DAG size 219979530 and tree size 970481074397 ratio = 4411.69
+c GEN: Time 123.37  Generated POG representation
+c Time = 164.48.  Justifications of 6332619 nodes completed.  239088610 total clauses.  7 SAT calls
+c Time = 197.89.  Justifications of 12665238 nodes completed.  258422317 total clauses.  7 SAT calls
+c Time = 233.54.  Justifications of 18997857 nodes completed.  277431703 total clauses.  7 SAT calls
+c Time = 271.72.  Justifications of 25330476 nodes completed.  295321903 total clauses.  7 SAT calls
+c Time = 314.99.  Justifications of 31663095 nodes completed.  311920016 total clauses.  7 SAT calls
+c Time = 374.40.  Justifications of 37995714 nodes completed.  331226631 total clauses.  7 SAT calls
+c Time = 427.45.  Justifications of 44328333 nodes completed.  350621504 total clauses.  7 SAT calls
+c Time = 534.39.  Justifications of 50660952 nodes completed.  373120965 total clauses.  106 SAT calls
+c Time = 620.26.  Justifications of 56993571 nodes completed.  394150356 total clauses.  179 SAT calls
+c Time = 745.36.  Justifications of 63326190 nodes completed.  416099687 total clauses.  334 SAT calls
+c Time = 745.37.  Justifications of 63326268 nodes, including root, completed.  416100638 total clauses
+c GEN: Time 745.37  Completed forward implication proof
+c GEN: Time 832.25  Deleted asserted clauses
+c GEN: Time 1379.53  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 225
+c GEN:    input clauses  : 1280
+c GEN: POG nodes
+c GEN:    product   : 43791269
+c GEN:    sum       : 19534925
+c GEN:    node TOTAL: 63326194
+c GEN: Other nodes
+c GEN:    aux product: 3172349
+c GEN: Node visits
+c GEN:    product/BCP: 43791006
+c GEN:    product/SAT: 334
+c GEN:    sum        : 19534928
+c GEN:    visit TOTAL: 63326268
+c GEN: Lemmas
+c GEN:    definitions : 4338786
+c GEN:    applications: 45101386
+c GEN:    duplicates  : 0
+c GEN:    merged args : 61441
+c GEN: SAT Problem Clause Counts (334 instances)
+c GEN:    PROBLEM TOTAL : 62256
+c GEN:    PROBLEM MIN   : 6
+c GEN:    PROBLEM AVG   : 186.40
+c GEN:    PROBLEM MAX   : 449
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 5813
+c GEN:    PROOF MIN   : 4
+c GEN:    PROOF AVG   : 17.40
+c GEN:    PROOF MAX   : 60
+c GEN: Clauses
+c GEN:    POG definition       : 219979530
+c GEN:    AUX definition       : 39947065
+c GEN:    product justification: 43791340
+c GEN:    sum justification    : 37821074
+c GEN:    literal justification: 5111245
+c GEN:    lemma application    : 70699166
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 417349420
+c GEN: Time
+c GEN:   Setup POG           : 123.37
+c GEN:   Forward implication : 623.06
+c GEN:             SAT execution  : 1.58
+c GEN:             Other forward  : 621.48
+c GEN:   Reverse implication : 634.17
+c GEN:   Time TOTAL          : 1380.60
+GEN LOG: Elapsed time = 1381.831 seconds
+GEN OUTCOME: normal
+mc2022_track2_139. GEN: LOG: size ./mc2022_track2_139.cpog 378847910 lines 48305162492 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track2_139.cnf ./mc2022_track2_139.cpog
+FCHECK LOG: Time limit 10000 seconds
+CHECK: Read CNF file with 225 variables and 1280 clauses
+CHECK: Read CPOG file with 66498544 operations,  156174043 asserted + 259926595 defining = 416100638 clauses
+CHECK: Deleted 156175322 input and asserted clauses
+CHECK: Final root literal 63326420
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 10956218896546310240712
+CHECK: Weighted model count = 0.166076437229464435642082020437722071080323260964529903723535361034490513053548038017564815214759795567860348924601427556228850548876782175847611729995315866719817169267509323820943710339875858839309459976678909611224247298271666565045659492850496797385120589621829261797112081796999438119358672794158837762720837727221676896250807707444615957056011524328046367834617639365662300045814034822030926592504878586446531052148584800125388373534322720348229870091978979868364500939075566336218985789197724219045203191971972294393340974151252831044778722144059955681731668949045889976194857228484966087464180271665053379014507182731348966369467422384421579206929608482697976289294853609730999328010340954709027035358980812803266886797682182230175798276565726931505052448128426364807306589892421157409034923103375300032252079221698798930737072501050214193089739791347759495852900742817824603211697520581573890912431865249065143231753417590286093893343119098178854514995491454475487763853818853110862034015922002091960674651433638889942611171418917790060937432723318804421071786554084580791602912125013559353079659916998257296218326477324327714373120434955370693979978062067732136777573098402713038777847266638873539644917819369253585949116202951737441579188902156733987839440434097074757793062471955655973443151098768329651578775546887219041394836694665098366269470103264350267522993646767151352982505242479746121751730443626695378709951608792733655954186589263299909224947906323917614149940185663775114326981482620014976400341446820902597349502892999399585386325696597745213879449438007112377579832753633483518319563884914762845193238050625373616021909344974630690111801703412102434398740463249242261366116814243121337116463821290616391843696183624073216
+CHECK: Time to compute model counts: 34.400
+CHECK: Elapsed seconds: 1389.370
+FCHECK LOG: Elapsed time = 1389.923 seconds
+FCHECK OUTCOME: normal
+hybrid LOG: Elapsed time = 2871.908 seconds
+hybrid OUTCOME: normal
