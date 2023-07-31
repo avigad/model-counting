@@ -1,0 +1,545 @@
+\documentclass[letterpaper,USenglish,cleveref, autoref, thm-restate]{lipics-v2021}
+%This is a template for producing LIPIcs articles.
+%See lipics-v2021-authors-guidelines.pdf for further information.
+%for A4 paper format use option "a4paper", for US-letter use option "letterpaper"
+%for british hyphenation rules use option "UKenglish", for american hyphenation rules use option "USenglish"
+%for section-numbered lemmas etc., use "numberwithinsect"
+%for enabling cleveref support, use "cleveref"
+%for enabling autoref support, use "autoref"
+%for anonymousing the authors (e.g. for double-blind review), add "anonymous"
+%for enabling thm-restate support, use "thm-restate"
+%for enabling a two-column layout for the author/affilation part (only applicable for > 6 authors), use "authorcolumns"
+%for producing a PDF according the PDF/A standard, add "pdfa"
+
+%\pdfoutput=1 %uncomment to ensure pdflatex processing (mandatatory e.g. to submit to arXiv)
+%\hideLIPIcs  %uncomment to remove references to LIPIcs series (logo, DOI, ...), e.g. when preparing a pre-final version to be uploaded to arXiv or another public repository
+
+%\graphicspath{{./graphics/}}%helpful if your graphic files are in another directory
+
+\nolinenumbers %uncomment to disable line numbering
+
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepackage{hyperref}
+
+\newcommand{\pand}{\mathbin{\land^{\sf p}}}
+\newcommand{\por}{\mathbin{\lor^{\sf p}}}
+\DeclareMathOperator*{\Pand}{\bigwedge^{\sf p}}
+\DeclareMathOperator*{\Por}{\bigvee^{\sf p}}
+\newcommand{\boolnot}{\neg}
+\newcommand{\tautology}{\top}
+\newcommand{\nil}{\bot}
+\newcommand{\obar}[1]{\overline{#1}}
+\newcommand{\oneminus}{{\sim}}
+\newcommand{\lit}{\ell}
+
+\newcommand{\dvarset}{D}
+\newcommand{\varset}{X}
+\newcommand{\pvarset}{P}
+\newcommand{\dependencyset}{{\cal V}}
+\newcommand{\litset}{{\cal L}}
+\newcommand{\ring}{{\cal R}}
+\newcommand{\dset}{{\cal A}}
+\newcommand{\rep}{\textbf{R}}
+\newcommand{\drep}{\textbf{R}_D}
+\newcommand{\radd}{+}
+\newcommand{\rmul}{\times}
+\newcommand{\addident}{\textbf{0}}
+\newcommand{\mulident}{\textbf{1}}
+\newcommand{\imply}{\Rightarrow}
+\newcommand{\ifandonlyif}{\Leftrightarrow}
+%\newcommand{\drational}{\mathbb{Q}_{2,5}}
+\newcommand{\drational}{\textbf{Q}_{2,5}}
+
+\newcommand{\assign}{\rho}
+\newcommand{\uassign}{{\cal U}}
+\newcommand{\modelset}{{\cal M}}
+\newcommand{\dassign}{\alpha}
+\newcommand{\passign}{\beta}
+\newcommand{\acombine}{\!\cdot\!}
+\newcommand{\dmodelset}{{\cal M_{D}}}
+\newcommand{\pure}{\mathit{Pure}}
+
+\newcommand{\simplify}[2]{#1|_{#2}}
+\newcommand{\ureduce}[2]{\forall #2\, #1}
+\newcommand{\partition}[2]{\mathit{Part}(#1, #2)}
+
+
+\newcommand{\makenode}[1]{\mathbf{#1}}
+\newcommand{\nodeu}{\makenode{u}}
+\newcommand{\nodev}{\makenode{v}}
+\newcommand{\nodes}{\makenode{s}}
+\newcommand{\nodep}{\makenode{p}}
+\newcommand{\noder}{\makenode{r}}
+
+\newcommand{\progname}[1]{\textsc{#1}}
+\newcommand{\dfour}{\progname{D4}}
+\newcommand{\Dfour}{\progname{D4}}
+\newcommand{\cadical}{\progname{CaDiCal}}
+\newcommand{\dtrim}{\progname{drat-trim}}
+\newcommand{\lean}{Lean~4}
+
+\newcommand{\algo}[1]{\textsf{#1}}
+\newcommand{\kc}{\algo{KC}}
+\newcommand{\pkc}{\algo{PKC}}
+\newcommand{\traverse}{\algo{Traverse}}
+\newcommand{\posop}{\algo{Pos}}
+\newcommand{\negop}{\algo{Neg}}
+\newcommand{\bcp}{\algo{BCP}}
+\newcommand{\uprop}{\algo{Uprop}}
+\newcommand{\simpl}{\also{Simpl}}
+
+\definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
+\definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
+\definecolor{clearyellow}{rgb}{0.964706, 0.745098, 0}
+\definecolor{clearorange}{rgb}{0.917647, 0.462745, 0}
+\definecolor{mildgray}{rgb}{0.54902, 0.509804, 0.47451}
+\definecolor{softblue}{rgb}{0.643137, 0.858824, 0.909804}
+\definecolor{bluegray}{rgb}{0.141176, 0.313725, 0.603922}
+\definecolor{lightgreen}{rgb}{0.709804, 0.741176, 0}
+\definecolor{darkgreen}{rgb}{0.152941, 0.576471, 0.172549}
+\definecolor{redpurple}{rgb}{0.835294, 0, 0.196078}
+\definecolor{midblue}{rgb}{0, 0.592157, 0.662745}
+\definecolor{clearpurple}{rgb}{0.67451, 0.0784314, 0.352941}
+\definecolor{browngreen}{rgb}{0.333333, 0.313725, 0.145098}
+\definecolor{darkestpurple}{rgb}{0.396078, 0.113725, 0.196078}
+\definecolor{greypurple}{rgb}{0.294118, 0.219608, 0.298039}
+\definecolor{darkturquoise}{rgb}{0, 0.239216, 0.298039}
+\definecolor{darkbrown}{rgb}{0.305882, 0.211765, 0.160784}
+\definecolor{midgreen}{rgb}{0.560784, 0.6, 0.243137}
+\definecolor{darkred}{rgb}{0.576471, 0.152941, 0.172549}
+\definecolor{darkpurple}{rgb}{0.313725, 0.027451, 0.470588}
+\definecolor{darkestblue}{rgb}{0, 0.156863, 0.333333}
+\definecolor{lightpurple}{rgb}{0.776471, 0.690196, 0.737255}
+\definecolor{softgreen}{rgb}{0.733333, 0.772549, 0.572549}
+\definecolor{offwhite}{rgb}{0.839216, 0.823529, 0.768627}
+\definecolor{medgreen}{rgb}{0.15, 0.6, 0.15}
+
+% Lean code:
+\usepackage{listings}
+%\definecolor{keywordcolor}{rgb}{0.7, 0.1, 0.1}   % red
+\definecolor{keywordcolor}{rgb}{0.0, 0.1, 0.6}   % blue
+\definecolor{tacticcolor}{rgb}{0.0, 0.1, 0.6}    % blue
+\definecolor{commentcolor}{rgb}{0.4, 0.4, 0.4}   % grey
+\definecolor{symbolcolor}{rgb}{0.0, 0.1, 0.6}    % blue
+\definecolor{sortcolor}{rgb}{0.1, 0.5, 0.1}      % green
+\definecolor{attributecolor}{rgb}{0.7, 0.1, 0.1} % red
+\def\lstlanguagefiles{lstlean.tex}
+% set default language
+\lstset{language=lean, xleftmargin=1em}
+\lstset{backgroundcolor=\color{white}}
+
+\bibliographystyle{plainurl}% the mandatory bibstyle
+
+\title{Notes on \\ Projected Knowledge Compilation \\ \today }
+
+\titlerunning{Projected Knowledge Compilation}
+
+\author{Randal E. Bryant}{Computer Science Department, Carnegie Mellon University, Pittsburgh, PA 15213 USA}{Randy.Bryant@cs.cmu.edu}{https://orcid.org/0000-0001-5024-6613}{Supported by NSF grant CCF-2108521}
+
+\authorrunning{R. E. Bryant} %TODO mandatory. First: Use abbreviated first/middle names. Second (only in severe cases): Use first author plus 'et al.'
+
+%\Copyright{Jane Open Access and Joan R. Public} %TODO mandatory, please use full first names. LIPIcs license is "CC-BY";  http://creativecommons.org/licenses/by/3.0/
+
+%\ccsdesc[100]{\textcolor{red}{Replace ccsdesc macro with valid one}} %TODO mandatory: Please choose ACM 2012 classifications from https://dl.acm.org/ccs/ccs_flat.cfm
+\begin{CCSXML}
+<ccs2012>
+   <concept>
+       <concept_id>10003752.10003790.10003794</concept_id>
+       <concept_desc>Theory of computation~Automated reasoning</concept_desc>
+       <concept_significance>500</concept_significance>
+       </concept>
+ </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Automated reasoning}
+
+
+%\keywords{Dummy keyword} %TODO mandatory; please add comma-separated list of keywords
+\keywords{knowledge compilation, model counting, projected model counting}
+
+%\category{} %optional, e.g. invited paper
+
+%\funding{(Optional) general funding statement \dots}%optional, to capture a funding statement, which applies to all authors. Please enter author specific funding statements as fifth argument of the \author macro.
+
+%\nolinenumbers %uncomment to disable line numbering
+
+%Editor-only macros:: begin (do not touch as author)%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\EventEditors{John Q. Open and Joan R. Access}
+%\EventNoEds{2}
+%\EventLongTitle{42nd Conference on Very Important Topics (CVIT 2016)}
+%\EventShortTitle{CVIT 2016}
+%\EventAcronym{CVIT}
+%\EventYear{2016}
+%\EventDate{December 24--27, 2016}
+%\EventLocation{Little Whinging, United Kingdom}
+%\EventLogo{}
+%\SeriesVolume{42}
+%\ArticleNo{23}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+\maketitle
+
+\section{Logical Foundations}
+
+  Let $\varset$ denote a set of Boolean variables, and let $\assign$
+  be an \emph{assignment} of truth values to some subset of the
+  variables, where $0$ denotes false and $1$ denotes true, i.e.,
+  $\assign \colon Y \rightarrow \{0,1\}$ for some $Y  \subseteq \varset$.
+We say the assignment is \emph{total with respect to a set of variables} $Y$, when it assigns a value to every $x \in Y$, and that it is simply \emph{total} when it is total with respect to $\varset$.
+  The set of all possible total assignments with respect to a set of variables $Y$ is denoted $\uassign(Y)$.
+
+
+For each variable $x \in \varset$,
+  we define the \emph{literals} $x$ and $\obar{x}$, where $\obar{x}$ is the
+  negation of $x$. An
+  assignment $\assign$ can be viewed as a set of literals, with
+   $\lit \in \assign$ when $\lit = x$ and $\assign(x) = 1$ or when
+  $\lit = \obar{x}$ and $\assign(x) = 0$.  We write the negation of literal $\lit$ as $\obar{\lit}$.  That is, $\obar{\lit} = \obar{x}$ when $\lit = x$ and
+$\obar{\lit} = x$ when $\lit = \obar{x}$.
+
+\begin{definition}[Boolean Formulas]
+  The set of Boolean formulas is defined recursively.  Each
+  formula $\theta$ has an associated \emph{dependency set}
+  $\dependencyset(\theta)  \subseteq \varset$, and a set of \emph{models} $\modelset(\theta)$,
+  consisting of total assignments that satisfy the formula:
+  \begin{enumerate}
+  \item Constant formulas $\nil$ (logical falsehood) and $\tautology$ (tautology) are Boolean formulas,
+    with $\dependencyset(\nil) = \dependencyset(\tautology) = \emptyset$, with $\modelset(\nil) = \emptyset$, and with $\modelset(\tautology) = \uassign(\varset)$.
+  \item Variable $x$ is a Boolean formula, with $\dependencyset(x) = \{x\}$
+    and $\modelset(x) = \{\assign \in \uassign(\varset) \mid  \assign(x)=1\}$.
+  \item For formula $\theta$, its \emph{negation}, written $\boolnot \theta$ is a Boolean formula,
+    with $\dependencyset(\boolnot \theta) = \dependencyset(\theta)$ and $\modelset(\boolnot \theta) = \uassign(\varset) - \modelset(\theta)$.
+  \item For formulas $\theta_1, \theta_2, \ldots, \theta_k$, their \emph{product} $\theta = \bigwedge_{1 \leq i \leq k} \theta_i$ is a Boolean formula, with
+      $\dependencyset(\theta) = \bigcup_{1 \leq i \leq k} \dependencyset(\theta_i)$ and
+      $\modelset(\theta) = \bigcap_{1 \leq i \leq k} \modelset(\theta_i)$.
+  \item For formulas $\theta_1, \theta_2, \ldots, \theta_k$, their \emph{sum} $\theta = \bigvee_{1 \leq i \leq k} \theta_i$ is a Boolean formula, with
+      $\dependencyset(\theta) = \bigcup_{1 \leq i \leq k} \dependencyset(\theta_i)$ and
+      $\modelset(\theta) = \bigcup_{1 \leq i \leq k} \modelset(\theta_i)$.
+  \end{enumerate}
+\label{def:boolean}
+\end{definition}
+
+\subsection{Conjunctive Normal Form (CNF)}
+
+  Many tools for reasoning about Boolean formulas operate on formulas in \emph{conjunctive normal form}, defined as follows.
+  Formula $\theta$ is in  \emph{negation normal form} when negation is applied only to variables.  A
+  formula is in \emph{conjunctive normal form} (CNF) when i) it is in
+  negation normal form, and ii) sum is applied only to literals.
+
+  A CNF
+  formula can be represented as a set of \emph{clauses}, each of which is a
+  set of literals.  Each clause represents the sum of the
+  literals, and the formula is the product of its clauses.  We use
+  set notation to reference the clauses within a formula and the
+  literals within a clause.  A clause consisting of a single literal is referred to as a \emph{unit} clause and the literal as a \emph{unit} literal.
+This literal must be assigned value $1$ by any satisfying assignment of the formula.  We the symbol $\phi$ to denote a CNF formula.
+
+\subsection{Partitioned-Operation Formulas}
+
+Computing many important properties of Boolean formulas, including
+whether they are satisfiable or how many models that have, is
+intractable for general Boolean formulas, as well as for those in
+conjunctive normal form.  By imposing sufficient restrictions, on the
+other hand, these properties can be computed in polynomial time (with
+respect to the formula size).
+
+The set of partitioned-operation operation formulas (POFs) is defined to be those Boolean formulas $\psi$ obeying the following recursively defined restrictions.
+\begin{description}
+\item[Constants:] 
+$\psi = \tautology$ and $\psi = \nil$.
+ \item[Literals:]
+   $\psi = x$ and $\psi = \obar{x}$ for $x \in \varset$
+ \item[Product operations:] $\psi = P(\psi_1, \psi_2, \ldots, \psi_k)$ where each $\psi_i$ is a POF\@.
+   This product represents the Boolean formula
+   $\psi = \bigwedge_{1 \leq i \leq k} \psi_i$.
+ The operation arguments must be defined over disjoint sets of variables.
+ That is, $\dependencyset(\psi_i) \cap \dependencyset(\psi_j) = \emptyset$ for all $1 \leq i < j \leq k$.
+ \item[Sum operations:] $\psi = S(\psi_1, \psi_2, \ldots, \psi_k)$ where each $\psi_i$ is a POF\@.
+   This sum represents the Boolean formula
+   $\psi = \bigvee_{1 \leq i \leq k} \psi_i$.
+The operation arguments must have disjoint models.
+That is, $\modelset(\psi_i) \cap \modelset(\psi_j) = \emptyset$ for $1 \leq i < j \leq k$.
+\item[Negations:] $\neg \psi'$, where $\psi'$ is a sum or product operation.
+\end{description}
+
+\subsection{Projected Formulas}
+
+The set of Boolean variables $\varset$ is divided into two sets: {\em data} variables
+$\dvarset$ and {\em auxiliary} variables $\pvarset$.  We use separate
+assignments for the two sets of variables:
+$\dassign \colon \dvarset \rightarrow \{0,1\}$
+ and
+ $\passign \colon \pvarset \rightarrow \{0,1\}$, and the symbol $\acombine$ to combine the two assignments:
+ $\dassign\acombine\passign \colon \varset \rightarrow \{0,1\}$.
+Sets $\uassign(\dvarset)$ and $\uassign(\pvarset)$ therefore denote the set of all assignments that are total with respect to $\dvarset$ and $\pvarset$, respectively.
+
+For Boolean formula $\theta$,
+its set of {\em data models}, written $\dmodelset(\theta)$ is defined as:
+\begin{eqnarray}
+\dmodelset(\theta) & = & \{ \dassign \in \uassign(\dvarset) \mid  \exists \passign \in \uassign(\pvarset) \; \dassign\acombine\passign \in \modelset(\theta) \} \label{eqn:dmodelset}
+\end{eqnarray}
+
+\subsection{Data Ring Evaluation}
+
+  For commutative ring $\ring$, a {\em ring weight function} associates a value $w(x) \in \dset$ with
+  every data variable $x \in \dvarset$.  We then define $w(\obar{x}) \doteq \mulident-w(x)$.
+
+  For Boolean formula $\theta$ and ring weight function $w$, its {\em data ring evaluation} computes
+  \begin{eqnarray}
+    \drep(\theta, w) & = & \sum_{\alpha \in \dmodelset(\theta)} \;\; \prod_{\lit \in \alpha} w(\lit) \label{eqn:rep}
+  \end{eqnarray}
+where $\sum$ and $\prod$ represent the ring sum $\radd$ and ring product $\rmul$ operations, respectively.
+
+For a partitioned-operation formula $\psi$ such that $\dependencyset(\psi) \subseteq \dvarset$, its data ring evaluation can be computed based on the recursive structure of the formula:
+\begin{itemize}
+\item Constants: $\drep(\tautology) = \mulident$ and $\drep(\nil) = \addident$
+\item Literals: $\drep(x) = w(x)$ and $\drep(\obar{x}) = \mulident - x$
+\item Product operations: 
+$\drep(P(\psi_1, \psi_2, \ldots, \psi_k)) = \prod_{1 \leq i \leq k} \drep(\psi_i)$
+\item Sum Operations
+$\drep(S(\psi_1, \psi_2, \ldots, \psi_k)) = \sum_{1 \leq i \leq k} \drep(\psi_i)$
+\item Negations: $\drep(\neg \psi) = \mulident -\psi$
+\end{itemize}
+
+The task of \emph{projected knowledge compilation} is then defined as follows: Given clausal formula $\phi$, generate a partitioned-operation formula $\psi$ having $\dependencyset(\psi) \subseteq \dvarset$, such that
+$\dmodelset(\psi) = \dmodelset(\phi)$.
+
+\section{Compilation Algorithm}
+
+We can build on existing knowledge compilers to implement a projected knowledge compiler.
+
+\subsection{Operations on Clausal Representations}
+
+Let $U(\phi)$ denote the set of \emph{unit literals} in $\phi$, i.e., the set of all literals $\lit$ such that clause $\{ \lit \} \in \phi$.  In the following $L$ denotes a set of literals.
+
+We define the following operations for transforming clausal formula $\phi$ into a new clausal formula:
+\begin{description}
+\item[$\posop(\phi, L)$:] Remove tautologies, as well as clauses satisfied by the literals: $\posop(\phi, L) = \{ C \in \phi \mid  C \cap L \not = \emptyset\}$.
+
+\item[$\negop(\phi, L)$:] Remove the negations of the literals from all clauses.  Let $\negop(C, L) = \{ \lit \in C \mid  \obar{\lit} \not \in L\}$.
+  Then $\negop(\phi, L) = \{ \negop(C, L) \mid  C \in \phi \}$.  If this process generates an empty clause, then the result is $\nil$.
+
+\item[$\simplify{\phi}{L}$:] Simplify the clauses by assigning the literals, removing all occurrences of any literal for the variables in $\dependencyset(L)$:
+$\simplify{\phi}{L} = \posop(\negop(\phi, L), L)$. 
+
+\item[$\uprop(\phi)$:]  Perform unit propagation based on the unit literals of $\phi$.  This involves simplifying the clauses according to the unit literals and then adding back the unit clauses.
+$\uprop(\phi) = \simplify{\phi}{U(\phi)} \cup \{ \{\lit \} \mid  \lit \in U(\phi) \}$.
+
+\item[$\bcp(\phi)$:] Perform Boolean constraint propagation (BCP).
+  Repeatedly compute $\phi \leftarrow \uprop(\phi)$ until either $\phi$ becomes $\nil$ or a fixed point is reached.
+
+\item[$\ureduce{\phi}{x}$:] Express the universal quantification of $\phi$ with respect to variable $x$ in clausal form:
+$\ureduce{\phi}{x} = \negop(\phi, \{x, \obar{x}\})$.
+
+\item[$\partition{\phi}{Y}$:] Find the subset of clauses that depend only on the variables in $Y$:
+$\partition{\phi}{Y} = \{ C \in \phi \mid \dependencyset(C) \subseteq Y\}$.
+
+\end{description}
+
+\subsection{Operations on POFs}
+
+When constructing POFs via a bottom-up process, we can perform a set of simplifications, as follows:
+
+\begin{itemize}
+\item
+The use of negation can be optimized as follows:
+\begin{itemize}
+\item Constants: $\neg \tautology = \nil$ and $\neg \nil = \tautology$
+\item Literals: $\neg x = \obar{x}$ and $\neg \obar{x} = x$
+\item Negations: $\neg \neg \psi = \psi$
+\end{itemize}
+
+\item 
+When forming a product $P(\psi_1, \psi_2, \ldots, \psi_k)$ we can perform the following simplifications:
+\begin{itemize}
+\item If $\psi_i = \nil$ for any argument $\psi_i$, then the result is $\nil$
+\item Eliminate any argument $\psi_i$ for which $\psi_i = \tautology$.
+\item If the reduced set of arguments consists of a single formula, then this formula becomes the result.
+\item Otherwise, form a product operation over the reduced set of arguments.
+\end{itemize}
+
+\item
+Similarly, when forming a sum $S(\psi_1, \psi_2, \ldots, \psi_k)$ we can perform the following simplifications:
+\begin{itemize}
+\item If $\psi_i = \tautology$ for any argument $\psi_i$, then the result is $\tautology$
+\item Eliminate any argument $\psi_i$ for which $\psi_i = \nil$.
+\item If the reduced set of arguments consists of a single formula, then this formula becomes the result.
+\item Otherwise, form a sum operation over the reduced set of arguments.
+\end{itemize}
+\end{itemize}
+
+\subsection{The Supporting Knowledge Compiler}
+
+We assume that we have a knowledge compiler that can convert a clausal formula $\phi$ into a logically equivalent POF $\psi$.  Furthermore, we assume that the generated POF obeys the following restrictions:
+\begin{itemize}
+\item The POF is in normal form, i.e., there are no negated product or sum operations.
+\item The sum operations are \emph{decision operations}.  That is, each sum operation is of the form $S(\psi_1, \psi_2)$, and it has an associated decision variable $x$,
+  such that 1) either $\psi_1 = x$ or $\psi_1$ is a product operation having $x$ as an argument, and 2)
+either $\psi_2 = \obar{x}$ or $\psi_2$ is a product operation having $\obar{x}$ as an argument.
+\end{itemize}
+We let $\kc(\phi)$ denote the output of the knowledge compiler for input formula $\phi$.
+
+\subsection{Algorithm}
+
+Our goal is to implement a projecting knowledge compiler that produces a POF $\pkc(\phi)$ when given input formula $\phi$.
+We define our algorithm in terms of a recursive function $\traverse(\psi, \phi)$ that simultaneously operates on a POF $\psi$ and a clausal formula $\phi$.  Projected knowledge compilation is then defined
+as $\pkc(\phi) = \traverse(\kc(\phi), \bcp(\phi))$.
+
+The traversal is defined based on the recursive structure of its first argument:
+\begin{description}
+\item[Constants:]
+  $\traverse(\tautology, \phi) = \tautology$ and 
+  $\traverse(\nil, \phi) = \nil$.
+
+\item[Literals:]
+  $\traverse(\lit, \phi) = \lit$ if $\dependencyset(\lit) \subseteq \dvarset$, and $\traverse(\lit, \phi) = \tautology$ if $\dependencyset(\lit) \in \pvarset$.
+\item[Product Operations:]
+  Let the product operation be of the form $P(\lit_1, \lit_2, \ldots, \lit_k, \psi_1, \psi_2, \ldots, \psi_m)$, where each $\psi_i$ is either a sum or a  product operation.
+  \begin{enumerate}
+  \item Let $L = \{\lit_1, \lit_2, \ldots, \lit_k\}$.
+  \item Define clausal formula $\phi'$ to be $\bcp(\simplify{\phi}{L})$
+  \item For $1 \leq i \leq m$, recursively compute $\psi'_i = \traverse(\psi_i, \partition{\phi'}{\dependencyset(\psi_i)})$.
+  \item Return the product (with simplifications) for the set of arguments $\{\lit \in L \mid  \dependencyset(\lit) \subseteq \dvarset\} \cup \{ \psi'_i \mid  1 \leq i \leq m \}$.
+  \end{enumerate}
+\item[Sum Operations:]
+  Let the sum operation be of the form $S(\lit_1, \lit_2)$ and having decision variable $x$.
+  \begin{enumerate}
+  \item For $1 \leq i \leq 2$, recursively compute $\psi'_i = \traverse(\psi_i, \phi)$.
+  \item If $x \in \dvarset$, then return the sum (with simplifications) $S(\psi'_1, \psi'_2)$.
+  \item Otherwise, let $\psi' = \pkc(\ureduce{\phi}{x})$
+    \begin{enumerate}
+    \item If $\psi' = \nil$, then return the sum (with simplifications) $S(\psi'_1, \psi'_2)$
+    \item Otherwise return nested formula $S(\neg S(\neg \psi'_1, \psi'), \psi'_2)$.
+    \end{enumerate}
+  \end{enumerate}
+\end{description}
+
+Of these steps, the most interesting ones involve the handling of sum
+operations when the decision variable $x$ is to be projected.  The
+recursive calls yielded subformulas $\psi'_1$ and $\psi'_2$, representing the projected compilation of $\phi$ when $x$ is assigned $1$ and $0$, respectively.
+These
+formulas potentially have overlapping models and so care must be taken
+in forming their sum.  Formula $\ureduce{\phi}{x}$ is the clausal
+representation of the universal quantification of $\phi$ with respect
+to $x$, and so $\psi' = \pkc(\ureduce{\phi}{x})$ will be a POF whose
+data models are the intersection of those for $\psi_1'$ and $\psi_2'$.  In
+the event that $\psi' = \nil$, the two formulas are disjoint.  This
+will occur, for example, when $x$ is a Tseitin variable encoding some
+Boolean formula over the data variables.  In that case, the sum can be
+formed directly.  If $\psi' \not = \tautology$, we want to
+``subtract'' the overlapping models from one of the arguments before
+forming the sum with the other.  We can do so using DeMorgan's Laws.  
+That is formula $\neg S(\neg \psi'_1, \psi')$ will have as data models $\dmodelset(\psi'_1) - \dmodelset(\psi')$.  Furthermore, the arguments to this sum operation will have disjoint models
+since $\dmodelset(\psi') \subseteq \dmodelset(\psi'_1)$, and therefore
+$\dmodelset(\psi') \cap \dmodelset(\neg \psi'_1) = \emptyset$.
+As can be seen, we could also reverse the role of the two arguments, computing the result
+$S(\psi'_1, \neg S(\neg \psi'_2, \psi'))$.
+
+
+\subsection{Optimizations}
+
+We can improve the efficiency of the traversal by applying the following optimizations:
+\begin{itemize}
+\item Only data variables in $\psi$.  If $\dependencyset(\psi) \subseteq \dvarset$, then $\traverse(\psi, \phi) = \psi$.
+\item Only data variables in $\phi$.  If $\dependencyset(\phi) \subseteq \dvarset$, then $\traverse(\psi, \phi) = \kc(\phi)$.
+\item Only projection variables in $\phi$.  If $\dependencyset(\phi) \subseteq \pvarset$, then $\traverse(\psi, \phi) = \tautology$ if formula $\phi$ is satisfiable and $\nil$ otherwise.
+\item Cached result. If $\psi$ is a sum operation and some previous traversal had the same clausal formula $\phi$ as its second argument, then the previously computed result can be reused.\footnote{
+Caching for product operations is not, in general valid, since the two recursive calls made when processing a sum operation can be for product operations with the same clausal argument.}
+\item Pure literal reduction.
+Literal $\lit$ is said to be \emph{pure} in $\phi$ if some clause in $\phi$ contains $\lit$, and no clause in $\phi$ contains  $\obar{\lit}$.
+Let $\pure(\phi)$ denote the set of all pure literals in $\phi$, and $\pure_{\pvarset}(\phi) = \{ \lit \in \pure(\phi) \mid  \dependencyset(\lit) \subseteq \pvarset \}$.
+If $\pure_{\pvarset}(\phi) \not = \emptyset$, then $\phi$ can be reduced as
+$\bcp(\simplify{\phi}{\pure_{\pvarset}(\phi)})$.
+\end{itemize}
+
+\section{Partitioned-Operation Graphs (POGs)}
+
+To allow a sharing of subformulas, we represent partitioned-operation
+formulas as a class of directed acyclic graphs, known as POGs.  These
+graphs have nodes denoting product and sum operations and edges
+denoting arguments, where an edge can be directed to a variable, to
+$\tautology$, or to another POG node.  Each edge has a \emph{phase}
+indicating whether  the argument is to be used directly
+(phase = $1$) or negated (phase = $0$).  The top-level POF is represented by a \emph{root edge}.
+
+
+\section{Example Formula}
+
+Consider an encoding of the formula $(x_1 \land x_2) \lor x_3$ using
+encoding variable $y$.  A full {\em Tseitin} encoding of $y
+\leftrightarrow (x_1 \land x_2)$ requires three clauses, but we can
+use a Plaisted-Greenbaum encoding in this context, encoding just $y
+\rightarrow (x_1 \land x_2)$, represented by the clauses
+$x_1 \lor \obar{y}$ and $x_2 \lor \obar{y}$.  We then encode the disjunction
+with the clause $x_3 \lor y$.  The DIMACS representation of the input formula $\phi$ is then as follows (using variable 4 to represent $y$):
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\makebox[10mm]{Clause} & \\
+\midrule
+ \texttt{1 -4} & \texttt{0} \\
+ \texttt{2 -4} & \texttt{0} \\
+ \texttt{3  4} & \texttt{0}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{figure}
+  \begin{minipage}{0.48\textwidth}
+    (A) POG representation of input formula \\[1.2ex]
+    \input{dd/eg-preproj}
+  \end{minipage}
+  \begin{minipage}{0.48\textwidth}
+  \end{minipage}
+  \begin{minipage}{0.48\textwidth}
+    (B) After projecting variable $y$ \\[1.2ex]
+    \input{dd/eg-proj}
+  \end{minipage}
+  \caption{POG Representation of formula (A), and its projection (B)
+  A black dot on an edge denotes Boolean negation.}
+  \label{fig:eg-proj}
+\end{figure}
+
+
+Figure \ref{fig:eg-proj}(A) shows the POG representation of the
+example formula, derived from the dec-DNNF representation produced by
+\dfour{}.  In this graph, product nodes are labeled with the operation $\pand$, and sum nodes are labeled with the operation $\por$, emphasizing that these operations satisfy their respective partitioning constraints.
+We can see that \dfour{} used $y$ as the decision variable at the top level, creating sum node $\nodes_7$ having edges to
+node $\nodep_5$ representing product operation $P(x_3, \obar{y})$ on the left and  node $\nodep_6$
+representing product operation $P(x_1, x_2, y)$ on the right.
+
+Figure \ref{fig:eg-proj}(B) shows the result of our algorithm, based on the following recursive steps.
+Computing $\traverse(P(x_3, \obar{y}), \phi)$ yields the literal $x_3$, while
+computing $\traverse(P(x_1, x_2, y), \phi)$ yields node $\nodep_{10}$ representing the product operation $P(x_1, x_2)$.
+Computing $\ureduce{\phi}{y}$ yields the clausal formula $\phi'$ given as
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\makebox[10mm]{Clause} & \\
+\midrule
+\texttt{1} & \texttt{0} \\
+\texttt{2} & \texttt{0} \\
+ \texttt{3} & \texttt{0}\\
+\bottomrule
+\end{tabular}
+\end{center}
+and this is compiled to node $\nodep_{8}$ representing product operation $P(x_1, x_2, x_3)$.
+Finally, the nodes are assembled using our DeMorgan's Law transformations as shown with root node $\nodes_{11}$.
+
+We can see in the POG of (B) that node $\nodep_{8}$ encodes $x_1 \land x_2
+\land x_3$, and this formula's only model assigns value $1$ to
+variables $x_1$, $x_2$, and $x_3$.  This is the only assignment
+satisfying both $x_3$ and $x_1 \land x_2$, and so our construction
+subtracts this model from those of $x_3$ before forming a sum with
+$x_1 \land x_2$.
+
+
+\end{document}

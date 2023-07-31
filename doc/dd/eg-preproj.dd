@@ -1,25 +1,29 @@
 # Project example pre-projection
 # Operators
+n r    150 250 t=e
 n s7   150 200 l=$\lor^{\textsf{p}}$
 n p5    50 100 l=$\land^{\textsf{p}}$
 n p6   250 100 l=$\land^{\textsf{p}}$
+# Place holder
+n x     150 -100 t=r radius=0
 # Leaves
 n x3     0    25 e=fillcolor f=fillcolor l=$x_3$
-n yb   100    25 e=fillcolor f=fillcolor l=$\overline{y}$
+n y1    100    25 e=fillcolor f=fillcolor l=$y$
 
 n x1     200  25 e=fillcolor f=fillcolor l=$x_1$
 n x2     250  25 e=fillcolor f=fillcolor l=$x_2$
-n y      300  25 e=fillcolor f=fillcolor l=$y$
+n y2      300  25 e=fillcolor f=fillcolor l=$y$
 # Marker at bottom to even heights
 # n b      0  -75 e=fillcolor f=fillcolor
 # Edges
+e r s7
 e s7 p5
 e s7 p6
-e p5 yb
+e p5 y1 m=b
 e p5 x3
 e p6 x1
 e p6 x2
-e p6  y
+e p6  y2
 # Labels
 t s7 $\mathbf{s}_7$ p=r off=0
 t p5 $\mathbf{p}_5$ p=r off=0

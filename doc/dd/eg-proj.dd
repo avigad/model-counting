@@ -1,5 +1,6 @@
 # Project example post-projection
 # Operators
+n r     150 350 t=e
 n s11   150 300 l=$\lor^{\textsf{p}}$
 n s9    50 200 l=$\lor^{\textsf{p}}$
 n p10   250 200 l=$\land^{\textsf{p}}$
@@ -12,6 +13,7 @@ n x3b    150  25 e=fillcolor f=fillcolor l=$x_3$
 n x1b    200 125 e=fillcolor f=fillcolor l=$x_1$
 n x2b    300 125 e=fillcolor f=fillcolor l=$x_2$
 # Edges
+e r s11
 e s11 s9 m=b
 e s11 p10
 e s9 x3a m=b
