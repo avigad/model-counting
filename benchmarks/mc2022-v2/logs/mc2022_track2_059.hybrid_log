@@ -1,0 +1,150 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 1000000 -r 5.0 -C 2147483647 -L d2p.log ./mc2022_track2_059.cnf ./mc2022_track2_059.nnf ./mc2022_track2_059.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold 1000000
+c GEN:   Tree ratio threshold 5.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 2549 variables and 2487 clauses
+c Read D4 NNF file with 9879436 nodes (5190475 explicit) and 11120622 edges
+c Compressed POG has 9879051 nodes, root literal 9881600, and 65210486 defining clauses
+c POG has DAG size 65210486 and tree size 147842573492 ratio = 2267.16
+c GEN: Time 27.99  Generated POG representation
+c Time = 684.64.  Justifications of 987905 nodes completed.  82483584 total clauses.  47816 SAT calls
+c Time = 1612.00.  Justifications of 1975810 nodes completed.  101497278 total clauses.  119860 SAT calls
+c Time = 2643.38.  Justifications of 2963715 nodes completed.  120526599 total clauses.  192609 SAT calls
+c Time = 3921.56.  Justifications of 3951620 nodes completed.  142634595 total clauses.  282946 SAT calls
+c Time = 4945.03.  Justifications of 4939525 nodes completed.  164457010 total clauses.  347337 SAT calls
+c Time = 6069.35.  Justifications of 5927430 nodes completed.  187517186 total clauses.  427730 SAT calls
+c Time = 7117.86.  Justifications of 6915335 nodes completed.  208486532 total clauses.  505088 SAT calls
+c Time = 8284.77.  Justifications of 7903240 nodes completed.  228598645 total clauses.  580348 SAT calls
+c WARNING: Couldn't open temporary CNF file reduction-1613740.cnf
+c WARNING: Couldn't validate literal 9890391 representing conjunction of 4 literals
+Was attempting to validate node N8286816_AND
+c   Arguments: -125 103 126 149 172 8286815
+Justification of node N8286816_AND failed
+Justification of node N8286819_OR failed.  Couldn't validate first child 8286816.  Splitting literal = -125
+Justification of node N8286820_AND failed.  Argument = 8286819
+ Clauses were split into 2 partitions
+Justification of node N8286821_AND failed.  Argument = 8286820
+Justification of node N8286829_OR failed.  Couldn't validate first child 8286821.  Splitting literal = -4
+Justification of node N8286830_AND failed.  Argument = 8286829
+Justification of node N8286831_OR failed.  Couldn't validate second child 8286830.  Splitting literal = 77
+Justification of node N8286832_AND failed.  Argument = 8286831
+Justification of node N8286912_OR failed.  Couldn't validate first child 8286832.  Splitting literal = -31
+Proof of lemma for node N8286912_OR, signature 231017081 failed
+Failed lemma.  Giving up on validation of node N8286912_OR
+Justification of node N8286913_AND failed.  Argument = 8286912
+ Clauses were split into 2 partitions
+Justification of node N8286914_AND failed.  Argument = 8286913
+Justification of node N8287002_OR failed.  Couldn't validate first child 8286914.  Splitting literal = -139
+Justification of node N8287003_AND failed.  Argument = 8287002
+Justification of node N8287004_OR failed.  Couldn't validate second child 8287003.  Splitting literal = 141
+Justification of node N8287005_AND failed.  Argument = 8287004
+Justification of node N8287020_OR failed.  Couldn't validate first child 8287005.  Splitting literal = -165
+Justification of node N8287021_AND failed.  Argument = 8287020
+Justification of node N8287022_OR failed.  Couldn't validate second child 8287021.  Splitting literal = 188
+Proof of lemma for node N8287022_OR, signature 1098239099 failed
+Failed lemma.  Giving up on validation of node N8287022_OR
+Justification of node N8287023_AND failed.  Argument = 8287022
+Justification of node N8287024_OR failed.  Couldn't validate second child 8287023.  Splitting literal = 285
+Justification of node N8287025_AND failed.  Argument = 8287024
+Justification of node N8288725_OR failed.  Couldn't validate first child 8287025.  Splitting literal = -282
+Justification of node N8288726_AND failed.  Argument = 8288725
+Justification of node N8288727_OR failed.  Couldn't validate second child 8288726.  Splitting literal = 283
+Proof of lemma for node N8288727_OR, signature 339330176 failed
+Failed lemma.  Giving up on validation of node N8288727_OR
+Justification of node N8288761_AND failed.  Argument = 8288727
+ Clauses were split into 2 partitions
+Justification of node N8288762_AND failed.  Argument = 8288761
+Justification of node N8289516_OR failed.  Couldn't validate first child 8288762.  Splitting literal = -513
+Justification of node N8289517_AND failed.  Argument = 8289516
+Justification of node N8290116_OR failed.  Couldn't validate first child 8289517.  Splitting literal = -423
+Justification of node N8290117_AND failed.  Argument = 8290116
+Justification of node N8290194_OR failed.  Couldn't validate first child 8290117.  Splitting literal = -151
+Justification of node N8290195_AND failed.  Argument = 8290194
+Justification of node N8291940_OR failed.  Couldn't validate first child 8290195.  Splitting literal = -219
+Justification of node N8291941_AND failed.  Argument = 8291940
+Justification of node N8292252_OR failed.  Couldn't validate first child 8291941.  Splitting literal = -446
+Justification of node N8292253_AND failed.  Argument = 8292252
+Justification of node N8292254_OR failed.  Couldn't validate second child 8292253.  Splitting literal = 106
+Justification of node N8292255_AND failed.  Argument = 8292254
+Justification of node N8294278_OR failed.  Couldn't validate first child 8292255.  Splitting literal = -379
+Justification of node N8294279_AND failed.  Argument = 8294278
+ Clauses were split into 2 partitions
+Justification of node N8294280_AND failed.  Argument = 8294279
+Justification of node N8310510_OR failed.  Couldn't validate first child 8294280.  Splitting literal = -265
+Justification of node N8310511_AND failed.  Argument = 8310510
+Justification of node N8310512_OR failed.  Couldn't validate second child 8310511.  Splitting literal = 491
+Justification of node N8310513_AND failed.  Argument = 8310512
+Justification of node N8310514_OR failed.  Couldn't validate second child 8310513.  Splitting literal = 468
+Justification of node N8310515_AND failed.  Argument = 8310514
+Justification of node N8310516_OR failed.  Couldn't validate second child 8310515.  Splitting literal = 401
+Justification of node N8310517_AND failed.  Argument = 8310516
+Justification of node N8663590_OR failed.  Couldn't validate first child 8310517.  Splitting literal = -11
+Justification of node N8663591_AND failed.  Argument = 8663590
+Justification of node N8748611_OR failed.  Couldn't validate first child 8663591.  Splitting literal = -242
+Justification of node N8748612_AND failed.  Argument = 8748611
+Justification of node N9881595_OR failed.  Couldn't validate first child 8748612.  Splitting literal = -288
+Justification of node N9881596_AND failed.  Argument = 9881595
+Justification of node N9881597_OR failed.  Couldn't validate second child 9881596.  Splitting literal = 334
+Justification of node N9881598_AND failed.  Argument = 9881597
+Justification of node N9881599_OR failed.  Couldn't validate second child 9881598.  Splitting literal = 128
+Justification of node N9881600_AND failed.  Argument = 9881599
+c WARNING: Failed to justify root literal 9881600
+c GEN: Formula
+c GEN:    input variables: 2549
+c GEN:    input clauses  : 2487
+c GEN: POG nodes
+c GEN:    product   : 7534761
+c GEN:    sum       : 2344289
+c GEN:    node TOTAL: 9879050
+c GEN: Other nodes
+c GEN:    aux product: 9134
+c GEN: Node visits
+c GEN:    product/BCP: 5707154
+c GEN:    product/SAT: 613849
+c GEN:    sum        : 1963321
+c GEN:    visit TOTAL: 8284324
+c GEN: Lemmas
+c GEN:    definitions : 435302
+c GEN:    applications: 5434437
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (613849 instances)
+c GEN:    PROBLEM TOTAL : 257650317
+c GEN:    PROBLEM MIN   : 10
+c GEN:    PROBLEM AVG   : 419.73
+c GEN:    PROBLEM MAX   : 2477
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF TOTAL : 7460830
+c GEN:    PROOF MIN   : 3
+c GEN:    PROOF AVG   : 12.15
+c GEN:    PROOF MAX   : 114
+c GEN: Clauses
+c GEN:    POG definition       : 65210486
+c GEN:    AUX definition       : 106204
+c GEN:    product justification: 6320971
+c GEN:    sum justification    : 3926588
+c GEN:    literal justification: 60945059
+c GEN:    lemma application    : 101219351
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 237728659
+c GEN: Time
+c GEN:   Setup POG           : 27.99
+c GEN:   Forward implication : 8826.94
+c GEN:             SAT execution  : 2783.01
+c GEN:             Other forward  : 6043.92
+c GEN:   Reverse implication : 0.00
+c GEN:   Time TOTAL          : 8854.93
+GEN ERROR: Return code = 10
+GEN LOG: Elapsed time = 8861.962 seconds
+GEN OUTCOME: failed
+hybrid LOG: Elapsed time = 9280.108 seconds
+hybrid OUTCOME: failed
