@@ -4,10 +4,18 @@
 # Does syntactic match of clauses
 
 import sys
+import shutil
+
 import readwrite
 
 def usage(name):
-    print("Usage: %s [-v] fname1 fname2 ..." % name)
+    print("Usage: %s [-h]  [-v] [-u PATH] fname1 fname2 ..." % name)
+    print("  -h      Print this message")
+    print("  -v      Verbose")
+    print("  -u PATH  Make a copy of the first representative from each class in PATH")
+
+# Global variables
+verbose = False
 
 def match(fname1, fname2):
     try:
@@ -28,6 +36,10 @@ def match(fname1, fname2):
             if lit1 != lit2:
                 return False
     return True
+
+def stripPath(path):
+    fields = path.split('/')
+    return fields[-1]
 
 class Eclass:
     nvar = 0
@@ -56,7 +68,16 @@ class Eclass:
     def show(self):
         return "{%s}" % ", ".join(self.fnames)
 
-def build(fnames, verbose = False):
+    def uniqueCopy(self, path):
+        src = self.fnames[0]
+        dest = path + '/' + stripPath(src)
+        if len(self.fnames) == 1:
+                print("%s --> %s (Unique)" % (src, dest))
+        else:
+            print("%s --> %s (Duplicated by %s)" % (src, dest, ", ".join(self.fnames[1:])))
+        shutil.copy(src, dest)
+
+def build(fnames):
     classes = []
     for fname in fnames:
         found = False
@@ -82,19 +103,31 @@ def build(fnames, verbose = False):
     return classes
 
 def run(name, args):
+    global verbose
+    verbose = False
+    path = None
     if len(args) == 0 or args[0] == '-h':
         usage(name)
         return
     verbose = False
-    if args[0] == '-v':
-        verbose = True
-        args = args[1:]
-    classes = build(args, verbose)
+    while args[0][0] == '-':
+        if args[0] == '-v':
+            verbose = True
+            args = args[1:]
+        if args[0] == '-u':
+            path = args[1]
+            args = args[2:]
+        else:
+            print("Unknown flag '%s'" % args[0])
+            return
+    classes = build(args)
     for eclass in classes:
         if len(eclass.fnames) > 1:
-            print(" ".join(eclass.fnames))
+            print("Class: " + " ".join(eclass.fnames))
+        if path is not None:
+            eclass.uniqueCopy(path)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
-            
+    sys.exit(0)
     
