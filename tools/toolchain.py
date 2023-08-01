@@ -29,14 +29,14 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m (m|s|h)] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
+    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m (m|s|h|f)] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -v       Set verbosity level")
     print("  -s n|g   Stop after NNF generation or CPOG generation (g)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -2       Use D4 version 2")
-    print("  -m m|s|h Generation mode: monolithic (m), structured (s), or hybrid (h)")
+    print("  -m MODE  Generation mode: monolithic (m), structured (s), hybrid (h), or forced-hybrid (f)")
     print("  -p       Preprocess (within D4).  Should then use monolithic mode for CPOG generation")
     print("  -L       Expand each node, rather than using lemmas")
     print("  -G       Prove each literal separately, rather than grouping into single proof")
@@ -211,6 +211,8 @@ def runGen(root, home, logFile, force):
     elif mode == 's':
         monolithic_threshold = 0
         tree_ratio_threshold = 0
+    elif mode == 'f':
+        tree_ratio_threshold = 1e12
     extraLogName = "d2p.log"
     cnfName = home + "/" + root + ".cnf"
     nnfName = nnfNamer(root, home)
@@ -262,7 +264,7 @@ def runSequence(root, home, stopD4, stopGen, force):
     extension = "log"
     if oneSided:
         extension = "onesided_" + extension
-    prefix = "mono" if mode == 'm' else "structured" if mode == 's' else "hybrid"
+    prefix = "mono" if mode == 'm' else "structured" if mode == 's' else "forced_hybrid" if mode == 'f' else 'hybrid'
     extension = prefix + "_" + extension
     if preprocess:
         extension = "preprocess_" + extension
@@ -346,7 +348,7 @@ def run(name, args):
             d4v2 = True
         elif opt == '-m':
             mode = val
-            if val not in "hms":
+            if val not in "hmsf":
                 print("Unknown mode '%s'" % val)
                 usage(name)
                 return
