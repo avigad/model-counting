@@ -192,7 +192,7 @@
   be an \emph{assignment} of truth values to some subset of the
   variables, where $0$ denotes false and $1$ denotes true, i.e.,
   $\assign \colon Y \rightarrow \{0,1\}$ for some $Y  \subseteq \varset$.
-We say the assignment is \emph{total with respect to a set of variables} $Y$, when it assigns a value to every $x \in Y$, and that it is simply \emph{total} when it is total with respect to $\varset$.
+We say the assignment is \emph{total with respect to a set of variables} $Y$, when it assigns a value to every $x \in Y$.
   The set of all possible total assignments with respect to a set of variables $Y$ is denoted $\uassign(Y)$.
 
 
@@ -208,7 +208,7 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
   The set of Boolean formulas is defined recursively.  Each
   formula $\theta$ has an associated \emph{dependency set}
   $\dependencyset(\theta)  \subseteq \varset$, and a set of \emph{models} $\modelset(\theta)$,
-  consisting of total assignments that satisfy the formula:
+  consisting of assignments that are total with respect to $\varset$ and that satisfy the formula:
   \begin{enumerate}
   \item Constant formulas $\nil$ (logical falsehood) and $\tautology$ (tautology) are Boolean formulas,
     with $\dependencyset(\nil) = \dependencyset(\tautology) = \emptyset$, with $\modelset(\nil) = \emptyset$, and with $\modelset(\tautology) = \uassign(\varset)$.
@@ -229,9 +229,9 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
 \subsection{Conjunctive Normal Form (CNF)}
 
   Many tools for reasoning about Boolean formulas operate on formulas in \emph{conjunctive normal form}, defined as follows.
-  Formula $\theta$ is in  \emph{negation normal form} when negation is applied only to variables.  A
+  A formula is in  \emph{negation normal form} when negation is applied only to variables.  A
   formula is in \emph{conjunctive normal form} (CNF) when i) it is in
-  negation normal form, and ii) sum is applied only to literals.
+  negation normal form, and ii) sum is applied only to literals.  We use symbol $\phi$ to denote CNF formulas.
 
   A CNF
   formula can be represented as a set of \emph{clauses}, each of which is a
@@ -239,7 +239,7 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
   literals, and the formula is the product of its clauses.  We use
   set notation to reference the clauses within a formula and the
   literals within a clause.  A clause consisting of a single literal is referred to as a \emph{unit} clause and the literal as a \emph{unit} literal.
-This literal must be assigned value $1$ by any satisfying assignment of the formula.  We the symbol $\phi$ to denote a CNF formula.
+This literal must be assigned value $1$ by any satisfying assignment of the formula.  We use symbol $\phi$ to denote a CNF formula.
 
 \subsection{Partitioned-Operation Formulas}
 
@@ -321,7 +321,7 @@ Let $U(\phi)$ denote the set of \emph{unit literals} in $\phi$, i.e., the set of
 
 We define the following operations for transforming clausal formula $\phi$ into a new clausal formula:
 \begin{description}
-\item[$\posop(\phi, L)$:] Remove tautologies, as well as clauses satisfied by the literals: $\posop(\phi, L) = \{ C \in \phi \mid  C \cap L \not = \emptyset\}$.
+\item[$\posop(\phi, L)$:] Remove tautologies, as well as clauses satisfied by the literals: $\posop(\phi, L) = \{ C \in \phi \mid  C \cap L = \emptyset\}$.
 
 \item[$\negop(\phi, L)$:] Remove the negations of the literals from all clauses.  Let $\negop(C, L) = \{ \lit \in C \mid  \obar{\lit} \not \in L\}$.
   Then $\negop(\phi, L) = \{ \negop(C, L) \mid  C \in \phi \}$.  If this process generates an empty clause, then the result is $\nil$.
@@ -353,7 +353,7 @@ The use of negation can be optimized as follows:
 \begin{itemize}
 \item Constants: $\neg \tautology = \nil$ and $\neg \nil = \tautology$
 \item Literals: $\neg x = \obar{x}$ and $\neg \obar{x} = x$
-\item Negations: $\neg \neg \psi = \psi$
+\item Double negations: $\neg \neg \psi = \psi$
 \end{itemize}
 
 \item 
@@ -373,6 +373,14 @@ Similarly, when forming a sum $S(\psi_1, \psi_2, \ldots, \psi_k)$ we can perform
 \item If the reduced set of arguments consists of a single formula, then this formula becomes the result.
 \item Otherwise, form a sum operation over the reduced set of arguments.
 \end{itemize}
+\end{itemize}
+
+With these simplifications, we can assume that the POFs we generate will satisfy the following:
+\begin{itemize}
+\item Constant values $\tautology$ and $\nil$ only occur when the POF is itself
+  $\tautology$ or $\nil$.
+\item Negation is only applied to product and sum operations.
+\item Every product and sum operation will have at least two arguments.
 \end{itemize}
 
 \subsection{The Supporting Knowledge Compiler}
@@ -405,7 +413,7 @@ The traversal is defined based on the recursive structure of its first argument:
   \begin{enumerate}
   \item Let $L = \{\lit_1, \lit_2, \ldots, \lit_k\}$.
   \item Define clausal formula $\phi'$ to be $\bcp(\simplify{\phi}{L})$
-  \item For $1 \leq i \leq m$, recursively compute $\psi'_i = \traverse(\psi_i, \partition{\phi'}{\dependencyset(\psi_i)})$.
+  \item For $1 \leq i \leq m$, recursively compute $\psi'_i = \traverse(\psi_i, \partition{\phi'}{\dependencyset(\psi_i)})$.  (Partitioning is only required when $m > 1$.)
   \item Return the product (with simplifications) for the set of arguments $\{\lit \in L \mid  \dependencyset(\lit) \subseteq \dvarset\} \cup \{ \psi'_i \mid  1 \leq i \leq m \}$.
   \end{enumerate}
 \item[Sum Operations:]
@@ -423,7 +431,7 @@ The traversal is defined based on the recursive structure of its first argument:
 
 Of these steps, the most interesting ones involve the handling of sum
 operations when the decision variable $x$ is to be projected.  The
-recursive calls yielded subformulas $\psi'_1$ and $\psi'_2$, representing the projected compilation of $\phi$ when $x$ is assigned $1$ and $0$, respectively.
+recursive calls yield subformulas $\psi'_1$ and $\psi'_2$, representing the projected compilation of $\phi$ when $x$ is assigned $1$ and $0$, respectively.
 These
 formulas potentially have overlapping models and so care must be taken
 in forming their sum.  Formula $\ureduce{\phi}{x}$ is the clausal
@@ -456,7 +464,7 @@ Caching for product operations is not, in general valid, since the two recursive
 Literal $\lit$ is said to be \emph{pure} in $\phi$ if some clause in $\phi$ contains $\lit$, and no clause in $\phi$ contains  $\obar{\lit}$.
 Let $\pure(\phi)$ denote the set of all pure literals in $\phi$, and $\pure_{\pvarset}(\phi) = \{ \lit \in \pure(\phi) \mid  \dependencyset(\lit) \subseteq \pvarset \}$.
 If $\pure_{\pvarset}(\phi) \not = \emptyset$, then $\phi$ can be reduced as
-$\bcp(\simplify{\phi}{\pure_{\pvarset}(\phi)})$.
+$\phi \leftarrow \bcp(\simplify{\phi}{\pure_{\pvarset}(\phi)})$.
 \end{itemize}
 
 \section{Partitioned-Operation Graphs (POGs)}
