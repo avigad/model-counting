@@ -321,12 +321,12 @@ Let $U(\phi)$ denote the set of \emph{unit literals} in $\phi$, i.e., the set of
 
 We define the following operations for transforming clausal formula $\phi$ into a new clausal formula:
 \begin{description}
-\item[$\posop(\phi, L)$:] Remove tautologies, as well as clauses satisfied by the literals: $\posop(\phi, L) = \{ C \in \phi \mid  C \cap L = \emptyset\}$.
+\item[$\posop(\phi, L)$:] Remove clauses satisfied by the literals in $L$: $\posop(\phi, L) = \{ C \in \phi \mid C \cap L = \emptyset\}$.
 
-\item[$\negop(\phi, L)$:] Remove the negations of the literals from all clauses.  Let $\negop(C, L) = \{ \lit \in C \mid  \obar{\lit} \not \in L\}$.
+\item[$\negop(\phi, L)$:] Remove the negations of the literals in $L$ from all clauses.  Let $\negop(C, L) = \{ \lit \in C \mid  \obar{\lit} \not \in L\}$.
   Then $\negop(\phi, L) = \{ \negop(C, L) \mid  C \in \phi \}$.  If this process generates an empty clause, then the result is $\nil$.
 
-\item[$\simplify{\phi}{L}$:] Simplify the clauses by assigning the literals, removing all occurrences of any literal for the variables in $\dependencyset(L)$:
+\item[$\simplify{\phi}{L}$:] Simplify the clauses by assigning the literals in $L$, removing all occurrences of any literal for the variables in $\dependencyset(L)$:
 $\simplify{\phi}{L} = \posop(\negop(\phi, L), L)$. 
 
 \item[$\uprop(\phi)$:]  Perform unit propagation based on the unit literals of $\phi$.  This involves simplifying the clauses according to the unit literals and then adding back the unit clauses.
@@ -345,8 +345,7 @@ $\partition{\phi}{Y} = \{ C \in \phi \mid \dependencyset(C) \subseteq Y\}$.
 
 \subsection{Operations on POFs}
 
-When constructing POFs via a bottom-up process, we can perform a set of simplifications, as follows:
-
+When constructing a POF via a bottom-up process, we can perform simplifications as the formula is constructed, as follows:
 \begin{itemize}
 \item
 The use of negation can be optimized as follows:
@@ -397,7 +396,7 @@ We let $\kc(\phi)$ denote the output of the knowledge compiler for input formula
 \subsection{Algorithm}
 
 Our goal is to implement a projecting knowledge compiler that produces a POF $\pkc(\phi)$ when given input formula $\phi$.
-We define our algorithm in terms of a recursive function $\traverse(\psi, \phi)$ that simultaneously operates on a POF $\psi$ and a clausal formula $\phi$.  Projected knowledge compilation is then defined
+We define our algorithm in terms of a recursive function $\traverse(\psi, \phi)$ that traverses a POF $\psi$ while maintaining its clausal formula $\phi$.  Projected knowledge compilation is then defined
 as $\pkc(\phi) = \traverse(\kc(\phi), \bcp(\phi))$.
 
 The traversal is defined based on the recursive structure of its first argument:
@@ -409,7 +408,7 @@ The traversal is defined based on the recursive structure of its first argument:
 \item[Literals:]
   $\traverse(\lit, \phi) = \lit$ if $\dependencyset(\lit) \subseteq \dvarset$, and $\traverse(\lit, \phi) = \tautology$ if $\dependencyset(\lit) \in \pvarset$.
 \item[Product Operations:]
-  Let the product operation be of the form $P(\lit_1, \lit_2, \ldots, \lit_k, \psi_1, \psi_2, \ldots, \psi_m)$, where each $\psi_i$ is either a sum or a  product operation.
+  Let the operation be of the form $P(\lit_1, \lit_2, \ldots, \lit_k, \psi_1, \psi_2, \ldots, \psi_m)$, where each $\psi_i$ is either a sum or a  product operation.
   \begin{enumerate}
   \item Let $L = \{\lit_1, \lit_2, \ldots, \lit_k\}$.
   \item Define clausal formula $\phi'$ to be $\bcp(\simplify{\phi}{L})$
@@ -417,7 +416,7 @@ The traversal is defined based on the recursive structure of its first argument:
   \item Return the product (with simplifications) for the set of arguments $\{\lit \in L \mid  \dependencyset(\lit) \subseteq \dvarset\} \cup \{ \psi'_i \mid  1 \leq i \leq m \}$.
   \end{enumerate}
 \item[Sum Operations:]
-  Let the sum operation be of the form $S(\lit_1, \lit_2)$ and having decision variable $x$.
+  Let the operation be of the form $S(\lit_1, \lit_2)$ and having decision variable $x$.
   \begin{enumerate}
   \item For $1 \leq i \leq 2$, recursively compute $\psi'_i = \traverse(\psi_i, \phi)$.
   \item If $x \in \dvarset$, then return the sum (with simplifications) $S(\psi'_1, \psi'_2)$.
@@ -447,6 +446,7 @@ forming the sum with the other.  We can do so using DeMorgan's Laws.
 That is formula $\neg S(\neg \psi'_1, \psi')$ will have as data models $\dmodelset(\psi'_1) - \dmodelset(\psi')$.  Furthermore, the arguments to this sum operation will have disjoint models
 since $\dmodelset(\psi') \subseteq \dmodelset(\psi'_1)$, and therefore
 $\dmodelset(\psi') \cap \dmodelset(\neg \psi'_1) = \emptyset$.
+The two arguments to the top-level sum operation are disjoint, because the overlapping models have been subtracted from the first argument.
 As can be seen, we could also reverse the role of the two arguments, computing the result
 $S(\psi'_1, \neg S(\neg \psi'_2, \psi'))$.
 
@@ -466,6 +466,13 @@ Let $\pure(\phi)$ denote the set of all pure literals in $\phi$, and $\pure_{\pv
 If $\pure_{\pvarset}(\phi) \not = \emptyset$, then $\phi$ can be reduced as
 $\phi \leftarrow \bcp(\simplify{\phi}{\pure_{\pvarset}(\phi)})$.
 \end{itemize}
+
+The first two termination rules have some subtle difference.  For the
+initial formulation of $\traverse$, the arguments will always satisfy
+$\dependencyset(\psi) \subseteq \dependencyset(\phi)$.  However, the
+pure literal reduction rule can eliminate some literals from $\phi$
+that occur in $\psi$, and so the two sets of variables can become
+incomparable.  When both rules are applicable, it is more efficient to use the first rule, since it avoids an invocation of $\kc$.
 
 \section{Partitioned-Operation Graphs (POGs)}
 
@@ -519,7 +526,7 @@ with the clause $x_3 \lor y$.  The DIMACS representation of the input formula $\
 
 Figure \ref{fig:eg-proj}(A) shows the POG representation of the
 example formula, derived from the dec-DNNF representation produced by
-\dfour{}.  In this graph, product nodes are labeled with the operation $\pand$, and sum nodes are labeled with the operation $\por$, emphasizing that these operations satisfy their respective partitioning constraints.
+\dfour{}.  In this graph, product nodes are labeled $P$, and sum nodes are labeled  $S$.
 We can see that \dfour{} used $y$ as the decision variable at the top level, creating sum node $\nodes_7$ having edges to
 node $\nodep_5$ representing product operation $P(x_3, \obar{y})$ on the left and  node $\nodep_6$
 representing product operation $P(x_1, x_2, y)$ on the right.
@@ -540,7 +547,7 @@ Computing $\ureduce{\phi}{y}$ yields the clausal formula $\phi'$ given as
 \end{tabular}
 \end{center}
 and this is compiled to node $\nodep_{8}$ representing product operation $P(x_1, x_2, x_3)$.
-Finally, the nodes are assembled using our DeMorgan's Law transformations as shown with root node $\nodes_{11}$.
+Finally, the nodes are assembled using our DeMorgan's Law transformations yielding a root edge to node $\nodes_{11}$.
 
 We can see in the POG of (B) that node $\nodep_{8}$ encodes $x_1 \land x_2
 \land x_3$, and this formula's only model assigns value $1$ to

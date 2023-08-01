@@ -1,10 +1,10 @@
 # Project example post-projection
 # Operators
 n r     150 350 t=e
-n s11   150 300 l=$\lor^{\textsf{p}}$
-n s9    50 200 l=$\lor^{\textsf{p}}$
-n p10   250 200 l=$\land^{\textsf{p}}$
-n 8   100 100 l=$\land^{\textsf{p}}$
+n s11   150 300 l=$S$
+n s9    50 200 l=$S$
+n p10   250 200 l=$P$
+n 8   100 100 l=$P$
 # Leaves
 n x3a      0 125 e=fillcolor f=fillcolor l=$x_3$
 n x1a     50  25 e=fillcolor f=fillcolor l=$x_1$
