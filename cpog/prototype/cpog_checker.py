@@ -998,7 +998,7 @@ class OperationManager:
                 if arg < 0:
                     val = val.oneminus()
                 wts.append(val)
-            result = P52(1)
+            result = P52(1) if op == self.conjunction else P52(0)
             for w in wts:
                 result = result.mul(w) if op == self.conjunction else result.add(w)
             weights[outVar] = result
