@@ -23,24 +23,25 @@ struct Node {
 
 class Pog {
 private:
-    //    Clausal_reasoner cr;
-    
+    // Number of input variables
+    int nvar;
     // Concatenation of all operation arguments
     std::vector<int> arguments;
     // List of nodes, indexed by var-nvar-1
     std::vector<Node> nodes;
     // Unique table.  Maps from hash of operation + arguments to edge.
     std::unordered_multimap<unsigned, int> unique_table;
+    
 
 public:
     
-    Pog() {}
+    Pog(int n) { nvar = n; }
     ~Pog() {}
 
     bool get_phase(int edge) { return edge > 0; }
     int get_var(int edge) { return IABS(edge); }
-    bool is_node(int edge) { int var = get_var(edge); return var > global.nvar; }
-    int node_index(int edge) { int var = get_var(edge); return is_node(var) ? var-global.nvar-1 : -1; }
+    bool is_node(int edge) { int var = get_var(edge); return var > nvar; }
+    int node_index(int edge) { int var = get_var(edge); return is_node(var) ? var-nvar-1 : -1; }
     int get_degree(int edge) { int idx = node_index(edge); return idx < 0 ? 0 : nodes[idx].degree; }
     pog_type_t get_type(int edge) { int idx = node_index(edge); return idx < 0 ? POG_NONE : nodes[idx].type; }
 

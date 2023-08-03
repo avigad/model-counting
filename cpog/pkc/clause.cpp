@@ -30,8 +30,6 @@
 #include "report.h"
 #include "counters.h"
 
-global_data global;
-
 static int skip_line(FILE *infile) {
     int c;
     while ((c = getc(infile)) != EOF) {
@@ -59,7 +57,8 @@ static bool find_token(FILE *infile) {
 }
 
 // Tools to enable constructing CNF representations
-static void start_build(std::vector<int> &varx, int nclause) {
+static void start_build(std::vector<int> &varx, int nvar, int nclause) {
+    varx.push_back(nvar);
     varx.push_back(nclause);
     for (int cid = 1; cid <= nclause+1; cid++)
 	// Place holder for starting indices
@@ -67,7 +66,7 @@ static void start_build(std::vector<int> &varx, int nclause) {
 }
 
 static void new_clause(std::vector<int> &varx, int cid) {
-    varx[cid] = varx.size();
+    varx[cid+1] = varx.size();
 }
 
 static void add_literal(std::vector<int> &varx, int lit) {
@@ -75,8 +74,8 @@ static void add_literal(std::vector<int> &varx, int lit) {
 }
 
 static cnf_archive_t finish_build(std::vector<int> &varx) {
-    int nclause = varx[0];
-    varx[nclause+1] = varx.size();
+    int nclause = varx[1];
+    varx[nclause+2] = varx.size();
     cnf_archive_t arx = (cnf_archive_t) calloc(varx.size(), sizeof(int));
     if (!arx) {
 	err(false, "Couldn't allocate space for clauses\n");
@@ -97,7 +96,6 @@ void Cnf::import_file(FILE *infile) {
     int expectedNclause = 0;
     int nclause = 0;
     bool read_failed = false;
-    global.nvar = 0;
     bool got_header = false;
     int c;
     if (arx) {
@@ -130,8 +128,7 @@ void Cnf::import_file(FILE *infile) {
 		err(false, "Invalid CNF header\n");
 		return;
 	    } 
-	    global.nvar = expectedNvar;
-	    start_build(varx, expectedNclause);
+	    start_build(varx, expectedNvar, expectedNclause);
 	    c = skip_line(infile);
 	    got_header = true;
 	    break;
@@ -168,7 +165,7 @@ void Cnf::import_file(FILE *infile) {
     }	
     arx = finish_build(varx);
     incr_count_by(COUNT_INPUT_CLAUSE, clause_count());
-    incr_count_by(COUNT_INPUT_VAR, global.nvar);
+    incr_count_by(COUNT_INPUT_VAR, variable_count());
 }
 
 void Cnf::import_archive(cnf_archive_t iarx) {
@@ -185,8 +182,12 @@ void Cnf::deallocate() {
     arx = NULL;
 }
 
-int Cnf::clause_count() {
+int Cnf::variable_count() {
     return arx ? arx[0] : 0;
+}
+
+int Cnf::clause_count() {
+    return arx ? arx[1] : 0;
 }
 
 int Cnf::clause_length(int cid) {
@@ -194,14 +195,14 @@ int Cnf::clause_length(int cid) {
 	return 0;
     if (cid < 1 || cid > clause_count())
 	err(true, "Invalid clause ID: %d\n", cid);
-    return arx[cid+1] - arx[cid];
+    return arx[cid+2] - arx[cid+1];
 }
 
 int Cnf::get_literal(int cid, int lid) {
     if (!arx)
 	return 0;
     int len = clause_length(cid);
-    int offset = arx[cid];
+    int offset = arx[cid+1];
     if (lid >= 0 && lid < len)
 	return arx[offset+lid];
     else
@@ -211,7 +212,7 @@ int Cnf::get_literal(int cid, int lid) {
 
 bool Cnf::show(FILE *outfile) {
 #if 0
-    int full_length = arx[clause_count() + 1];
+    int full_length = arx[clause_count() + 2];
     fprintf(outfile, "Raw data (%d arx):", full_length);
     for (int i = 0; i < full_length; i++)
 	fprintf(outfile, " %d", arx[i]);
@@ -230,7 +231,7 @@ bool Cnf::show(FILE *outfile) {
 }
 
 bool Cnf::write(FILE *outfile) {
-    int nvar = global.nvar;
+    int nvar = variable_count();
     int ccount = clause_count();
     fprintf(outfile, "p cnf %d %d\n", nvar, ccount);
     for (int cid = 1; cid <= ccount; cid++) {
@@ -411,7 +412,7 @@ bool Clausal_reasoner::has_conflict() {
 
 cnf_archive_t Clausal_reasoner::extract() {
     std::vector<int> varx;
-    start_build(varx, bcp_units.size() + curr_active_clauses->size());
+    start_build(varx, cnf->variable_count(), bcp_units.size() + curr_active_clauses->size());
     int ncid = 0;
     // Put in the derived unit literals
     for (int ulit : bcp_units) {

@@ -30,153 +30,6 @@
 #include "counters.h"
 #include "pog.hh"
 
-// Support for computing hash function over POG arguments
-// Represent by signature over modular field
-
-#define STATE_BYTES 256
-#define CHUNK_SIZE 1024
-static const unsigned hash_modulus = 2147483647U;
-static char hash_state[STATE_BYTES];
-
-static std::vector<unsigned> var_hash;
-
-// Hash signatures for POG operations
-
-static unsigned pog_hash[POG_NUM];
-
-static void init_hash(int val) {
-    int var = IABS(val);
-    if (var_hash.size() == 0) {
-	// Initialization
-	initstate(1, hash_state, STATE_BYTES);
-	for (int i = 0; i <= POG_NUM; i++) {
-	    pog_hash[i] = random() % hash_modulus;
-	}
-    }
-    if (var >= var_hash.size()) {
-	// Add more random values
-	size_t osize = var_hash.size();
-	size_t nsize = osize + (1 + (var - osize)/CHUNK_SIZE) * CHUNK_SIZE;
-	var_hash.resize(nsize);
-	const char *ostate = setstate(hash_state);
-	for (unsigned i = osize; i < nsize; i++)
-	    var_hash[i] = random() % hash_modulus;
-	setstate(ostate);
-    }
-}
-
-static unsigned next_hash_int(unsigned sofar, int val) {
-    init_hash(val);
-    int var = IABS(val);
-    unsigned vval = var_hash[var];
-    unsigned long  lval = val < 0 ? hash_modulus - vval : vval;
-    return (lval * sofar) % hash_modulus;
-}
-
-unsigned Pog::node_hash(int var) {
-    int idx = node_index(var);
-    if (idx < 0)
-	return 0;
-    init_hash(var);
-    unsigned sofar = pog_hash[(int) nodes[idx].type];
-    int offset = nodes[idx].offset;
-    int degree = nodes[idx].degree;
-    for (int i = 0; i < degree; i++) {
-	sofar = next_hash_int(sofar, arguments[offset + i]);
-    }
-    return sofar;
-}
-
-bool Pog::node_equal(int var1, int var2) {
-    int idx1 = node_index(var1);
-    int idx2 = node_index(var2);
-    if (idx1 == idx2)
-	return true;
-    if (idx1 < 0 || idx2 < 0)
-	return false;
-    if (nodes[idx1].type != nodes[idx2].type)
-	return false;
-    int degree = nodes[idx1].degree;
-    if (degree != nodes[idx2].degree)
-	return false;
-    int adx1 = nodes[idx1].offset;
-    int adx2 = nodes[idx2].offset;
-    for (int i = 0; i < degree; i++)
-	if (arguments[adx1+i] != arguments[adx2+i])
-	    return false;
-    return true;
-}
-
-void Pog::start_node(pog_type_t type) {
-    // Create prototype node at end of list of nodes.  May retract later
-    int nidx = nodes.size();
-    nodes.resize(nidx + 1);
-    nodes[nidx].offset = arguments.size();
-    nodes[nidx].mark = 0;
-    nodes[nidx].type = type;
-    nodes[nidx].degree = 0;
-}
-
-void Pog::add_argument(int edge) {
-    int nidx = nodes.size()-1;
-    pog_type_t type = nodes[nidx].type;
-    // Don't add non-dominating constants
-    if (type == POG_PRODUCT && edge == TAUTOLOGY || type == POG_SUM && edge == CONFLICT)
-	return;
-    // Create unique argument for dominating constant
-    if (type == POG_SUM && edge == TAUTOLOGY || type == POG_PRODUCT && edge == CONFLICT) {
-	int aindex = nodes[nidx].offset;
-	arguments.resize(aindex+1);
-	arguments[aindex] = edge;
-	nodes[nidx].degree = 1;
-	return;
-    }
-    arguments.push_back(edge);
-    nodes[nidx].degree++;
-}
-
-int Pog::finish_node() {
-    int edge = 0;
-    bool retract = false;
-    int nidx = nodes.size()-1;
-    pog_type_t type = nodes[nidx].type;
-    int degree = nodes[nidx].degree;
-    if (degree == 0) {
-	// Operation with no arguments
-	edge = type == POG_SUM ? CONFLICT : TAUTOLOGY;
-	retract = true;
-    } else if (degree == 1) {
-	// Either single argument or dominating constant
-	int offset = nodes[nidx].offset;
-	edge = arguments[offset];
-	retract = true;    
-    } else {
-	// Look in hash table
-	edge = nidx + global.nvar + 1;
-	unsigned h = node_hash(edge);
-	auto bucket = unique_table.equal_range(h);
-	for (auto iter = bucket.first; iter != bucket.second; iter++) {
-	    int oedge = iter->second;
-	    if (node_equal(edge, oedge)) {
-		edge = oedge;
-		retract = true;
-	    }
-	}
-	if (!retract) {
-	    // New node
-	    unique_table.insert({h, edge});
-	    if (verblevel >= 4) {
-		printf("Adding edge %d (hash = %u) to unique table.  Node:", edge, h);
-		show_edge(stdout, edge);
-	    }
-	}
-    }
-    if (retract) {
-	arguments.resize(arguments.size() - degree);
-	nodes.resize(nidx);
-    }
-    return edge;
-}
 
 /// Support for NNF reading
 
@@ -233,9 +86,11 @@ const char nnf_type_char[NNF_NUM] = { '\0', 't', 'f', 'a', 'o' };
 // Index added conjunctions at XNODE_START
 #define XNODE_START (1000 * 1000 * 1000 + 1)
 
+// Graph representation derived from NNF file
 class Nnf {
-    // Graph representation derived from NNF file
 public:
+    int nvar;
+
     // Each node represented by vector consisting of type + arguments
     // Indexed by node ID
     std::map<int,std::vector<int>*> nodes;
@@ -243,7 +98,7 @@ public:
     // Index of root
     int root_id;
 
-    Nnf(FILE *infile);
+    Nnf(int n, FILE *infile);
     ~Nnf();
 
     // Debugging support
@@ -257,8 +112,8 @@ public:
 
 };
 
-
-Nnf::Nnf(FILE *infile) {
+Nnf::Nnf(int n, FILE *infile) {
+    nvar = n;
     root_id = 0;
     // Set of nodes with at least one parent
     std::unordered_set<int> node_with_parent;
@@ -410,8 +265,158 @@ void Nnf::visit(int nid, std::vector<int> &ids, std::unordered_set<int> &visited
     ids.push_back(nid);
 }
 
+
+// Support for computing hash function over POG arguments
+// Represent by signature over modular field
+
+#define STATE_BYTES 256
+#define CHUNK_SIZE 1024
+static const unsigned hash_modulus = 2147483647U;
+static char hash_state[STATE_BYTES];
+
+static std::vector<unsigned> var_hash;
+
+// Hash signatures for POG operations
+
+static unsigned pog_hash[POG_NUM];
+
+static void init_hash(int val) {
+    int var = IABS(val);
+    if (var_hash.size() == 0) {
+	// Initialization
+	initstate(1, hash_state, STATE_BYTES);
+	for (int i = 0; i <= POG_NUM; i++) {
+	    pog_hash[i] = random() % hash_modulus;
+	}
+    }
+    if (var >= var_hash.size()) {
+	// Add more random values
+	size_t osize = var_hash.size();
+	size_t nsize = osize + (1 + (var - osize)/CHUNK_SIZE) * CHUNK_SIZE;
+	var_hash.resize(nsize);
+	const char *ostate = setstate(hash_state);
+	for (unsigned i = osize; i < nsize; i++)
+	    var_hash[i] = random() % hash_modulus;
+	setstate(ostate);
+    }
+}
+
+static unsigned next_hash_int(unsigned sofar, int val) {
+    init_hash(val);
+    int var = IABS(val);
+    unsigned vval = var_hash[var];
+    unsigned long  lval = val < 0 ? hash_modulus - vval : vval;
+    return (lval * sofar) % hash_modulus;
+}
+
+unsigned Pog::node_hash(int var) {
+    int idx = node_index(var);
+    if (idx < 0)
+	return 0;
+    init_hash(var);
+    unsigned sofar = pog_hash[(int) nodes[idx].type];
+    int offset = nodes[idx].offset;
+    int degree = nodes[idx].degree;
+    for (int i = 0; i < degree; i++) {
+	sofar = next_hash_int(sofar, arguments[offset + i]);
+    }
+    return sofar;
+}
+
+bool Pog::node_equal(int var1, int var2) {
+    int idx1 = node_index(var1);
+    int idx2 = node_index(var2);
+    if (idx1 == idx2)
+	return true;
+    if (idx1 < 0 || idx2 < 0)
+	return false;
+    if (nodes[idx1].type != nodes[idx2].type)
+	return false;
+    int degree = nodes[idx1].degree;
+    if (degree != nodes[idx2].degree)
+	return false;
+    int adx1 = nodes[idx1].offset;
+    int adx2 = nodes[idx2].offset;
+    for (int i = 0; i < degree; i++)
+	if (arguments[adx1+i] != arguments[adx2+i])
+	    return false;
+    return true;
+}
+
+void Pog::start_node(pog_type_t type) {
+    // Create prototype node at end of list of nodes.  May retract later
+    int nidx = nodes.size();
+    nodes.resize(nidx + 1);
+    nodes[nidx].offset = arguments.size();
+    nodes[nidx].mark = 0;
+    nodes[nidx].type = type;
+    nodes[nidx].degree = 0;
+}
+
+void Pog::add_argument(int edge) {
+    int nidx = nodes.size()-1;
+    pog_type_t type = nodes[nidx].type;
+    // Don't add non-dominating constants
+    if (type == POG_PRODUCT && edge == TAUTOLOGY || type == POG_SUM && edge == CONFLICT)
+	return;
+    // Create unique argument for dominating constant
+    if (type == POG_SUM && edge == TAUTOLOGY || type == POG_PRODUCT && edge == CONFLICT) {
+	int aindex = nodes[nidx].offset;
+	arguments.resize(aindex+1);
+	arguments[aindex] = edge;
+	nodes[nidx].degree = 1;
+	return;
+    }
+    arguments.push_back(edge);
+    nodes[nidx].degree++;
+}
+
+int Pog::finish_node() {
+    int edge = 0;
+    bool retract = false;
+    int nidx = nodes.size()-1;
+    pog_type_t type = nodes[nidx].type;
+    int degree = nodes[nidx].degree;
+    if (degree == 0) {
+	// Operation with no arguments
+	edge = type == POG_SUM ? CONFLICT : TAUTOLOGY;
+	retract = true;
+    } else if (degree == 1) {
+	// Either single argument or dominating constant
+	int offset = nodes[nidx].offset;
+	edge = arguments[offset];
+	retract = true;    
+    } else {
+	// Look in hash table
+	edge = nidx + nvar + 1;
+	unsigned h = node_hash(edge);
+	auto bucket = unique_table.equal_range(h);
+	for (auto iter = bucket.first; iter != bucket.second; iter++) {
+	    int oedge = iter->second;
+	    if (node_equal(edge, oedge)) {
+		edge = oedge;
+		retract = true;
+	    }
+	}
+	if (!retract) {
+	    // New node
+	    unique_table.insert({h, edge});
+	    if (verblevel >= 4) {
+		printf("Adding edge %d (hash = %u) to unique table.  Node:", edge, h);
+		show_edge(stdout, edge);
+	    }
+	}
+    }
+    if (retract) {
+	arguments.resize(arguments.size() - degree);
+	nodes.resize(nidx);
+    }
+    return edge;
+}
+
+
 int Pog::load_nnf(FILE *infile) {
-    Nnf nnf(infile);
+    Nnf nnf(nvar, infile);
     if (verblevel >= 4) {
 	nnf.show(stdout);
     }
@@ -487,9 +492,14 @@ void Pog::show_edge(FILE *outfile, int edge) {
 
 
 void Pog::show(FILE *outfile) {
-    fprintf(outfile, "POG.  %d input variables:\n", global.nvar);
+    fprintf(outfile, "POG.  %d input variables:\n", nvar);
     for (int i = 0; i < nodes.size(); i++) {
-	int edge = global.nvar + i + 1;
+	int edge = nvar + i + 1;
 	show_edge(outfile, edge);
     }
 }
+
+void Pog::get_subgraph(int root_edge, std::unordered_map<int,int> &edge_remap) {
+    
+}
+

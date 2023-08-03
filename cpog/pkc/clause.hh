@@ -36,15 +36,6 @@
 #include <unordered_set>
 #include <stdio.h>
 
-// General information shared by all routines
-struct global_data {
-    int nvar; // Number of input variables
-    std::unordered_set<int> show_variables;
-    int verblevel;
-};
-
-extern global_data global;
-
 // Base data type for storing CNF
 typedef int *cnf_archive_t;
 
@@ -53,10 +44,11 @@ private:
     
     // Represent entire CNF formula as single array of integers
     // Consisting of sequence of fields:
-    // 1. Number of clauses
-    // 2. For each clause, its starting index into the arx array
-    // 3. A final index beyond the last class to make it easy to compute clause lengths
-    // 4. Sequence of literals for each clause
+    // 1. Number of variables
+    // 2. Number of clauses
+    // 3. For each clause, its starting index into the arx array
+    // 4. A final index beyond the last class to make it easy to compute clause lengths
+    // 5. Sequence of literals for each clause
     cnf_archive_t arx;
 
 public:
@@ -73,6 +65,7 @@ public:
 
     bool is_loaded() { return arx != NULL; }
 
+    int variable_count();
     int clause_count();
     int clause_length(int id);
     // Index literals from 0
