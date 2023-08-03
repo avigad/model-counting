@@ -1,7 +1,5 @@
 // Translate DNNF representation into POG
 
-// Usage: d2p [VLEVEL] file.cnf file.d4nnf
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
