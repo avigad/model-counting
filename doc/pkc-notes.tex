@@ -86,8 +86,8 @@
 \newcommand{\kc}{\algo{KC}}
 \newcommand{\pkc}{\algo{PKC}}
 \newcommand{\traverse}{\algo{Traverse}}
-\newcommand{\posop}{\algo{Pos}}
-\newcommand{\negop}{\algo{Neg}}
+\newcommand{\cfilter}{\algo{FilterClause}}
+\newcommand{\lfilter}{\algo{FilterLiteral}}
 \newcommand{\bcp}{\algo{BCP}}
 \newcommand{\uprop}{\algo{Uprop}}
 \newcommand{\simpl}{\also{Simpl}}
@@ -231,7 +231,7 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
   Many tools for reasoning about Boolean formulas operate on formulas in \emph{conjunctive normal form}, defined as follows.
   A formula is in  \emph{negation normal form} when negation is applied only to variables.  A
   formula is in \emph{conjunctive normal form} (CNF) when i) it is in
-  negation normal form, and ii) sum is applied only to literals.  We use symbol $\phi$ to denote CNF formulas.
+  negation normal form, ii) the sum operation is applied only to literals, and iii) the product is applied only to sums.  We use symbol $\phi$ to denote CNF formulas.
 
   A CNF
   formula can be represented as a set of \emph{clauses}, each of which is a
@@ -288,24 +288,34 @@ its set of {\em data models}, written $\dmodelset(\theta)$ is defined as:
 
 \subsection{Data Ring Evaluation}
 
+  A \emph{commutative ring} $\ring$ is an algebraic structure
+  $\langle \dset, \radd, \rmul, \addident, \mulident \rangle$,
+  with elements in the set $\dset$ and with commutative and
+  associative operations $\radd$ (addition) and $\rmul$ (multiplication),
+  such that multiplication distributes
+  over addition.  $\addident$ is the additive identity and $\mulident$ is
+  the multiplicative identity.  Every element $a \in \dset$ has an
+  \emph{additive inverse} $-a$ such that $a + -a = \addident$.
+We write $a - b$ as a shorthand for $a + -b$.
+
   For commutative ring $\ring$, a {\em ring weight function} associates a value $w(x) \in \dset$ with
   every data variable $x \in \dvarset$.  We then define $w(\obar{x}) \doteq \mulident-w(x)$.
 
   For Boolean formula $\theta$ and ring weight function $w$, its {\em data ring evaluation} computes
   \begin{eqnarray}
-    \drep(\theta, w) & = & \sum_{\alpha \in \dmodelset(\theta)} \;\; \prod_{\lit \in \alpha} w(\lit) \label{eqn:rep}
+    \drep[\theta, w] & = & \sum_{\alpha \in \dmodelset(\theta)} \;\; \prod_{\lit \in \alpha} w(\lit) \label{eqn:rep}
   \end{eqnarray}
 where $\sum$ and $\prod$ represent the ring sum $\radd$ and ring product $\rmul$ operations, respectively.
 
 For a partitioned-operation formula $\psi$ such that $\dependencyset(\psi) \subseteq \dvarset$, its data ring evaluation can be computed based on the recursive structure of the formula:
 \begin{itemize}
-\item Constants: $\drep(\tautology) = \mulident$ and $\drep(\nil) = \addident$
-\item Literals: $\drep(x) = w(x)$ and $\drep(\obar{x}) = \mulident - x$
+\item Constants: $\drep[\tautology] = \mulident$ and $\drep[\nil] = \addident$
+\item Literals: $\drep[x] = w(x)$ and $\drep[\obar{x}] = \mulident - x$
 \item Product operations: 
-$\drep(P(\psi_1, \psi_2, \ldots, \psi_k)) = \prod_{1 \leq i \leq k} \drep(\psi_i)$
+$\drep[P(\psi_1, \psi_2, \ldots, \psi_k)] = \prod_{1 \leq i \leq k} \drep(\psi_i)$
 \item Sum Operations
-$\drep(S(\psi_1, \psi_2, \ldots, \psi_k)) = \sum_{1 \leq i \leq k} \drep(\psi_i)$
-\item Negations: $\drep(\neg \psi) = \mulident -\psi$
+$\drep[S(\psi_1, \psi_2, \ldots, \psi_k)] = \sum_{1 \leq i \leq k} \drep(\psi_i)$
+\item Negations: $\drep[\neg \psi] = \mulident -\drep[\psi]$
 \end{itemize}
 
 The task of \emph{projected knowledge compilation} is then defined as follows: Given clausal formula $\phi$, generate a partitioned-operation formula $\psi$ having $\dependencyset(\psi) \subseteq \dvarset$, such that
@@ -313,21 +323,20 @@ $\dmodelset(\psi) = \dmodelset(\phi)$.
 
 \section{Compilation Algorithm}
 
-We can build on existing knowledge compilers to implement a projected knowledge compiler.
+We can implement a projected knowledge compiler that operates by making multiple invocations of a standard knowledge compiler.
 
 \subsection{Operations on Clausal Representations}
 
-Let $U(\phi)$ denote the set of \emph{unit literals} in $\phi$, i.e., the set of all literals $\lit$ such that clause $\{ \lit \} \in \phi$.  In the following $L$ denotes a set of literals.
-
-We define the following operations for transforming clausal formula $\phi$ into a new clausal formula:
+Let $U(\phi)$ denote the set of \emph{unit literals} in $\phi$, i.e., the set of all literals $\lit$ such that clause $\{ \lit \} \in \phi$.  
+We define the following operations for transforming clausal formula $\phi$ into a new clausal formula.  In the following $L$ denotes a set of literals.
 \begin{description}
-\item[$\posop(\phi, L)$:] Remove clauses satisfied by the literals in $L$: $\posop(\phi, L) = \{ C \in \phi \mid C \cap L = \emptyset\}$.
+\item[$\cfilter(\phi, L)$:] Remove clauses satisfied by the literals in $L$: $\cfilter(\phi, L) = \{ C \in \phi \mid C \cap L = \emptyset\}$.
 
-\item[$\negop(\phi, L)$:] Remove the negations of the literals in $L$ from all clauses.  Let $\negop(C, L) = \{ \lit \in C \mid  \obar{\lit} \not \in L\}$.
-  Then $\negop(\phi, L) = \{ \negop(C, L) \mid  C \in \phi \}$.  If this process generates an empty clause, then the result is $\nil$.
+\item[$\lfilter(\phi, L)$:] Remove the literals in $L$ from all clauses.  
+   $\lfilter(\phi, L) = \{ C - L \mid  C \in \phi \}$.  If this process generates an empty clause, then the result is $\nil$.
 
 \item[$\simplify{\phi}{L}$:] Simplify the clauses by assigning the literals in $L$, removing all occurrences of any literal for the variables in $\dependencyset(L)$:
-$\simplify{\phi}{L} = \posop(\negop(\phi, L), L)$. 
+$\simplify{\phi}{L} = \lfilter(\cfilter(\phi, L), \obar{L})$, where $\obar{L} = \{ \obar{\lit} \mid \lit \in L \}$.
 
 \item[$\uprop(\phi)$:]  Perform unit propagation based on the unit literals of $\phi$.  This involves simplifying the clauses according to the unit literals and then adding back the unit clauses.
 $\uprop(\phi) = \simplify{\phi}{U(\phi)} \cup \{ \{\lit \} \mid  \lit \in U(\phi) \}$.
@@ -335,8 +344,8 @@ $\uprop(\phi) = \simplify{\phi}{U(\phi)} \cup \{ \{\lit \} \mid  \lit \in U(\phi
 \item[$\bcp(\phi)$:] Perform Boolean constraint propagation (BCP).
   Repeatedly compute $\phi \leftarrow \uprop(\phi)$ until either $\phi$ becomes $\nil$ or a fixed point is reached.
 
-\item[$\ureduce{\phi}{x}$:] Express the universal quantification of $\phi$ with respect to variable $x$ in clausal form:
-$\ureduce{\phi}{x} = \negop(\phi, \{x, \obar{x}\})$.
+\item[$\ureduce{\phi}{x}$:] Express the universal quantification of $\phi$ with respect to variable $x$ in clausal form, by removing all occurrences of $x$ and $\obar{x}$:
+$\ureduce{\phi}{x} = \lfilter(\phi, \{x, \obar{x}\})$.
 
 \item[$\partition{\phi}{Y}$:] Find the subset of clauses that depend only on the variables in $Y$:
 $\partition{\phi}{Y} = \{ C \in \phi \mid \dependencyset(C) \subseteq Y\}$.
@@ -345,10 +354,10 @@ $\partition{\phi}{Y} = \{ C \in \phi \mid \dependencyset(C) \subseteq Y\}$.
 
 \subsection{Operations on POFs}
 
-When constructing a POF via a bottom-up process, we can perform simplifications as the formula is constructed, as follows:
+When constructing a POF via a bottom-up process, we can perform simplifications as the formula is constructed:
 \begin{itemize}
 \item
-The use of negation can be optimized as follows:
+Optimized negation:
 \begin{itemize}
 \item Constants: $\neg \tautology = \nil$ and $\neg \nil = \tautology$
 \item Literals: $\neg x = \obar{x}$ and $\neg \obar{x} = x$
@@ -356,7 +365,8 @@ The use of negation can be optimized as follows:
 \end{itemize}
 
 \item 
-When forming a product $P(\psi_1, \psi_2, \ldots, \psi_k)$ we can perform the following simplifications:
+Optimizing
+product $P(\psi_1, \psi_2, \ldots, \psi_k)$:
 \begin{itemize}
 \item If $\psi_i = \nil$ for any argument $\psi_i$, then the result is $\nil$
 \item Eliminate any argument $\psi_i$ for which $\psi_i = \tautology$.
@@ -365,7 +375,7 @@ When forming a product $P(\psi_1, \psi_2, \ldots, \psi_k)$ we can perform the fo
 \end{itemize}
 
 \item
-Similarly, when forming a sum $S(\psi_1, \psi_2, \ldots, \psi_k)$ we can perform the following simplifications:
+Optimizing sum $S(\psi_1, \psi_2, \ldots, \psi_k)$:
 \begin{itemize}
 \item If $\psi_i = \tautology$ for any argument $\psi_i$, then the result is $\tautology$
 \item Eliminate any argument $\psi_i$ for which $\psi_i = \nil$.
@@ -384,19 +394,21 @@ With these simplifications, we can assume that the POFs we generate will satisfy
 
 \subsection{The Supporting Knowledge Compiler}
 
-We assume that we have a knowledge compiler that can convert a clausal formula $\phi$ into a logically equivalent POF $\psi$.  Furthermore, we assume that the generated POF obeys the following restrictions:
+A standard knowledge compiler converts a clausal formula $\phi$ into a logically equivalent POF $\psi$, denoted
+$\psi = \kc(\phi)$.
+We assume that the generated POF obeys the following restrictions:
 \begin{itemize}
 \item The POF is in normal form, i.e., there are no negated product or sum operations.
 \item The sum operations are \emph{decision operations}.  That is, each sum operation is of the form $S(\psi_1, \psi_2)$, and it has an associated decision variable $x$,
-  such that 1) either $\psi_1 = x$ or $\psi_1$ is a product operation having $x$ as an argument, and 2)
+  such that i) either $\psi_1 = x$ or $\psi_1$ is a product operation having $x$ as an argument, and ii)
 either $\psi_2 = \obar{x}$ or $\psi_2$ is a product operation having $\obar{x}$ as an argument.
 \end{itemize}
-We let $\kc(\phi)$ denote the output of the knowledge compiler for input formula $\phi$.
+These restrictions hold for a knowledge compiler that produces a dec-DNNF representation of the input formula, with this representation converted to a POF\@.
 
 \subsection{Algorithm}
 
-Our goal is to implement a projecting knowledge compiler that produces a POF $\pkc(\phi)$ when given input formula $\phi$.
-We define our algorithm in terms of a recursive function $\traverse(\psi, \phi)$ that traverses a POF $\psi$ while maintaining its clausal formula $\phi$.  Projected knowledge compilation is then defined
+Our goal is to implement a projecting knowledge compiler that produces POF $\psi = \pkc(\phi)$ when given input formula $\phi$.
+We define our algorithm in terms of a recursive function $\traverse(\psi, \phi)$ that traverses POF $\psi$ while maintaining its clausal representation $\phi$.  Projected knowledge compilation is then defined
 as $\pkc(\phi) = \traverse(\kc(\phi), \bcp(\phi))$.
 
 The traversal is defined based on the recursive structure of its first argument:
@@ -420,10 +432,10 @@ The traversal is defined based on the recursive structure of its first argument:
   \begin{enumerate}
   \item For $1 \leq i \leq 2$, recursively compute $\psi'_i = \traverse(\psi_i, \phi)$.
   \item If $x \in \dvarset$, then return the sum (with simplifications) $S(\psi'_1, \psi'_2)$.
-  \item Otherwise, let $\psi' = \pkc(\ureduce{\phi}{x})$
+  \item Otherwise, let $\psi_{\forall} = \pkc(\ureduce{\phi}{x})$
     \begin{enumerate}
-    \item If $\psi' = \nil$, then return the sum (with simplifications) $S(\psi'_1, \psi'_2)$
-    \item Otherwise return nested formula $S(\neg S(\neg \psi'_1, \psi'), \psi'_2)$.
+    \item If $\psi_{\forall} = \nil$, then return the sum (with simplifications) $S(\psi_1, \psi_2)$
+    \item Otherwise return nested formula $S(\neg S(\neg \psi'_1, \psi_{\forall}), \psi'_2)$.
     \end{enumerate}
   \end{enumerate}
 \end{description}
@@ -435,20 +447,22 @@ These
 formulas potentially have overlapping models and so care must be taken
 in forming their sum.  Formula $\ureduce{\phi}{x}$ is the clausal
 representation of the universal quantification of $\phi$ with respect
-to $x$, and so $\psi' = \pkc(\ureduce{\phi}{x})$ will be a POF whose
+to $x$, and so $\psi_{\forall} = \pkc(\ureduce{\phi}{x})$ will be a POF whose
 data models are the intersection of those for $\psi_1'$ and $\psi_2'$.  In
 the event that $\psi' = \nil$, the two formulas are disjoint.  This
 will occur, for example, when $x$ is a Tseitin variable encoding some
 Boolean formula over the data variables.  In that case, the sum can be
-formed directly.  If $\psi' \not = \tautology$, we want to
+formed directly.  If $\psi_{\forall} \not = \nil$, we want to
 ``subtract'' the overlapping models from one of the arguments before
 forming the sum with the other.  We can do so using DeMorgan's Laws.  
-That is formula $\neg S(\neg \psi'_1, \psi')$ will have as data models $\dmodelset(\psi'_1) - \dmodelset(\psi')$.  Furthermore, the arguments to this sum operation will have disjoint models
-since $\dmodelset(\psi') \subseteq \dmodelset(\psi'_1)$, and therefore
-$\dmodelset(\psi') \cap \dmodelset(\neg \psi'_1) = \emptyset$.
+That is formula $\neg S(\neg \psi'_1, \psi_{\forall})$ is logically equivalent to $\psi'_1 \land \neg \psi_{\forall}$,
+and so it
+will have as data models $\dmodelset(\psi'_1) - \dmodelset(\psi_{\forall})$.  Furthermore, the arguments to this sum operation will have disjoint models
+since $\dmodelset(\psi_{\forall}) \subseteq \dmodelset(\psi'_1)$, and therefore
+$\dmodelset(\psi_{\forall}) \cap \dmodelset(\neg \psi'_1) = \emptyset$.
 The two arguments to the top-level sum operation are disjoint, because the overlapping models have been subtracted from the first argument.
 As can be seen, we could also reverse the role of the two arguments, computing the result
-$S(\psi'_1, \neg S(\neg \psi'_2, \psi'))$.
+$S(\psi'_1, \neg S(\neg \psi'_2, \psi_{\forall}))$.
 
 
 \subsection{Optimizations}
@@ -464,15 +478,15 @@ Caching for product operations is not, in general valid, since the two recursive
 Literal $\lit$ is said to be \emph{pure} in $\phi$ if some clause in $\phi$ contains $\lit$, and no clause in $\phi$ contains  $\obar{\lit}$.
 Let $\pure(\phi)$ denote the set of all pure literals in $\phi$, and $\pure_{\pvarset}(\phi) = \{ \lit \in \pure(\phi) \mid  \dependencyset(\lit) \subseteq \pvarset \}$.
 If $\pure_{\pvarset}(\phi) \not = \emptyset$, then $\phi$ can be reduced as
-$\phi \leftarrow \bcp(\simplify{\phi}{\pure_{\pvarset}(\phi)})$.
+ $\phi \leftarrow \cfilter(\phi, \pure_{\pvarset})$.  Eliminating clauses can cause other literals to become pure, and so this reduction should be iterated until no pure literals remain.
 \end{itemize}
 
-The first two termination rules have some subtle difference.  For the
-initial formulation of $\traverse$, the arguments will always satisfy
-$\dependencyset(\psi) \subseteq \dependencyset(\phi)$.  However, the
-pure literal reduction rule can eliminate some literals from $\phi$
-that occur in $\psi$, and so the two sets of variables can become
-incomparable.  When both rules are applicable, it is more efficient to use the first rule, since it avoids an invocation of $\kc$.
+The first two termination rules have some subtle differences.  For the
+unoptimized version of $\traverse$, the arguments will always satisfy
+$\dependencyset(\psi) \subseteq \dependencyset(\phi)$.  However, 
+pure literal reduction can eliminate some literals from $\phi$
+that remain in $\psi$, and so the two sets of variables can become
+incomparable.  When both rules are applicable, it is more efficient to use the first, since it avoids an invocation of $\kc$.
 
 \section{Partitioned-Operation Graphs (POGs)}
 
