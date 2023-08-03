@@ -1,5 +1,5 @@
-GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 10.0 -C 2147483647 -L d2p.log ./mc2022_track2_129.cnf ./mc2022_track2_129.nnf ./mc2022_track2_129.cpog
-GEN LOG: Time limit 4000 seconds
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 0 -C 2147483647 -L d2p.log ./mc2022_track2_129.cnf ./mc2022_track2_129.nnf ./mc2022_track2_129.cpog
+GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:       yes
 c GEN:   Use lemmas:          yes
@@ -7,18 +7,21 @@ c GEN:   Delete files:        yes
 c GEN:   One-sided:           no
 c GEN:   DRAT threshold:      20
 c GEN:   Clause limit:        2147483647
-c GEN:   BCP limit:           1
+c GEN:   BCP limit:           1000
 c GEN:   Monolithic threshold 0
-c GEN:   Lemma ratio          10.00
+c GEN:   Tree ratio threshold 0.00
 c GEN:   Solver:              cadical-trimmed-lrat
 c GEN: Time 0.00  Read input file with 120 variables and 846 clauses
 c Read D4 NNF file with 36200128 nodes (16094561 explicit) and 33649430 edges
 c Compressed POG has 34768091 nodes, root literal 34768211, and 238009358 defining clauses
 c POG has DAG size 238009358 and tree size 924424568 ratio = 3.88
-c GEN: Time 101.89  Generated POG representation
-c Time = 2224.08.  Justifications of 3476809 nodes completed.  296944072 total clauses.  305554 SAT calls
-GEN ERROR: Timeout after 4000 seconds
-GEN LOG: Elapsed time = 4001.367 seconds
+c GEN: Time 99.38  Generated POG representation
+c Time = 1971.21.  Justifications of 3476809 nodes completed.  300954843 total clauses.  250109 SAT calls
+c Time = 4054.15.  Justifications of 6953618 nodes completed.  365660308 total clauses.  507759 SAT calls
+c Time = 6383.09.  Justifications of 10430427 nodes completed.  434008807 total clauses.  784709 SAT calls
+c Time = 8427.04.  Justifications of 13907236 nodes completed.  494871337 total clauses.  1013778 SAT calls
+GEN ERROR: Timeout after 10000 seconds
+GEN LOG: Elapsed time = 10005.442 seconds
 GEN OUTCOME: Timeout
-structured LOG: Elapsed time = 4040.273 seconds
+structured LOG: Elapsed time = 10175.874 seconds
 structured OUTCOME: failed
