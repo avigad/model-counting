@@ -5,8 +5,8 @@
 
 #include "report.h"
 #include "counters.h"
-#include "clause.hh"
-#include "pog.hh"
+#include "project.hh"
+
 
 void usage(const char *name) {
     lprintf("Usage: %s [-h] [-v VLEVEL] FORMULA.cnf FORMULA.pog\n", name);
@@ -14,27 +14,8 @@ void usage(const char *name) {
     lprintf("  -v VERB     Set verbosity level\n");
 }
 
-static int run(FILE *cnf_file) {
-    Cnf cnf;
-    cnf.import_file(cnf_file);
-    fprintf(stdout, "Initial file:\n");
-    if (cnf.is_loaded()) {
-	cnf.write(stdout);
-    } else {
-	err(false, "Failed to load CNF file\n");
-	return 1;
-    }
-    Clausal_reasoner cr(&cnf);
-    bool conflict = cr.bcp(100);
-    bool sat = cr.is_satisfiable();
-    fprintf(stdout, "Running SAT solver gives result '%s' [time = %.3f secs)\n", sat ? "Satisifiable" : "Not satisfiable", get_timer(TIME_SAT));
-    cnf_archive_t arx = cr.extract();
-    cnf.deallocate();
-    Cnf ncnf;
-    ncnf.import_archive(arx);
-    fprintf(stdout, "After BCP (conflict = %s):\n", conflict ? "true" : "false");    
-    ncnf.write(stdout);
-    ncnf.deallocate();
+static int run(const char *cnf_name) {
+    Project proj(cnf_name);
     return 0;
 }
 
@@ -63,12 +44,6 @@ int main(int argc, char *const argv[]) {
 	usage(argv[0]);
 	return 1;
     }
-    cnf_file = fopen(argv[argi], "r");
-    if (cnf_file == NULL) {
-	lprintf("Can't open '%s'\n", argv[argi]);
-	return 1;
-    }
-    int result = run(cnf_file);
-    fclose(cnf_file);
+    int result = run(argv[argi]);
     return result;
 }

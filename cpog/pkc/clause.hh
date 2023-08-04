@@ -40,13 +40,15 @@
 class File_manager {
 private:
     // Names of files generated
-    std::vector<int> names;
-    char *root;
-    int instance;
+    int buflen;
+    char *buf;
+    std::vector<const char *> names;
+    const char *root;
+    int sequence_number;
 public:
-    void set_root(char *nroot);
-    char *build_name(char *extension);
-    void next_instance();
+    File_manager();
+    void set_root(const char *fname);
+    const char *build_name(const char *extension, bool new_sequence);
     void flush();
 };
 

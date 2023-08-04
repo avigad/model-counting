@@ -30,6 +30,47 @@
 #include "report.h"
 #include "counters.h"
 
+// File management
+// Share instance of file manager globally
+File_manager fmgr;
+
+File_manager::File_manager() {
+    root = archive_string("zzzz-temporary");
+    sequence_number = 1000000;
+    buflen = 1000;
+    buf = (char *) malloc(buflen);
+}
+
+// Use file name to construct root for temporary names
+void File_manager::set_root(const char *fname) {
+    strncpy(buf, fname, strlen(fname));
+    // Chop off extension
+    int pos = strlen(fname)-1;
+    while (pos >= 0 && buf[pos] != '.')
+	pos--;
+    if (pos > 0) {
+	snprintf(buf+pos, 5, "-xxxxx");
+	root = archive_string(buf);
+    }
+}
+
+const char *File_manager::build_name(const char *extension, bool new_sequence) {
+    if (new_sequence)
+	sequence_number++;
+    snprintf(buf, buflen, "%s-%d.%s", root, sequence_number, extension);
+    const char *result = archive_string(buf);
+    names.push_back(result);
+    return result;
+}
+
+void File_manager::flush() {
+    for (const char *fname : names) {
+	if (remove(fname) != 0)
+	    err(false, "Attempt to delete file %s failed.  Error code = %d\n", fname, errno);
+	free((void *) fname);
+    }
+}
+
 static int skip_line(FILE *infile) {
     int c;
     while ((c = getc(infile)) != EOF) {
@@ -248,7 +289,7 @@ bool Cnf::is_satisfiable() {
     printf("Testing satisfiability of file:\n");
     write(stdout);
     double start = tod();
-    FILE *pipe = popen("cadical", "w");
+    FILE *pipe = popen("cadical -q > /dev/null", "w");
     if (!write(pipe)) {
 	err(false, "Couldn't open pipe to cadical\n");
 	return false;

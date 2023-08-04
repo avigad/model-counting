@@ -22,8 +22,11 @@ clause.o: report.h counters.h clause.hh clause.cpp
 pog.o: pog.hh clause.hh counters.h pog.cpp
 	$(CXX) $(CPPFLAGS) -c pog.cpp
 
-pkc: pkc.cpp clause.o report.o counters.o ilist.o
-	$(CXX) $(CPPFLAGS) -o pkc pkc.cpp clause.o report.o counters.o ilist.o
+project.o: project.hh clause.hh pog.hh project.cpp
+	$(CXX) $(CPPFLAGS) -c project.cpp
+
+pkc: pkc.cpp clause.o report.o counters.o ilist.o pog.o project.o
+	$(CXX) $(CPPFLAGS) -o pkc pkc.cpp clause.o report.o counters.o ilist.o pog.o project.o
 
 pog_test: pog_test.cpp clause.o report.o counters.o ilist.o pog.o
 	$(CXX) $(CPPFLAGS) -o pog_test pog_test.cpp clause.o report.o counters.o ilist.o pog.o

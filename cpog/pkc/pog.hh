@@ -47,6 +47,9 @@ public:
     int get_degree(int edge) { int idx = node_index(edge); return idx < 0 ? 0 : nodes[idx].degree; }
     pog_type_t get_type(int edge) { int idx = node_index(edge); return idx < 0 ? POG_NONE : nodes[idx].type; }
 
+    int node_count() { return nodes.size(); }
+    int edge_count() { return arguments.size(); }
+
     int get_argument(int edge, int index) { 
 	int idx = node_index(edge); 
 	return idx < 0 ? 0 : arguments[nodes[idx].offset + index];
