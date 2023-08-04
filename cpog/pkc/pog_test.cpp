@@ -8,7 +8,7 @@
 #include "pog.hh"
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-n NVAR] [-v VLEVEL] FORMULA.nnf ...\n", name);
+    lprintf("Usage: %s [-h] [-n NVAR] [-v VLEVEL] ROOT1 ROOT2  ...\n", name);
     lprintf("  -h          Print this information\n");
     lprintf("  -v VERB     Set verbosity level\n");
     lprintf("  -n NVAR     Set number of input variables\n");
@@ -16,10 +16,28 @@ void usage(const char *name) {
 
 Pog *pog;
 
-static int run(FILE *nnf_file) {
-    int root = pog->load_nnf(nnf_file);
+static int run(char *root_name) {
+    char buf[1000];
+    snprintf(buf, 1000, "%s.nnf", root_name);
+    FILE *infile = fopen(buf, "r");
+    if (!infile) {
+	printf("Couldn't open file '%s'\n", buf);
+	return 1;
+    }
+    int root = pog->load_nnf(infile);
+    fclose(infile);
     printf("Got root %d\n", root);
-    pog->show(stdout);
+    if (verblevel >= 2)
+	pog->show(stdout);
+    snprintf(buf, 1000, "%s.pog", root_name);
+    FILE *outfile = fopen(buf, "w");
+    if (!outfile) {
+	printf("Couldn't open file '%s'\n", buf);
+	return 1;
+    }
+    pog->write(root, outfile);
+    fclose(outfile);
+    printf("File %s written\n", buf);
     return 0;
 }
 
@@ -55,13 +73,7 @@ int main(int argc, char *const argv[]) {
     }
     int result = 0;
     while (result == 0 && argi < argc) {
-	nnf_file = fopen(argv[argi], "r");
-	if (nnf_file == NULL) {
-	    lprintf("Can't open '%s'\n", argv[argi]);
-	    return 1;
-	}
-	result = run(nnf_file);
-	fclose(nnf_file);
+	result = run(argv[argi]);
 	argi++;
     }
     return result;

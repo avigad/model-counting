@@ -58,6 +58,7 @@ static bool find_token(FILE *infile) {
 
 // Tools to enable constructing CNF representations
 static void start_build(std::vector<int> &varx, int nvar, int nclause) {
+    varx.clear();
     varx.push_back(nvar);
     varx.push_back(nclause);
     for (int cid = 1; cid <= nclause+1; cid++)
@@ -243,8 +244,26 @@ bool Cnf::write(FILE *outfile) {
     return true;
 }
 
+bool Cnf::is_satisfiable() {
+    printf("Testing satisfiability of file:\n");
+    write(stdout);
+    double start = tod();
+    FILE *pipe = popen("cadical", "w");
+    if (!write(pipe)) {
+	err(false, "Couldn't open pipe to cadical\n");
+	return false;
+    }
+    int rc = pclose(pipe);
+    double elapsed = tod() - start;
+    incr_timer(TIME_SAT, elapsed);
+    return rc == 10 || (rc >> 8) == 10;
+}
+
+
 Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
     cnf = icnf;
+    printf("Imported CNF into reasoner.  %d variables, %d clauses\n",
+	   cnf->variable_count(), cnf->clause_count());
     // Set up active clauses
     curr_active_clauses = new std::set<int>;
     next_active_clauses = new std::set<int>;
@@ -433,9 +452,13 @@ cnf_archive_t Clausal_reasoner::extract() {
     return finish_build(varx);
 }
 
-// Read NNF file and integrate into POG.  Return edge to new root
-// Works with D4 version of NNF
-int load_nnf(const char *nnfname) {
-    return 0;
+bool Clausal_reasoner::is_satisfiable() {
+    if (has_conflict())
+	return false;
+    if (curr_active_clauses->size() <= 1)
+	return true;
+    cnf_archive_t arx = extract();
+    Cnf cnf;
+    cnf.import_archive(arx);
+    return cnf.is_satisfiable();
 }
-

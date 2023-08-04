@@ -26,6 +26,8 @@ static int run(FILE *cnf_file) {
     }
     Clausal_reasoner cr(&cnf);
     bool conflict = cr.bcp(100);
+    bool sat = cr.is_satisfiable();
+    fprintf(stdout, "Running SAT solver gives result '%s' [time = %.3f secs)\n", sat ? "Satisifiable" : "Not satisfiable", get_timer(TIME_SAT));
     cnf_archive_t arx = cr.extract();
     cnf.deallocate();
     Cnf ncnf;

@@ -26,6 +26,7 @@
 #include <ctype.h>
 #include <cstring>
 #include <map>
+#include <algorithm>
 #include "report.h"
 #include "counters.h"
 #include "pog.hh"
@@ -499,7 +500,62 @@ void Pog::show(FILE *outfile) {
     }
 }
 
-void Pog::get_subgraph(int root_edge, std::unordered_map<int,int> &edge_remap) {
-    
+void Pog::visit(int edge, std::unordered_set<int> &visited) {
+    if (!is_node(edge))
+	return;
+    int var = get_var(edge);
+    if (visited.find(var) != visited.end())
+	return;
+    visited.insert(var);
+    int degree = get_degree(edge);
+    for (int i = 0; i < degree; i++)
+	visit(get_argument(edge, i), visited);
 }
 
+void Pog::get_subgraph(int root_edge, std::map<int,int> &node_remap) {
+    node_remap.clear();
+    // Collect all reachable nodes
+    std::unordered_set<int> visited;
+    visit(root_edge, visited);
+    // Put the Ids in order
+    std::vector<int> oids;
+    for (int oid : visited)
+	oids.push_back(oid);
+    std::sort(oids.begin(), oids.end());
+    int next_id = nvar+1;
+    for (int oid : oids) {
+	node_remap[oid] = next_id++;
+    }
+}
+
+// Extract subgraph with designated root edge and write to file
+bool Pog::write(int root_edge, FILE *outfile) {
+    std::map<int,int> node_remap;
+    get_subgraph(root_edge, node_remap);
+    int nroot_edge = root_edge;
+    if (is_node(root_edge)) {
+	int orvar = get_var(root_edge);
+	int nrvar = node_remap[orvar];
+	nroot_edge = root_edge > 0 ? nrvar : -nrvar;
+    }
+    fprintf(outfile, "r %d\n", nroot_edge);
+
+    for (auto kv : node_remap) {
+	int oid = kv.first;
+	int nid = kv.second;
+	fprintf(outfile, "%c %d", get_type(oid) == POG_SUM ? 's' : 'p', nid);
+	int degree = get_degree(oid);
+	for (int i = 0; i < degree; i++) {
+	    int oedge = get_argument(oid, i);
+	    int nedge = oedge;
+	    if (is_node(oedge)) {
+		int ovar = get_var(oedge);
+		int nvar = node_remap[ovar];
+		nedge = oedge > 0 ? nvar : -nvar;
+	    }
+	    fprintf(outfile, " %d", nedge);
+	}
+	fprintf(outfile, "\n");
+    }
+    return true;
+}

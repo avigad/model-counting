@@ -36,6 +36,22 @@
 #include <unordered_set>
 #include <stdio.h>
 
+// Manage temporary files
+class File_manager {
+private:
+    // Names of files generated
+    std::vector<int> names;
+    char *root;
+    int instance;
+public:
+    void set_root(char *nroot);
+    char *build_name(char *extension);
+    void next_instance();
+    void flush();
+};
+
+extern File_manager fmgr;
+
 // Base data type for storing CNF
 typedef int *cnf_archive_t;
 
@@ -74,6 +90,10 @@ public:
     bool show(FILE *outfile);
     bool write(FILE *outfile);
     
+    // Run solver to determine whether satisfiable
+    bool is_satisfiable();
+
+
 };
 
 // Add capabilities to CNF
@@ -117,6 +137,9 @@ class Clausal_reasoner {
 
     // Extract a clausal representation of the current state
     cnf_archive_t extract();
+
+    // Is the current state satisfiable?
+    bool is_satisfiable();
 
  private:
 

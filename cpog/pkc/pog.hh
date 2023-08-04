@@ -2,7 +2,9 @@
 
 #include <cstdio>
 #include <vector>
+#include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include "clause.hh"
 
 typedef enum { POG_NONE, POG_PRODUCT, POG_SUM, POG_NUM } pog_type_t;
@@ -69,8 +71,11 @@ public:
 
 private:
     void mark(int root_edge);
+    // Collect Ids of all nodes reachable from root
+    void visit(int edge, std::unordered_set<int> &visited);
+
     // Find subgraph with specified root.  Return mapping from old edges to new edges
-    void get_subgraph(int root_edge, std::unordered_map<int,int> &edge_remap);
+    void get_subgraph(int root_edge, std::map<int,int> &node_remap);
 
     unsigned node_hash(int var);
     bool node_equal(int var1, int var2);
