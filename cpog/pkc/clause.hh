@@ -139,6 +139,8 @@ class Clausal_reasoner {
 
     // Extract a clausal representation of the current state
     cnf_archive_t extract();
+    // Extract clausal representation and write as CNF file
+    bool write(FILE *outfile);
 
     // Is the current state satisfiable?
     bool is_satisfiable();

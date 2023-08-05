@@ -286,8 +286,6 @@ bool Cnf::write(FILE *outfile) {
 }
 
 bool Cnf::is_satisfiable() {
-    printf("Testing satisfiability of file:\n");
-    write(stdout);
     double start = tod();
     FILE *pipe = popen("cadical -q > /dev/null", "w");
     if (!write(pipe)) {
@@ -492,14 +490,40 @@ cnf_archive_t Clausal_reasoner::extract() {
     }
     return finish_build(varx);
 }
+bool Clausal_reasoner::write(FILE *outfile) {
+    fprintf(outfile, "p cnf %d %ld\n", cnf->variable_count(), bcp_units.size() + curr_active_clauses->size());
+    // Put in the derived unit literals
+    for (int ulit : bcp_units) 
+	fprintf(outfile, "%d 0\n", ulit);
+    for (int ocid : *curr_active_clauses) {
+	int len = cnf->clause_length(ocid);
+	for (int lid = 0; lid < len; lid++) {
+	    int lit = cnf->get_literal(ocid, lid);
+	    int var = IABS(lit);
+	    if (unit_literals.find(-lit) == unit_literals.end() &&
+		quantified_variables.find(var) == quantified_variables.end())
+		fprintf(outfile, "%d ", lit); 
+	}
+	fprintf(outfile, "0\n");
+    }
+    return true;
+}
+
 
 bool Clausal_reasoner::is_satisfiable() {
     if (has_conflict())
 	return false;
     if (curr_active_clauses->size() <= 1)
 	return true;
-    cnf_archive_t arx = extract();
-    Cnf cnf;
-    cnf.import_archive(arx);
-    return cnf.is_satisfiable();
+    double start = tod();
+    FILE *pipe = popen("cadical -q > /dev/null", "w");
+    if (!write(pipe)) {
+	err(false, "Couldn't open pipe to cadical\n");
+	return false;
+    }
+    int rc = pclose(pipe);
+    double elapsed = tod() - start;
+    incr_timer(TIME_SAT, elapsed);
+    return rc == 10 || (rc >> 8) == 10;
 }
+

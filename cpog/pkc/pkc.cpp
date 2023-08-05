@@ -23,6 +23,7 @@ int main(int argc, char *const argv[]) {
     FILE *cnf_file = NULL;
     verblevel = 1;
     int c;
+    double start = tod();
     while ((c = getopt(argc, argv, "hv:")) != -1) {
 	switch (c) {
 	case 'h':
@@ -45,5 +46,7 @@ int main(int argc, char *const argv[]) {
 	return 1;
     }
     int result = run(argv[argi]);
+    double elapsed = tod() - start;
+    lprintf("Total execution %.2f seconds\n", elapsed);
     return result;
 }
