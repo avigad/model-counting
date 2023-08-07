@@ -11,7 +11,7 @@ Project::Project(const char *cnf_name) {
     cnf->import_file(cnf_file);
     if (!cnf->is_loaded())
 	err(true, "Failed to load CNF from file '%s'\n", cnf_name);
-    report(1, "CNF file loaded %d variables, %d clauses\n", cnf->variable_count(), cnf->clause_count());
+    report(1, "CNF file loaded %d variables, %d clauses, %d show variables\n", cnf->variable_count(), cnf->clause_count(), cnf->show_variables.size());
     fmgr.set_root(cnf_name);
     cr = new Clausal_reasoner(cnf);
     pog = new Pog(cnf->variable_count());
