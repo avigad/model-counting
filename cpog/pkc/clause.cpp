@@ -80,21 +80,17 @@ static int skip_line(FILE *infile) {
     return c;
 }
 
-// Skip over comment lines, spaces, newlines, etc., until find something interesting
-// Return false if EOF encountered without finding anything
-static bool find_token(FILE *infile) {
+// Skip over spaces, newlines, etc., until find something interesting
+// Return last character encountered
+static int find_token(FILE *infile) {
     int c;
     while ((c = getc(infile)) != EOF) {
-	if (c == 'c') {
-	    c = skip_line(infile);
+	if (!isspace(c)) {
 	    ungetc(c, infile);
-	} else if (!isspace(c)) {
-	    ungetc(c, infile);
-	    return true;
+	    break;
 	}
-	// Skip space
     }
-    return false;
+    return c;
 }
 
 // Read string token:
@@ -158,6 +154,26 @@ Cnf::Cnf() {
     arx = NULL;
 }
 
+// Process comment, looking additional show variables
+// Return last character
+static void process_comment(FILE *infile, std::unordered_set<int> &show_variables) {
+    char buf[50];
+    int len;
+    if (find_string_token(infile, buf, 50, &len) && len == 1 && strncmp(buf, "p", 1) == 0
+	&& find_string_token(infile, buf, 50, &len) && len == 4 && strncmp(buf, "show", 4) == 0) {
+	int var = -1;
+	while (var != 0) {
+	    if (fscanf(infile, "%d", &var) != 1) {
+		err(false, "Couldn't read show variable\n");
+		break;
+	    } else if (var != 0) {
+		show_variables.insert(var);
+	    }
+	}
+    }
+    skip_line(infile);
+}		
+
 void Cnf::import_file(FILE *infile) { 
     int expectedNvar = 0;
     int expectedNclause = 0;
@@ -165,8 +181,6 @@ void Cnf::import_file(FILE *infile) {
     bool read_failed = false;
     bool got_header = false;
     int c;
-    char buf[50];
-    int len;
 
     if (arx) {
 	free(arx);
@@ -174,8 +188,6 @@ void Cnf::import_file(FILE *infile) {
     }
     std::vector<int> varx;
     bool eof = false;
-    // Should the file have a list of show variables?
-    bool find_show_variables = false;
     // Clear set of show variables
     show_variables.clear();
     // Look for CNF header
@@ -183,17 +195,8 @@ void Cnf::import_file(FILE *infile) {
 	if (isspace(c)) 
 	    continue;
 	if (c == 'c') {
-	    if (!find_show_variables) {
-		// Look for PMC or PWMC header
-		if (!find_string_token(infile, buf, 50, &len))
-		    break;
-		if (len == 1 && strncmp(buf, "t", 1) == 0) {
-		    if (!find_string_token(infile, buf, 50, &len))
-			break;
-		    find_show_variables = len == 3 && strcmp(buf, "pmc") == 0 || len == 4 && strcmp(buf, "pwmc") == 0;
-		}
-	    }
-	    c = skip_line(infile);
+	    process_comment(infile, show_variables);
+	    continue;
 	}
 	if (c == EOF) {
 	    err(false, "Not valid CNF file.  No header line found\n");
@@ -231,14 +234,19 @@ void Cnf::import_file(FILE *infile) {
 	// Setup next clause
 	nclause++;
 	new_clause(varx, nclause);
+	bool starting_clause = true;
 	while (true) {
 	    int lit;
-	    eof = !find_token(infile);
-	    if (eof) {
+	    int c = find_token(infile);
+	    if (c == EOF) {
 		err(false, "Unexpected end of file\n");
 		return;
+	    } else if (c == 'c' && starting_clause) {
+		c = getc(infile);
+		process_comment(infile, show_variables);
+		continue;
 	    }
-	    if (fscanf(infile, "%d", &lit) != 1) {
+	    else if (fscanf(infile, "%d", &lit) != 1) {
 		err(false, "Couldn't find literal or 0\n");
 		return;
 	    }
@@ -246,45 +254,14 @@ void Cnf::import_file(FILE *infile) {
 		break;
 	    else 
 		add_literal(varx, lit);
+	    starting_clause = false;
 	}
-    }	
-    while (find_show_variables && (c = getc(infile)) != EOF) {
+    }
+    while ((c = getc(infile)) != EOF) {
 	if (isspace(c)) 
 	    continue;
-	if (c == 'c') {
-	    if (!find_string_token(infile, buf, 50, &len))
-		break;
-	    if (len == 1 && strncmp(buf, "p", 1) == 0) {
-		if (!find_string_token(infile, buf, 50, &len))
-		    break;
-		if (len == 4 && strncmp(buf, "show", 4) == 0) {
-		    // Read list of show variables
-		    while (true) {
-			int var;
-			eof = !find_token(infile);
-			if (eof) {
-			    err(false, "Unexpected end of file while parsing show variables\n");
-			    return;
-			}
-			if (fscanf(infile, "%d", &var) != 1) {
-			    err(false, "Couldn't find show variable or 0\n");
-			    return;
-			}
-			if (var == 0) {
-			    find_show_variables = false;
-			    break;
-			}
-			show_variables.insert(var);
-		    }
-		}
-	    }
-	}
-	c = skip_line(infile);
-    }
-
-    if (find_show_variables) {
-	err(false, "Didn't find expected show variables\n");
-	return;
+	if (c == 'c') 
+	    process_comment(infile, show_variables);
     }
     arx = finish_build(varx);
     incr_count_by(COUNT_INPUT_CLAUSE, clause_count());
@@ -382,8 +359,6 @@ bool Cnf::is_satisfiable() {
 
 Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
     cnf = icnf;
-    printf("Imported CNF into reasoner.  %d variables, %d clauses\n",
-	   cnf->variable_count(), cnf->clause_count());
     // Set up active clauses
     curr_active_clauses = new std::set<int>;
     next_active_clauses = new std::set<int>;
