@@ -17,6 +17,15 @@ def usage(name):
 # Global variables
 verbose = False
 
+# hash(clauses): hash each clause as a tuple, and hash clause hashes
+def hashClauses(clauses):
+    hlist = []
+    for clause in clauses:
+        hlist.append( hash(tuple(clause)))
+    rval =  hash(tuple(hlist))
+    return rval
+
+
 def match(fname1, fname2):
     try:
         cnf1 = readwrite.CnfReader(fname1, check = False)
@@ -28,6 +37,10 @@ def match(fname1, fname2):
     if cnf1.nvar != cnf2.nvar:
         return False
     if len(cnf1.clauses) != len(cnf2.clauses):
+        return False
+    sv1 = set([]) if cnf1.showVariables is None else cnf1.showVariables
+    sv2 = set([]) if cnf2.showVariables is None else cnf2.showVariables
+    if sv1 != sv2:
         return False
     for c1, c2 in zip(cnf1.clauses, cnf2.clauses):
         if len(c1) != len(c2):
@@ -41,24 +54,28 @@ def stripPath(path):
     fields = path.split('/')
     return fields[-1]
 
+
 class Eclass:
     nvar = 0
     nclause = 0
+    chash = 0
     fnames = []
 
-    def __init__(self, nvar = 0, nclause = 0):
+    def __init__(self, nvar = 0, nclause = 0, chash = 0):
         self.nvar = nvar
         self.nclause = nclause
+        self.chash = chash
         self.fnames = []
         
-    def checkFile(self, fname, nvar, nclause):
+    def checkFile(self, fname, nvar, nclause, chash):
         if self.nvar == 0:
             # First member of class
             self.nvar = nvar
             self.nclause = nclause
+            self.chash = chash
             self.fnames.append(fname)
             return True
-        if nvar != self.nvar or nclause != self.nclause:
+        if nvar != self.nvar or nclause != self.nclause or chash != self.chash:
             return False
         if match(self.fnames[0], fname):
             self.fnames.append(fname)
@@ -66,7 +83,8 @@ class Eclass:
         return False
         
     def show(self):
-        return "{%s}" % ", ".join(self.fnames)
+#        return "%d variables, %d clauses, hash = %d,  {%s}" % (self.nvar, self.nclause, self.chash,  ", ".join(self.fnames))
+        return "{%s}" % (", ".join(self.fnames))
 
     def uniqueCopy(self, path):
         src = self.fnames[0]
@@ -77,27 +95,38 @@ class Eclass:
             print("%s --> %s (Duplicated by %s)" % (src, dest, ", ".join(self.fnames[1:])))
         shutil.copy(src, dest)
 
+
+
+
 def build(fnames):
+    # Mapping from hash of clauses to list of eclasses
+    eclassDict = {}
     classes = []
     for fname in fnames:
         found = False
         try:
-            header = readwrite.CnfHeaderReader(fname)
+            cnf = readwrite.CnfReader(fname, check=False)
         except Exception as ex:
             print("Oops.  Couldn't get header (%s).  Exiting" % str(ex))
             sys.exit(1)
-        nvar = header.nvar
-        nclause = header.nclause
-        for eclass in classes:
-            if eclass.checkFile(fname, nvar, nclause):
-                found = True
-                if verbose:
-                    print("Found class %s" % eclass.show())
-                break
+        nvar = cnf.nvar
+        nclause = len(cnf.clauses)
+        chash = hashClauses(cnf.clauses)
+        if chash in eclassDict:
+            for eclass in eclassDict[chash]:
+                if eclass.checkFile(fname, nvar, nclause, chash):
+                    found = True
+                    if verbose:
+                        print("Found class %s" % eclass.show())
+                    break
         if not found:
             eclass = Eclass()
-            eclass.checkFile(fname, nvar, nclause)
             classes.append(eclass)
+            eclass.checkFile(fname, nvar, nclause, chash)
+            if chash in eclassDict:
+                eclassDict[chash].append(eclass)
+            else:
+                eclassDict[chash] = [eclass]
             if verbose:
                 print("Created class %s" % eclass.show())
     return classes
@@ -114,7 +143,7 @@ def run(name, args):
         if args[0] == '-v':
             verbose = True
             args = args[1:]
-        if args[0] == '-u':
+        elif args[0] == '-u':
             path = args[1]
             args = args[2:]
         else:

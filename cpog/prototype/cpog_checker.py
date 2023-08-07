@@ -381,17 +381,17 @@ class CnfReader():
 
     # See if there's anything interesting in the comment
     def processComment(self, line):
-        if self.nvar == 0:
-            fields = line.split()
-            if self.weights is None and len(fields) == 3 and fields[1] == 't' and fields[2] in ['wmc', 'pwmc']:
+        fields = line.split()
+        if self.weights is None and self.showVariables is None and len(fields) == 3 and fields[1] == 't':
+            if fields[2] in ['wmc', 'pwmc']:
                 self.weights = {}
-            if len(fields) == 3 and fields[1] == 't' and fields[2] in ['pmc', 'pwmc']:
+            if fields[2] in ['pmc', 'pwmc']:
                 self.showVariables = set([])
         else:
             fields = line.split()
             if self.weights is not None and len(fields) == 6 and fields[1] == 'p' and fields[2] == 'weight':
                 self.processWeight(fields)
-            if self.showVariables is not None and len(fields) >= 3 and fields[1] == 'p' and fields[2] == 'show':
+            elif self.showVariables is not None and len(fields) >= 3 and fields[1] == 'p' and fields[2] == 'show':
                 self.processShow(fields)
 
 
