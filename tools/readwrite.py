@@ -1,4 +1,4 @@
-#####################################################################################
+####################################################################################
 # Copyright (c) 2022 Randal E. Bryant, Carnegie Mellon University
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
@@ -291,7 +291,8 @@ class CnfReader():
     clauses = []
     nvar = 0
     verbLevel = 1
-
+    showVariables = None
+    weights = None
    
     def __init__(self, fname = None, verbLevel = 1, check = True):
         self.verbLevel = verbLevel
@@ -306,6 +307,8 @@ class CnfReader():
                 raise ReadWriteException("Could not open file '%s'" % fname)
         self.clauses = []
         self.commentLines = []
+        self.showVariables = None
+        self.weights = None
         try:
             self.readCnf(check)
         except Exception as ex:
@@ -331,6 +334,7 @@ class CnfReader():
             elif line[0] == 'c':
                 if self.verbLevel > 1:
                     self.commentLines.append(line)
+                self.processComment(line)
             elif line[0] == 'p':
                 fields = line[1:].split()
                 if len(fields) != 3 or fields[0] != 'cnf':
@@ -366,6 +370,34 @@ class CnfReader():
         if clauseCount != nclause:
             raise ReadWriteException("Line %d: Got %d clauses.  Expected %d" % (lineNumber, clauseCount, nclause))
         self.file.close()
+
+    # See if there's anything interesting in the comment
+    def processComment(self, line):
+        fields = line.split()
+        if self.weights is None and self.showVariables is None and len(fields) == 3 and fields[1] == 't':
+            if fields[2] in ['wmc', 'pwmc']:
+                self.weights = {}
+            if fields[2] in ['pmc', 'pwmc']:
+                self.showVariables = set([])
+        else:
+            fields = line.split()
+            if self.weights is not None and len(fields) == 6 and fields[1] == 'p' and fields[2] == 'weight':
+                self.processWeight(fields)
+            elif self.showVariables is not None and len(fields) >= 3 and fields[1] == 'p' and fields[2] == 'show':
+                self.processShow(fields)
+
+    def processWeight(self, fields):
+        return
+
+    def processShow(self, fields):
+        for s in fields[3:-1]:
+            try:
+                var = int(s)
+            except:
+                raise ReadWriteException("Couldn't parse '%s' as number" % s)
+            if var < 1:
+                raise ReadWriteException("Invalid input variable %d" % var)
+            self.showVariables.add(var)
 
 # Grab list of clauses out of file that may contain other info
 # Interesting lines will contain marker and have list of literals following that
