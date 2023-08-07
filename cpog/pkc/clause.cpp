@@ -97,6 +97,31 @@ static bool find_token(FILE *infile) {
     return false;
 }
 
+// Read string token:
+// Skip over spaces.
+// Read contiguous non-space characters and store in dest.
+// Set len to number of characters read.
+// Return false if EOF encountered without getting string
+static bool find_string_token(FILE *infile, char *dest, int maxlen, int *len) {
+    int c;
+    int rlen = 0;
+    while ((c = getc(infile)) != EOF && rlen < maxlen-1) {
+	if (isspace(c)) {
+	    if (rlen > 0) {
+		// Past token
+		ungetc(c, infile);
+		break;
+	    }
+	} else {
+	    *(dest+rlen) = c;
+	    rlen++;
+	}
+    }
+    *(dest+rlen) = '\0';
+    *len = rlen;
+    return (c != EOF);
+}
+
 // Tools to enable constructing CNF representations
 static void start_build(std::vector<int> &varx, int nvar, int nclause) {
     varx.clear();
@@ -140,18 +165,36 @@ void Cnf::import_file(FILE *infile) {
     bool read_failed = false;
     bool got_header = false;
     int c;
+    char buf[50];
+    int len;
+
     if (arx) {
 	free(arx);
 	arx = NULL;
     }
     std::vector<int> varx;
     bool eof = false;
+    // Should the file have a list of show variables?
+    bool find_show_variables = false;
+    // Clear set of show variables
+    show_variables.clear();
     // Look for CNF header
     while ((c = getc(infile)) != EOF) {
 	if (isspace(c)) 
 	    continue;
-	if (c == 'c')
+	if (c == 'c') {
+	    if (!find_show_variables) {
+		// Look for PMC or PWMC header
+		if (!find_string_token(infile, buf, 50, &len))
+		    break;
+		if (len == 1 && strncmp(buf, "t", 1) == 0) {
+		    if (!find_string_token(infile, buf, 50, &len))
+			break;
+		    find_show_variables = len == 3 && strcmp(buf, "pmc") == 0 || len == 4 && strcmp(buf, "pwmc") == 0;
+		}
+	    }
 	    c = skip_line(infile);
+	}
 	if (c == EOF) {
 	    err(false, "Not valid CNF file.  No header line found\n");
 	    return;
@@ -189,8 +232,8 @@ void Cnf::import_file(FILE *infile) {
 	nclause++;
 	new_clause(varx, nclause);
 	while (true) {
-	    eof = !find_token(infile);
 	    int lit;
+	    eof = !find_token(infile);
 	    if (eof) {
 		err(false, "Unexpected end of file\n");
 		return;
@@ -205,6 +248,44 @@ void Cnf::import_file(FILE *infile) {
 		add_literal(varx, lit);
 	}
     }	
+    while (find_show_variables && (c = getc(infile)) != EOF) {
+	if (isspace(c)) 
+	    continue;
+	if (c == 'c') {
+	    if (!find_string_token(infile, buf, 50, &len))
+		break;
+	    if (len == 1 && strncmp(buf, "p", 1) == 0) {
+		if (!find_string_token(infile, buf, 50, &len))
+		    break;
+		if (len == 4 && strncmp(buf, "show", 4) == 0) {
+		    // Read list of show variables
+		    while (true) {
+			int var;
+			eof = !find_token(infile);
+			if (eof) {
+			    err(false, "Unexpected end of file while parsing show variables\n");
+			    return;
+			}
+			if (fscanf(infile, "%d", &var) != 1) {
+			    err(false, "Couldn't find show variable or 0\n");
+			    return;
+			}
+			if (var == 0) {
+			    find_show_variables = false;
+			    break;
+			}
+			show_variables.insert(var);
+		    }
+		}
+	    }
+	}
+	c = skip_line(infile);
+    }
+
+    if (find_show_variables) {
+	err(false, "Didn't find expected show variables\n");
+	return;
+    }
     arx = finish_build(varx);
     incr_count_by(COUNT_INPUT_CLAUSE, clause_count());
     incr_count_by(COUNT_INPUT_VAR, variable_count());

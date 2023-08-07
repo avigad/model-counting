@@ -95,7 +95,7 @@ public:
     // Run solver to determine whether satisfiable
     bool is_satisfiable();
 
-
+    std::unordered_set<int> show_variables;
 };
 
 // Add capabilities to CNF
