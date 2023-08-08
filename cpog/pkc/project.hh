@@ -11,9 +11,11 @@ private:
 public:
     Project(const char *cnf_name);
     ~Project();
+    void projecting_compile();
+    bool write(const char *pog_name);
 
-
-    int projecting_compile();
+    // Debugging support
+    void show(FILE *outfile) { pog->show(root_literal, outfile); }
 
 private:
     // Perform ordinary knowledge compilation by invoking D4

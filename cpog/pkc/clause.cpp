@@ -71,6 +71,12 @@ void File_manager::flush() {
     }
 }
 
+// Put literals in ascending order of the variables
+static bool abs_less(int x, int y) {
+    return IABS(x) < IABS(y);
+}
+
+
 static int skip_line(FILE *infile) {
     int c;
     while ((c = getc(infile)) != EOF) {
@@ -154,9 +160,9 @@ Cnf::Cnf() {
     arx = NULL;
 }
 
-// Process comment, looking additional show variables
+// Process comment, looking additional data variables
 // Return last character
-static void process_comment(FILE *infile, std::unordered_set<int> &show_variables) {
+static void process_comment(FILE *infile, std::unordered_set<int> &data_variables) {
     char buf[50];
     int len;
     if (find_string_token(infile, buf, 50, &len) && len == 1 && strncmp(buf, "p", 1) == 0
@@ -164,10 +170,10 @@ static void process_comment(FILE *infile, std::unordered_set<int> &show_variable
 	int var = -1;
 	while (var != 0) {
 	    if (fscanf(infile, "%d", &var) != 1) {
-		err(false, "Couldn't read show variable\n");
+		err(false, "Couldn't read data variable\n");
 		break;
 	    } else if (var != 0) {
-		show_variables.insert(var);
+		data_variables.insert(var);
 	    }
 	}
     }
@@ -188,14 +194,14 @@ void Cnf::import_file(FILE *infile) {
     }
     std::vector<int> varx;
     bool eof = false;
-    // Clear set of show variables
-    show_variables.clear();
+    // Clear set of data variables
+    data_variables.clear();
     // Look for CNF header
     while ((c = getc(infile)) != EOF) {
 	if (isspace(c)) 
 	    continue;
 	if (c == 'c') {
-	    process_comment(infile, show_variables);
+	    process_comment(infile, data_variables);
 	    continue;
 	}
 	if (c == EOF) {
@@ -243,7 +249,7 @@ void Cnf::import_file(FILE *infile) {
 		return;
 	    } else if (c == 'c' && starting_clause) {
 		c = getc(infile);
-		process_comment(infile, show_variables);
+		process_comment(infile, data_variables);
 		continue;
 	    }
 	    else if (fscanf(infile, "%d", &lit) != 1) {
@@ -261,7 +267,7 @@ void Cnf::import_file(FILE *infile) {
 	if (isspace(c)) 
 	    continue;
 	if (c == 'c') 
-	    process_comment(infile, show_variables);
+	    process_comment(infile, data_variables);
     }
     arx = finish_build(varx);
     incr_count_by(COUNT_INPUT_CLAUSE, clause_count());
@@ -353,6 +359,8 @@ bool Cnf::is_satisfiable() {
     int rc = pclose(pipe);
     double elapsed = tod() - start;
     incr_timer(TIME_SAT, elapsed);
+    incr_count(COUNT_SAT_CALL);
+    incr_histo(HISTO_SAT_CLAUSES, clause_count());
     return rc == 10 || (rc >> 8) == 10;
 }
 
@@ -365,6 +373,7 @@ Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
     for (int cid = 1; cid <= cnf->clause_count(); cid++)
 	curr_active_clauses->insert(cid);
     new_context();
+    bcp_step_limit = 0; // Unlimited
 }
 
 Clausal_reasoner::~Clausal_reasoner() {
@@ -398,7 +407,7 @@ void Clausal_reasoner::pop_context() {
 	deactivated_clauses.pop_back();
 	if (cid == 0)
 	    break;
-	curr_active_clauses->erase(cid);
+	curr_active_clauses->insert(cid);
     }
 }
 
@@ -410,9 +419,9 @@ void Clausal_reasoner::deactivate_clause(int cid) {
 void Clausal_reasoner::assign_literal(int lit) {
     int var = IABS(lit);
     if (unit_literals.find(lit) != unit_literals.end()) {
-	err(false, "Attempt to assign literal %d that has already been assigned\n", lit);
+	err(false, "Attempt to assign literal %d that is unit\n", lit);
     } else if (unit_literals.find(-lit) != unit_literals.end()) {
-	err(false, "Attempt to assign literal %d for which its negation has already been assigned\n", lit);
+	err(false, "Attempt to assign literal %d for which its negation is unit\n", lit);
     } else if (quantified_variables.find(var) != quantified_variables.end()) {
 	err(false, "Attempt to assign literal %d even though variable quantified\n", lit);
     } else {
@@ -423,14 +432,90 @@ void Clausal_reasoner::assign_literal(int lit) {
 
 void Clausal_reasoner::quantify(int var) {
     if (unit_literals.find(var) != unit_literals.end()) {
-	err(false, "Attempt to quantify variable %d, but literal %d has already been assigned\n", var, var);
+	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, var);
     } else if (unit_literals.find(-var) != unit_literals.end()) {
-	err(false, "Attempt to quantify variable %d, but literal %d has already been assigned\n", var, -var);
+	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, -var);
     } else if (quantified_variables.find(var) != quantified_variables.end()) {
 	err(false, "Attempt to quantify variable %d even already quantified\n", var);
     } else {
 	quantified_variables.insert(var);
 	uquant_trail.push_back(var);
+    }
+}
+
+// Expand set of variables to include those that co-occur in clauses with given variables
+// May require multiple iterations
+void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
+    int added = true;
+    std::vector<int> others;
+    while (added) {
+	added = false;
+	for (int cid : *curr_active_clauses) {
+	    bool existing = false;
+	    others.clear();
+	    int len = cnf->clause_length(cid);
+	    for (int lid = 0; lid < len; lid++) {
+		int lit = cnf->get_literal(cid, lid);
+		if (unit_literals.find(-lit) != unit_literals.end())
+		    continue;
+		int var = IABS(lit);
+		if (vset.find(var) == vset.end())
+		    others.push_back(var);
+		else
+		    existing = true;
+	    }
+	    if (!existing || others.size() == 0)
+		continue;
+	    added = true;
+	    for (int var : others)
+		vset.insert(var);
+	}
+    }
+}
+
+
+// Filter clauses to contain only those with variables in vset
+void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
+    // Make sure that have all variables in partition
+    expand_partition(vset);
+    next_active_clauses->clear();
+    for (int cid : *curr_active_clauses) {
+	int len = cnf->clause_length(cid);
+	int include = false;
+	for (int lid = 0; !include && lid < len; lid++) {
+	    int lit = cnf->get_literal(cid, lid);
+	    int var = IABS(lit);
+	    if (unit_literals.find(-lit) != unit_literals.end())
+		continue;
+	    include = vset.find(var) != vset.end();
+	}
+	if (include)
+	    next_active_clauses->insert(cid);
+	else
+	    deactivate_clause(cid);
+    }
+    auto tmp = curr_active_clauses;
+    curr_active_clauses = next_active_clauses;
+    next_active_clauses = tmp;
+}
+
+void Clausal_reasoner::analyze_variables(bool &only_data, bool &only_project) {
+    only_data = true;
+    only_project = true;
+    for (int cid : *curr_active_clauses) {
+	if (!only_data && !only_project)
+	    return;
+	int len = cnf->clause_length(cid);
+	for (int lid = 0; lid < len; lid++) {
+	    int lit = cnf->get_literal(cid, lid);
+	    if (unit_literals.find(-lit) != unit_literals.end())
+		continue;
+	    int var = IABS(lit);
+	    if (cnf->data_variables.find(var) == cnf->data_variables.end())
+		only_data = false;
+	    else
+		only_project = false;
+	}
     }
 }
 
@@ -464,23 +549,26 @@ int Clausal_reasoner::propagate_clause(int cid) {
 bool Clausal_reasoner::unit_propagate() {
     next_active_clauses->clear();
     bool new_unit = false;
+    bool found_conflict = false;
     for (int cid : *curr_active_clauses) {
+	if (found_conflict) {
+	    deactivate_clause(cid);
+	    continue;
+	}
 	int rval = propagate_clause(cid);
 	if (rval == CONFLICT) {
 	    // Reduce to single conflict clause
+	    found_conflict = true;
 	    for (int ccid : *next_active_clauses)
 		deactivate_clause(ccid);
 	    next_active_clauses->clear();
 	    next_active_clauses->insert(cid);
 	    new_unit = false;
 	    bcp_units.clear();
-	    break;
 	} else if (rval == 0) {
 	    next_active_clauses->insert(cid);
-	    continue;
 	} else if (rval == TAUTOLOGY) {
 	    deactivate_clause(cid);
-	    continue;
 	} else {
 	    // Derived unit literal
 	    unit_literals.insert(rval);
@@ -495,18 +583,9 @@ bool Clausal_reasoner::unit_propagate() {
     return new_unit;
 }
 
-bool Clausal_reasoner::bcp(int step_limit) {
+bool Clausal_reasoner::bcp(bool full) {
     bcp_units.clear();
-    for (int step = 1; step_limit == 0 || step < step_limit; step++) {
-#if 0
-	printf("BCP step %d.  Active clauses =", step);
-	for (int cid : *curr_active_clauses)
-	    printf(" %d", cid);
-	printf(".  Unit literals =");
-	for (int ulit : unit_literals)
-	    printf(" %d", ulit);
-	printf("\n");
-#endif
+    for (int step = 1; full || bcp_step_limit == 0 || step < bcp_step_limit; step++) {
 	if (!unit_propagate())
 	    break;
     }
@@ -580,6 +659,19 @@ bool Clausal_reasoner::is_satisfiable() {
     int rc = pclose(pipe);
     double elapsed = tod() - start;
     incr_timer(TIME_SAT, elapsed);
+    incr_count(COUNT_SAT_CALL);
+    incr_histo(HISTO_SAT_CLAUSES, active_clause_count());
     return rc == 10 || (rc >> 8) == 10;
 }
 
+void Clausal_reasoner::show_units(FILE *outfile) {
+    std::vector<int> ulits;
+    for (int lit : unit_literals) 
+	ulits.push_back(lit);
+    std::sort(ulits.begin(), ulits.end(), abs_less);
+    int first = true;
+    for (int lit : ulits) {
+	fprintf(outfile, first ? "%d" : ", %d", lit);
+	first = false;
+    }
+}

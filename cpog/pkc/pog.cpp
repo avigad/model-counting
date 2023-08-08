@@ -32,6 +32,11 @@
 #include "pog.hh"
 
 
+// Put literals in ascending order of the variables
+static bool abs_less(int x, int y) {
+    return IABS(x) < IABS(y);
+}
+
 /// Support for NNF reading
 
 // Try to read single alphabetic character from line
@@ -157,7 +162,7 @@ Nnf::Nnf(int n, FILE *infile) {
 		std::vector<int> *node = new std::vector<int>;
 		nodes[nid] = node;
 		node->push_back((int) ntype);
-		report(5, "Line #%d.  Created NNF type %s node %d from NNF node %d\n",
+		report(6, "Line #%d.  Created NNF type %s node %d from NNF node %d\n",
 		       line_number, nnf_type_name[ntype], nid, largs[0]); 
 	    }
 	} else {
@@ -191,13 +196,13 @@ Nnf::Nnf(int n, FILE *infile) {
 		for (int i = 2; i < largs.size()-1; i++)
 		    xnode->push_back(largs[i]);
 		xnode->push_back(cnid);
-		report(5, "Line #%d. Created node %d to hold literals between nodes %d and %d\n",
+		report(6, "Line #%d. Created node %d to hold literals between nodes %d and %d\n",
 		       line_number, xid, pnid, cnid);
 		cnid = xid;
 	    }
 	    parent->push_back(cnid);
 	    node_with_parent.insert(cnid);
-	    report(5, "Line #%d.  Adding edge between nodes %d and %d\n", line_number, pnid, cnid);
+	    report(6, "Line #%d.  Adding edge between nodes %d and %d\n", line_number, pnid, cnid);
 	}
     }
     for (auto kv : nodes) {
@@ -207,7 +212,7 @@ Nnf::Nnf(int n, FILE *infile) {
 	if ((*node)[0] == NNF_OR && node->size() == 2 && root_id == 0
 	    && node_with_parent.find(nid) == node_with_parent.end()) {
 	    root_id = nid;
-	    report(5, "Setting root to %d\n", nid);
+	    report(6, "Setting root to %d\n", nid);
 	}
     }
     if (root_id == 0)
@@ -344,12 +349,39 @@ bool Pog::node_equal(int var1, int var2) {
     return true;
 }
 
+int Pog::get_decision_variable(int edge) {
+    if (get_type(edge) != POG_SUM)
+	return 0;
+    int edge1 = get_argument(edge, 0);
+    int n1 = 1;
+    int *lits1 = &edge1;
+    if (is_node(edge1)) {
+	n1 = get_degree(edge1);
+	lits1 = get_arguments(edge1);
+    } 
+    int edge2 = get_argument(edge, 1);
+    int n2 = 2;
+    int *lits2 = &edge2;
+    if (is_node(edge2)) {
+	n2 = get_degree(edge2);
+	lits2 = get_arguments(edge2);
+    } 
+    for (int i1 = 0; i1 < n1; i1++) {
+	int lit1 = lits1[i1];
+	for (int i2 = 0; i2 < n2; i2++) {
+	    int lit2 = lits2[i2];
+	    if (lit1 == -lit2)
+		return get_var(lit1);
+	}
+    }
+    return 0;
+}
+
 void Pog::start_node(pog_type_t type) {
     // Create prototype node at end of list of nodes.  May retract later
     int nidx = nodes.size();
     nodes.resize(nidx + 1);
     nodes[nidx].offset = arguments.size();
-    nodes[nidx].mark = 0;
     nodes[nidx].type = type;
     nodes[nidx].degree = 0;
 }
@@ -388,6 +420,8 @@ int Pog::finish_node() {
 	edge = arguments[offset];
 	retract = true;    
     } else {
+	// Order arguments
+	std::sort(arguments.end()-degree, arguments.end(), abs_less);
 	// Look in hash table
 	edge = nidx + nvar + 1;
 	unsigned h = node_hash(edge);
@@ -402,7 +436,9 @@ int Pog::finish_node() {
 	if (!retract) {
 	    // New node
 	    unique_table.insert({h, edge});
-	    if (verblevel >= 4) {
+	    pog_type_t type = get_type(edge);
+	    incr_count(type == POG_SUM ? COUNT_POG_SUM : COUNT_POG_PRODUCT);
+	    if (verblevel >= 5) {
 		printf("Adding edge %d (hash = %u) to unique table.  Node:", edge, h);
 		show_edge(stdout, edge);
 	    }
@@ -418,7 +454,7 @@ int Pog::finish_node() {
 
 int Pog::load_nnf(FILE *infile) {
     Nnf nnf(nvar, infile);
-    if (verblevel >= 4) {
+    if (verblevel >= 6) {
 	nnf.show(stdout);
     }
     // Build POG from NNF graph
@@ -464,7 +500,7 @@ int Pog::load_nnf(FILE *infile) {
 	    err(true, "Invalid NNF node type %d\n", ntype);
 	}
 	nnid2edge[nnid] = edge;
-	report(3, "NNF node %d --> POG edge %d\n", nnid, edge);
+	report(6, "NNF node %d --> POG edge %d\n", nnid, edge);
     }
     // Guaranteed that final result is root
     return edge;
@@ -492,15 +528,25 @@ void Pog::show_edge(FILE *outfile, int edge) {
 }
 
 
-void Pog::show(FILE *outfile) {
-    fprintf(outfile, "POG.  %d input variables:\n", nvar);
-    for (int i = 0; i < nodes.size(); i++) {
-	int edge = nvar + i + 1;
-	show_edge(outfile, edge);
+bool Pog::only_data_variables(int root, std::unordered_set<int> &data_variables) {
+    if (!is_node(root)) {
+	int var = get_var(root);
+	return data_variables.find(var) != data_variables.end();
     }
+    std::set<int> visited;
+    visit(root, visited);
+    for (int edge : visited) {
+	int degree = get_degree(edge);
+	for (int i = 0; i < degree; i++) {
+	    int cvar = get_var(get_argument(edge, i));
+	    if (!is_node(cvar) && data_variables.find(cvar) == data_variables.end())
+		return false;
+	}
+    }
+    return true;
 }
 
-void Pog::visit(int edge, std::unordered_set<int> &visited) {
+void Pog::visit(int edge, std::set<int> &visited) {
     if (!is_node(edge))
 	return;
     int var = get_var(edge);
@@ -512,32 +558,62 @@ void Pog::visit(int edge, std::unordered_set<int> &visited) {
 	visit(get_argument(edge, i), visited);
 }
 
+void Pog::get_variables(int root, std::unordered_set<int> &vset) {
+    if (!is_node(root)) {
+	vset.insert(get_var(root));
+	return;
+    }
+    std::set<int> visited;
+    visit(root, visited);
+    for (int edge : visited) {
+	int degree = get_degree(edge);
+	for (int i = 0; i < degree; i++) {
+	    int cvar = get_var(get_argument(edge, i));
+	    vset.insert(cvar);
+	}
+    }
+}
+
+void Pog::show(int root, FILE *outfile) {
+    std::set<int> visited;
+    if (is_node(root)) {
+	visit(root, visited);
+	for (int edge : visited)
+	    show_edge(outfile, edge);
+    }
+    fprintf(outfile, "ROOT %d\n", root);
+}
+
 void Pog::get_subgraph(int root_edge, std::map<int,int> &node_remap) {
     node_remap.clear();
     // Collect all reachable nodes
-    std::unordered_set<int> visited;
+    std::set<int> visited;
     visit(root_edge, visited);
-    // Put the Ids in order
-    std::vector<int> oids;
-    for (int oid : visited)
-	oids.push_back(oid);
-    std::sort(oids.begin(), oids.end());
     int next_id = nvar+1;
-    for (int oid : oids) {
+    for (int oid : visited) {
 	node_remap[oid] = next_id++;
     }
 }
 
 // Extract subgraph with designated root edge and write to file
 bool Pog::write(int root_edge, FILE *outfile) {
+    if (!is_node(root_edge)) {
+	int var = get_var(root_edge);
+	if (var == TAUTOLOGY) {
+	    int nrvar = nvar+1;
+	    fprintf(outfile, "p %d\n", nrvar);
+	    fprintf(outfile, "r %d\n", root_edge > 0 ? nrvar : -nrvar);
+	} else {
+	    fprintf(outfile, "r %d\n", root_edge);
+	}
+	return true;
+    }
     std::map<int,int> node_remap;
     get_subgraph(root_edge, node_remap);
     int nroot_edge = root_edge;
-    if (is_node(root_edge)) {
-	int orvar = get_var(root_edge);
-	int nrvar = node_remap[orvar];
-	nroot_edge = root_edge > 0 ? nrvar : -nrvar;
-    }
+    int orvar = get_var(root_edge);
+    int nrvar = node_remap[orvar];
+    nroot_edge = root_edge > 0 ? nrvar : -nrvar;
     fprintf(outfile, "r %d\n", nroot_edge);
 
     for (auto kv : node_remap) {

@@ -95,7 +95,10 @@ public:
     // Run solver to determine whether satisfiable
     bool is_satisfiable();
 
-    std::unordered_set<int> show_variables;
+    std::unordered_set<int> data_variables;
+
+
+
 };
 
 // Add capabilities to CNF
@@ -120,6 +123,8 @@ class Clausal_reasoner {
 
     // List of unit literals generated during BCP
     std::vector<int> bcp_units;
+    // Potential limit of BCP steps
+    int bcp_step_limit;
 
  public:
 
@@ -132,18 +137,27 @@ class Clausal_reasoner {
 
     void assign_literal(int lit);
     // Return true if encounter conflict
-    bool bcp(int step_limit);
+    bool bcp(bool full);
 
     void quantify(int var);
     void partition(std::unordered_set<int> &vset);
+
+    bool is_data_variable(int var) { return cnf->data_variables.find(var) != cnf->data_variables.end(); }
+
+    // Determine if all variables data variables or all variables projection variables
+    void analyze_variables(bool &only_data, bool &only_project);
 
     // Extract a clausal representation of the current state
     cnf_archive_t extract();
     // Extract clausal representation and write as CNF file
     bool write(FILE *outfile);
+    int active_clause_count() { return curr_active_clauses->size(); }
 
     // Is the current state satisfiable?
     bool is_satisfiable();
+
+    // Debugging support
+    void show_units(FILE *outfile);
 
  private:
 
@@ -152,5 +166,8 @@ class Clausal_reasoner {
     bool unit_propagate();
     void deactivate_clause(int cid);
     bool has_conflict();
+
+    // Expand set of variables to include those that co-occur in clauses with given variables
+    void expand_partition(std::unordered_set<int> &vset);
 
 };
