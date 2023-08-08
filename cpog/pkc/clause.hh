@@ -108,6 +108,7 @@ class Clausal_reasoner {
     // Underlying CNF
     Cnf *cnf;
     // Current state of reasoner
+    bool has_conflict;
     std::unordered_set<int> unit_literals;
     std::unordered_set<int> quantified_variables;
     // Sets of non-satisfied clauses in current context
@@ -136,6 +137,7 @@ class Clausal_reasoner {
     void pop_context();
 
     void assign_literal(int lit);
+
     // Return true if encounter conflict
     bool bcp(bool full);
 
@@ -165,7 +167,6 @@ class Clausal_reasoner {
     // Return true if unpropagated unit literals remain
     bool unit_propagate();
     void deactivate_clause(int cid);
-    bool has_conflict();
 
     // Expand set of variables to include those that co-occur in clauses with given variables
     void expand_partition(std::unordered_set<int> &vset);

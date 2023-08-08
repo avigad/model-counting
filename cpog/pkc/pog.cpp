@@ -438,6 +438,7 @@ int Pog::finish_node() {
 	    unique_table.insert({h, edge});
 	    pog_type_t type = get_type(edge);
 	    incr_count(type == POG_SUM ? COUNT_POG_SUM : COUNT_POG_PRODUCT);
+	    incr_count_by(COUNT_POG_EDGES, degree);
 	    if (verblevel >= 5) {
 		printf("Adding edge %d (hash = %u) to unique table.  Node:", edge, h);
 		show_edge(stdout, edge);
@@ -620,7 +621,9 @@ bool Pog::write(int root_edge, FILE *outfile) {
 	int oid = kv.first;
 	int nid = kv.second;
 	fprintf(outfile, "%c %d", get_type(oid) == POG_SUM ? 's' : 'p', nid);
+	incr_count(get_type(oid) == POG_SUM ? COUNT_POG_FINAL_SUM : COUNT_POG_FINAL_PRODUCT);
 	int degree = get_degree(oid);
+	incr_count_by(COUNT_POG_FINAL_EDGES, degree);
 	for (int i = 0; i < degree; i++) {
 	    int oedge = get_argument(oid, i);
 	    int nedge = oedge;

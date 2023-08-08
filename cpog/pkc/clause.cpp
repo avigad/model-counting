@@ -270,8 +270,15 @@ void Cnf::import_file(FILE *infile) {
 	    process_comment(infile, data_variables);
     }
     arx = finish_build(varx);
+    // If no data variables declared, assume all input variables are data variables
+    if (data_variables.size() == 0) {
+	for (int v = 1; v <= variable_count(); v++)
+	    data_variables.insert(v);
+    }
     incr_count_by(COUNT_INPUT_CLAUSE, clause_count());
     incr_count_by(COUNT_INPUT_VAR, variable_count());
+    incr_count_by(COUNT_DATA_VAR, data_variables.size());
+
 }
 
 void Cnf::import_archive(cnf_archive_t iarx) {
@@ -368,6 +375,7 @@ bool Cnf::is_satisfiable() {
 Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
     cnf = icnf;
     // Set up active clauses
+    has_conflict = false;
     curr_active_clauses = new std::set<int>;
     next_active_clauses = new std::set<int>;
     for (int cid = 1; cid <= cnf->clause_count(); cid++)
@@ -419,11 +427,15 @@ void Clausal_reasoner::deactivate_clause(int cid) {
 void Clausal_reasoner::assign_literal(int lit) {
     int var = IABS(lit);
     if (unit_literals.find(lit) != unit_literals.end()) {
-	err(false, "Attempt to assign literal %d that is unit\n", lit);
+	//	err(false, "Attempt to assign literal %d that is unit\n", lit);
     } else if (unit_literals.find(-lit) != unit_literals.end()) {
-	err(false, "Attempt to assign literal %d for which its negation is unit\n", lit);
+	//	err(false, "Attempt to assign literal %d for which its negation is unit\n", lit);
+	has_conflict = true;
+	for (int cid : *curr_active_clauses)
+	    deactivate_clause(cid);
+	curr_active_clauses->clear();
     } else if (quantified_variables.find(var) != quantified_variables.end()) {
-	err(false, "Attempt to assign literal %d even though variable quantified\n", lit);
+	//	err(false, "Attempt to assign literal %d even though variable quantified\n", lit);
     } else {
 	unit_literals.insert(lit);
 	unit_trail.push_back(lit);
@@ -432,9 +444,9 @@ void Clausal_reasoner::assign_literal(int lit) {
 
 void Clausal_reasoner::quantify(int var) {
     if (unit_literals.find(var) != unit_literals.end()) {
-	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, var);
+	//	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, var);
     } else if (unit_literals.find(-var) != unit_literals.end()) {
-	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, -var);
+	//	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, -var);
     } else if (quantified_variables.find(var) != quantified_variables.end()) {
 	err(false, "Attempt to quantify variable %d even already quantified\n", var);
     } else {
@@ -549,20 +561,18 @@ int Clausal_reasoner::propagate_clause(int cid) {
 bool Clausal_reasoner::unit_propagate() {
     next_active_clauses->clear();
     bool new_unit = false;
-    bool found_conflict = false;
     for (int cid : *curr_active_clauses) {
-	if (found_conflict) {
+	if (has_conflict) {
 	    deactivate_clause(cid);
 	    continue;
 	}
 	int rval = propagate_clause(cid);
 	if (rval == CONFLICT) {
 	    // Reduce to single conflict clause
-	    found_conflict = true;
+	    has_conflict = true;
 	    for (int ccid : *next_active_clauses)
 		deactivate_clause(ccid);
 	    next_active_clauses->clear();
-	    next_active_clauses->insert(cid);
 	    new_unit = false;
 	    bcp_units.clear();
 	} else if (rval == 0) {
@@ -589,18 +599,7 @@ bool Clausal_reasoner::bcp(bool full) {
 	if (!unit_propagate())
 	    break;
     }
-    return has_conflict();
-}
-
-// Is there a conflict clause in the current state?
-bool Clausal_reasoner::has_conflict() {
-    if (curr_active_clauses->size() != 1)
-	return false;
-    for (int cid : *curr_active_clauses) {
-	return propagate_clause(cid) == CONFLICT;
-    }
-    // Shouldn't get here
-    return false;
+    return has_conflict;
 }
 
 cnf_archive_t Clausal_reasoner::extract() {
@@ -646,7 +645,7 @@ bool Clausal_reasoner::write(FILE *outfile) {
 
 
 bool Clausal_reasoner::is_satisfiable() {
-    if (has_conflict())
+    if (has_conflict)
 	return false;
     if (curr_active_clauses->size() <= 1)
 	return true;

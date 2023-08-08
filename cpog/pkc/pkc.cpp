@@ -15,6 +15,116 @@ void usage(const char *name) {
     lprintf("  -v VERB     Set verbosity level\n");
 }
 
+const char *prefix = "c PKC:";
+
+
+static void stat_report(double elapsed) {
+    if (verblevel < 1)
+	return;
+    lprintf("%s Input Formula\n", prefix);
+    lprintf("%s    Variables              : %d\n", prefix, get_count(COUNT_INPUT_VAR));
+    lprintf("%s    Data variables         : %d\n", prefix, get_count(COUNT_DATA_VAR));
+    lprintf("%s    Clauses                : %d\n", prefix, get_count(COUNT_INPUT_CLAUSE));
+
+    lprintf("%s Initial POG\n", prefix);
+    int ps, pp, pe;
+    lprintf("%s    Initial POG Sum        : %d\n", prefix, ps = get_count(COUNT_POG_INITIAL_SUM));
+    lprintf("%s    Initial POG Product    : %d\n", prefix, pp = get_count(COUNT_POG_INITIAL_PRODUCT));
+    lprintf("%s    Initial POG Edges      : %d\n", prefix, pe = get_count(COUNT_POG_INITIAL_EDGES));
+    lprintf("%s    Initial POG Clauses    : %d\n", prefix, ps+pp+pe);
+
+    lprintf("%s POG nodes generated\n", prefix);
+    lprintf("%s    Total POG Sum          : %d\n", prefix, ps = get_count(COUNT_POG_SUM));
+    lprintf("%s    Total POG Product      : %d\n", prefix, pp = get_count(COUNT_POG_PRODUCT));
+    lprintf("%s    Total POG Edges        : %d\n", prefix, pe = get_count(COUNT_POG_EDGES));
+    lprintf("%s    Total POG Clauses      : %d\n", prefix, ps+pp+pe);
+
+    lprintf("%s Final POG\n", prefix);
+    lprintf("%s    Final POG Sum          : %d\n", prefix, ps = get_count(COUNT_POG_FINAL_SUM));
+    lprintf("%s    Final POG Product      : %d\n", prefix, pp = get_count(COUNT_POG_FINAL_PRODUCT));
+    lprintf("%s    Final POG Edges        : %d\n", prefix, pe = get_count(COUNT_POG_FINAL_EDGES));
+    lprintf("%s    Final POG Clauses      : %d\n", prefix, ps+pp+pe);
+
+    
+    ilist sat_histo = get_histo(HISTO_SAT_CLAUSES);
+    int clause_total = 0;
+    int clause_max = 0;
+    int clause_min = 0;
+    int sat_count = get_count(COUNT_SAT_CALL);
+    for (int len = 0; len < ilist_length(sat_histo); len++) {
+	if (sat_histo[len] > 0) {
+	    if (clause_min == 0)
+		clause_min = len;
+	    clause_max = len;
+	    clause_total += len * sat_histo[len];
+	}
+    }
+    lprintf("%s SAT calls\n", prefix);
+    lprintf("%s    SAT TOTAL              : %d\n", prefix, sat_count);
+    if (sat_count > 0) {
+	lprintf("%s    SAT Clause MIN         : %d\n", prefix, clause_min);
+	lprintf("%s    SAT Clause AVG         : %.2f\n", prefix, (double) clause_total / sat_count);
+	lprintf("%s    SAT Clause MAX         : %d\n", prefix, clause_max);
+    }
+
+    ilist kc_clause_histo = get_histo(HISTO_KC_CLAUSES);
+    clause_total = 0;
+    clause_max = 0;
+    clause_min = 0;
+    int kc_count = get_count(COUNT_KC_CALL);
+    for (int len = 0; len < ilist_length(kc_clause_histo); len++) {
+	if (kc_clause_histo[len] > 0) {
+	    if (clause_min == 0)
+		clause_min = len;
+	    clause_max = len;
+	    clause_total += len * kc_clause_histo[len];
+	}
+    }
+    lprintf("%s KC calls\n", prefix);
+    lprintf("%s    KC TOTAL               : %d\n", prefix, kc_count);
+    if (kc_count > 0) {
+	lprintf("%s    KC Clause MIN          : %d\n", prefix, clause_min);
+	lprintf("%s    KC Clause AVG          : %.2f\n", prefix, (double) clause_total / kc_count);
+	lprintf("%s    KC clause MAX          : %d\n", prefix, clause_max);
+    }
+
+    ilist kc_pog_histo = get_histo(HISTO_POG_NODES);
+    int pog_total = 0;
+    int pog_max = 0;
+    int pog_min = 0;
+    for (int len = 0; len < ilist_length(kc_pog_histo); len++) {
+	if (kc_pog_histo[len] > 0) {
+	    if (pog_min == 0)
+		pog_min = len;
+	    pog_max = len;
+	    pog_total += len * kc_pog_histo[len];
+	}
+    }
+    lprintf("%s KC added POG nodes\n", prefix);
+    lprintf("%s    KC Total               : %d\n", prefix, kc_count);
+    lprintf("%s    KC POG MIN             : %d\n", prefix, pog_min);
+    lprintf("%s    KC POG AVG             : %.2f\n", prefix, (double) pog_total / kc_count);
+    lprintf("%s    KC POG MAX             : %d\n", prefix, pog_max);
+
+    lprintf("%s Node Traversal:\n", prefix);
+    int vp, vd, vm, ve;
+    lprintf("%s    Traverse Product       : %d\n", prefix, vp = get_count(COUNT_VISIT_PRODUCT));
+    lprintf("%s    Traverse Data Sum      : %d\n", prefix, vd = get_count(COUNT_VISIT_DATA_SUM));
+    lprintf("%s    Traverse Mutex Sum     : %d\n", prefix, vm = get_count(COUNT_VISIT_MUTEX_SUM));    
+    lprintf("%s    Traverse Excluding Sum : %d\n", prefix, ve = get_count(COUNT_VISIT_EXCLUDING_SUM));    
+    lprintf("%s    Traverse TOTAL         : %d\n", prefix, vp+vd+vm+ve);
+
+    double init_kc_time = get_timer(TIME_INITIAL_KC);
+    double kc_time = get_timer(TIME_KC);
+    double sat_time = get_timer(TIME_SAT);
+    lprintf("%s Time\n", prefix);
+    lprintf("%s    Initial KC time        : %.2f\n", prefix, init_kc_time);
+    lprintf("%s    Other KC time          : %.2f\n", prefix, kc_time-init_kc_time);
+    lprintf("%s    Total SAT time         : %.2f\n", prefix, sat_time);
+    lprintf("%s    Other time             : %.2f\n", prefix, elapsed-kc_time-sat_time);
+    lprintf("%s    Time TOTAL             : %.2f\n", prefix, elapsed);
+}
+
 static int run(const char *cnf_name, const char *pog_name) {
     Project proj(cnf_name);
     if (verblevel >= 5) {
@@ -35,7 +145,6 @@ int main(int argc, char *const argv[]) {
     verblevel = 1;
     bool keep = false;
     int c;
-    double start = tod();
     while ((c = getopt(argc, argv, "hkv:")) != -1) {
 	switch (c) {
 	case 'h':
@@ -72,10 +181,9 @@ int main(int argc, char *const argv[]) {
 	usage(argv[0]);
 	return 1;
     }
+    double start = tod();
     int result = run(cnf_name, pog_name);
-    double elapsed = tod() - start;
-    
-    lprintf("Total execution %.2f seconds\n", elapsed);
+    stat_report(tod()-start);
     if (!keep)
 	fmgr.flush();
     return result;

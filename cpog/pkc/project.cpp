@@ -13,8 +13,6 @@ Project::Project(const char *cnf_name) {
     if (!cnf->is_loaded())
 	err(true, "Failed to load CNF from file '%s'\n", cnf_name);
     report(1, "CNF file loaded %d variables, %d clauses, %d data variables\n", cnf->variable_count(), cnf->clause_count(), cnf->data_variables.size());
-    incr_count_by(COUNT_INPUT_VAR, cnf->variable_count());
-    incr_count_by(COUNT_INPUT_CLAUSE, cnf->clause_count());
     fmgr.set_root(cnf_name);
     cr = new Clausal_reasoner(cnf);
     cr->bcp(false);
@@ -23,6 +21,10 @@ Project::Project(const char *cnf_name) {
     report(1, "Initial POG created.  %d node, %d edges  POG size %d  Root literal = %d\n", 
 	   pog->node_count(), pog->edge_count(), pog->node_count() + pog->edge_count(),
 	   root_literal);
+    incr_count_by(COUNT_POG_INITIAL_SUM, get_count(COUNT_POG_SUM));
+    incr_count_by(COUNT_POG_INITIAL_PRODUCT, get_count(COUNT_POG_PRODUCT));
+    incr_count_by(COUNT_POG_INITIAL_EDGES, get_count(COUNT_POG_EDGES));
+    incr_timer(TIME_INITIAL_KC, get_timer(TIME_KC));
 }
 
 Project::~Project() {
@@ -60,7 +62,6 @@ int Project::compile() {
     report(4, "Imported NNF file '%s'.  Root literal = %d.  Added %d nodes\n", nnf_name, root, dsize);
     if (verblevel >= 5)
 	pog->show(root, stdout);
-    incr_count(COUNT_KC_CALL);
     incr_histo(HISTO_POG_NODES, dsize);
     return root;
 }
