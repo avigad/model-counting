@@ -65,8 +65,6 @@
 
 \newcommand{\simplify}[2]{#1|_{#2}}
 \newcommand{\ureduce}[2]{\forall #2\, #1}
-\newcommand{\partition}[2]{\mathit{Part}(#1, #2)}
-
 
 \newcommand{\makenode}[1]{\mathbf{#1}}
 \newcommand{\nodeu}{\makenode{u}}
@@ -90,7 +88,8 @@
 \newcommand{\lfilter}{\algo{FilterLiteral}}
 \newcommand{\bcp}{\algo{BCP}}
 \newcommand{\uprop}{\algo{Uprop}}
-\newcommand{\simpl}{\also{Simpl}}
+\newcommand{\partition}{\algo{Partition}}
+\newcommand{\occur}{\algo{Occur}}
 
 \definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
 \definecolor{lightblue}{rgb}{0.552941, 0.72549, 0.792157}
@@ -347,8 +346,14 @@ $\uprop(\phi) = \simplify{\phi}{U(\phi)} \cup \{ \{\lit \} \mid  \lit \in U(\phi
 \item[$\ureduce{\phi}{x}$:] Express the universal quantification of $\phi$ with respect to variable $x$ in clausal form, by removing all occurrences of $x$ and $\obar{x}$:
 $\ureduce{\phi}{x} = \lfilter(\phi, \{x, \obar{x}\})$.
 
-\item[$\partition{\phi}{Y}$:] Find the subset of clauses that depend only on the variables in $Y$:
-$\partition{\phi}{Y} = \{ C \in \phi \mid \dependencyset(C) \subseteq Y\}$.
+\item[$\occur(\phi, Y)$:] Iteratively expand the set of variables $Y$ to include all those variables that co-occur in one or more clauses in $\phi$.
+  That is, starting with $Y' = Y$,
+  repeatedly compute $Y' \leftarrow Y' \cup \dependencyset(C)$
+  for every clause $C$ such that $Y' \cap \dependencyset(C) \not = \emptyset$,
+  until a fixed point is reached, and then return $Y'$.
+
+\item[$\partition(\phi, Y)$:] Find the subset of clauses that depend only on the variables in $\occur(Y)$:
+$\partition(\phi, Y) = \{ C \in \phi \mid \dependencyset(C) \subseteq \occur(Y)\}$.
 
 \end{description}
 
@@ -424,7 +429,7 @@ The traversal is defined based on the recursive structure of its first argument:
   \begin{enumerate}
   \item Let $L = \{\lit_1, \lit_2, \ldots, \lit_k\}$.
   \item Define clausal formula $\phi'$ to be $\bcp(\simplify{\phi}{L})$
-  \item For $1 \leq i \leq m$, recursively compute $\psi'_i = \traverse(\psi_i, \partition{\phi'}{\dependencyset(\psi_i)})$.  (Partitioning is only required when $m > 1$.)
+  \item For $1 \leq i \leq m$, recursively compute $\psi'_i = \traverse(\psi_i, \partition(\phi', \dependencyset(\psi_i)))$.  (Partitioning is only required when $m > 1$.)
   \item Return the product (with simplifications) for the set of arguments $\{\lit \in L \mid  \dependencyset(\lit) \subseteq \dvarset\} \cup \{ \psi'_i \mid  1 \leq i \leq m \}$.
   \end{enumerate}
 \item[Sum Operations:]
