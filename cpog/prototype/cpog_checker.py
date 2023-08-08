@@ -1082,6 +1082,7 @@ class Prover:
 
     # Find zero-terminated list of integers in fields (or single field consisting of '*').  Return (list, rest)
     # Flag error if something goes wrong
+    # In count-only mode, don't require terminator
     def findList(self, fields, starOk = False):
         ls = []
         rest = fields
@@ -1101,7 +1102,8 @@ class Prover:
                 return (ls, rest)
             ls.append(val)
             starOk = False
-        self.flagError("No terminating 0 found")
+        if not self.countMode:
+            self.flagError("No terminating 0 found")
         return (ls, rest)
 
     def prove(self, fname):
@@ -1164,7 +1166,7 @@ class Prover:
         if root is None:
             print("CHECKER: Can't determine count.  Don't know root")
             return P52()
-        return self.omgr.count(self.cmgr.actualRoot, weights)
+        return self.omgr.count(root, weights)
 
     def invalidCommand(self, cmd):
         self.flagError("Invalid command '%s' in proof" % cmd)
@@ -1259,10 +1261,11 @@ class Prover:
         except:
             self.flagError("Couldn't add operation with clause #%d: Non-integer arguments" % (id))
             return
-        if args[-1] != 0:
+        if args[-1] == 0:
+            args = args[:-1]
+        elif not self.countMode:
             self.flagError("Couldn't add operation with clause #%d: No terminating 0 found" % (id))
             return
-        args = args[:-1]
         (ok, msg) = self.omgr.addOperation(self.omgr.conjunction, args[0], args[1:], id)
         if not ok:
             self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
