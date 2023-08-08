@@ -195,7 +195,7 @@ One approach to model counting, known as \emph{knowledge compilation},
 transforms the formula into a structured form for which model counting
 is straightforward.  For example, the \emph{deterministic, decomposable, negation normal form}
 (det-DNNF) introduced by
-Darwiche~\cite{darwiche:aaai:2002,darwiche:ecai:2004}, as well as the more restricted
+\citeA{darwiche:aaai:2002,darwiche:ecai:2004}, as well as the more restricted
 \emph{decision-DNNF} (dec-DNNF)~\cite{huang:jair:2007,oztok:cp:2014},
 represent a
 Boolean formula as a directed acyclic graph, with terminal nodes
@@ -456,7 +456,7 @@ For each variable $x \in \varset$,
 $\obar{\lit} = x$ when $\lit = \obar{x}$.
 
 
-\begin{dfn}[Boolean Formulas]
+\begin{dfn}
   The set of Boolean formulas is defined recursively.  Each
   formula $\phi$ has an associated \emph{dependency set}
   $\dependencyset(\phi)  \subseteq \varset$, and a set of \emph{models} $\modelset(\phi)$,
@@ -490,7 +490,8 @@ $\obar{\lit} = x$ when $\lit = \obar{x}$.
   literals within a clause.  A clause consisting of a single literal is referred to as a \emph{unit} clause and the literal as a \emph{unit} literal.
 This literal must be assigned value $1$ by any satisfying assignment of the formula.
 
-\begin{dfn}[Partitioned-Operation Formula]\label{def:partitioned-operation-formula}
+\begin{dfn}
+  \label{def:partitioned-operation-formula}
   A \emph{partitioned-operation formula}
  satisfies the following for all product and sum operations:
       \begin{enumerate}
@@ -507,7 +508,7 @@ This literal must be assigned value $1$ by any satisfying assignment of the form
 We propose a general framework for summarizing properties of Boolean
 formulas along the lines of algebraic model counting~\cite{kimmig:jal:2017}.
 
-\begin{dfn}[Commutative Ring]
+\begin{dfn}
   A \emph{commutative ring} $\ring$ is an algebraic structure
   $\langle \dset, \radd, \rmul, \addident, \mulident \rangle$,
   with elements in the set $\dset$ and with commutative and
@@ -1038,7 +1039,7 @@ for smaller problems, but it does not scale well enough for general
 use.
 
 
-We describe the structural approach to proof generation as a recursive procedure
+The structural approach to proof generation takes the form of a recursive procedure
 $\validate(\nodeu, \passign, \psi)$ taking as arguments POG
 node $\nodeu$, partial assignment
 $\passign$, and a set of clauses $\psi \subseteq \inputformula$.
