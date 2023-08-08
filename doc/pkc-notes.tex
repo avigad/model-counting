@@ -343,7 +343,7 @@ $\uprop(\phi) = \simplify{\phi}{U(\phi)} \cup \{ \{\lit \} \mid  \lit \in U(\phi
 \item[$\bcp(\phi)$:] Perform Boolean constraint propagation (BCP).
   Repeatedly compute $\phi \leftarrow \uprop(\phi)$ until either $\phi$ becomes $\nil$ or a fixed point is reached.
 
-\item[$\ureduce{\phi}{x}$:] Express the universal quantification of $\phi$ with respect to variable $x$ in clausal form, by removing all occurrences of $x$ and $\obar{x}$:
+\item[$\ureduce{\phi}{x}$:] Express the universal quantification of $\phi$ with respect to variable $x$ in clausal form.  This involves removing all occurrences of $x$ and $\obar{x}$:
 $\ureduce{\phi}{x} = \lfilter(\phi, \{x, \obar{x}\})$.
 
 \item[$\occur(\phi, Y)$:] Iteratively expand the set of variables $Y$ to include all those variables that co-occur in one or more clauses in $\phi$.
