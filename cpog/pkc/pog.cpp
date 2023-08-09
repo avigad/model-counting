@@ -217,7 +217,7 @@ Nnf::Nnf(int n, FILE *infile) {
     }
     if (root_id == 0)
 	err(true, "Failed to find root node in NNF file\n");
-    report(1, "Read D4 NNF file with %d nodes (%d explicit) and %d edges\n",
+    report(3, "Read D4 NNF file with %d nodes (%d explicit) and %d edges\n",
 	   nnf_node_count, nnf_explicit_node_count, nnf_edge_count);
 }
 

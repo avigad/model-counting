@@ -109,7 +109,10 @@ class Clausal_reasoner {
     Cnf *cnf;
     // Current state of reasoner
     bool has_conflict;
+    // All unit literals
     std::unordered_set<int> unit_literals;
+    // Unit literals derived by BCP
+    std::unordered_set<int> bcp_unit_literals;
     std::unordered_set<int> quantified_variables;
     // Sets of non-satisfied clauses in current context
     // Must maintain two sets: current and active.  Swap these on each pass of BCP
@@ -123,7 +126,7 @@ class Clausal_reasoner {
     std::vector<int> deactivated_clauses;
 
     // List of unit literals generated during BCP
-    std::vector<int> bcp_units;
+
     // Potential limit of BCP steps
     int bcp_step_limit;
 
@@ -136,7 +139,7 @@ class Clausal_reasoner {
     void new_context();
     void pop_context();
 
-    void assign_literal(int lit);
+    void assign_literal(int lit, bool bcp);
 
     // Return true if encounter conflict
     bool bcp(bool full);
@@ -153,7 +156,7 @@ class Clausal_reasoner {
     cnf_archive_t extract();
     // Extract clausal representation and write as CNF file
     bool write(FILE *outfile);
-    int active_clause_count() { return curr_active_clauses->size(); }
+    int current_clause_count() { return curr_active_clauses->size() + bcp_unit_literals.size(); }
 
     // Is the current state satisfiable?
     bool is_satisfiable();

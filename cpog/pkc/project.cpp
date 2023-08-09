@@ -49,7 +49,7 @@ int Project::compile() {
     double elapsed = tod()-start;
     incr_timer(TIME_KC, elapsed);
     incr_count(COUNT_KC_CALL);
-    incr_histo(HISTO_KC_CLAUSES, cr->active_clause_count());
+    incr_histo(HISTO_KC_CLAUSES, cr->current_clause_count());
     report(3, "Running D4 on %s required %.3f seconds.  Return code = %d\n", cnf_name, elapsed, rc);
 
     FILE *nnf_file = fopen(nnf_name, "r");
@@ -145,7 +145,7 @@ int Project::traverse_product(int edge) {
 	if (pog->is_node(cedge))
 	    cedges.push_back(cedge);
 	else {
-	    cr->assign_literal(cedge);
+	    cr->assign_literal(cedge, false);
 	    if (cr->is_data_variable(cvar))
 		nargs.push_back(cedge);
 	}

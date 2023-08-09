@@ -324,14 +324,6 @@ int Cnf::get_literal(int cid, int lid) {
 }
 
 bool Cnf::show(FILE *outfile) {
-#if 0
-    int full_length = arx[clause_count() + 2];
-    fprintf(outfile, "Raw data (%d arx):", full_length);
-    for (int i = 0; i < full_length; i++)
-	fprintf(outfile, " %d", arx[i]);
-    fprintf(outfile, "\n");
-#endif
-
     int ccount = clause_count();
     for (int cid = 1; cid <= ccount; cid++) {
 	int len = clause_length(cid);
@@ -402,6 +394,7 @@ void Clausal_reasoner::pop_context() {
 	if (lit == 0)
 	    break;
 	unit_literals.erase(lit);
+	bcp_unit_literals.erase(lit);
     }
     while (true) {
 	int var = uquant_trail.back();
@@ -424,8 +417,12 @@ void Clausal_reasoner::deactivate_clause(int cid) {
 }
 
 
-void Clausal_reasoner::assign_literal(int lit) {
+void Clausal_reasoner::assign_literal(int lit, bool bcp) {
     int var = IABS(lit);
+    unit_literals.insert(lit);
+    if (bcp)
+	bcp_unit_literals.insert(lit);
+    unit_trail.push_back(lit);
     if (unit_literals.find(lit) != unit_literals.end()) {
 	//	err(false, "Attempt to assign literal %d that is unit\n", lit);
     } else if (unit_literals.find(-lit) != unit_literals.end()) {
@@ -434,11 +431,9 @@ void Clausal_reasoner::assign_literal(int lit) {
 	for (int cid : *curr_active_clauses)
 	    deactivate_clause(cid);
 	curr_active_clauses->clear();
+	
     } else if (quantified_variables.find(var) != quantified_variables.end()) {
 	//	err(false, "Attempt to assign literal %d even though variable quantified\n", lit);
-    } else {
-	unit_literals.insert(lit);
-	unit_trail.push_back(lit);
     }
 }
 
@@ -574,15 +569,13 @@ bool Clausal_reasoner::unit_propagate() {
 		deactivate_clause(ccid);
 	    next_active_clauses->clear();
 	    new_unit = false;
-	    bcp_units.clear();
 	} else if (rval == 0) {
 	    next_active_clauses->insert(cid);
 	} else if (rval == TAUTOLOGY) {
 	    deactivate_clause(cid);
 	} else {
 	    // Derived unit literal
-	    unit_literals.insert(rval);
-	    bcp_units.push_back(rval);
+	    assign_literal(rval, true);
 	    deactivate_clause(cid);
 	    new_unit = true;
 	}
@@ -594,7 +587,6 @@ bool Clausal_reasoner::unit_propagate() {
 }
 
 bool Clausal_reasoner::bcp(bool full) {
-    bcp_units.clear();
     for (int step = 1; full || bcp_step_limit == 0 || step < bcp_step_limit; step++) {
 	if (!unit_propagate())
 	    break;
@@ -604,10 +596,10 @@ bool Clausal_reasoner::bcp(bool full) {
 
 cnf_archive_t Clausal_reasoner::extract() {
     std::vector<int> varx;
-    start_build(varx, cnf->variable_count(), bcp_units.size() + curr_active_clauses->size());
+    start_build(varx, cnf->variable_count(), bcp_unit_literals.size() + curr_active_clauses->size());
     int ncid = 0;
     // Put in the derived unit literals
-    for (int ulit : bcp_units) {
+    for (int ulit : bcp_unit_literals) {
 	new_clause(varx, ++ncid);
 	add_literal(varx, ulit);
     }
@@ -625,9 +617,9 @@ cnf_archive_t Clausal_reasoner::extract() {
     return finish_build(varx);
 }
 bool Clausal_reasoner::write(FILE *outfile) {
-    fprintf(outfile, "p cnf %d %ld\n", cnf->variable_count(), bcp_units.size() + curr_active_clauses->size());
+    fprintf(outfile, "p cnf %d %ld\n", cnf->variable_count(), bcp_unit_literals.size() + curr_active_clauses->size());
     // Put in the derived unit literals
-    for (int ulit : bcp_units) 
+    for (int ulit : bcp_unit_literals) 
 	fprintf(outfile, "%d 0\n", ulit);
     for (int ocid : *curr_active_clauses) {
 	int len = cnf->clause_length(ocid);
@@ -659,7 +651,7 @@ bool Clausal_reasoner::is_satisfiable() {
     double elapsed = tod() - start;
     incr_timer(TIME_SAT, elapsed);
     incr_count(COUNT_SAT_CALL);
-    incr_histo(HISTO_SAT_CLAUSES, active_clause_count());
+    incr_histo(HISTO_SAT_CLAUSES, current_clause_count());
     return rc == 10 || (rc >> 8) == 10;
 }
 
