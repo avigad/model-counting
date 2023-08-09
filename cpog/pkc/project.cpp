@@ -82,13 +82,76 @@ void Project::projecting_compile() {
 }
 
 bool Project::write(const char *pog_name) {
-    FILE *pog_file = fopen(pog_name, "w");
-    if (!pog_file)
-	err(true, "Couldn't open file '%s'\n", pog_name);
+    FILE *pog_file = NULL;
+    if (pog_name) {
+	pog_file = fopen(pog_name, "w");
+	if (!pog_file)
+	    err(true, "Couldn't open file '%s'\n", pog_name);
+    }
     bool ok = pog->write(root_literal, pog_file);
     fclose(pog_file);
     return ok;
 }
+
+q25_ptr Project::count(bool weighted) {
+    if (weighted && cr->cnf->input_weights.size() == 0)
+	return NULL;
+    double start = tod();
+    q25_ptr rescale = q25_from_32(1);
+    std::unordered_map<int,q25_ptr> weights;
+    for (int var : cr->cnf->data_variables) {
+	q25_ptr pwt = NULL;
+	q25_ptr nwt = NULL;
+	if (weighted) {
+	    auto fid = cr->cnf->input_weights.find(var);
+	    if (fid != cr->cnf->input_weights.end()) 
+		pwt = q25_copy(fid->second);
+	    else
+		err(false, "Couldn't find weight for input %d\n", var);
+	    fid = cr->cnf->input_weights.find(-var);
+	    if (fid != cr->cnf->input_weights.end())
+		nwt = q25_copy(fid->second);
+	    else
+		err(false, "Couldn't find weight for input %d\n", -var);
+	    if (!pwt && !nwt) {
+		pwt = q25_from_32(1);
+		nwt = q25_from_32(1);
+	    } else if (!pwt)
+		nwt = q25_one_minus(pwt);
+	    else if (!nwt)
+		pwt = q25_one_minus(nwt);
+	} else {
+	    nwt = q25_from_32(1);
+	    pwt = q25_from_32(1);
+	}
+	q25_ptr sum = q25_add(nwt, pwt);
+	if (q25_is_one(sum)) {
+	    weights[var] = pwt;
+	    q25_free(nwt); q25_free(sum);
+	} else {
+	    q25_ptr recip = q25_recip(sum);
+	    if (!q25_is_valid(recip))
+		err(true, "Could not get reciprocal of summed weights for variable %d\n", var);
+	    q25_ptr nrescale = q25_mul(rescale, sum);
+	    q25_free(rescale);
+	    rescale = nrescale;
+	    weights[var] = q25_mul(pwt, recip);
+	    q25_free(nwt); q25_free(pwt);
+	    q25_free(recip); q25_free(sum);
+	}
+    }
+    q25_ptr rval = pog->ring_evaluate(root_literal, weights);
+    q25_ptr cval = q25_mul(rescale, rval);
+    q25_free(rval);
+    q25_free(rescale);
+    for (auto iter : weights) {
+	q25_free(iter.second);
+    }
+    double elapsed = tod()-start;
+    incr_timer(TIME_RING_EVAL, elapsed);
+    return cval;
+}
+
 
 int Project::traverse(int edge) {
     // Terminal conditions

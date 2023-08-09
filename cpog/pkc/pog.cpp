@@ -649,8 +649,76 @@ void Pog::get_subgraph(int root_edge, std::map<int,int> &node_remap) {
     }
 }
 
+q25_ptr Pog::ring_evaluate(int root_edge, std::unordered_map<int,q25_ptr> &weights) {
+    std::unordered_map<int, q25_ptr> eweights;
+    for (auto iter : weights)
+	eweights[iter.first] = q25_copy(iter.second);
+    std::set<int> visited;
+    visit(root_edge, visited);
+    for (int edge : visited) {
+	int id = get_var(edge);
+	int degree = get_degree(id);
+	bool is_sum = get_type(id) == POG_SUM;
+	q25_ptr val = is_sum ? q25_from_32(0) : q25_from_32(1);
+	for (int i = 0; i < degree; i++) {
+	    int cedge = get_argument(id, i);
+	    int cvar = get_var(cedge);
+	    auto fid = eweights.find(cvar);
+	    if (fid == eweights.end()) {
+		err(false, "Couldn't find weight for variable %d\n", cvar);
+		return q25_from_32(0);
+	    }
+	    q25_ptr wt = fid->second;
+	    q25_ptr cval = cedge > 0 ? q25_copy(wt) : q25_one_minus(wt);
+	    q25_ptr nval = is_sum ? q25_add(val, cval) : q25_mul(val, cval);
+	    q25_free(cval);
+	    q25_free(val);
+	    val = nval;
+	}
+	eweights[id] = val;
+    }
+    q25_ptr rval = NULL;
+    if (root_edge == TAUTOLOGY)
+	rval = q25_from_32(1);
+    else if (root_edge == CONFLICT)
+	rval = q25_from_32(0);
+    else {
+	int var = get_var(root_edge);
+	auto fid = eweights.find(var);
+	if (fid == eweights.end()) {
+	    err(false, "Couldn't find weight for variable %d\n", var);
+	    return q25_from_32(0);
+	}
+	q25_ptr wt = fid->second;
+	rval = root_edge > 0 ? q25_copy(wt) : q25_one_minus(wt);
+    }
+    for (auto iter : eweights)
+	q25_free(iter.second);
+    return rval;
+}
+
+
 // Extract subgraph with designated root edge and write to file
 bool Pog::write(int root_edge, FILE *outfile) {
+    if (outfile == NULL) {
+	// Go through motions to capture stats
+	if (!is_node(root_edge))
+	    return true;
+	std::map<int,int> node_remap;
+	get_subgraph(root_edge, node_remap);
+	int nroot_edge = root_edge;
+	int orvar = get_var(root_edge);
+	int nrvar = node_remap[orvar];
+	nroot_edge = root_edge > 0 ? nrvar : -nrvar;
+	for (auto kv : node_remap) {
+	    int oid = kv.first;
+	    incr_count(get_type(oid) == POG_SUM ? COUNT_POG_FINAL_SUM : COUNT_POG_FINAL_PRODUCT);
+	    int degree = get_degree(oid);
+	    incr_count_by(COUNT_POG_FINAL_EDGES, degree);
+	}
+	return true;
+    }
+    // The real thing
     if (!is_node(root_edge)) {
 	int var = get_var(root_edge);
 	if (var == TAUTOLOGY) {
@@ -691,3 +759,4 @@ bool Pog::write(int root_edge, FILE *outfile) {
     }
     return true;
 }
+

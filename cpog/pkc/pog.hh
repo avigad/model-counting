@@ -70,7 +70,11 @@ public:
     int finish_node();
 
     // Extract subgraph with designated root edge and write to file
+    // Can have FILE = NULL, in which case does not actually perform the write
     bool write(int root_edge, FILE *outfile);
+
+    // Use to perform both weighted and unweighted model counting
+    q25_ptr ring_evaluate(int root_edge, std::unordered_map<int,q25_ptr> &weights);
 
     // Read NNF file and integrate into POG.  Return edge to new root
     int load_nnf(FILE *infile);

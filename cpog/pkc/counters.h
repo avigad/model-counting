@@ -41,7 +41,7 @@ typedef enum {
     COUNT_NUM
 } counter_t;
 
-typedef enum { TIME_SAT, TIME_KC, TIME_INITIAL_KC, TIME_NUM } timer_t;
+typedef enum { TIME_SAT, TIME_KC, TIME_INITIAL_KC, TIME_RING_EVAL, TIME_NUM } timer_t;
 
 typedef enum { HISTO_SAT_CLAUSES, HISTO_KC_CLAUSES, HISTO_POG_NODES, HISTO_NUM } histogram_t;
 

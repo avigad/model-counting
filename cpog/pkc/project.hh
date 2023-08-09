@@ -23,8 +23,14 @@ public:
     void projecting_compile();
     bool write(const char *pog_name);
 
+    // Perform weighted or unweighted model counting
+    // Return NULL if weighted but no weights declared
+    q25_ptr count(bool weighted);
+
     // Debugging support
     void show(FILE *outfile) { pog->show(root_literal, outfile); }
+
+
 
 private:
     // Perform ordinary knowledge compilation by invoking D4

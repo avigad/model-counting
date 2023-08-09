@@ -9,7 +9,7 @@
 
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-k] [-v VLEVEL] [-O OPT] [-b BLIM] FORMULA.cnf FORMULA.pog\n", name);
+    lprintf("Usage: %s [-h] [-k] [-v VLEVEL] [-O OPT] [-b BLIM] FORMULA.cnf [FORMULA.pog]\n", name);
     lprintf("  -h          Print this information\n");
     lprintf("  -k          Keep intermdiate files\n");
     lprintf("  -v VERB     Set verbosity level\n");
@@ -18,6 +18,9 @@ void usage(const char *name) {
 }
 
 const char *prefix = "c PKC:";
+
+q25_ptr ucount = NULL;
+q25_ptr wcount = NULL;
 
 static void stat_report(double elapsed) {
     if (verblevel < 1)
@@ -127,11 +130,13 @@ static void stat_report(double elapsed) {
     double init_kc_time = get_timer(TIME_INITIAL_KC);
     double kc_time = get_timer(TIME_KC);
     double sat_time = get_timer(TIME_SAT);
+    double ring_time = get_timer(TIME_RING_EVAL);
     lprintf("%s Time\n", prefix);
     lprintf("%s    Initial KC time        : %.2f\n", prefix, init_kc_time);
     lprintf("%s    Other KC time          : %.2f\n", prefix, kc_time-init_kc_time);
-    lprintf("%s    Total SAT time         : %.2f\n", prefix, sat_time);
-    lprintf("%s    Other time             : %.2f\n", prefix, elapsed-kc_time-sat_time);
+    lprintf("%s    SAT time               : %.2f\n", prefix, sat_time);
+    lprintf("%s    Ring evaluation time   : %.2f\n", prefix, ring_time);
+    lprintf("%s    Other time             : %.2f\n", prefix, elapsed-kc_time-sat_time-ring_time);
     lprintf("%s    Time TOTAL             : %.2f\n", prefix, elapsed);
 }
 
@@ -147,6 +152,8 @@ static int run(const char *cnf_name, const char *pog_name, int optlevel) {
 	proj.show(stdout);
     }
     proj.write(pog_name);
+    ucount = proj.count(false);
+    wcount = proj.count(true);
     return 0;
 }
 
@@ -186,12 +193,11 @@ int main(int argc, char *const argv[]) {
 	return 1;
     }
     const char *cnf_name = argv[argi++];
-    if (argi >= argc) {
-	lprintf("Name of output POG file required\n");
-	usage(argv[0]);
-	return 1;
-    }
-    const char *pog_name = argv[argi++];
+
+    const char *pog_name = NULL;
+    if (argi < argc)
+	pog_name = argv[argi++];
+
     if (argi < argc) {
 	lprintf("Unknown argument '%s'", argv[argi]);
 	usage(argv[0]);
@@ -208,6 +214,18 @@ int main(int argc, char *const argv[]) {
     double start = tod();
     int result = run(cnf_name, pog_name, optlevel);
     stat_report(tod()-start);
+    if (ucount != NULL) {
+	lprintf("%s  Unweighted count:", prefix);
+	q25_write(ucount, stdout);
+	lprintf("\n");
+	q25_free(ucount);
+    }
+    if (wcount != NULL) {
+	lprintf("%s  Weighted count:", prefix);
+	q25_write(wcount, stdout);
+	lprintf("\n");
+	q25_free(wcount);
+    }
     if (!keep)
 	fmgr.flush();
     return result;

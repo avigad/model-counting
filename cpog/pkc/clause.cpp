@@ -287,6 +287,8 @@ void Cnf::import_archive(cnf_archive_t iarx) {
 
 Cnf::~Cnf() {
     arx = NULL;
+    for (auto iter : input_weights)
+	q25_free(iter.second);
 }
 
 void Cnf::deallocate() {

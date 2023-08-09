@@ -35,6 +35,7 @@
 #include <set>
 #include <unordered_set>
 #include <stdio.h>
+#include "q25.h"
 
 // Manage temporary files
 class File_manager {
@@ -96,17 +97,13 @@ public:
     bool is_satisfiable();
 
     std::unordered_set<int> data_variables;
-
-
-
+    std::unordered_map<int,q25_ptr> input_weights;
 };
 
 // Add capabilities to CNF
 class Clausal_reasoner {
 
  private:
-    // Underlying CNF
-    Cnf *cnf;
     // Current state of reasoner
     bool has_conflict;
     // All unit literals
@@ -131,6 +128,9 @@ class Clausal_reasoner {
     int bcp_step_limit;
 
  public:
+
+    // Underlying CNF
+    Cnf *cnf;
 
     Clausal_reasoner(Cnf *icnf);
 
