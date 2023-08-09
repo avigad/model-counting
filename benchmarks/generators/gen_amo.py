@@ -29,12 +29,14 @@ import cnf_utilities
 
 # Generate CNF file for at-most-one constraints
 def usage(name):
-    print("Usage: %s [-h] [-v] [-m d|s|t] -r ROOT -n N" % name) 
+    print("Usage: %s [-h] [-v] [-m d|s|t] [-f FIRST] -r ROOT -n N" % name) 
     print("  -h       Print this message")
     print("  -v       Run in verbose mode")
     print("  -m NODE  Specify encoding method: direct (d), Sinz (s), or Tseitin (t)")
+    print("  -f FIRST Specify value of first variable (default = 1)")
     print("  -r ROOT  Specify root name for files.  Will generate ROOT.cnf")
     print("  -n N     Specify number of elements")
+
 
 directMode, sinzMode, tseitinMode = list(range(3))
 modeDict = {'d' : directMode, 's' : sinzMode, 't' : tseitinMode}
@@ -43,6 +45,7 @@ modeNames = {directMode : 'Direct', sinzMode : 'Sinz', tseitinMode : 'Tseitin' }
 verbose = False
 elementCount = 8
 mode = directMode
+firstVariable = 1
 
 # For weighted model counting.
 # Index from 1
@@ -57,9 +60,9 @@ def generate(froot):
         cwriter.doHeaderComment("Encoding of at-most-one constraint for %d elements" % (elementCount))
         cwriter.doHeaderComment("Use %s encoding of at-most-one constraints" % modeNames[mode])
     cwriter.doHeaderComment("t wmc" if mode == directMode else "t pwmc")
-    cwriter.newVariables(elementCount)
-    
-    vars = list(range(1, elementCount+1))
+    if (firstVariable > 1):
+        cwriter.newVariables(firstVariable-1)
+    vars = cwriter.newVariables(elementCount)
     if mode == sinzMode:
         cnf_utilities.atMostOneSinz(cwriter, vars, verbose)
     elif mode == tseitinMode:
@@ -69,15 +72,15 @@ def generate(froot):
     if mode != directMode:
         slist = [str(i) for i in vars]
         cwriter.doComment("p show %s 0" % " ".join(slist))
-    for i in range(1, elementCount+1):
+    for i in vars:
         cwriter.doComment("p weight %d %.3f 0" % (i, wi(i)))
     cwriter.finish()
 
 def run(name, args):
-    global verbose, elementCount, mode
+    global verbose, elementCount, mode, firstVariable
     froot = None
     elementCount = None
-    optlist, args = getopt.getopt(args, "hvr:n:m:")
+    optlist, args = getopt.getopt(args, "hvf:r:n:m:")
     for (opt, val) in optlist:
         if opt == '-h':
             usage(name)
@@ -86,6 +89,8 @@ def run(name, args):
             verbose = True
         elif opt == '-r':
             froot = val
+        elif opt == '-f':
+            firstVariable = int(val)
         elif opt == '-n':
             elementCount = int(val)
         elif opt == '-m':
