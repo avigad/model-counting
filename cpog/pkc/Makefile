@@ -16,6 +16,9 @@ ilist.o: ilist.c ilist.h
 counters.o: counters.c counters.h
 	$(CC) $(CFLAGS) -c counters.c
 
+q25.o: q25.c q25.h
+	$(CC) $(CFLAGS) -c q25.c
+
 clause.o: report.h counters.h clause.hh clause.cpp
 	$(CXX) $(CPPFLAGS) -c clause.cpp
 
@@ -25,8 +28,8 @@ pog.o: pog.hh clause.hh counters.h pog.cpp
 project.o: project.hh clause.hh pog.hh project.cpp
 	$(CXX) $(CPPFLAGS) -c project.cpp
 
-pkc: pkc.cpp clause.o report.o counters.o ilist.o pog.o project.o
-	$(CXX) $(CPPFLAGS) -o pkc pkc.cpp clause.o report.o counters.o ilist.o pog.o project.o
+pkc: pkc.cpp clause.o report.o counters.o ilist.o pog.o project.o q25.o
+	$(CXX) $(CPPFLAGS) -o pkc pkc.cpp clause.o report.o counters.o ilist.o pog.o project.o q25.o
 
 pog_test: pog_test.cpp clause.o report.o counters.o ilist.o pog.o
 	$(CXX) $(CPPFLAGS) -o pog_test pog_test.cpp clause.o report.o counters.o ilist.o pog.o
