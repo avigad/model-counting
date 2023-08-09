@@ -164,6 +164,12 @@ class Clausal_reasoner {
     // Debugging support
     void show_units(FILE *outfile);
 
+    // A hack to enable direct KC of simple formulas.
+    // Applies only when KC can be expressed as product of clauses over distinct variables
+    // If condition holds, fill up vector with zero-separated sequences of literals
+    bool check_simple_kc(std::vector<int> &clause_chunks);
+    
+
  private:
 
     int propagate_clause(int cid);

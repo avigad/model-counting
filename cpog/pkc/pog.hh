@@ -78,6 +78,14 @@ public:
     // Check that only have data variables
     bool only_data_variables(int root, std::unordered_set<int> &data_variables);
 
+    // Create a POG representation of a clause
+    // Optionally prevent use of intermediate negations
+    int build_disjunction(std::vector<int> &args, bool normal_form);
+
+    // Simple KC when formula is conjunction of independent clauses
+    // Argument is sequence of clause literals, separated by zeros
+    int simple_kc(std::vector<int> &clause_chunks, bool normal_form);
+
     // Debugging 
     // If root = 0, dump entire POG.  Otherwise just those nodes reachable from root
     void show(int root, FILE *outfile);

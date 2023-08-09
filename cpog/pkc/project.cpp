@@ -3,7 +3,8 @@
 #include "report.h"
 #include "counters.h"
 
-Project::Project(const char *cnf_name) {
+Project::Project(const char *cnf_name, int opt) {
+    optlevel = opt;
     FILE *cnf_file = fopen(cnf_name, "r");
     if (!cnf_file) 
 	err(true, "Couldn't open file '%s'\n", cnf_name);
@@ -17,7 +18,8 @@ Project::Project(const char *cnf_name) {
     cr = new Clausal_reasoner(cnf);
     cr->bcp(false);
     pog = new Pog(cnf->variable_count());
-    root_literal = compile();
+    // Must be normal form
+    root_literal = compile(true);
     report(1, "Initial POG created.  %d node, %d edges  POG size %d  Root literal = %d\n", 
 	   pog->node_count(), pog->edge_count(), pog->node_count() + pog->edge_count(),
 	   root_literal);
@@ -32,7 +34,15 @@ Project::~Project() {
     delete pog;
 }
 
-int Project::compile() {
+int Project::compile(bool normal_form) {
+    if (optlevel >= 1) {
+	std::vector<int> clause_chunks;
+	if (cr->check_simple_kc(clause_chunks)) {
+	    int root = pog->simple_kc(clause_chunks, normal_form);
+	    incr_count(COUNT_SIMPLE_KC);
+	    return root;
+	}
+    }
     char cmd[200];
     const char *cnf_name = fmgr.build_name("cnf", true);
     const char *nnf_name = fmgr.build_name("nnf", false);
@@ -82,13 +92,36 @@ bool Project::write(const char *pog_name) {
 
 int Project::traverse(int edge) {
     // Terminal conditions
-    if (pog->is_node(edge)) {
-	return pog->get_type(edge) == POG_SUM ? traverse_sum(edge) : traverse_product(edge);
-    } else if (cr->is_data_variable(pog->get_var(edge)))
-	return edge;
-    else
-	return TAUTOLOGY;
-}
+    if (!pog->is_node(edge)) 
+	return cr->is_data_variable(pog->get_var(edge)) ? edge : TAUTOLOGY;
+
+    if (optlevel >= 2) {
+	auto fid = result_cache.find(edge);
+	if (fid != result_cache.end()) {
+	    int nedge = fid->second;
+	    incr_count(COUNT_PKC_REUSE);
+	    return nedge;
+	}
+    }
+    if (optlevel >= 3) {
+	bool only_data = false;
+	bool only_project = false;
+	cr->analyze_variables(only_data, only_project);
+	if (only_data) {
+	    incr_count(COUNT_PKC_DATA_ONLY);
+	    // Allow DeMorgan's transformation
+	    return compile(false);
+	}
+	if (only_project) {
+	    incr_count(COUNT_PKC_PROJECT_ONLY);
+	    return cr->is_satisfiable() ? TAUTOLOGY : CONFLICT;
+	}
+    }
+
+    int nedge = pog->get_type(edge) == POG_SUM ? traverse_sum(edge) : traverse_product(edge);
+    result_cache[edge] = nedge;
+    return nedge;
+} 
 
 int Project::traverse_sum(int edge) {
     int edge1 = pog->get_argument(edge, 0);
@@ -103,7 +136,7 @@ int Project::traverse_sum(int edge) {
 	cr->quantify(dvar);
 	cr->bcp(false);
 	if (cr->is_satisfiable()) {
-	    int uroot = compile();
+	    int uroot = compile(true);
 	    int xroot = traverse(uroot);
 	    pog->start_node(POG_SUM);
 	    pog->add_argument(-nedge1);

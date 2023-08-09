@@ -452,6 +452,59 @@ int Pog::finish_node() {
     return edge;
 }
 
+int Pog::build_disjunction(std::vector<int> &args, bool normal_form) {
+    int nedge = 0;
+    if (args.size() == 0)
+	nedge = CONFLICT;
+    else if (args.size() == 1)
+	nedge = args[0];
+    else if (normal_form) {
+	nedge = args[0];
+	for (int i = 1; i < args.size(); i++) {
+	    start_node(POG_PRODUCT);
+	    // Negate previous literals
+	    for (int j = 0; j < i; j++)
+		add_argument(-args[j]);
+	    add_argument(args[i]);
+	    int prod = finish_node();
+	    start_node(POG_SUM);
+	    add_argument(nedge);
+	    add_argument(prod);
+	    nedge = finish_node();
+	}
+    } else {
+	// DeMorgan's construction
+	start_node(POG_PRODUCT);
+	for (int clit : args)
+	    add_argument(-clit);
+ 	nedge = -finish_node();
+    }
+    return nedge;
+}
+
+// Simple KC when formula is conjunction of independent clauses
+// Argument is sequence of clause literals, separated by zeros
+int Pog::simple_kc(std::vector<int> &clause_chunks, bool normal_form) {
+    std::vector<int> arguments;
+    std::vector<int> clause;
+    for (int i = 0; i < clause_chunks.size(); i++) {
+	int lit = clause_chunks[i];
+	if (lit == 0) {
+	    arguments.push_back(build_disjunction(clause, normal_form));
+	    clause.clear();
+	} else
+	    clause.push_back(lit);
+    }
+    if (arguments.size() == 0)
+	return TAUTOLOGY;
+    else if (arguments.size() == 1)
+	return arguments[0];
+    start_node(POG_PRODUCT);
+    for (int alit : arguments)
+	add_argument(alit);
+    int nedge = finish_node();
+    return nedge;
+}
 
 int Pog::load_nnf(FILE *infile) {
     Nnf nnf(nvar, infile);

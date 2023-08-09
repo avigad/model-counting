@@ -509,8 +509,19 @@ void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
 void Clausal_reasoner::analyze_variables(bool &only_data, bool &only_project) {
     only_data = true;
     only_project = true;
+
+    for (int lit : unit_literals) {
+	int var = IABS(lit);
+	if (cnf->data_variables.find(var) == cnf->data_variables.end())
+	    only_data = false;
+	else
+	    only_project = false;
+    }
+    if (!(only_data || only_project))
+	return;
+
     for (int cid : *curr_active_clauses) {
-	if (!only_data && !only_project)
+	if (!(only_data || only_project))
 	    return;
 	int len = cnf->clause_length(cid);
 	for (int lid = 0; lid < len; lid++) {
@@ -524,6 +535,41 @@ void Clausal_reasoner::analyze_variables(bool &only_data, bool &only_project) {
 		only_project = false;
 	}
     }
+}
+
+// A hack to enable direct KC of simple formulas.
+// Applies only when KC can be expressed as product of clauses over distinct variables
+// If condition holds, fill up vector with zero-separated sequences of literals
+bool Clausal_reasoner::check_simple_kc(std::vector<int> &clause_chunks) {
+    clause_chunks.clear();
+    std::unordered_set<int> vset;
+    for (int lit : bcp_unit_literals)
+	vset.insert(IABS(lit));
+    bool ok = true;
+    for (int cid : *curr_active_clauses) {
+	int len = cnf->clause_length(cid);
+	for (int lid = 0; lid < len; lid++) {
+	    int lit = cnf->get_literal(cid, lid);
+	    if (unit_literals.find(-lit) != unit_literals.end())
+		continue;
+	    int var = IABS(lit);
+	    if (vset.find(var) != vset.end()) {
+		ok = false;
+		break;
+	    }
+	    vset.insert(var);
+	    clause_chunks.push_back(lit);
+	}
+	clause_chunks.push_back(0);
+    }
+    if (ok) {
+	for (int lit : bcp_unit_literals) {
+	    clause_chunks.push_back(lit);
+	    clause_chunks.push_back(0);
+	}
+    } else
+	clause_chunks.clear();
+    return ok;
 }
 
 // Return TAUTOLOGY, CONFLICT, propagated unit, or zero
