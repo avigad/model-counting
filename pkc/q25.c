@@ -338,6 +338,8 @@ static void q25_show_internal(int id, FILE *outfile) {
 /**** Externally visible functions ****/
 
 void q25_free(q25_ptr q) {
+    if (q)
+	q->valid = false;
     free((void *) q);
 }
 
