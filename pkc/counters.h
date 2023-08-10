@@ -62,7 +62,7 @@ double get_timer(timer_t timer);
 void incr_histo(histogram_t h, int datum);
 int get_histo_min(histogram_t h);
 int get_histo_max(histogram_t h);    
-int get_hist_count(histogram_t h);
+int get_histo_count(histogram_t h);
 double get_histo_avg(histogram_t h);
 
 #ifdef CPLUSPLUS
