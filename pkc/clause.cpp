@@ -160,21 +160,44 @@ Cnf::Cnf() {
     arx = NULL;
 }
 
-// Process comment, looking additional data variables
+// Process comment, looking additional data variables & weights
 // Return last character
-static void process_comment(FILE *infile, std::unordered_set<int> &data_variables) {
+static void process_comment(FILE *infile, std::unordered_set<int> &data_variables , std::unordered_map<int,q25_ptr> &input_weights) {
     char buf[50];
     int len;
     if (find_string_token(infile, buf, 50, &len) && len == 1 && strncmp(buf, "p", 1) == 0
-	&& find_string_token(infile, buf, 50, &len) && len == 4 && strncmp(buf, "show", 4) == 0) {
-	int var = -1;
-	while (var != 0) {
-	    if (fscanf(infile, "%d", &var) != 1) {
-		err(false, "Couldn't read data variable\n");
-		break;
-	    } else if (var != 0) {
-		data_variables.insert(var);
+	&& find_string_token(infile, buf, 50, &len)) {
+	if (len == 4 && strncmp(buf, "show", 4) == 0) {
+	    int var = -1;
+	    while (var != 0) {
+		if (fscanf(infile, "%d", &var) != 1) {
+		    err(false, "Couldn't read data variable\n");
+		    break;
+		} else if (var != 0) {
+		    data_variables.insert(var);
+		}
 	    }
+	}
+	else if (len == 6 && strncmp(buf, "weight", 6) == 0) {
+	    int lit = 0;
+	    if (fscanf(infile, "%d", &lit) != 1) {
+		err(false, "Couldn't read weight literal (skipping)\n");
+		skip_line(infile);
+		return;
+	    }
+	    find_token(infile);
+	    q25_ptr wt = q25_read(infile);
+	    if (!q25_is_valid(wt)) {
+		err(false, "Couldn't read weight for literal %d (skipping)\n", lit);
+		skip_line(infile);
+		return;
+	    }
+	    input_weights[lit] = wt;
+	    int zero;
+	    if (fscanf(infile, "%d", &zero) != 1 || zero != 0) {
+		err(false, "Couldn't read terminating zero in weight declaration for literal %d (accepting weight)\n", lit);
+	    }
+
 	}
     }
     skip_line(infile);
@@ -201,7 +224,7 @@ void Cnf::import_file(FILE *infile) {
 	if (isspace(c)) 
 	    continue;
 	if (c == 'c') {
-	    process_comment(infile, data_variables);
+	    process_comment(infile, data_variables, input_weights);
 	    continue;
 	}
 	if (c == EOF) {
@@ -249,7 +272,7 @@ void Cnf::import_file(FILE *infile) {
 		return;
 	    } else if (c == 'c' && starting_clause) {
 		c = getc(infile);
-		process_comment(infile, data_variables);
+		process_comment(infile, data_variables, input_weights);
 		continue;
 	    }
 	    else if (fscanf(infile, "%d", &lit) != 1) {
@@ -267,7 +290,7 @@ void Cnf::import_file(FILE *infile) {
 	if (isspace(c)) 
 	    continue;
 	if (c == 'c') 
-	    process_comment(infile, data_variables);
+	    process_comment(infile, data_variables, input_weights);
     }
     arx = finish_build(varx);
     // If no data variables declared, assume all input variables are data variables

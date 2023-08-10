@@ -111,15 +111,13 @@ q25_ptr Project::count(bool weighted) {
 	    fid = cr->cnf->input_weights.find(-var);
 	    if (fid != cr->cnf->input_weights.end())
 		nwt = q25_copy(fid->second);
-	    else
-		err(false, "Couldn't find weight for input %d\n", -var);
 	    if (!pwt && !nwt) {
 		pwt = q25_from_32(1);
 		nwt = q25_from_32(1);
 	    } else if (!pwt)
-		nwt = q25_one_minus(pwt);
-	    else if (!nwt)
 		pwt = q25_one_minus(nwt);
+	    else if (!nwt)
+		nwt = q25_one_minus(pwt);
 	} else {
 	    nwt = q25_from_32(1);
 	    pwt = q25_from_32(1);
@@ -130,8 +128,12 @@ q25_ptr Project::count(bool weighted) {
 	    q25_free(nwt); q25_free(sum);
 	} else {
 	    q25_ptr recip = q25_recip(sum);
-	    if (!q25_is_valid(recip))
-		err(true, "Could not get reciprocal of summed weights for variable %d\n", var);
+	    if (!q25_is_valid(recip)) {
+		err(false, "Could not get reciprocal of summed weights for variable %d.  Sum = ", var);
+		q25_write(sum, stdout);
+		printf("\n");
+		err(true, "Cannot recover\n");
+	    }
 	    q25_ptr nrescale = q25_mul(rescale, sum);
 	    q25_free(rescale);
 	    rescale = nrescale;
