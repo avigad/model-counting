@@ -45,6 +45,7 @@ public:
     int node_index(int edge) { int var = get_var(edge); return is_node(var) ? var-nvar-1 : -1; }
     int get_degree(int edge) { int idx = node_index(edge); return idx < 0 ? 0 : nodes[idx].degree; }
     pog_type_t get_type(int edge) { int idx = node_index(edge); return idx < 0 ? POG_NONE : nodes[idx].type; }
+    bool is_sum(int edge) { return get_type(edge) == POG_SUM; }
 
     int node_count() { return nodes.size(); }
     int edge_count() { return arguments.size(); }
@@ -109,3 +110,7 @@ private:
 
 
 };
+
+// Routine to aid the management of q25_ptr's
+q25_ptr qmark(q25_ptr q, std::vector<q25_ptr> &qlog);
+void qflush(std::vector<q25_ptr> &qlog);

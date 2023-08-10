@@ -20,7 +20,7 @@ Project::Project(const char *cnf_name, int opt) {
     pog = new Pog(cnf->variable_count());
     // Must be normal form
     root_literal = compile(true);
-    report(1, "Initial POG created.  %d node, %d edges  POG size %d  Root literal = %d\n", 
+    report(1, "Initial POG created.  %d nodes, %d edges,  %d clauses. Root literal = %d\n", 
 	   pog->node_count(), pog->edge_count(), pog->node_count() + pog->edge_count(),
 	   root_literal);
     incr_count_by(COUNT_POG_INITIAL_SUM, get_count(COUNT_POG_SUM));
@@ -94,6 +94,8 @@ bool Project::write(const char *pog_name) {
 }
 
 q25_ptr Project::count(bool weighted) {
+    // Pointers that should be deleted
+    std::vector<q25_ptr> qlog, eqlog;
     if (weighted && cr->cnf->input_weights.size() == 0)
 	return NULL;
     double start = tod();
@@ -102,53 +104,54 @@ q25_ptr Project::count(bool weighted) {
     for (int var : cr->cnf->data_variables) {
 	q25_ptr pwt = NULL;
 	q25_ptr nwt = NULL;
+	q25_ptr sum = NULL;
 	if (weighted) {
 	    auto fid = cr->cnf->input_weights.find(var);
 	    if (fid != cr->cnf->input_weights.end()) 
-		pwt = q25_copy(fid->second);
+		pwt = fid->second;
 	    else
 		err(false, "Couldn't find weight for input %d\n", var);
 	    fid = cr->cnf->input_weights.find(-var);
 	    if (fid != cr->cnf->input_weights.end())
-		nwt = q25_copy(fid->second);
+		nwt = fid->second;
 	    if (!pwt && !nwt) {
-		pwt = q25_from_32(1);
-		nwt = q25_from_32(1);
-	    } else if (!pwt)
+		pwt = qmark(q25_from_32(1), qlog);
+		nwt = qmark(q25_from_32(1), qlog);
+		sum = qmark(q25_from_32(2), qlog);
+	    } else if (!pwt) {
 		pwt = q25_one_minus(nwt);
-	    else if (!nwt)
+		sum = qmark(q25_from_32(1), qlog);
+	    } else if (!nwt) {
 		nwt = q25_one_minus(pwt);
+		sum = qmark(q25_from_32(1), qlog);
+	    } else
+		sum = qmark(q25_add(pwt, nwt), qlog);
 	} else {
-	    nwt = q25_from_32(1);
-	    pwt = q25_from_32(1);
+	    // These won't be the final weights
+	    nwt = qmark(q25_from_32(1), qlog);
+	    pwt = qmark(q25_from_32(1), qlog);
+	    sum = qmark(q25_from_32(2), qlog);
 	}
-	q25_ptr sum = q25_add(nwt, pwt);
 	if (q25_is_one(sum)) {
-	    weights[var] = pwt;
-	    q25_free(nwt); q25_free(sum);
+	    weights[ var] = qmark(pwt, eqlog);
+	    weights[-var] = qmark(nwt, eqlog);
 	} else {
-	    q25_ptr recip = q25_recip(sum);
+	    q25_ptr recip = qmark(q25_recip(sum), qlog);
 	    if (!q25_is_valid(recip)) {
 		err(false, "Could not get reciprocal of summed weights for variable %d.  Sum = ", var);
 		q25_write(sum, stdout);
 		printf("\n");
 		err(true, "Cannot recover\n");
 	    }
-	    q25_ptr nrescale = q25_mul(rescale, sum);
-	    q25_free(rescale);
-	    rescale = nrescale;
-	    weights[var] = q25_mul(pwt, recip);
-	    q25_free(nwt); q25_free(pwt);
-	    q25_free(recip); q25_free(sum);
+	    rescale = q25_mul(qmark(rescale, qlog), sum);
+	    weights[ var] = qmark(q25_mul(pwt, recip), eqlog);
+	    weights[-var] = qmark(q25_mul(nwt, recip), eqlog);
 	}
+	qflush(qlog);
     }
-    q25_ptr rval = pog->ring_evaluate(root_literal, weights);
-    q25_ptr cval = q25_mul(rescale, rval);
-    q25_free(rval);
-    q25_free(rescale);
-    for (auto iter : weights) {
-	q25_free(iter.second);
-    }
+    q25_ptr rval = qmark(pog->ring_evaluate(root_literal, weights), eqlog);
+    q25_ptr cval = q25_mul(qmark(rescale, eqlog), rval);
+    qflush(eqlog);
     double elapsed = tod()-start;
     incr_timer(TIME_RING_EVAL, elapsed);
     return cval;

@@ -53,64 +53,37 @@ static void stat_report(double elapsed) {
     lprintf("%s    Final POG Clauses      : %d\n", prefix, ps+pp+pe);
 
     
-    ilist sat_histo = get_histo(HISTO_SAT_CLAUSES);
-    int clause_total = 0;
-    int clause_max = 0;
-    int clause_min = 0;
     int sat_count = get_count(COUNT_SAT_CALL);
-    for (int len = 0; len < ilist_length(sat_histo); len++) {
-	if (sat_histo[len] > 0) {
-	    if (clause_min == 0)
-		clause_min = len;
-	    clause_max = len;
-	    clause_total += len * sat_histo[len];
-	}
-    }
+    int clause_min = get_histo_min(HISTO_SAT_CLAUSES);
+    int clause_max = get_histo_max(HISTO_SAT_CLAUSES);
+    double clause_avg = get_histo_avg(HISTO_SAT_CLAUSES);
     lprintf("%s SAT calls\n", prefix);
     lprintf("%s    SAT TOTAL              : %d\n", prefix, sat_count);
     if (sat_count > 0) {
 	lprintf("%s    SAT Clause MIN         : %d\n", prefix, clause_min);
-	lprintf("%s    SAT Clause AVG         : %.2f\n", prefix, (double) clause_total / sat_count);
+	lprintf("%s    SAT Clause AVG         : %.2f\n", prefix, clause_avg);
 	lprintf("%s    SAT Clause MAX         : %d\n", prefix, clause_max);
     }
 
-    ilist kc_clause_histo = get_histo(HISTO_KC_CLAUSES);
-    clause_total = 0;
-    clause_max = 0;
-    clause_min = 0;
     int kc_count = get_count(COUNT_KC_CALL);
-    for (int len = 0; len < ilist_length(kc_clause_histo); len++) {
-	if (kc_clause_histo[len] > 0) {
-	    if (clause_min == 0)
-		clause_min = len;
-	    clause_max = len;
-	    clause_total += len * kc_clause_histo[len];
-	}
-    }
+    clause_min = get_histo_min(HISTO_KC_CLAUSES);
+    clause_max = get_histo_max(HISTO_KC_CLAUSES);
+    clause_avg = get_histo_avg(HISTO_KC_CLAUSES);
     lprintf("%s KC calls\n", prefix);
     lprintf("%s    KC TOTAL               : %d\n", prefix, kc_count);
     if (kc_count > 0) {
 	lprintf("%s    KC Clause MIN          : %d\n", prefix, clause_min);
-	lprintf("%s    KC Clause AVG          : %.2f\n", prefix, (double) clause_total / kc_count);
+	lprintf("%s    KC Clause AVG          : %.2f\n", prefix, clause_avg);
 	lprintf("%s    KC clause MAX          : %d\n", prefix, clause_max);
     }
 
-    ilist kc_pog_histo = get_histo(HISTO_POG_NODES);
-    int pog_total = 0;
-    int pog_max = 0;
-    int pog_min = 0;
-    for (int len = 0; len < ilist_length(kc_pog_histo); len++) {
-	if (kc_pog_histo[len] > 0) {
-	    if (pog_min == 0)
-		pog_min = len;
-	    pog_max = len;
-	    pog_total += len * kc_pog_histo[len];
-	}
-    }
+    int pog_min = get_histo_min(HISTO_POG_NODES);
+    int pog_max = get_histo_max(HISTO_POG_NODES);
+    double pog_avg = get_histo_avg(HISTO_POG_NODES);
     lprintf("%s KC added POG nodes\n", prefix);
     lprintf("%s    KC Total               : %d\n", prefix, kc_count);
     lprintf("%s    KC POG MIN             : %d\n", prefix, pog_min);
-    lprintf("%s    KC POG AVG             : %.2f\n", prefix, (double) pog_total / kc_count);
+    lprintf("%s    KC POG AVG             : %.2f\n", prefix, pog_avg);
     lprintf("%s    KC POG MAX             : %d\n", prefix, pog_max);
 
     lprintf("%s Node Traversal:\n", prefix);
@@ -140,20 +113,24 @@ static void stat_report(double elapsed) {
     lprintf("%s    Time TOTAL             : %.2f\n", prefix, elapsed);
 }
 
-static int run(const char *cnf_name, const char *pog_name, int optlevel) {
+static int run(double start, const char *cnf_name, const char *pog_name, int optlevel) {
     Project proj(cnf_name, optlevel);
     if (verblevel >= 5) {
 	printf("Initial POG:\n");
 	proj.show(stdout);
     }
+    report(1, "Time %.2f: Initial compilation completed\n", tod() - start);
     proj.projecting_compile();
     if (verblevel >= 5) {
 	printf("Projected POG:\n");
 	proj.show(stdout);
     }
     proj.write(pog_name);
+    report(1, "Time %.2f: Projecting compilation completed\n", tod() - start);
     ucount = proj.count(false);
+    report(1, "Time %.2f: Unweighted count completed\n", tod() - start);
     wcount = proj.count(true);
+    report(1, "Time %.2f: Everything completed\n", tod() - start);
     return 0;
 }
 
@@ -213,7 +190,7 @@ int main(int argc, char *const argv[]) {
     lprintf("%s   Optimization level:       %d\n", prefix, optlevel);
 
     double start = tod();
-    int result = run(cnf_name, pog_name, optlevel);
+    int result = run(start, cnf_name, pog_name, optlevel);
     stat_report(tod()-start);
     if (ucount != NULL) {
 	lprintf("%s  Unweighted count:", prefix);

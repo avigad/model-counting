@@ -350,7 +350,7 @@ bool Pog::node_equal(int var1, int var2) {
 }
 
 int Pog::get_decision_variable(int edge) {
-    if (get_type(edge) != POG_SUM)
+    if (!is_sum(edge))
 	return 0;
     int edge1 = get_argument(edge, 0);
     int n1 = 1;
@@ -649,33 +649,46 @@ void Pog::get_subgraph(int root_edge, std::map<int,int> &node_remap) {
     }
 }
 
+q25_ptr qmark(q25_ptr q, std::vector<q25_ptr> &qlog) {
+    qlog.push_back(q);
+    return q;
+}
+
+void qflush(std::vector<q25_ptr> &qlog) {
+    for (q25_ptr val : qlog)
+	q25_free(val);
+    qlog.clear();
+}
+
+// weights should include weights of all data variables and their negations
 q25_ptr Pog::ring_evaluate(int root_edge, std::unordered_map<int,q25_ptr> &weights) {
     std::unordered_map<int, q25_ptr> eweights;
+    // Record allocated q25_ptr's both for each node and for entire evaluation
+    std::vector<q25_ptr> qlog, eqlog;
     for (auto iter : weights)
-	eweights[iter.first] = q25_copy(iter.second);
+	eweights[iter.first] = iter.second;
     std::set<int> visited;
     visit(root_edge, visited);
     for (int edge : visited) {
 	int id = get_var(edge);
 	int degree = get_degree(id);
-	bool is_sum = get_type(id) == POG_SUM;
-	q25_ptr val = is_sum ? q25_from_32(0) : q25_from_32(1);
+	bool sum = is_sum(id);
+	q25_ptr val = sum ? q25_from_32(0) : q25_from_32(1);
 	for (int i = 0; i < degree; i++) {
 	    int cedge = get_argument(id, i);
-	    int cvar = get_var(cedge);
-	    auto fid = eweights.find(cvar);
+	    auto fid = eweights.find(cedge);
 	    if (fid == eweights.end()) {
-		err(false, "Couldn't find weight for variable %d\n", cvar);
+		err(false, "Couldn't find weight for edge %d\n", cedge);
+		qmark(val, qlog); qflush(qlog); qflush(eqlog);
 		return q25_from_32(0);
 	    }
 	    q25_ptr wt = fid->second;
-	    q25_ptr cval = cedge > 0 ? q25_copy(wt) : q25_one_minus(wt);
-	    q25_ptr nval = is_sum ? q25_add(val, cval) : q25_mul(val, cval);
-	    q25_free(cval);
-	    q25_free(val);
-	    val = nval;
+	    qmark(val, qlog);
+	    val = sum ? q25_add(val, wt) : q25_mul(val, wt);
 	}
-	eweights[id] = val;
+	eweights[id] = qmark(val, eqlog);
+	eweights[-id] = qmark(q25_one_minus(val), eqlog);
+	qflush(qlog);
     }
     q25_ptr rval = NULL;
     if (root_edge == TAUTOLOGY)
@@ -683,17 +696,16 @@ q25_ptr Pog::ring_evaluate(int root_edge, std::unordered_map<int,q25_ptr> &weigh
     else if (root_edge == CONFLICT)
 	rval = q25_from_32(0);
     else {
-	int var = get_var(root_edge);
-	auto fid = eweights.find(var);
+	auto fid = eweights.find(root_edge);
 	if (fid == eweights.end()) {
-	    err(false, "Couldn't find weight for variable %d\n", var);
+	    err(false, "Couldn't find weight for root edge %d\n", root_edge);
+	    qflush(eqlog);
 	    return q25_from_32(0);
 	}
 	q25_ptr wt = fid->second;
-	rval = root_edge > 0 ? q25_copy(wt) : q25_one_minus(wt);
+	rval = q25_copy(wt);
     }
-    for (auto iter : eweights)
-	q25_free(iter.second);
+    qflush(eqlog);
     return rval;
 }
 
@@ -712,7 +724,7 @@ bool Pog::write(int root_edge, FILE *outfile) {
 	nroot_edge = root_edge > 0 ? nrvar : -nrvar;
 	for (auto kv : node_remap) {
 	    int oid = kv.first;
-	    incr_count(get_type(oid) == POG_SUM ? COUNT_POG_FINAL_SUM : COUNT_POG_FINAL_PRODUCT);
+	    incr_count(is_sum(oid) ? COUNT_POG_FINAL_SUM : COUNT_POG_FINAL_PRODUCT);
 	    int degree = get_degree(oid);
 	    incr_count_by(COUNT_POG_FINAL_EDGES, degree);
 	}
@@ -741,8 +753,8 @@ bool Pog::write(int root_edge, FILE *outfile) {
     for (auto kv : node_remap) {
 	int oid = kv.first;
 	int nid = kv.second;
-	fprintf(outfile, "%c %d", get_type(oid) == POG_SUM ? 's' : 'p', nid);
-	incr_count(get_type(oid) == POG_SUM ? COUNT_POG_FINAL_SUM : COUNT_POG_FINAL_PRODUCT);
+	fprintf(outfile, "%c %d", is_sum(oid) ? 's' : 'p', nid);
+	incr_count(is_sum(oid) ? COUNT_POG_FINAL_SUM : COUNT_POG_FINAL_PRODUCT);
 	int degree = get_degree(oid);
 	incr_count_by(COUNT_POG_FINAL_EDGES, degree);
 	for (int i = 0; i < degree; i++) {
