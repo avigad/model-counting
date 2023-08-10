@@ -74,58 +74,27 @@ static void stat_report() {
     lprintf("%s    applications: %d\n", prefix, get_count(COUNT_LEMMA_APPLICATION));
     lprintf("%s    duplicates  : %d\n", prefix, get_count(COUNT_LEMMA_DUPLICATES));
     lprintf("%s    merged args : %d\n", prefix, get_count(COUNT_LEMMA_ARGUMENT_MERGE));
-    ilist problem_histo = get_histo(HISTO_PROBLEM);
-    int problem_count = 0;
-    int problem_clauses = 0;
-    int problem_min = 0;
-    int problem_max = 0;
-    for (int len = 0; len < ilist_length(problem_histo); len++) {
-	if (problem_histo[len] > 0) {
-	    if (problem_min == 0)
-		problem_min = len;
-	    problem_max = len;
-	    problem_count += problem_histo[len];
-	    problem_clauses += len * problem_histo[len];
-	}
-    }
+    int problem_count = get_histo_count(HISTO_PROBLEM);
+    int problem_min = get_histo_min(HISTO_PROBLEM);
+    int problem_max = get_histo_max(HISTO_PROBLEM);
+    double problem_avg = get_histo_avg(HISTO_PROBLEM);
     lprintf("%s SAT Problem Clause Counts (%d instances)\n", prefix, problem_count);
-    if (verblevel >= 2) {
-	for (int len = 0; len < ilist_length(problem_histo); len++) {
-	    if (problem_histo[len] > 0) {
-		lprintf("%s    %d : %d\n", prefix, len, problem_histo[len]);
-	    }
-	}
-    }
     if (problem_count > 0) {
-	lprintf("%s    PROBLEM TOTAL : %d\n", prefix, problem_clauses);
 	lprintf("%s    PROBLEM MIN   : %d\n", prefix, problem_min);
-	lprintf("%s    PROBLEM AVG   : %.2f\n", prefix, (double) problem_clauses/problem_count);
+	lprintf("%s    PROBLEM AVG   : %.2f\n", prefix, problem_avg);
 	lprintf("%s    PROBLEM MAX   : %d\n", prefix, problem_max);
     }
 
     if (problem_count > 0) {
-	ilist proof_histo = get_histo(HISTO_PROOF);
-	int proof_count = 0;
-	int proof_clauses = 0;
-	int proof_min = 0;
-	int proof_max = 0;
+	int proof_count = get_histo_count(HISTO_PROOF);
+	int proof_min = get_histo_min(HISTO_PROOF);
+	int proof_max = get_histo_max(HISTO_PROOF);
+	double proof_avg = get_histo_avg(HISTO_PROOF);
 
 	lprintf("%s SAT Proof Clause Counts\n", prefix);
-	for (int len = 0; len < ilist_length(proof_histo); len++) {
-	    if (proof_histo[len] > 0) {
-		if (proof_min == 0)
-		    proof_min = len;
-		proof_max = len;
-		proof_count += proof_histo[len];
-		proof_clauses += len * proof_histo[len];
-		if (verblevel >= 2)
-		    lprintf("%s    %d : %d\n", prefix, len, proof_histo[len]);
-	    }
-	}
 	if (proof_count > 0) {
-	    lprintf("%s    PROOF TOTAL : %d\n", prefix, proof_clauses);
 	    lprintf("%s    PROOF MIN   : %d\n", prefix, proof_min);
-	    lprintf("%s    PROOF AVG   : %.2f\n", prefix, (double) proof_clauses/proof_count);
+	    lprintf("%s    PROOF AVG   : %.2f\n", prefix, proof_avg);
 	    lprintf("%s    PROOF MAX   : %d\n", prefix, proof_max);
 	}
     }
