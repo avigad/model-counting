@@ -177,6 +177,7 @@ int main(int argc, char *const argv[]) {
 	    break;
 	case 'O':
 	    optlevel = atoi(optarg);
+	    break;
 	case 'b':
 	    bcp_limit = atoi(optarg);
 	default:
