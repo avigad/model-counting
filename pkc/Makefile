@@ -10,9 +10,6 @@ all:  pkc
 report.o: report.c report.h
 	$(CC) $(CFLAGS) -c report.c
 
-ilist.o: ilist.c ilist.h
-	$(CC) $(CFLAGS) -c ilist.c
-
 counters.o: counters.c counters.h
 	$(CC) $(CFLAGS) -c counters.c
 
@@ -28,11 +25,8 @@ pog.o: pog.hh clause.hh counters.h pog.cpp
 project.o: project.hh clause.hh pog.hh project.cpp
 	$(CXX) $(CPPFLAGS) -c project.cpp
 
-pkc: pkc.cpp clause.o report.o counters.o ilist.o pog.o project.o q25.o
-	$(CXX) $(CPPFLAGS) -o pkc pkc.cpp clause.o report.o counters.o ilist.o pog.o project.o q25.o
-
-pog_test: pog_test.cpp clause.o report.o counters.o ilist.o pog.o
-	$(CXX) $(CPPFLAGS) -o pog_test pog_test.cpp clause.o report.o counters.o ilist.o pog.o
+pkc: pkc.cpp clause.o report.o counters.o pog.o project.o q25.o
+	$(CXX) $(CPPFLAGS) -o pkc pkc.cpp clause.o report.o counters.o pog.o project.o q25.o
 
 .SUFFIXES: .c .cpp .o
 

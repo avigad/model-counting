@@ -26,8 +26,6 @@
 
 #pragma once
 
-#include "ilist.h"
-
 // Count all the interesting stuff
 
 typedef enum { 
@@ -62,7 +60,10 @@ void incr_timer(timer_t timer, double secs);
 double get_timer(timer_t timer);
 
 void incr_histo(histogram_t h, int datum);
-ilist get_histo(histogram_t h);
+int get_histo_min(histogram_t h);
+int get_histo_max(histogram_t h);    
+int get_hist_count(histogram_t h);
+double get_histo_avg(histogram_t h);
 
 #ifdef CPLUSPLUS
 }

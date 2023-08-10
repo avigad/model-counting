@@ -1,11 +1,18 @@
+#include <limits.h>
 #include <stdbool.h>
 #include "counters.h"
 #include "report.h"
 
+typedef struct {
+    int min;
+    int max;
+    int count;
+    double total;
+} histo_info_t;
 
 static int counters[COUNT_NUM];
 static double timers[TIME_NUM];
-static ilist histograms[HISTO_NUM];
+static histo_info_t histograms[HISTO_NUM];
 
 static bool initialized = false;
 
@@ -16,8 +23,12 @@ static void test_init() {
 	counters[c] = 0;
     for (int t = 0; t < TIME_NUM; t++)
 	timers[t] = 0.0;
-    for (int h = 0; h < HISTO_NUM; h++)
-	histograms[h] = ilist_new(0);
+    for (int h = 0; h < HISTO_NUM; h++) {
+	histograms[h].min = INT_MAX;
+	histograms[h].max = INT_MIN;
+	histograms[h].count = 0;
+	histograms[h].total = 0.0;
+    }
     initialized = true;
 }
 
@@ -78,18 +89,36 @@ static bool histo_ok(histogram_t histo) {
 void incr_histo(histogram_t histo, int datum) {
     if (!histo_ok(histo))
 	return;
-    int old_size = ilist_length(histograms[histo]);
-    if (datum >= old_size) {
-	histograms[histo] = ilist_resize(histograms[histo], datum+1);
-	for (int d = old_size; d <= datum; d++)
-	    histograms[histo][d] = 0;
-    }
-    histograms[histo][datum] ++;
+    histograms[histo].count++;
+    histograms[histo].total += datum;
+    if (datum < histograms[histo].min)
+	histograms[histo].min = datum;
+    if (datum > histograms[histo].max)
+	histograms[histo].max = datum;
 }
 
-
-ilist get_histo(histogram_t histo) {
+int get_histo_min(histogram_t histo) {
     if (!histo_ok(histo))
-	return NULL;
-    return histograms[histo];
+	return INT_MAX;
+    return histograms[histo].min;
+}
+
+int get_histo_max(histogram_t histo) {
+    if (!histo_ok(histo))
+	return INT_MAX;
+    return histograms[histo].max;
+}
+
+int get_histo_count(histogram_t histo) {
+    if (!histo_ok(histo))
+	return INT_MAX;
+    return histograms[histo].count;
+}
+
+double get_histo_avg(histogram_t histo) {
+    if (!histo_ok(histo))
+	return 0.0;
+    if (histograms[histo].count == 0)
+	return 0;
+    return histograms[histo].total / histograms[histo].count;
 }
