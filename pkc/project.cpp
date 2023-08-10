@@ -13,11 +13,12 @@ Project::Project(const char *cnf_name, int opt) {
     fclose(cnf_file);
     if (!cnf->is_loaded())
 	err(true, "Failed to load CNF from file '%s'\n", cnf_name);
-    report(1, "CNF file loaded %d variables, %d clauses, %d data variables\n", cnf->variable_count(), cnf->clause_count(), cnf->data_variables.size());
+    report(1, "CNF file loaded %d variables, %d clauses, %d data variables\n",
+	   cnf->variable_count(), cnf->clause_count(), cnf->data_variables.size());
     fmgr.set_root(cnf_name);
     cr = new Clausal_reasoner(cnf);
     cr->bcp(false);
-    pog = new Pog(cnf->variable_count());
+    pog = new Pog(cnf->variable_count(), &(cnf->data_variables));
     // Must be normal form
     root_literal = compile(true);
     report(1, "Initial POG created.  %d nodes, %d edges,  %d clauses. Root literal = %d\n", 
@@ -159,9 +160,18 @@ q25_ptr Project::count(bool weighted) {
 
 
 int Project::traverse(int edge) {
+    
+
     // Terminal conditions
-    if (!pog->is_node(edge)) 
-	return cr->is_data_variable(pog->get_var(edge)) ? edge : TAUTOLOGY;
+    if (!pog->is_node(edge)) {
+	int var = pog->get_var(edge);
+	if (var == TAUTOLOGY)
+	    return edge;
+	if (cr->is_data_variable(var))
+	    return edge;
+	// Projected literal satisfied
+	return TAUTOLOGY;
+    }
 
     if (optlevel >= 2) {
 	auto fid = result_cache.find(edge);
@@ -172,15 +182,11 @@ int Project::traverse(int edge) {
 	}
     }
     if (optlevel >= 3) {
-	bool only_data = false;
-	bool only_project = false;
-	cr->analyze_variables(only_data, only_project);
-	if (only_data) {
+	if (pog->only_data_variables(edge)) {
 	    incr_count(COUNT_PKC_DATA_ONLY);
-	    // Allow DeMorgan's transformation
-	    return compile(false);
+	    return edge;
 	}
-	if (only_project) {
+	if (pog->only_projection_variables(edge)) {
 	    incr_count(COUNT_PKC_PROJECT_ONLY);
 	    return cr->is_satisfiable() ? TAUTOLOGY : CONFLICT;
 	}
@@ -252,11 +258,11 @@ int Project::traverse_product(int edge) {
 	}
     }
     if (cedges.size() > 0) {
-	cr->bcp(true);
 	if (cedges.size() == 1) 
 	    nargs.push_back(traverse(cedges[0]));
 	else {
 	    std::unordered_set<int> vset;
+	    cr->bcp(true);
 	    for (int cedge : cedges) {
 		cr->new_context();
 		vset.clear();

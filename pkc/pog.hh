@@ -18,8 +18,10 @@ typedef enum { POG_NONE, POG_PRODUCT, POG_SUM, POG_NUM } pog_type_t;
 
 struct Node {
     int  offset;  // Offset into list of arguments
-    pog_type_t type : 2;
-    int degree  : 30;
+    pog_type_t type :      2;
+    bool data_only :       1;
+    bool projection_only : 1;
+    int degree  :         28;
 };
 
 class Pog {
@@ -32,11 +34,13 @@ private:
     std::vector<Node> nodes;
     // Unique table.  Maps from hash of operation + arguments to edge.
     std::unordered_multimap<unsigned, int> unique_table;
+    // Set of data variables
+    std::unordered_set<int> *data_variables;
     
 
 public:
     
-    Pog(int n) { nvar = n; }
+    Pog(int n, std::unordered_set<int> *dvars) { nvar = n; data_variables = dvars; }
     ~Pog() {}
 
     bool get_phase(int edge) { return edge > 0; }
@@ -46,6 +50,16 @@ public:
     int get_degree(int edge) { int idx = node_index(edge); return idx < 0 ? 0 : nodes[idx].degree; }
     pog_type_t get_type(int edge) { int idx = node_index(edge); return idx < 0 ? POG_NONE : nodes[idx].type; }
     bool is_sum(int edge) { return get_type(edge) == POG_SUM; }
+    bool only_data_variables(int edge) { 
+	return is_node(edge) ?
+	    nodes[node_index(edge)].data_only :
+	    data_variables->find(get_var(edge)) != data_variables->end(); }
+    bool only_projection_variables(int edge) { 
+	return is_node(edge) ?
+	    nodes[node_index(edge)].projection_only :
+	    data_variables->find(get_var(edge)) == data_variables->end(); }
+
+    
 
     int node_count() { return nodes.size(); }
     int edge_count() { return arguments.size(); }
@@ -79,9 +93,6 @@ public:
 
     // Read NNF file and integrate into POG.  Return edge to new root
     int load_nnf(FILE *infile);
-
-    // Check that only have data variables
-    bool only_data_variables(int root, std::unordered_set<int> &data_variables);
 
     // Create a POG representation of a clause
     // Optionally prevent use of intermediate negations

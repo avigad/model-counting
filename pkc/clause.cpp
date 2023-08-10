@@ -526,41 +526,13 @@ void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
 	else
 	    deactivate_clause(cid);
     }
+    report(3, "Partition %d/%d active clauses\n",
+	   next_active_clauses->size(), curr_active_clauses->size());
     auto tmp = curr_active_clauses;
     curr_active_clauses = next_active_clauses;
     next_active_clauses = tmp;
 }
 
-void Clausal_reasoner::analyze_variables(bool &only_data, bool &only_project) {
-    only_data = true;
-    only_project = true;
-
-    for (int lit : unit_literals) {
-	int var = IABS(lit);
-	if (cnf->data_variables.find(var) == cnf->data_variables.end())
-	    only_data = false;
-	else
-	    only_project = false;
-    }
-    if (!(only_data || only_project))
-	return;
-
-    for (int cid : *curr_active_clauses) {
-	if (!(only_data || only_project))
-	    return;
-	int len = cnf->clause_length(cid);
-	for (int lid = 0; lid < len; lid++) {
-	    int lit = cnf->get_literal(cid, lid);
-	    if (unit_literals.find(-lit) != unit_literals.end())
-		continue;
-	    int var = IABS(lit);
-	    if (cnf->data_variables.find(var) == cnf->data_variables.end())
-		only_data = false;
-	    else
-		only_project = false;
-	}
-    }
-}
 
 // A hack to enable direct KC of simple formulas.
 // Applies only when KC can be expressed as product of clauses over distinct variables

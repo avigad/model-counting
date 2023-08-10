@@ -149,9 +149,6 @@ class Clausal_reasoner {
 
     bool is_data_variable(int var) { return cnf->data_variables.find(var) != cnf->data_variables.end(); }
 
-    // Determine if all variables data variables or all variables projection variables
-    void analyze_variables(bool &only_data, bool &only_project);
-
     // Extract a clausal representation of the current state
     cnf_archive_t extract();
     // Extract clausal representation and write as CNF file

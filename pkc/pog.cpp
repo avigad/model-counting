@@ -384,6 +384,8 @@ void Pog::start_node(pog_type_t type) {
     nodes[nidx].offset = arguments.size();
     nodes[nidx].type = type;
     nodes[nidx].degree = 0;
+    nodes[nidx].data_only = true;
+    nodes[nidx].projection_only = true;
 }
 
 void Pog::add_argument(int edge) {
@@ -400,6 +402,9 @@ void Pog::add_argument(int edge) {
 	nodes[nidx].degree = 1;
 	return;
     }
+    bool data_edge = 
+    nodes[nidx].data_only = nodes[nidx].data_only && only_data_variables(edge);
+    nodes[nidx].projection_only = nodes[nidx].projection_only && only_projection_variables(edge);
     arguments.push_back(edge);
     nodes[nidx].degree++;
 }
@@ -434,7 +439,6 @@ int Pog::finish_node() {
 	    }
 	}
 	if (!retract) {
-	    // New node
 	    unique_table.insert({h, edge});
 	    pog_type_t type = get_type(edge);
 	    incr_count(type == POG_SUM ? COUNT_POG_SUM : COUNT_POG_PRODUCT);
@@ -574,31 +578,18 @@ void Pog::show_edge(FILE *outfile, int edge) {
 	    int clit = get_argument(edge, lid);
 	    fprintf(outfile, lid == 0 ? "%d" : ", %d", clit);
 	}
-	fprintf(outfile, ")\n");
+	fprintf(outfile, ")");
+	if (nodes[nidx].data_only)
+	    fprintf(outfile, "D");
+	if (nodes[nidx].projection_only)
+	    fprintf(outfile, "P");
+	fprintf(outfile, "\n");
     } else {
 
 	fprintf(outfile, "%sV%d\n", edge < 0 ? "-" : "", var);
     }
 }
 
-
-bool Pog::only_data_variables(int root, std::unordered_set<int> &data_variables) {
-    if (!is_node(root)) {
-	int var = get_var(root);
-	return data_variables.find(var) != data_variables.end();
-    }
-    std::set<int> visited;
-    visit(root, visited);
-    for (int edge : visited) {
-	int degree = get_degree(edge);
-	for (int i = 0; i < degree; i++) {
-	    int cvar = get_var(get_argument(edge, i));
-	    if (!is_node(cvar) && data_variables.find(cvar) == data_variables.end())
-		return false;
-	}
-    }
-    return true;
-}
 
 void Pog::visit(int edge, std::set<int> &visited) {
     if (!is_node(edge))
