@@ -211,6 +211,9 @@ int Project::traverse_sum(int edge) {
 	cr->bcp(false);
 	if (cr->is_satisfiable()) {
 	    int uroot = compile(true);
+	    if (uroot == CONFLICT) {
+		err(false, "Traversing edge %d.  Got conflict when compiled quantified formula\n", edge);
+	    }
 	    int xroot = traverse(uroot);
 	    pog->start_node(POG_SUM);
 	    pog->add_argument(-nedge1);

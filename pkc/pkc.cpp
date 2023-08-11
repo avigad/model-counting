@@ -110,6 +110,7 @@ static void stat_report(double elapsed) {
     lprintf("%s    SAT time               : %.2f\n", prefix, sat_time);
     lprintf("%s    Ring evaluation time   : %.2f\n", prefix, ring_time);
     lprintf("%s    Other time             : %.2f\n", prefix, elapsed-kc_time-sat_time-ring_time);
+    lprintf("%s    Total PKC time         : %.2f\n", prefix, elapsed-ring_time);
     lprintf("%s    Time TOTAL             : %.2f\n", prefix, elapsed);
 }
 
@@ -193,13 +194,13 @@ int main(int argc, char *const argv[]) {
     int result = run(start, cnf_name, pog_name, optlevel);
     stat_report(tod()-start);
     if (ucount != NULL) {
-	lprintf("%s  Unweighted count:", prefix);
+	lprintf("Unweighted count:");
 	q25_write(ucount, stdout);
 	lprintf("\n");
 	q25_free(ucount);
     }
     if (wcount != NULL) {
-	lprintf("%s  Weighted count:", prefix);
+	lprintf("Weighted count:");
 	q25_write(wcount, stdout);
 	lprintf("\n");
 	q25_free(wcount);
