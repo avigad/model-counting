@@ -152,7 +152,7 @@ static uint32_t q25_div_word(int id, uint32_t divisor) {
 }
 
 /* Take out multiples of n, where n = 2^p2 * 5^p5, and n <= RADIX */
-static void q25_reduce_multiple(int id, uint32_t p2, uint32_t p5, uint32_t n) {
+static void old_q25_reduce_multiple(int id, uint32_t p2, uint32_t p5, uint32_t n) {
     uint32_t word;
     while ((word = digit_buffer[id][0])  % n == 0) {
 	int pwr = 0;
@@ -168,6 +168,32 @@ static void q25_reduce_multiple(int id, uint32_t p2, uint32_t p5, uint32_t n) {
 	working_val[id].pwr5 += p5*pwr;
     }
 }
+
+/* Take out multiples of n, where n = 2^p2 * 5^p5, and n <= RADIX */
+static void q25_reduce_multiple(int id, uint32_t p2, uint32_t p5, uint32_t n) {
+    uint32_t word;
+    while ((word = digit_buffer[id][0])  % n == 0) {
+	int pwr = 0;
+	uint64_t scale = 1;
+	uint64_t rradix = Q25_RADIX;
+	uint64_t rword = word;
+	// Try expanding to two words.  Allows extracting more powers of two
+	if (working_val[id].dcount > 1) {
+	    rradix *= Q25_RADIX;
+	    rword += (uint64_t) Q25_RADIX * digit_buffer[id][1];
+	}
+	uint64_t nscale = scale * n;
+	while (nscale <= Q25_RADIX && rradix % nscale == 0 && rword % nscale == 0) {
+	    pwr ++;
+	    scale = nscale;
+	    nscale *= n;
+	}
+	q25_div_word(id, scale);
+	working_val[id].pwr2 += p2*pwr;
+	working_val[id].pwr5 += p5*pwr;
+    }
+}
+
 
 /* Take out as many multiples of 10 as possible.  Assume nonzero */
 static void q25_reduce10(int id) {
