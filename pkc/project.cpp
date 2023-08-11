@@ -261,9 +261,10 @@ int Project::traverse_product(int edge) {
 	}
     }
     if (cedges.size() > 0) {
-	if (cedges.size() == 1) 
+	if (cedges.size() == 1) {
 	    nargs.push_back(traverse(cedges[0]));
-	else {
+	    incr_count(COUNT_VISIT_MIXED_PRODUCT);
+	} else {
 	    std::unordered_set<int> vset;
 	    cr->bcp(true);
 	    for (int cedge : cedges) {
@@ -274,14 +275,16 @@ int Project::traverse_product(int edge) {
 		nargs.push_back(traverse(cedge));
 		cr->pop_context();
 	    }
+	    incr_count(COUNT_VISIT_PARTITION_PRODUCT);
 	}
-    }
+    } else {
+	incr_count(COUNT_VISIT_LITERAL_PRODUCT);
+    }	
     cr->pop_context();
     pog->start_node(POG_PRODUCT);
     for (int cedge : nargs)
 	pog->add_argument(cedge);
     int nedge = pog->finish_node();
     report(5, "Traversal of Product node %d yielded edge %d.\n", edge, nedge);
-    incr_count(COUNT_VISIT_PRODUCT);
     return nedge;
 }

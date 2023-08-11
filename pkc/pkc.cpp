@@ -86,13 +86,17 @@ static void stat_report(double elapsed) {
     lprintf("%s    KC POG AVG             : %.2f\n", prefix, pog_avg);
     lprintf("%s    KC POG MAX             : %d\n", prefix, pog_max);
 
-    lprintf("%s Node Traversal:\n", prefix);
-    int vp, vd, vm, ve;
-    lprintf("%s    Traverse Product       : %d\n", prefix, vp = get_count(COUNT_VISIT_PRODUCT));
-    lprintf("%s    Traverse Data Sum      : %d\n", prefix, vd = get_count(COUNT_VISIT_DATA_SUM));
-    lprintf("%s    Traverse Mutex Sum     : %d\n", prefix, vm = get_count(COUNT_VISIT_MUTEX_SUM));    
-    lprintf("%s    Traverse Excluding Sum : %d\n", prefix, ve = get_count(COUNT_VISIT_EXCLUDING_SUM));    
-    lprintf("%s    Traverse TOTAL         : %d\n", prefix, vp+vd+vm+ve);
+    lprintf("%s Node Traversals:\n", prefix);
+    int vpp, vpl, vpm, vp, vsd, vsm, vse, vs;
+    lprintf("%s         Literal Prod      : %d\n", prefix, vpl = get_count(COUNT_VISIT_LITERAL_PRODUCT));
+    lprintf("%s         Partition Prod    : %d\n", prefix, vpp = get_count(COUNT_VISIT_PARTITION_PRODUCT));
+    lprintf("%s         Mixed  Prod       : %d\n", prefix, vpm = get_count(COUNT_VISIT_MIXED_PRODUCT));
+    lprintf("%s       Total Product       : %d\n", prefix, vp = vpl+vpp+vpm);
+    lprintf("%s         Data Sum          : %d\n", prefix, vsd = get_count(COUNT_VISIT_DATA_SUM));
+    lprintf("%s         Mutex Sum         : %d\n", prefix, vsm = get_count(COUNT_VISIT_MUTEX_SUM));    
+    lprintf("%s         Excluding Su      : %d\n", prefix, vse = get_count(COUNT_VISIT_EXCLUDING_SUM));    
+    lprintf("%s       Total Sum           : %d\n", prefix, vs = vsd + vsm + vse);
+    lprintf("%s    Traverse TOTAL         : %d\n", prefix, vp+vs);
 
     lprintf("%s PKC Optimizations:\n", prefix);
     lprintf("%s    Simple KC              : %d\n", prefix, get_count(COUNT_SIMPLE_KC));
