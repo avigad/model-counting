@@ -1,0 +1,109 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track3_015.cnf -dDNNF -out=./mc2022_track3_015.nnf
+D4 LOG: Time limit 2000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 168
+c Number of clauses: 385
+c Number of literals: 1092
+c Preproc options: 
+c
+c Preproc time: 0.000274
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -1 
+c top 5: -1 -33 
+c top 5: -1 -33 -46 
+c top 5: -1 -33 -46 -69 
+c unitLits 1048577 4194308 Bytes
+c top 5: -1 -33 -46 69 
+c      16384 |       0.29 |      32750 |       8196 |      34630 |        562 |      89996 |     122879 |          0 |       8196 |        3948 |          0 | 
+c top 5: -1 -33 46 
+c top 5: -1 -33 46 -70 
+c top 5: -1 -33 46 70 
+c top 5: -1 33 
+c top 5: -1 33 -46 
+c top 5: -1 33 -46 -70 
+c top 5: -1 33 -46 70 
+c top 5: -1 33 46 
+c top 5: -1 33 46 -70 
+c top 5: -1 
+c top 5: -1 -158 
+c top 5: -1 -158 -159 
+c top 5: -1 -158 159 
+c top 5: -1 -158 
+c top 5: -1 158 
+c top 5: -1 158 
+c top 5: -1 158 -155 
+c top 5: -1 158 155 
+c top 5: 1 
+c top 5: 1 -46 
+c top 5: 1 -46 -17 
+c top 5: 1 -46 -17 -70 
+c      32768 |       0.45 |      55492 |      16388 |      55881 |        562 |     155872 |     211603 |          0 |      16388 |        4882 |          0 | 
+c top 5: 1 -46 -17 70 
+c top 5: 1 -46 17 
+c top 5: 1 -46 17 -70 
+c top 5: 1 46 
+c top 5: 1 46 -17 
+c top 5: 1 46 -17 -70 
+c top 5: 1 46 -17 70 
+c      49152 |       0.72 |      86938 |      24578 |      89232 |        562 |     237929 |     325141 |          0 |      24578 |        8279 |          0 | 
+c top 5: 1 46 17 
+c top 5: 1 46 17 -70 
+c top 5: 1 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 50799
+c Number of split formula: 90480
+c Number of decision node: 25399
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 27002
+c Number of backbone calls: 0
+c Number of partitioner calls: 8279
+c Average number of assigned literal to obtain decomposable AND nodes: 34.64/168
+c Minimum number of assigned variable where a decomposable AND appeared: 6
+c 
+c [33mGraph Information[0m
+c Number of nodes: 244187
+c Number of edges: 333064
+c 
+c [1m[34mCache Information[0m
+c Memory used: 562 MB
+c
+c Number of positive hit: 88593
+c Number of negative hit: 25399
+c Number of reduceCall: 0
+c
+c Final time: 0.733877
+c 
+c freeVariables 1048577
+s 0.000000
+D4 LOG: Elapsed time = 1.044 seconds
+D4 OUTCOME: normal
+mc2022_track3_015. D4 NNF: LOG: size ./mc2022_track3_015.nnf 193683 lines 3032027 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -p ./mc2022_track3_015.cnf ./mc2022_track3_015.nnf ./mc2022_track3_015.cpog
+GEN LOG: Time limit 2000 seconds
+c GEN: Time 0.00  Read input file with 167 variables and 385 clauses
+c Read D4 NNF file with 103203 nodes (52404 explicit) and 141279 edges
+c Compressed POG has 103160 nodes, root literal 103327, and 486684 defining clauses
+c POG has DAG size 486684 and tree size 15475668 ratio = 31.80
+c GEN: Time 0.22  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 0.223 seconds
+GEN OUTCOME: normal
+hybrid LOG: Elapsed time = 1.299 seconds
+hybrid OUTCOME: normal
