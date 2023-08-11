@@ -1,0 +1,194 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2023_track3_081.cnf -dDNNF -out=./mc2023_track3_081.nnf
+D4 LOG: Time limit 2000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 995
+c Number of clauses: 2444
+c Number of literals: 5692
+c Preproc options: 
+c
+c Preproc time: 0.000367
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -96 
+c top 5: -96 -347 
+c top 5: -96 -347 -609 
+c top 5: -96 -347 -609 -587 
+c unitLits 1048577 4194308 Bytes
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 -587 
+c top 5: -96 -347 -609 587 
+c top 5: -96 -347 -609 
+c top 5: -96 -347 -609 -73 
+c top 5: -96 -347 -609 73 
+c top 5: -96 -347 609 
+c top 5: -96 -347 609 -73 
+c      16384 |       0.43 |      14182 |       8200 |      14205 |        563 |     198657 |     214898 |          0 |       8199 |        2786 |          0 | 
+c top 5: -96 -347 609 73 
+c      32768 |       0.88 |      29662 |      16388 |      29081 |        563 |     411781 |     444677 |          0 |      16387 |        5242 |          0 | 
+c top 5: -96 347 
+c top 5: -96 347 -609 
+c top 5: -96 347 -609 -393 
+c top 5: -96 347 -609 393 
+c top 5: -96 347 
+c top 5: -96 347 -329 
+c top 5: -96 347 -329 -88 
+c top 5: -96 347 -329 88 
+c top 5: -96 347 329 
+c top 5: -96 347 329 -88 
+c top 5: -96 347 329 88 
+c top 5: 96 
+c top 5: 96 -609 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 -575 
+c top 5: 96 -609 -586 575 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 -586 
+c top 5: 96 -609 586 
+c top 5: 96 -609 586 484 
+c top 5: 96 -609 
+c top 5: 96 -609 
+c top 5: 96 609 
+c top 5: 96 609 -618 
+c top 5: 96 609 -618 -614 
+c top 5: 96 
+c top 5: 96 939 
+c top 5: -862 
+c top 5: -862 -846 
+c top 5: -862 -846 -838 
+c top 5: -862 -846 -838 -834 
+c freeVariables 1048577
+c top 5: -862 -846 -838 834 
+c top 5: -862 -846 838 
+c top 5: -862 -846 838 -842 
+c top 5: -862 -846 838 842 
+c top 5: -862 846 
+c top 5: -862 846 -854 
+c top 5: -862 846 -854 -850 
+c top 5: -862 846 -854 850 
+c top 5: -862 846 854 
+c top 5: -862 846 854 -858 
+c top 5: -862 846 854 858 
+c top 5: 862 
+c top 5: 862 -878 
+c top 5: 862 -878 -870 
+c top 5: 862 -878 -870 -866 
+c top 5: 862 -878 -870 866 
+c top 5: 862 -878 870 
+c top 5: 862 -878 870 -874 
+c top 5: 862 -878 870 874 
+c top 5: 862 878 
+c top 5: 862 878 -886 
+c top 5: 862 878 -886 -882 
+c top 5: 862 878 -886 882 
+c top 5: 862 878 886 
+c top 5: 862 878 886 -890 
+c top 5: 862 878 886 890 
+c top 5: -966 
+c top 5: -966 -984 
+c top 5: -966 -984 
+c top 5: -966 -984 -964 
+c top 5: -966 984 
+c top 5: -966 984 -989 
+c top 5: -966 984 -989 964 
+c top 5: 966 
+c top 5: 966 -984 
+c top 5: 966 -984 -960 
+c top 5: 966 -984 -960 967 
+c top 5: 966 -984 960 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 37857
+c Number of split formula: 34166
+c Number of decision node: 18928
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 14599
+c Number of backbone calls: 0
+c Number of partitioner calls: 6006
+c Average number of assigned literal to obtain decomposable AND nodes: 469.49/995
+c Minimum number of assigned variable where a decomposable AND appeared: 29
+c 
+c [33mGraph Information[0m
+c Number of nodes: 475554
+c Number of edges: 514049
+c 
+c [1m[34mCache Information[0m
+c Memory used: 568 MB
+c
+c Number of positive hit: 34655
+c Number of negative hit: 18929
+c Number of reduceCall: 0
+c
+c Final time: 1.017591
+c 
+s 0.000000
+D4 LOG: Elapsed time = 1.205 seconds
+D4 OUTCOME: normal
+mc2023_track3_081. D4 NNF: LOG: size ./mc2023_track3_081.nnf 105555 lines 3234120 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -p ./mc2023_track3_081.cnf ./mc2023_track3_081.nnf ./mc2023_track3_081.cpog
+GEN LOG: Time limit 2000 seconds
+c GEN: Time 0.00  Read input file with 995 variables and 2444 clauses
+c Read D4 NNF file with 71389 nodes (33531 explicit) and 72024 edges
+c Compressed POG has 70942 nodes, root literal 71937, and 618372 defining clauses
+c POG has DAG size 618372 and tree size 6454334 ratio = 10.44
+c GEN: Time 0.21  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 0.244 seconds
+GEN OUTCOME: normal
+hybrid LOG: Elapsed time = 1.470 seconds
+hybrid OUTCOME: normal
