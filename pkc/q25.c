@@ -157,9 +157,11 @@ static void q25_reduce_multiple(int id, uint32_t p2, uint32_t p5, uint32_t n) {
     while ((word = digit_buffer[id][0])  % n == 0) {
 	int pwr = 0;
 	uint64_t scale = 1;
-	while (scale <= Q25_RADIX && word % (scale * n) == 0) {
+	uint64_t nscale = scale * n;
+	while (nscale <= Q25_RADIX && Q25_RADIX % nscale == 0 && word % nscale == 0) {
 	    pwr ++;
-	    scale *= n;
+	    scale = nscale;
+	    nscale*= n;
 	}
 	q25_div_word(id, scale);
 	working_val[id].pwr2 += p2*pwr;

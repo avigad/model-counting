@@ -72,7 +72,7 @@ static void q25_init() {
     int id;
     for (id = 0; id < DCOUNT; id++) {
 	digit_allocated[id] = INIT_DIGITS;
-	digit_buffer[id] = calloc(INIT_DIGITS, sizeof(uint32_t));
+	digit_buffer[id] = (uint32_t *) calloc(INIT_DIGITS, sizeof(uint32_t));
 	digit_buffer[id][0] = 0;
 	working_val[id].valid = true;
 	working_val[id].pwr2 = 0;
@@ -121,7 +121,7 @@ static void q25_check(int id, unsigned dcount) {
     digit_allocated[id] *= 2;
     if (dcount > digit_allocated[id])
 	digit_allocated[id] = dcount;
-    digit_buffer[id] = realloc(digit_buffer[id], digit_allocated[id] * sizeof(uint32_t));
+    digit_buffer[id] = (uint32_t *) realloc(digit_buffer[id], digit_allocated[id] * sizeof(uint32_t));
 }
 
 // Clear specified number of digits in workspace.  And set as length
@@ -157,9 +157,11 @@ static void q25_reduce_multiple(int id, uint32_t p2, uint32_t p5, uint32_t n) {
     while ((word = digit_buffer[id][0])  % n == 0) {
 	int pwr = 0;
 	uint64_t scale = 1;
-	while (scale <= Q25_RADIX && word % (scale * n) == 0) {
+	uint64_t nscale = scale * n;
+	while (nscale <= Q25_RADIX && Q25_RADIX % nscale == 0 && word % nscale == 0) {
 	    pwr ++;
-	    scale *= n;
+	    scale = nscale;
+	    nscale*= n;
 	}
 	q25_div_word(id, scale);
 	working_val[id].pwr2 += p2*pwr;
@@ -225,7 +227,7 @@ static void q25_canonize(int id) {
 static q25_ptr q25_build(int id) {
     q25_canonize(id);
     size_t len = sizeof(q25_t) + (working_val[id].dcount - 1) * sizeof(uint32_t);
-    q25_ptr result = malloc(len);
+    q25_ptr result = (q25_ptr) malloc(len);
     if (result == NULL)
 	return NULL;
     result->valid = working_val[id].valid;
@@ -338,6 +340,8 @@ static void q25_show_internal(int id, FILE *outfile) {
 /**** Externally visible functions ****/
 
 void q25_free(q25_ptr q) {
+    if (q)
+	q->valid = false;
     free((void *) q);
 }
 
