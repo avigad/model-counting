@@ -1,0 +1,119 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track3_007.cnf -dDNNF -out=./mc2022_track3_007.nnf
+D4 LOG: Time limit 2000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 90
+c Number of clauses: 634
+c Number of literals: 2518
+c Preproc options: 
+c
+c Preproc time: 0.000143
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -32 
+c top 5: -32 -11 
+c top 5: -32 -11 -23 
+c top 5: -32 -11 -23 -18 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c      16384 |       0.17 |       9899 |       8204 |       8271 |        562 |     110594 |     123211 |          0 |       8197 |         826 |          0 | 
+c top 5: -32 -11 -23 18 
+c      32768 |       0.35 |      19971 |      16398 |      16549 |        562 |     235123 |     260332 |          0 |      16390 |        1704 |          0 | 
+c top 5: -32 -11 23 
+c top 5: -32 -11 23 -56 
+c top 5: -32 -11 23 56 
+c      49152 |       0.56 |      30218 |      24591 |      25351 |        562 |     370829 |     408983 |          0 |      24579 |        2841 |          0 | 
+c top 5: -32 11 
+c top 5: -32 11 -56 
+c top 5: -32 11 -56 -47 
+c      65536 |       0.75 |      41375 |      32786 |      35247 |        562 |     496705 |     548396 |          0 |      32773 |        3865 |          0 | 
+c top 5: -32 11 -56 47 
+c      81920 |       0.94 |      53238 |      40984 |      45725 |        562 |     624964 |     690422 |          0 |      40969 |        4842 |          0 | 
+c      98304 |       1.13 |      65680 |      49175 |      56886 |        562 |     750879 |     830513 |          0 |      49156 |        5968 |          0 | 
+c     114688 |       1.33 |      77527 |      57374 |      67016 |        562 |     880063 |     973256 |          0 |      57350 |        7071 |          0 | 
+c top 5: -32 11 56 
+c top 5: -32 11 56 -47 
+c     131072 |       1.51 |      89220 |      65566 |      76832 |        562 |     999440 |    1106018 |          0 |      65541 |        8076 |          0 | 
+c unitLits 2097153 8388612 Bytes
+c top 5: -32 11 56 47 
+c     147456 |       1.70 |     100012 |      73761 |      85564 |        574 |    1128199 |    1247609 |          0 |      73733 |        8950 |          0 | 
+c top 5: 32 
+c top 5: 32 -11 
+c top 5: 32 -11 -56 
+c top 5: 32 -11 -56 -77 
+c     163840 |       1.89 |     112656 |      81962 |      96500 |        574 |    1249122 |    1382584 |          0 |      81926 |       10043 |          0 | 
+c top 5: 32 -11 -56 77 
+c     180224 |       2.09 |     124477 |      90153 |     106383 |        574 |    1382475 |    1529383 |          0 |      90115 |       11129 |          0 | 
+c top 5: 32 -11 56 
+c top 5: 32 -11 56 -77 
+c     196608 |       2.29 |     136332 |      98348 |     116330 |        574 |    1511053 |    1671547 |          0 |      98310 |       12107 |          0 | 
+c top 5: 32 -11 56 77 
+c top 5: 32 11 
+c top 5: 32 11 -56 
+c top 5: 32 11 -56 -77 
+c     212992 |       2.48 |     148764 |     106545 |     127140 |        574 |    1641010 |    1815498 |          0 |     106504 |       13027 |          0 | 
+c     229376 |       2.67 |     161428 |     114738 |     138268 |        574 |    1767330 |    1955958 |          0 |     114693 |       14088 |          0 | 
+c top 5: 32 11 -56 77 
+c     245760 |       2.86 |     174348 |     122939 |     149758 |        574 |    1889110 |    2092087 |          0 |     122884 |       14985 |          0 | 
+c     262144 |       3.07 |     187211 |     131134 |     161034 |        574 |    2017831 |    2234989 |          0 |     131076 |       16206 |          0 | 
+c top 5: 32 11 56 
+c top 5: 32 11 56 -77 
+c unitLits 3145729 12582916 Bytes
+c     278528 |       3.28 |     199826 |     139329 |     171904 |        574 |    2147259 |    2378479 |          0 |     139269 |       17239 |          0 | 
+c top 5: 32 11 56 77 
+c     294912 |       3.46 |     212004 |     147519 |     182107 |        574 |    2265267 |    2510040 |          0 |     147459 |       18170 |          0 | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 299067
+c Number of split formula: 184863
+c Number of decision node: 149533
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 86068
+c Number of backbone calls: 0
+c Number of partitioner calls: 18389
+c Average number of assigned literal to obtain decomposable AND nodes: 75.15/90
+c Minimum number of assigned variable where a decomposable AND appeared: 41
+c 
+c [33mGraph Information[0m
+c Number of nodes: 2297312
+c Number of edges: 2545640
+c 
+c [1m[34mCache Information[0m
+c Memory used: 574 MB
+c
+c Number of positive hit: 215198
+c Number of negative hit: 149593
+c Number of reduceCall: 0
+c
+c Final time: 3.502978
+c 
+s 0.000000
+D4 LOG: Elapsed time = 4.637 seconds
+D4 OUTCOME: normal
+mc2022_track3_007. D4 NNF: LOG: size ./mc2022_track3_007.nnf 719654 lines 16405720 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -p ./mc2022_track3_007.cnf ./mc2022_track3_007.nnf ./mc2022_track3_007.cpog
+GEN LOG: Time limit 2000 seconds
+c GEN: Time 0.00  Read input file with 90 variables and 634 clauses
+c Read D4 NNF file with 534791 nodes (235664 explicit) and 483990 edges
+c Compressed POG has 505765 nodes, root literal 505855, and 3273971 defining clauses
+c POG has DAG size 3273971 and tree size 9495876 ratio = 2.90
+c GEN: Time 1.29  Generated POG representation
+c GEN: POG created.  Exiting
+GEN LOG: Elapsed time = 1.329 seconds
+GEN OUTCOME: normal
+hybrid LOG: Elapsed time = 6.096 seconds
+hybrid OUTCOME: normal
