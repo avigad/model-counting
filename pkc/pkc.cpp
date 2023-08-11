@@ -9,10 +9,11 @@
 
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-k] [-v VLEVEL] [-O OPT] [-b BLIM] FORMULA.cnf [FORMULA.pog]\n", name);
+    lprintf("Usage: %s [-h] [-k] [-v VLEVEL] [-L LOG] [-O OPT] [-b BLIM] FORMULA.cnf [FORMULA.pog]\n", name);
     lprintf("  -h          Print this information\n");
     lprintf("  -k          Keep intermdiate files\n");
     lprintf("  -v VERB     Set verbosity level\n");
+    lprintf("  -L LOG      Record all results to file LOG\n");
     lprintf("  -O OPT      Select optimization level: 0 None, 1 +Simple KC, 2 +Reuse, 3 +Analyze vars, 4 +Pure literal\n");
     lprintf("  -b BLIM     Limit iterations of Boolean constraint propagation\n");
 }
@@ -146,7 +147,7 @@ int main(int argc, char *const argv[]) {
     int bcp_limit = 0;
     bool keep = false;
     int c;
-    while ((c = getopt(argc, argv, "hkv:O:b:")) != -1) {
+    while ((c = getopt(argc, argv, "hkv:L:O:b:")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -156,6 +157,9 @@ int main(int argc, char *const argv[]) {
 	    break;
 	case 'k':
 	    keep = true;
+	    break;
+	case 'L':
+	    set_logname(optarg);
 	    break;
 	case 'O':
 	    optlevel = atoi(optarg);
