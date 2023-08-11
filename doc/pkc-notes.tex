@@ -425,7 +425,8 @@ The traversal is defined based on the recursive structure of its first argument:
 \item[Literals:]
   $\traverse(\lit, \phi) = \lit$ if $\dependencyset(\lit) \subseteq \dvarset$, and $\traverse(\lit, \phi) = \tautology$ if $\dependencyset(\lit) \in \pvarset$.
 \item[Product Operations:]
-  Let the operation be of the form $P(\lit_1, \lit_2, \ldots, \lit_k, \psi_1, \psi_2, \ldots, \psi_m)$, where each $\psi_i$ is either a sum or a  product operation.
+  Let the operation be of the form $P(\lit_1, \lit_2, \ldots, \lit_k, \psi_1, \psi_2, \ldots, \psi_m)$, where each $\lit_i$ is a literal,
+  and each $\psi_i$ is either a sum or a  product operation.
   \begin{enumerate}
   \item Let $L = \{\lit_1, \lit_2, \ldots, \lit_k\}$.
   \item Define clausal formula $\phi'$ to be $\bcp(\simplify{\phi}{L})$
@@ -475,23 +476,22 @@ $S(\psi'_1, \neg S(\neg \psi'_2, \psi_{\forall}))$.
 We can improve the efficiency of the traversal by applying the following optimizations:
 \begin{itemize}
 \item Only data variables in $\psi$.  If $\dependencyset(\psi) \subseteq \dvarset$, then $\traverse(\psi, \phi) = \psi$.
-\item Only data variables in $\phi$.  If $\dependencyset(\phi) \subseteq \dvarset$, then $\traverse(\psi, \phi) = \kc(\phi)$.
-\item Only projection variables in $\phi$.  If $\dependencyset(\phi) \subseteq \pvarset$, then $\traverse(\psi, \phi) = \tautology$ if formula $\phi$ is satisfiable and $\nil$ otherwise.
-\item Cached result. If $\psi$ is a sum operation and some previous traversal had the same clausal formula $\phi$ as its second argument, then the previously computed result can be reused.\footnote{
-Caching for product operations is not, in general valid, since the two recursive calls made when processing a sum operation can be for product operations with the same clausal argument.}
-\item Pure literal reduction.
-Literal $\lit$ is said to be \emph{pure} in $\phi$ if some clause in $\phi$ contains $\lit$, and no clause in $\phi$ contains  $\obar{\lit}$.
-Let $\pure(\phi)$ denote the set of all pure literals in $\phi$, and $\pure_{\pvarset}(\phi) = \{ \lit \in \pure(\phi) \mid  \dependencyset(\lit) \subseteq \pvarset \}$.
-If $\pure_{\pvarset}(\phi) \not = \emptyset$, then $\phi$ can be reduced as
- $\phi \leftarrow \cfilter(\phi, \pure_{\pvarset})$.  Eliminating clauses can cause other literals to become pure, and so this reduction should be iterated until no pure literals remain.
+%%\item Only data variables in $\phi$.  If $\dependencyset(\phi) \subseteq \dvarset$, then $\traverse(\psi, \phi) = \kc(\phi)$.
+\item Only projection variables in $\psi$.  If $\dependencyset(\psi) \subseteq \pvarset$, then $\traverse(\psi, \phi) = \tautology$ if formula $\phi$ is satisfiable and $\nil$ otherwise.
+\item Cached result. If $\psi$ was an argument to a previous call to $\traverse$, then the previously computed result can be reused.
+%%\item Pure literal reduction.
+%%Literal $\lit$ is said to be \emph{pure} in $\phi$ if some clause in $\phi$ contains $\lit$, and no clause in $\phi$ contains  $\obar{\lit}$.
+%%Let $\pure(\phi)$ denote the set of all pure literals in $\phi$, and $\pure_{\pvarset}(\phi) = \{ \lit \in \pure(\phi) \mid  \dependencyset(\lit) \subsete%%q \pvarset \}$.
+%%If $\pure_{\pvarset}(\phi) \not = \emptyset$, then $\phi$ can be reduced as
+%% $\phi \leftarrow \cfilter(\phi, \pure_{\pvarset})$.  Eliminating clauses can cause other literals to become pure, and so this reduction should be iterate%%d until no pure literals remain.
 \end{itemize}
 
-The first two termination rules have some subtle differences.  For the
-unoptimized version of $\traverse$, the arguments will always satisfy
-$\dependencyset(\psi) \subseteq \dependencyset(\phi)$.  However, 
-pure literal reduction can eliminate some literals from $\phi$
-that remain in $\psi$, and so the two sets of variables can become
-incomparable.  When both rules are applicable, it is more efficient to use the first, since it avoids an invocation of $\kc$.
+%% The first two termination rules have some subtle differences.  For the
+%% unoptimized version of $\traverse$, the arguments will always satisfy
+%% $\dependencyset(\psi) \subseteq \dependencyset(\phi)$.  However, 
+%% pure literal reduction can eliminate some literals from $\phi$
+%% that remain in $\psi$, and so the two sets of variables can become
+%% incomparable.  When both rules are applicable, it is more efficient to use the first, since it avoids an invocation of $\kc$.
 
 \section{Partitioned-Operation Graphs (POGs)}
 
