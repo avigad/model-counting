@@ -463,12 +463,22 @@ void Clausal_reasoner::assign_literal(int lit, bool bcp) {
 }
 
 void Clausal_reasoner::quantify(int var) {
+    if (var <= 0) {
+	err(true, "Can't quantify variable %d\n", var);
+    }
     if (unit_literals.find(var) != unit_literals.end()) {
 	//	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, var);
     } else if (unit_literals.find(-var) != unit_literals.end()) {
 	//	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, -var);
     } else if (quantified_variables.find(var) != quantified_variables.end()) {
 	err(false, "Attempt to quantify variable %d even already quantified\n", var);
+	lprintf("Currently quantified variables:\n");
+	for (int qvar : quantified_variables) {
+	    lprintf(" %d", qvar);
+	}
+	lprintf("\n");
+	err(true, "Fatal\n");
+
     } else {
 	quantified_variables.insert(var);
 	uquant_trail.push_back(var);
@@ -479,6 +489,7 @@ void Clausal_reasoner::quantify(int var) {
 // May require multiple iterations
 void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
     int added = true;
+    int osize = vset.size();
     std::vector<int> others;
     while (added) {
 	added = false;
@@ -488,7 +499,7 @@ void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
 	    int len = cnf->clause_length(cid);
 	    for (int lid = 0; lid < len; lid++) {
 		int lit = cnf->get_literal(cid, lid);
-		if (unit_literals.find(-lit) != unit_literals.end())
+		if (skip_literal(lit))
 		    continue;
 		int var = IABS(lit);
 		if (vset.find(var) == vset.end())
@@ -503,6 +514,9 @@ void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
 		vset.insert(var);
 	}
     }
+    int nsize = vset.size();
+    if (nsize > osize)
+	report(3, "  Partition variables expanded from %d to %d\n", osize, nsize);
 }
 
 
@@ -516,9 +530,9 @@ void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
 	int include = false;
 	for (int lid = 0; !include && lid < len; lid++) {
 	    int lit = cnf->get_literal(cid, lid);
-	    int var = IABS(lit);
-	    if (unit_literals.find(-lit) != unit_literals.end())
+	    if (skip_literal(lit))
 		continue;
+	    int var = IABS(lit);
 	    include = vset.find(var) != vset.end();
 	}
 	if (include)
@@ -526,7 +540,7 @@ void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
 	else
 	    deactivate_clause(cid);
     }
-    report(3, "Partition %d/%d active clauses\n",
+    report(3, "  Partition %d/%d active clauses\n",
 	   next_active_clauses->size(), curr_active_clauses->size());
     auto tmp = curr_active_clauses;
     curr_active_clauses = next_active_clauses;
@@ -547,7 +561,7 @@ bool Clausal_reasoner::check_simple_kc(std::vector<int> &clause_chunks) {
 	int len = cnf->clause_length(cid);
 	for (int lid = 0; lid < len; lid++) {
 	    int lit = cnf->get_literal(cid, lid);
-	    if (unit_literals.find(-lit) != unit_literals.end())
+	    if (skip_literal(lit))
 		continue;
 	    int var = IABS(lit);
 	    if (vset.find(var) != vset.end()) {
@@ -575,15 +589,12 @@ int Clausal_reasoner::propagate_clause(int cid) {
     int result = CONFLICT;
     for (int lid = 0; lid < len; lid++) {
 	int lit = cnf->get_literal(cid, lid);
-	int var = IABS(lit);
-	if (quantified_variables.find(var) != quantified_variables.end())
+	if (skip_literal(lit))
 	    continue;
 	else if (unit_literals.find(lit) != unit_literals.end()) {
 	    result = TAUTOLOGY;
 	    break;
-	} else if (unit_literals.find(-lit) != unit_literals.end())
-	    continue;
-	else if (result == CONFLICT)
+	} else if (result == CONFLICT)
 	    result = lit;
 	else {
 	    result = 0;
@@ -651,9 +662,7 @@ cnf_archive_t Clausal_reasoner::extract() {
 	int len = cnf->clause_length(ocid);
 	for (int lid = 0; lid < len; lid++) {
 	    int lit = cnf->get_literal(ocid, lid);
-	    int var = IABS(lit);
-	    if (unit_literals.find(-lit) == unit_literals.end() &&
-		quantified_variables.find(var) == quantified_variables.end())
+	    if (!skip_literal(lit))
 		add_literal(varx, lit);
 	}
     }
@@ -668,9 +677,7 @@ bool Clausal_reasoner::write(FILE *outfile) {
 	int len = cnf->clause_length(ocid);
 	for (int lid = 0; lid < len; lid++) {
 	    int lit = cnf->get_literal(ocid, lid);
-	    int var = IABS(lit);
-	    if (unit_literals.find(-lit) == unit_literals.end() &&
-		quantified_variables.find(var) == quantified_variables.end())
+	    if (!skip_literal(lit))
 		fprintf(outfile, "%d ", lit); 
 	}
 	fprintf(outfile, "0\n");

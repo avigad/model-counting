@@ -267,6 +267,7 @@ int Project::traverse_product(int edge) {
 	} else {
 	    std::unordered_set<int> vset;
 	    cr->bcp(true);
+	    report(3, "Processing %d partitions\n", cedges.size());
 	    for (int cedge : cedges) {
 		cr->new_context();
 		vset.clear();

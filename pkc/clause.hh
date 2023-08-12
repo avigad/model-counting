@@ -169,6 +169,11 @@ class Clausal_reasoner {
 
  private:
 
+    // Can ignore this literal
+    bool skip_literal(int lit) { 
+	return unit_literals.find(-lit) != unit_literals.end() || 
+	    quantified_variables.find(IABS(lit)) != quantified_variables.end(); }
+
     int propagate_clause(int cid);
     // Return true if unpropagated unit literals remain
     bool unit_propagate();

@@ -374,6 +374,14 @@ int Pog::get_decision_variable(int edge) {
 		return get_var(lit1);
 	}
     }
+    err(false, "Couldn't get decision variable for edge %d\n", edge);
+    lprintf("Edge: ");
+    show_edge(stdout, edge);
+    lprintf("Edge1: ");
+    show_edge(stdout, edge1);
+    lprintf("Edge2: ");
+    show_edge(stdout, edge2);
+    err(true, "FATAL\n");
     return 0;
 }
 
@@ -466,14 +474,12 @@ int Pog::build_disjunction(std::vector<int> &args, bool normal_form) {
 	nedge = args[0];
 	for (int i = 1; i < args.size(); i++) {
 	    start_node(POG_PRODUCT);
-	    // Negate previous literals
-	    for (int j = 0; j < i; j++)
-		add_argument(-args[j]);
-	    add_argument(args[i]);
-	    int prod = finish_node();
-	    start_node(POG_SUM);
 	    add_argument(nedge);
-	    add_argument(prod);
+	    add_argument(-args[i]);
+	    int pedge = finish_node();
+	    start_node(POG_SUM);
+	    add_argument(pedge);
+	    add_argument(args[i]);
 	    nedge = finish_node();
 	}
     } else {
