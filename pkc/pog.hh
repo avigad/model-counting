@@ -7,6 +7,8 @@
 #include <map>
 #include "clause.hh"
 
+#define MAX_VARIABLE 100 * 1000 * 1000
+
 typedef enum { POG_NONE, POG_PRODUCT, POG_SUM, POG_NUM } pog_type_t;
 
 // A POG edge is an integer, where the sign indicates whether it is

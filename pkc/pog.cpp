@@ -217,7 +217,7 @@ Nnf::Nnf(int n, FILE *infile) {
     }
     if (root_id == 0)
 	err(true, "Failed to find root node in NNF file\n");
-    report(3, "Read D4 NNF file with %d nodes (%d explicit) and %d edges\n",
+    report(4, "Read D4 NNF file with %d nodes (%d explicit) and %d edges\n",
 	   nnf_node_count, nnf_explicit_node_count, nnf_edge_count);
 }
 
@@ -288,6 +288,8 @@ static unsigned pog_hash[POG_NUM];
 
 static void init_hash(int val) {
     int var = IABS(val);
+    if (var > MAX_VARIABLE)
+	err(true, "Attempt to create variable %d exceeds maximum of %d\n", var, MAX_VARIABLE);
     if (var_hash.size() == 0) {
 	// Initialization
 	initstate(1, hash_state, STATE_BYTES);
@@ -386,6 +388,8 @@ int Pog::get_decision_variable(int edge) {
 }
 
 void Pog::start_node(pog_type_t type) {
+    if (type != POG_PRODUCT && type != POG_SUM)
+	err(true, "Trying to create node of unknown type %d\n", (int) type);
     // Create prototype node at end of list of nodes.  May retract later
     int nidx = nodes.size();
     nodes.resize(nidx + 1);
@@ -399,6 +403,14 @@ void Pog::start_node(pog_type_t type) {
 void Pog::add_argument(int edge) {
     int nidx = nodes.size()-1;
     pog_type_t type = nodes[nidx].type;
+    int degree = nodes[nidx].degree;
+    // See if already have dominating value
+    if (degree == 1) {
+    	int offset = nodes[nidx].offset;
+    	int cedge = arguments[offset];
+    	if (type == POG_PRODUCT && cedge == CONFLICT || type == POG_SUM && cedge == TAUTOLOGY)
+    	    return;
+    }
     // Don't add non-dominating constants
     if (type == POG_PRODUCT && edge == TAUTOLOGY || type == POG_SUM && edge == CONFLICT)
 	return;
@@ -620,7 +632,8 @@ void Pog::get_variables(int root, std::unordered_set<int> &vset) {
 	int degree = get_degree(edge);
 	for (int i = 0; i < degree; i++) {
 	    int cvar = get_var(get_argument(edge, i));
-	    vset.insert(cvar);
+	    if (!is_node(cvar))
+		vset.insert(cvar);
 	}
     }
 }

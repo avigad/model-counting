@@ -43,15 +43,14 @@ File_manager::File_manager() {
 
 // Use file name to construct root for temporary names
 void File_manager::set_root(const char *fname) {
-    strncpy(buf, fname, strlen(fname));
+    snprintf(buf, 10+strlen(fname), "zzzz-%s", fname);
     // Chop off extension
-    int pos = strlen(fname)-1;
+    int pos = strlen(buf)-1;
     while (pos >= 0 && buf[pos] != '.')
 	pos--;
-    if (pos > 0) {
-	snprintf(buf+pos, 5, "-xxxxx");
-	root = archive_string(buf);
-    }
+    if (pos > 0)
+	buf[pos] = '\0';
+    root = archive_string(buf);
 }
 
 const char *File_manager::build_name(const char *extension, bool new_sequence) {
@@ -393,33 +392,62 @@ Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
     cnf = icnf;
     // Set up active clauses
     has_conflict = false;
-    curr_active_clauses = new std::set<int>;
-    next_active_clauses = new std::set<int>;
     for (int cid = 1; cid <= cnf->clause_count(); cid++)
-	curr_active_clauses->insert(cid);
+	active_clauses.insert(cid);
     new_context();
     bcp_step_limit = 0; // Unlimited
+    trace_variable = 0;
+    context_level = 0;
 }
 
 Clausal_reasoner::~Clausal_reasoner() {
-    delete curr_active_clauses;
-    delete next_active_clauses;
 }
 
 void Clausal_reasoner::new_context() {
-    unit_trail.push_back(0);
+    unit_trail.push_back({0,false,false});
     uquant_trail.push_back(0);
-    deactivated_clauses.push_back(0);
+    clause_trail.push_back(0);
+    context_level++;
+    report(3, "Context level incremented to %d\n", context_level);
 }
 
 void Clausal_reasoner::pop_context() {
+    has_conflict = false;
+
     while (true) {
-	int lit = unit_trail.back();
+	utrail_ele ute = unit_trail.back();
+	int lit = ute.lit;
+	int var = IABS(lit);
 	unit_trail.pop_back();
 	if (lit == 0)
 	    break;
-	unit_literals.erase(lit);
-	bcp_unit_literals.erase(lit);
+	bool is_unit = unit_literals.find(lit) != unit_literals.end();
+	bool is_bcp_unit = bcp_unit_literals.find(lit) != bcp_unit_literals.end();
+	//	report(4, "Popped UTE %d, unit %s --> %s, bcp_unit = %s --> %s\n",
+	//	       lit,
+	//	       is_unit ? "true" : "false",
+	//	       ute.was_unit ? "true" : "false",
+	//	       is_bcp_unit ? "true" : "false",
+	//	       ute.was_bcp_unit ? "true" : "false");
+	if (is_unit != ute.was_unit) {
+	    if (is_unit) {
+		unit_literals.erase(lit);
+		report(var == trace_variable ? 1 : 4, "Context level %d: Unassigning unit literal %d\n", context_level, lit);
+	    } else {
+		unit_literals.insert(lit);
+		report(var == trace_variable ? 1 : 4, "Context level %d: Reassigning unit literal %d\n", context_level, lit);
+
+	    }
+	}
+	if (is_bcp_unit != ute.was_bcp_unit) {
+	    if (is_bcp_unit) {
+		bcp_unit_literals.erase(lit);
+		report(var == trace_variable ? 1 : 4, "Context level %d: Unassigning BCP unit literal %d\n", context_level, lit);
+	    } else {
+		bcp_unit_literals.insert(lit);
+		report(var == trace_variable ? 1 : 4, "Context level %d: Reassigning BCP unit literal %d\n", context_level, lit);
+	    }
+	}
     }
     while (true) {
 	int var = uquant_trail.back();
@@ -429,36 +457,101 @@ void Clausal_reasoner::pop_context() {
 	quantified_variables.erase(var);
     }
     while (true) {
-	int cid = deactivated_clauses.back();
-	deactivated_clauses.pop_back();
+	int cid = clause_trail.back();
+	clause_trail.pop_back();
 	if (cid == 0)
 	    break;
-	curr_active_clauses->insert(cid);
+	active_clauses.insert(cid);
     }
+    context_level--;
+    report(3, "Context level decremented to %d\n", context_level);
 }
 
+// Mark clause for deactivation once iterator completes
+// Clause is no longer considered part of clausal state
 void Clausal_reasoner::deactivate_clause(int cid) {
-    deactivated_clauses.push_back(cid);
+    active_clauses.erase(cid);
+    clause_trail.push_back(cid);
 }
 
+void Clausal_reasoner::deactivate_clauses(std::vector<int> &remove) {
+    for (int cid : remove)
+	deactivate_clause(cid);
+}
+
+
+// Mark clause for deactivation once iterator completes
+// Its unit clause is no longer considered part of clausal state
+void Clausal_reasoner::deactivate_bcp_unit_literal(int lit) {
+    bcp_unit_literals.erase(lit);
+    unit_trail.push_back({lit,true,true});
+    int var = IABS(lit);
+    report(var == trace_variable ? 1 : 4, "Context level %d: Deactivating BCP unit literal %d\n", context_level, lit);
+}
+
+void Clausal_reasoner::deactivate_bcp_unit_literals(std::vector<int> &remove) {
+    for (int lit : remove)
+	deactivate_bcp_unit_literal(lit);
+}
+
+void Clausal_reasoner::trigger_conflict() {
+    report(3, "Conflict triggered\n");
+    has_conflict = true;
+    return;
+
+    // Revised.  Don't try to fix up the clausal state. It will just get undone
+    std::vector<int> remove;
+    for (int cid : active_clauses)
+	remove.push_back(cid);
+    deactivate_clauses(remove);
+    remove.clear();
+    for (int lit : bcp_unit_literals)
+	remove.push_back(lit);
+    deactivate_bcp_unit_literals(remove);
+
+}
 
 void Clausal_reasoner::assign_literal(int lit, bool bcp) {
+    if (lit == 0) {
+	err(true, "Can't assign literal %d\n", lit);
+    }
     int var = IABS(lit);
-    unit_literals.insert(lit);
-    if (bcp)
+    bool was_unit = unit_literals.find(lit) != unit_literals.end();
+    bool was_bcp_unit = bcp_unit_literals.find(lit) != bcp_unit_literals.end();
+
+    // Should not be a quantified variable
+    if (quantified_variables.find(var) != quantified_variables.end()) {
+	err(false, "Attempt to assign literal %d even though variable already quantified\n", lit);
+	lprintf("Currently quantified variables:\n");
+	for (int qvar : quantified_variables) {
+	    lprintf(" %d", qvar);
+	}
+	lprintf("\n");
+	err(true, "Fatal\n");
+    }
+
+    if (unit_literals.find(-lit) != unit_literals.end()) {
+	int var = IABS(lit);
+	report(var == trace_variable ? 1 : 4, "Context level %d: Assigning literal %d by %s triggering conflict\n",
+	       context_level, lit, bcp ? "BCP" : "assignment");
+	trigger_conflict();
+    }
+    else if (bcp) {
+	if (was_unit)
+	    err(false, "Attempt to set literal %d by BCP that is unit\n", lit);
+	report(var == trace_variable ? 1 : 4, "Context level %d: Setting literal %d by BCP\n", context_level, lit);
+	unit_literals.insert(lit);
 	bcp_unit_literals.insert(lit);
-    unit_trail.push_back(lit);
-    if (unit_literals.find(lit) != unit_literals.end()) {
-	//	err(false, "Attempt to assign literal %d that is unit\n", lit);
-    } else if (unit_literals.find(-lit) != unit_literals.end()) {
-	//	err(false, "Attempt to assign literal %d for which its negation is unit\n", lit);
-	has_conflict = true;
-	for (int cid : *curr_active_clauses)
-	    deactivate_clause(cid);
-	curr_active_clauses->clear();
-	
-    } else if (quantified_variables.find(var) != quantified_variables.end()) {
-	//	err(false, "Attempt to assign literal %d even though variable quantified\n", lit);
+	unit_trail.push_back({lit,was_unit,was_bcp_unit});
+    } else {
+	if (was_bcp_unit)
+	    bcp_unit_literals.erase(lit);
+	else if (was_unit)
+	    err(false, "Attempt to assign literal %d that is already assigned\n", lit);
+	report(var == trace_variable ? 1 : 4, "Context level %d: Setting literal %d by assignment (was_bcp = %s)\n", context_level, lit,
+	       was_bcp_unit ? "true" : "false");
+	unit_literals.insert(lit);
+	unit_trail.push_back({lit,was_unit,was_bcp_unit});
     }
 }
 
@@ -466,23 +559,16 @@ void Clausal_reasoner::quantify(int var) {
     if (var <= 0) {
 	err(true, "Can't quantify variable %d\n", var);
     }
-    if (unit_literals.find(var) != unit_literals.end()) {
-	//	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, var);
-    } else if (unit_literals.find(-var) != unit_literals.end()) {
-	//	err(false, "Attempt to quantify variable %d, but literal %d is unit\n", var, -var);
-    } else if (quantified_variables.find(var) != quantified_variables.end()) {
-	err(false, "Attempt to quantify variable %d even already quantified\n", var);
-	lprintf("Currently quantified variables:\n");
-	for (int qvar : quantified_variables) {
-	    lprintf(" %d", qvar);
-	}
-	lprintf("\n");
-	err(true, "Fatal\n");
-
-    } else {
-	quantified_variables.insert(var);
-	uquant_trail.push_back(var);
+    report(var == trace_variable ? 1 : 4, "Context level %d: Quantifying variable %d\n", context_level, var);
+    for (int phase = -1; phase <= 1; phase += 2) {
+	int lit = phase * var;
+	if (bcp_unit_literals.find(lit) != unit_literals.end())
+	    deactivate_bcp_unit_literal(lit);
+	else if (unit_literals.find(lit) != unit_literals.end())
+		err(false, "Attempt to quantify variable %d, but literal %d already assigned\n", var, lit);
     }
+    quantified_variables.insert(var);
+    uquant_trail.push_back(var);
 }
 
 // Expand set of variables to include those that co-occur in clauses with given variables
@@ -493,12 +579,16 @@ void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
     std::vector<int> others;
     while (added) {
 	added = false;
-	for (int cid : *curr_active_clauses) {
+	for (int cid : active_clauses) {
 	    bool existing = false;
 	    others.clear();
 	    int len = cnf->clause_length(cid);
 	    for (int lid = 0; lid < len; lid++) {
 		int lit = cnf->get_literal(cid, lid);
+		if (unit_literals.find(lit) != unit_literals.end()) {
+		    existing = false;
+		    break;
+		}
 		if (skip_literal(lit))
 		    continue;
 		int var = IABS(lit);
@@ -507,11 +597,11 @@ void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
 		else
 		    existing = true;
 	    }
-	    if (!existing || others.size() == 0)
-		continue;
-	    added = true;
-	    for (int var : others)
-		vset.insert(var);
+	    if (existing && others.size() > 0) {
+		added = true;
+		for (int var : others)
+		    vset.insert(var);
+	    }
 	}
     }
     int nsize = vset.size();
@@ -524,8 +614,10 @@ void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
 void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
     // Make sure that have all variables in partition
     expand_partition(vset);
-    next_active_clauses->clear();
-    for (int cid : *curr_active_clauses) {
+    std::vector<int> remove;
+    int ocsize = active_clauses.size();
+    int obsize = bcp_unit_literals.size();
+    for (int cid : active_clauses) {
 	int len = cnf->clause_length(cid);
 	int include = false;
 	for (int lid = 0; !include && lid < len; lid++) {
@@ -535,16 +627,19 @@ void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
 	    int var = IABS(lit);
 	    include = vset.find(var) != vset.end();
 	}
-	if (include)
-	    next_active_clauses->insert(cid);
-	else
-	    deactivate_clause(cid);
+	if (!include)
+	    remove.push_back(cid);
     }
-    report(3, "  Partition %d/%d active clauses\n",
-	   next_active_clauses->size(), curr_active_clauses->size());
-    auto tmp = curr_active_clauses;
-    curr_active_clauses = next_active_clauses;
-    next_active_clauses = tmp;
+    deactivate_clauses(remove);
+    remove.clear();
+    for (int lit : bcp_unit_literals) {
+	if (vset.find(lit) == vset.end())
+	    remove.push_back(lit);
+    }
+    deactivate_bcp_unit_literals(remove);
+    report(3, "  Partition %d/%d active clauses, %d/%d BCP unit literals\n",
+	   active_clauses.size(), ocsize,
+	   bcp_unit_literals.size(), obsize);
 }
 
 
@@ -557,7 +652,7 @@ bool Clausal_reasoner::check_simple_kc(std::vector<int> &clause_chunks) {
     for (int lit : bcp_unit_literals)
 	vset.insert(IABS(lit));
     bool ok = true;
-    for (int cid : *curr_active_clauses) {
+    for (int cid : active_clauses) {
 	int len = cnf->clause_length(cid);
 	for (int lid = 0; lid < len; lid++) {
 	    int lit = cnf->get_literal(cid, lid);
@@ -578,8 +673,7 @@ bool Clausal_reasoner::check_simple_kc(std::vector<int> &clause_chunks) {
 	    clause_chunks.push_back(lit);
 	    clause_chunks.push_back(0);
 	}
-    } else
-	clause_chunks.clear();
+    }
     return ok;
 }
 
@@ -608,56 +702,52 @@ int Clausal_reasoner::propagate_clause(int cid) {
 // Return true if unpropagated unit literal remains.
 // Update next active clauses
 bool Clausal_reasoner::unit_propagate() {
-    next_active_clauses->clear();
     bool new_unit = false;
-    for (int cid : *curr_active_clauses) {
-	if (has_conflict) {
-	    deactivate_clause(cid);
-	    continue;
-	}
+    std::vector<int> remove;
+    for (int cid : active_clauses) {
 	int rval = propagate_clause(cid);
 	if (rval == CONFLICT) {
-	    // Reduce to single conflict clause
+	    report(4, "Context level %d: Unit propagation finds conflict at clause #%d\n", context_level, cid);
 	    has_conflict = true;
-	    for (int ccid : *next_active_clauses)
-		deactivate_clause(ccid);
-	    next_active_clauses->clear();
-	    new_unit = false;
-	} else if (rval == 0) {
-	    next_active_clauses->insert(cid);
-	} else if (rval == TAUTOLOGY) {
-	    deactivate_clause(cid);
-	} else {
+	    break;
+	} else if (rval == 0)
+	    continue;
+	else if (rval == TAUTOLOGY)
+	    remove.push_back(cid);
+	else {
 	    // Derived unit literal
-	    assign_literal(rval, true);
-	    deactivate_clause(cid);
+	    assign_literal(rval, true);	    
+	    remove.push_back(cid);
 	    new_unit = true;
 	}
     }
-    auto tmp = curr_active_clauses;
-    curr_active_clauses = next_active_clauses;
-    next_active_clauses = tmp;
+    if (has_conflict) {
+	trigger_conflict();
+	new_unit = false;
+    } else 
+	deactivate_clauses(remove);
     return new_unit;
 }
 
-bool Clausal_reasoner::bcp(bool full) {
-    for (int step = 1; full || bcp_step_limit == 0 || step < bcp_step_limit; step++) {
+void Clausal_reasoner::bcp(bool full) {
+    for (int step = 1; !has_conflict && (full || bcp_step_limit == 0 || step < bcp_step_limit); step++) {
 	if (!unit_propagate())
 	    break;
     }
-    return has_conflict;
 }
 
 cnf_archive_t Clausal_reasoner::extract() {
     std::vector<int> varx;
-    start_build(varx, cnf->variable_count(), bcp_unit_literals.size() + curr_active_clauses->size());
+    start_build(varx, cnf->variable_count(), current_clause_count());
     int ncid = 0;
+    if (has_conflict)
+	err(true, "Attempt to extract unsatisfiable CNF\n");
     // Put in the derived unit literals
     for (int ulit : bcp_unit_literals) {
 	new_clause(varx, ++ncid);
 	add_literal(varx, ulit);
     }
-    for (int ocid : *curr_active_clauses) {
+    for (int ocid : active_clauses) {
 	new_clause(varx, ++ncid);
 	int len = cnf->clause_length(ocid);
 	for (int lid = 0; lid < len; lid++) {
@@ -669,11 +759,13 @@ cnf_archive_t Clausal_reasoner::extract() {
     return finish_build(varx);
 }
 bool Clausal_reasoner::write(FILE *outfile) {
-    fprintf(outfile, "p cnf %d %ld\n", cnf->variable_count(), bcp_unit_literals.size() + curr_active_clauses->size());
+    if (has_conflict)
+	err(true, "Attempt to write unsatisfiable CNF\n");
+    fprintf(outfile, "p cnf %d %d\n", cnf->variable_count(), current_clause_count());
     // Put in the derived unit literals
     for (int ulit : bcp_unit_literals) 
 	fprintf(outfile, "%d 0\n", ulit);
-    for (int ocid : *curr_active_clauses) {
+    for (int ocid : active_clauses) {
 	int len = cnf->clause_length(ocid);
 	for (int lid = 0; lid < len; lid++) {
 	    int lit = cnf->get_literal(ocid, lid);
@@ -685,11 +777,10 @@ bool Clausal_reasoner::write(FILE *outfile) {
     return true;
 }
 
-
 bool Clausal_reasoner::is_satisfiable() {
     if (has_conflict)
 	return false;
-    if (curr_active_clauses->size() <= 1)
+    if (active_clauses.size() <= 1)
 	return true;
     double start = tod();
     FILE *pipe = popen("cadical -q > /dev/null", "w");

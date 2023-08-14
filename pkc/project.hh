@@ -30,6 +30,7 @@ public:
     // Debugging support
     void show(FILE *outfile) { pog->show(root_literal, outfile); }
 
+    void set_trace_variable(int var) { cr->set_trace_variable(var); }
 
 
 private:

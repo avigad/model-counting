@@ -9,13 +9,14 @@
 
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-k] [-v VLEVEL] [-L LOG] [-O OPT] [-b BLIM] FORMULA.cnf [FORMULA.pog]\n", name);
+    lprintf("Usage: %s [-h] [-k] [-v VLEVEL] [-L LOG] [-O OPT] [-b BLIM] [-t TVAR] FORMULA.cnf [FORMULA.pog]\n", name);
     lprintf("  -h          Print this information\n");
     lprintf("  -k          Keep intermdiate files\n");
     lprintf("  -v VERB     Set verbosity level\n");
     lprintf("  -L LOG      Record all results to file LOG\n");
     lprintf("  -O OPT      Select optimization level: 0 None, 1 +Simple KC, 2 +Reuse, 3 +Analyze vars, 4 +Pure literal\n");
     lprintf("  -b BLIM     Limit iterations of Boolean constraint propagation\n");
+    lprintf("  -t TVAR     Print trace information related to variable TVAR\n");
 }
 
 const char *prefix = "c PKC:";
@@ -119,8 +120,10 @@ static void stat_report(double elapsed) {
     lprintf("%s    Time TOTAL             : %.2f\n", prefix, elapsed);
 }
 
-static int run(double start, const char *cnf_name, const char *pog_name, int optlevel) {
+static int run(double start, const char *cnf_name, const char *pog_name, int optlevel, int trace_variable) {
     Project proj(cnf_name, optlevel);
+    if (trace_variable !=0)
+	proj.set_trace_variable(trace_variable);
     if (verblevel >= 5) {
 	printf("Initial POG:\n");
 	proj.show(stdout);
@@ -146,8 +149,9 @@ int main(int argc, char *const argv[]) {
     int optlevel = 4;
     int bcp_limit = 0;
     bool keep = false;
+    int trace_variable = 0;
     int c;
-    while ((c = getopt(argc, argv, "hkv:L:O:b:")) != -1) {
+    while ((c = getopt(argc, argv, "hkv:L:O:b:t:")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -166,6 +170,10 @@ int main(int argc, char *const argv[]) {
 	    break;
 	case 'b':
 	    bcp_limit = atoi(optarg);
+	    break;
+	case 't':
+	    trace_variable = atoi(optarg);
+	    break;
 	default:
 	    lprintf("Unknown comandline option '%c'\n", c);
 	    usage(argv[0]);
@@ -199,7 +207,7 @@ int main(int argc, char *const argv[]) {
     lprintf("%s   Optimization level:       %d\n", prefix, optlevel);
 
     double start = tod();
-    int result = run(start, cnf_name, pog_name, optlevel);
+    int result = run(start, cnf_name, pog_name, optlevel, trace_variable);
     stat_report(tod()-start);
     if (ucount != NULL) {
 	lprintf("Unweighted count:");

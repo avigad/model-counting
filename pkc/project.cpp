@@ -36,6 +36,8 @@ Project::~Project() {
 }
 
 int Project::compile(bool normal_form) {
+    if (cr->is_conflict())
+	return CONFLICT;
     if (optlevel >= 1) {
 	std::vector<int> clause_chunks;
 	if (cr->check_simple_kc(clause_chunks)) {
@@ -70,7 +72,7 @@ int Project::compile(bool normal_form) {
     int root = pog->load_nnf(nnf_file);
     int dsize = pog->node_count() - osize;
     fclose(nnf_file);
-    report(4, "Imported NNF file '%s'.  Root literal = %d.  Added %d nodes\n", nnf_name, root, dsize);
+    report(3, "Imported NNF file '%s'.  Root literal = %d.  Added %d nodes\n", nnf_name, root, dsize);
     if (verblevel >= 5)
 	pog->show(root, stdout);
     incr_histo(HISTO_POG_NODES, dsize);
@@ -161,15 +163,26 @@ q25_ptr Project::count(bool weighted) {
 
 int Project::traverse(int edge) {
     
+    report(4, "Traversing edge %d ...\n", edge);
 
     // Terminal conditions
+    if (cr->is_conflict()) {
+	report(4, " ... conflict\n");
+	return CONFLICT;
+    }
+
     if (!pog->is_node(edge)) {
 	int var = pog->get_var(edge);
-	if (var == TAUTOLOGY)
+	if (var == TAUTOLOGY) {
+	    report(4, " ... TAUTOLOGY\n");
 	    return edge;
-	if (cr->is_data_variable(var))
+	}
+	if (cr->is_data_variable(var)) {
+	    report(4, " ... data variable --> %d\n", edge);
 	    return edge;
+	}
 	// Projected literal satisfied
+	report(4, " ... projection variable --> TAUT\n");
 	return TAUTOLOGY;
     }
 
@@ -178,22 +191,27 @@ int Project::traverse(int edge) {
 	if (fid != result_cache.end()) {
 	    int nedge = fid->second;
 	    incr_count(COUNT_PKC_REUSE);
+	    report(4, " ... found in cache --> %d\n", nedge);
 	    return nedge;
 	}
     }
     if (optlevel >= 3) {
 	if (pog->only_data_variables(edge)) {
 	    incr_count(COUNT_PKC_DATA_ONLY);
+	    report(4, " ... only data variables in subgraph --> %d\n", edge);
 	    return edge;
 	}
 	if (pog->only_projection_variables(edge)) {
 	    incr_count(COUNT_PKC_PROJECT_ONLY);
+	    report(4, " ... only projection variables in subgraph --> %s\n", 
+		   cr->is_satisfiable() ? "TAUT" : "CONFLIT");
 	    return cr->is_satisfiable() ? TAUTOLOGY : CONFLICT;
 	}
     }
 
     int nedge = pog->get_type(edge) == POG_SUM ? traverse_sum(edge) : traverse_product(edge);
     result_cache[edge] = nedge;
+    report(4, " ... Recursive traversal of edge %d yielded --> %d\n", edge, nedge);
     return nedge;
 } 
 
@@ -266,8 +284,9 @@ int Project::traverse_product(int edge) {
 	    incr_count(COUNT_VISIT_MIXED_PRODUCT);
 	} else {
 	    std::unordered_set<int> vset;
-	    cr->bcp(true);
-	    report(3, "Processing %d partitions\n", cedges.size());
+	    if (cedges.size() < degree)
+		cr->bcp(true);
+	    report(3, "Processing Product %d.  %d non-trivial partitions.  Node degree = %d\n", edge, cedges.size(), degree);
 	    for (int cedge : cedges) {
 		cr->new_context();
 		vset.clear();
