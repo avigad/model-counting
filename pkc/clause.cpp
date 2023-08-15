@@ -802,6 +802,7 @@ void Clausal_reasoner::bcp(bool full) {
 
 cnf_archive_t Clausal_reasoner::extract() {
     std::vector<int> varx;
+    bcp(true);
     start_build(varx, cnf->variable_count(), current_clause_count());
     int ncid = 0;
     if (has_conflict)
