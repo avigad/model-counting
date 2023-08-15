@@ -19,9 +19,11 @@ private:
 
     // Debugging support
     int trace_variable;
+    // Should intermediate files be deleted?
+    bool flush_files;
 
 public:
-    Project(const char *cnf_name, int opt);
+    Project(const char *cnf_name, int opt, bool flush_files);
     ~Project();
     void projecting_compile();
     bool write(const char *pog_name);
@@ -34,7 +36,6 @@ public:
     void show(FILE *outfile) { pog->show(root_literal, outfile); }
 
     void set_trace_variable(int var) { trace_variable = var; cr->set_trace_variable(var); }
-
 
 private:
     // Perform ordinary knowledge compilation by invoking D4

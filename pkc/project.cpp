@@ -3,8 +3,9 @@
 #include "report.h"
 #include "counters.h"
 
-Project::Project(const char *cnf_name, int opt) {
+Project::Project(const char *cnf_name, int opt, bool flush) {
     optlevel = opt;
+    flush_files = flush;
     FILE *cnf_file = fopen(cnf_name, "r");
     if (!cnf_file) 
 	err(true, "Couldn't open file '%s'\n", cnf_name);
@@ -29,6 +30,8 @@ Project::Project(const char *cnf_name, int opt) {
     incr_count_by(COUNT_POG_INITIAL_EDGES, get_count(COUNT_POG_EDGES));
     incr_timer(TIME_INITIAL_KC, get_timer(TIME_KC));
     trace_variable = 0;
+    if (flush_files)
+	fmgr.flush();
 }
 
 Project::~Project() {
@@ -77,6 +80,8 @@ int Project::compile(bool normal_form) {
     if (verblevel >= 5)
 	pog->show(root, stdout);
     incr_histo(HISTO_POG_NODES, dsize);
+    if (flush_files)
+	fmgr.flush();
     return root;
 }
 

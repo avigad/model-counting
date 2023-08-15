@@ -73,6 +73,7 @@ void File_manager::flush() {
 	    err(false, "Attempt to delete file %s failed.  Error code = %d\n", fname, errno);
 	free((void *) fname);
     }
+    names.clear();
 }
 
 // Put literals in ascending order of the variables
