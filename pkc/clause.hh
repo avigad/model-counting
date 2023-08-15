@@ -46,8 +46,11 @@ private:
     std::vector<const char *> names;
     const char *root;
     int sequence_number;
+    bool allow_flush;
+
 public:
     File_manager();
+    void enable_flush() { allow_flush = true; }
     void set_root(const char *fname);
     const char *build_name(const char *extension, bool new_sequence);
     void flush();
@@ -95,6 +98,9 @@ public:
     
     // Run solver to determine whether satisfiable
     bool is_satisfiable();
+
+    // Identify clauses with opposing literals
+    void find_tautologies(std::unordered_set<int> &tauts);
 
     std::unordered_set<int> data_variables;
     std::unordered_map<int,q25_ptr> input_weights;
@@ -205,9 +211,11 @@ class Clausal_reasoner {
 	return unit_literals.find(-lit) != unit_literals.end() || 
 	    quantified_variables.find(IABS(lit)) != quantified_variables.end(); }
 
-    bool skip_clause(int lit) {
+    bool exit_clause(int lit) {
 	return unit_literals.find(lit) != unit_literals.end();
     }
+
+    bool skip_clause(int cid);
 
     int propagate_clause(int cid);
     // Return true if unpropagated unit literals remain

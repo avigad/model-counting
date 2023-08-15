@@ -39,7 +39,9 @@ File_manager::File_manager() {
     sequence_number = 1000000;
     buflen = 1000;
     buf = (char *) malloc(buflen);
+    allow_flush = false;
 }
+
 
 // Use file name to construct root for temporary names
 void File_manager::set_root(const char *fname) {
@@ -68,6 +70,8 @@ const char *File_manager::build_name(const char *extension, bool new_sequence) {
 }
 
 void File_manager::flush() {
+    if (!allow_flush)
+	return;
     for (const char *fname : names) {
 	if (remove(fname) != 0)
 	    err(false, "Attempt to delete file %s failed.  Error code = %d\n", fname, errno);
@@ -390,7 +394,23 @@ bool Cnf::is_satisfiable() {
     incr_timer(TIME_SAT, elapsed);
     incr_count(COUNT_SAT_CALL);
     incr_histo(HISTO_SAT_CLAUSES, clause_count());
+    fmgr.flush();
     return rc == 10 || (rc >> 8) == 10;
+}
+
+void Cnf::find_tautologies(std::unordered_set<int> &tauts) {
+    tauts.clear();
+    std::unordered_set<int> lits;
+    for (int cid = 1; cid <= clause_count(); cid++) {
+	lits.clear();
+	int len = clause_length(cid);
+	for (int lid = 0; lid < len; lid++) {
+	    int lit = get_literal(cid, lid);
+	    if (lits.find(-lit) !=  lits.end())
+		tauts.insert(cid);
+	    lits.insert(lit);
+	}
+    }
 }
 
 
@@ -398,8 +418,11 @@ Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
     cnf = icnf;
     // Set up active clauses
     has_conflict = false;
+    std::unordered_set<int> tauts;
+    cnf->find_tautologies(tauts);
     for (int cid = 1; cid <= cnf->clause_count(); cid++)
-	active_clauses.insert(cid);
+	if (tauts.find(cid) == tauts.end())
+	    active_clauses.insert(cid);
     new_context();
     bcp_step_limit = 0; // Unlimited
     trace_variable = 0;
@@ -408,6 +431,17 @@ Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
 
 Clausal_reasoner::~Clausal_reasoner() {
 }
+
+bool Clausal_reasoner::skip_clause(int cid) {
+    int len = cnf->clause_length(cid);    
+    for (int lid = 0; lid < len; lid++) {
+	int lit = cnf->get_literal(cid, lid);
+	if (exit_clause(lit))
+	    return true;
+    }
+    return false;
+}
+
 
 void Clausal_reasoner::new_context() {
     unit_trail.push_back({0,false,false});
@@ -608,15 +642,13 @@ void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
     while (added) {
 	added = false;
 	for (int cid : active_clauses) {
+	    if (skip_clause(cid))
+		continue;
 	    bool existing = false;
 	    others.clear();
 	    int len = cnf->clause_length(cid);
 	    for (int lid = 0; lid < len; lid++) {
 		int lit = cnf->get_literal(cid, lid);
-		if (skip_clause(lit)) {
-		    existing = false;
-		    break;
-		}
 		if (skip_literal(lit))
 		    continue;
 		int var = IABS(lit);
@@ -646,14 +678,12 @@ void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
     int ocsize = active_clauses.size();
     int obsize = bcp_unit_literals.size();
     for (int cid : active_clauses) {
+	if (skip_clause(cid))
+	    continue;
 	int len = cnf->clause_length(cid);
-	int include = false;
+	bool include = false;
 	for (int lid = 0; !include && lid < len; lid++) {
 	    int lit = cnf->get_literal(cid, lid);
-	    if (skip_clause(lit)) {
-		include = false;
-		break;
-	    }
 	    if (skip_literal(lit))
 		continue;
 	    int var = IABS(lit);
@@ -685,13 +715,10 @@ bool Clausal_reasoner::check_simple_kc(std::vector<int> &clause_chunks) {
 	vset.insert(IABS(lit));
     bool ok = true;
     for (int cid : active_clauses) {
+	if (skip_clause(cid))
+	    continue;
 	int len = cnf->clause_length(cid);
-	bool include = true;
-	for (int lid = 0; include && lid < len; lid++) {
-	    int lit = cnf->get_literal(cid, lid);
-	    include = !skip_clause(lit);
-	}
-	for (int lid = 0; include && lid < len; lid++) {
+	for (int lid = 0; lid < len; lid++) {
 	    int lit = cnf->get_literal(cid, lid);
 	    if (skip_literal(lit))
 		continue;
@@ -703,8 +730,7 @@ bool Clausal_reasoner::check_simple_kc(std::vector<int> &clause_chunks) {
 	    vset.insert(var);
 	    clause_chunks.push_back(lit);
 	}
-	if (include)
-	    clause_chunks.push_back(0);
+	clause_chunks.push_back(0);
     }
     if (ok) {
 	for (int lit : bcp_unit_literals) {
@@ -721,17 +747,16 @@ int Clausal_reasoner::propagate_clause(int cid) {
     int result = CONFLICT;
     for (int lid = 0; lid < len; lid++) {
 	int lit = cnf->get_literal(cid, lid);
-	if (skip_clause(lit)) {
+	if (exit_clause(lit)) {
 	    result = TAUTOLOGY;
 	    break;
-	} else if (skip_literal(lit))
-	    continue;
-	else if (result == CONFLICT)
-	    result = lit;
-	else {
-	    result = 0;
-	    break;
 	}
+	if (skip_literal(lit))
+	    continue;
+	if (result == CONFLICT)
+	    result = lit;
+	else
+	    result = 0;
     }
     return result;
 }
@@ -745,19 +770,20 @@ bool Clausal_reasoner::unit_propagate() {
     for (int cid : active_clauses) {
 	int rval = propagate_clause(cid);
 	if (rval == CONFLICT) {
-	    report(4, "Context level %d: Unit propagation finds conflict at clause #%d\n", context_level, cid);
+	    report(3, "Context level %d: Unit propagation finds conflict at clause #%d\n", context_level, cid);
 	    has_conflict = true;
 	    break;
-	} else if (rval == 0)
-	    continue;
-	else if (rval == TAUTOLOGY)
-	    remove.push_back(cid);
-	else {
-	    // Derived unit literal
-	    assign_literal(rval, true);	    
-	    remove.push_back(cid);
-	    new_unit = true;
 	}
+	if (rval == 0)
+	    continue;
+	if (rval == TAUTOLOGY) {
+	    remove.push_back(cid);
+	    continue;
+	}
+	// Derived unit literal
+	assign_literal(rval, true);	    
+	remove.push_back(cid);
+	new_unit = true;
     }
     if (has_conflict) {
 	trigger_conflict();
@@ -786,14 +812,11 @@ cnf_archive_t Clausal_reasoner::extract() {
 	add_literal(varx, ulit);
     }
     for (int ocid : active_clauses) {
+	if (skip_clause(ocid))
+	    continue;
 	new_clause(varx, ++ncid);
 	int len = cnf->clause_length(ocid);
-	bool include = true;
-	for (int lid = 0; include && lid < len; lid++) {
-	    int lit = cnf->get_literal(ocid, lid);
-	    include = !skip_clause(lit);
-	}
-	for (int lid = 0; include && lid < len; lid++) {
+	for (int lid = 0; lid < len; lid++) {
 	    int lit = cnf->get_literal(ocid, lid);
 	    if (!skip_literal(lit))
 		add_literal(varx, lit);
@@ -802,6 +825,7 @@ cnf_archive_t Clausal_reasoner::extract() {
     return finish_build(varx);
 }
 bool Clausal_reasoner::write(FILE *outfile) {
+    bcp(true);
     if (has_conflict)
 	err(true, "Attempt to write unsatisfiable CNF\n");
     fprintf(outfile, "p cnf %d %d\n", cnf->variable_count(), current_clause_count());
@@ -809,13 +833,12 @@ bool Clausal_reasoner::write(FILE *outfile) {
     for (int ulit : bcp_unit_literals) 
 	fprintf(outfile, "%d 0\n", ulit);
     for (int ocid : active_clauses) {
-	int len = cnf->clause_length(ocid);
-	bool include = true;
-	for (int lid = 0; include && lid < len; lid++) {
-	    int lit = cnf->get_literal(ocid, lid);
-	    include = !skip_clause(lit);
+	if (skip_clause(ocid)) {
+	    err(false, "Found tautological clause #%d\n", ocid);
+	    continue;
 	}
-	for (int lid = 0; include && lid < len; lid++) {
+	int len = cnf->clause_length(ocid);
+	for (int lid = 0; lid < len; lid++) {
 	    int lit = cnf->get_literal(ocid, lid);
 	    if (!skip_literal(lit))
 		fprintf(outfile, "%d ", lit); 

@@ -120,8 +120,8 @@ static void stat_report(double elapsed) {
     lprintf("%s    Time TOTAL             : %.2f\n", prefix, elapsed);
 }
 
-static int run(double start, const char *cnf_name, const char *pog_name, int optlevel, int trace_variable, bool flush) {
-    Project proj(cnf_name, optlevel, flush);
+static int run(double start, const char *cnf_name, const char *pog_name, int optlevel, int trace_variable) {
+    Project proj(cnf_name, optlevel);
     if (trace_variable != 0)
 	proj.set_trace_variable(trace_variable);
     if (verblevel >= 5) {
@@ -207,7 +207,9 @@ int main(int argc, char *const argv[]) {
     lprintf("%s   Optimization level:       %d\n", prefix, optlevel);
 
     double start = tod();
-    int result = run(start, cnf_name, pog_name, optlevel, trace_variable, !keep);
+    if (!keep)
+	fmgr.enable_flush();
+    int result = run(start, cnf_name, pog_name, optlevel, trace_variable);
     stat_report(tod()-start);
     if (ucount != NULL) {
 	lprintf("Unweighted count:");

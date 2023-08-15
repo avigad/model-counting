@@ -19,11 +19,9 @@ private:
 
     // Debugging support
     int trace_variable;
-    // Should intermediate files be deleted?
-    bool flush_files;
 
 public:
-    Project(const char *cnf_name, int opt, bool flush_files);
+    Project(const char *cnf_name, int opt);
     ~Project();
     void projecting_compile();
     bool write(const char *pog_name);
