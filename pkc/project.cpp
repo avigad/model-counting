@@ -28,6 +28,7 @@ Project::Project(const char *cnf_name, int opt) {
     incr_count_by(COUNT_POG_INITIAL_PRODUCT, get_count(COUNT_POG_PRODUCT));
     incr_count_by(COUNT_POG_INITIAL_EDGES, get_count(COUNT_POG_EDGES));
     incr_timer(TIME_INITIAL_KC, get_timer(TIME_KC));
+    trace_variable = 0;
 }
 
 Project::~Project() {
@@ -217,11 +218,15 @@ int Project::traverse(int edge) {
 
 int Project::traverse_sum(int edge) {
     int edge1 = pog->get_argument(edge, 0);
-    int nedge1 = traverse(edge1);
     int edge2 = pog->get_argument(edge, 1);
-    int nedge2 = traverse(edge2);
     int dvar = pog->get_decision_variable(edge);
     int nedge = 0;
+    if (dvar == trace_variable) {
+	report(3, "Sum %d splitting on variable %d with children edges %d and %d\n",
+	       edge, dvar, edge1, edge2);
+    }
+    int nedge1 = traverse(edge1);
+    int nedge2 = traverse(edge2);
     const char *descr = "";
     if (!cr->is_data_variable(dvar)) {
 	cr->new_context();
@@ -273,6 +278,9 @@ int Project::traverse_product(int edge) {
 	if (pog->is_node(cedge))
 	    cedges.push_back(cedge);
 	else {
+	    int var = pog->get_var(cedge);
+	    if (var == trace_variable) 
+		report(3, "Setting literal %d while traversing product node %d\n", cedge, edge);
 	    cr->assign_literal(cedge, false);
 	    if (cr->is_data_variable(cvar))
 		nargs.push_back(cedge);

@@ -302,10 +302,14 @@ static void init_hash(int val) {
 	size_t osize = var_hash.size();
 	size_t nsize = osize + (1 + (var - osize)/CHUNK_SIZE) * CHUNK_SIZE;
 	var_hash.resize(nsize);
+#if 0
 	const char *ostate = setstate(hash_state);
+#endif
 	for (unsigned i = osize; i < nsize; i++)
 	    var_hash[i] = random() % hash_modulus;
+#if 0
 	setstate(ostate);
+#endif
     }
 }
 

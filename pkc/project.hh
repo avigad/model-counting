@@ -8,14 +8,17 @@ private:
     Pog *pog;
     int root_literal;
     std::unordered_map<int,int> result_cache;
+
     // Optimization levels:
     // 0 : None
     // 1 : Do simple KC directly
     // 2 : Attempt to reuse previous results
     // 3 : Detect data-only and projection-only variables in CNF
     // 4 : Perform pure literal optimization
-    
     int optlevel;
+
+    // Debugging support
+    int trace_variable;
 
 public:
     Project(const char *cnf_name, int opt);
@@ -30,7 +33,7 @@ public:
     // Debugging support
     void show(FILE *outfile) { pog->show(root_literal, outfile); }
 
-    void set_trace_variable(int var) { cr->set_trace_variable(var); }
+    void set_trace_variable(int var) { trace_variable = var; cr->set_trace_variable(var); }
 
 
 private:

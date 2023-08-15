@@ -205,6 +205,10 @@ class Clausal_reasoner {
 	return unit_literals.find(-lit) != unit_literals.end() || 
 	    quantified_variables.find(IABS(lit)) != quantified_variables.end(); }
 
+    bool skip_clause(int lit) {
+	return unit_literals.find(lit) != unit_literals.end();
+    }
+
     int propagate_clause(int cid);
     // Return true if unpropagated unit literals remain
     bool unit_propagate();

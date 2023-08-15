@@ -43,13 +43,18 @@ File_manager::File_manager() {
 
 // Use file name to construct root for temporary names
 void File_manager::set_root(const char *fname) {
-    snprintf(buf, 10+strlen(fname), "zzzz-%s", fname);
+    // Trim any leading path directories
+    int lpos = strlen(fname);
+    while (lpos >= 0 && fname[lpos] != '/')
+	lpos--;
+    lpos++;
+    snprintf(buf, strlen(fname) + 10, "zzzz-%s", fname+lpos);
     // Chop off extension
-    int pos = strlen(buf)-1;
-    while (pos >= 0 && buf[pos] != '.')
-	pos--;
-    if (pos > 0)
-	buf[pos] = '\0';
+    int rpos = strlen(buf);
+    while (rpos >= 0 && buf[rpos] != '.')
+	rpos--;
+    if (rpos > 0)
+	buf[rpos] = '\0';
     root = archive_string(buf);
 }
 
@@ -408,7 +413,18 @@ void Clausal_reasoner::new_context() {
     uquant_trail.push_back(0);
     clause_trail.push_back(0);
     context_level++;
-    report(3, "Context level incremented to %d\n", context_level);
+    report(3, "Starting context level %d\n", context_level);
+    if (trace_variable != 0) {
+	if (quantified_variables.find(trace_variable) != quantified_variables.end())
+	    report(3, "   %d quantified\n", trace_variable);
+	for (int phase = -1; phase <= 1; phase +=2) {
+	    int lit = phase * trace_variable;
+	    if (unit_literals.find(lit) != unit_literals.end()) {
+		bool is_bcp = bcp_unit_literals.find(lit) != bcp_unit_literals.end();
+		report(3, "   %d is %s unit literal\n", lit, is_bcp ? "BCP" : "assigned");
+	    }
+	}
+    }
 }
 
 void Clausal_reasoner::pop_context() {
@@ -463,8 +479,19 @@ void Clausal_reasoner::pop_context() {
 	    break;
 	active_clauses.insert(cid);
     }
+    report(3, "Completing context level %d\n", context_level);
+    if (trace_variable != 0) {
+	if (quantified_variables.find(trace_variable) != quantified_variables.end())
+	    report(3, "   %d quantified\n", trace_variable);
+	for (int phase = -1; phase <= 1; phase +=2) {
+	    int lit = phase * trace_variable;
+	    if (unit_literals.find(lit) != unit_literals.end()) {
+		bool is_bcp = bcp_unit_literals.find(lit) != bcp_unit_literals.end();
+		report(3, "   %d is %s unit literal\n", lit, is_bcp ? "BCP" : "assigned");
+	    }
+	}
+    }
     context_level--;
-    report(3, "Context level decremented to %d\n", context_level);
 }
 
 // Mark clause for deactivation once iterator completes
@@ -585,7 +612,7 @@ void Clausal_reasoner::expand_partition(std::unordered_set<int> &vset) {
 	    int len = cnf->clause_length(cid);
 	    for (int lid = 0; lid < len; lid++) {
 		int lit = cnf->get_literal(cid, lid);
-		if (unit_literals.find(lit) != unit_literals.end()) {
+		if (skip_clause(lit)) {
 		    existing = false;
 		    break;
 		}
@@ -622,6 +649,10 @@ void Clausal_reasoner::partition(std::unordered_set<int> & vset) {
 	int include = false;
 	for (int lid = 0; !include && lid < len; lid++) {
 	    int lit = cnf->get_literal(cid, lid);
+	    if (skip_clause(lit)) {
+		include = false;
+		break;
+	    }
 	    if (skip_literal(lit))
 		continue;
 	    int var = IABS(lit);
@@ -654,7 +685,12 @@ bool Clausal_reasoner::check_simple_kc(std::vector<int> &clause_chunks) {
     bool ok = true;
     for (int cid : active_clauses) {
 	int len = cnf->clause_length(cid);
-	for (int lid = 0; lid < len; lid++) {
+	bool include = true;
+	for (int lid = 0; include && lid < len; lid++) {
+	    int lit = cnf->get_literal(cid, lid);
+	    include = !skip_clause(lit);
+	}
+	for (int lid = 0; include && lid < len; lid++) {
 	    int lit = cnf->get_literal(cid, lid);
 	    if (skip_literal(lit))
 		continue;
@@ -666,7 +702,8 @@ bool Clausal_reasoner::check_simple_kc(std::vector<int> &clause_chunks) {
 	    vset.insert(var);
 	    clause_chunks.push_back(lit);
 	}
-	clause_chunks.push_back(0);
+	if (include)
+	    clause_chunks.push_back(0);
     }
     if (ok) {
 	for (int lit : bcp_unit_literals) {
@@ -683,12 +720,12 @@ int Clausal_reasoner::propagate_clause(int cid) {
     int result = CONFLICT;
     for (int lid = 0; lid < len; lid++) {
 	int lit = cnf->get_literal(cid, lid);
-	if (skip_literal(lit))
-	    continue;
-	else if (unit_literals.find(lit) != unit_literals.end()) {
+	if (skip_clause(lit)) {
 	    result = TAUTOLOGY;
 	    break;
-	} else if (result == CONFLICT)
+	} else if (skip_literal(lit))
+	    continue;
+	else if (result == CONFLICT)
 	    result = lit;
 	else {
 	    result = 0;
@@ -750,7 +787,12 @@ cnf_archive_t Clausal_reasoner::extract() {
     for (int ocid : active_clauses) {
 	new_clause(varx, ++ncid);
 	int len = cnf->clause_length(ocid);
-	for (int lid = 0; lid < len; lid++) {
+	bool include = true;
+	for (int lid = 0; include && lid < len; lid++) {
+	    int lit = cnf->get_literal(ocid, lid);
+	    include = !skip_clause(lit);
+	}
+	for (int lid = 0; include && lid < len; lid++) {
 	    int lit = cnf->get_literal(ocid, lid);
 	    if (!skip_literal(lit))
 		add_literal(varx, lit);
@@ -767,7 +809,12 @@ bool Clausal_reasoner::write(FILE *outfile) {
 	fprintf(outfile, "%d 0\n", ulit);
     for (int ocid : active_clauses) {
 	int len = cnf->clause_length(ocid);
-	for (int lid = 0; lid < len; lid++) {
+	bool include = true;
+	for (int lid = 0; include && lid < len; lid++) {
+	    int lit = cnf->get_literal(ocid, lid);
+	    include = !skip_clause(lit);
+	}
+	for (int lid = 0; include && lid < len; lid++) {
 	    int lit = cnf->get_literal(ocid, lid);
 	    if (!skip_literal(lit))
 		fprintf(outfile, "%d ", lit); 

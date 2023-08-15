@@ -96,7 +96,7 @@ static void stat_report(double elapsed) {
     lprintf("%s       Total Product       : %d\n", prefix, vp = vpl+vpp+vpm);
     lprintf("%s         Data Sum          : %d\n", prefix, vsd = get_count(COUNT_VISIT_DATA_SUM));
     lprintf("%s         Mutex Sum         : %d\n", prefix, vsm = get_count(COUNT_VISIT_MUTEX_SUM));    
-    lprintf("%s         Excluding Su      : %d\n", prefix, vse = get_count(COUNT_VISIT_EXCLUDING_SUM));    
+    lprintf("%s         Excluding Sum     : %d\n", prefix, vse = get_count(COUNT_VISIT_EXCLUDING_SUM));    
     lprintf("%s       Total Sum           : %d\n", prefix, vs = vsd + vsm + vse);
     lprintf("%s    Traverse TOTAL         : %d\n", prefix, vp+vs);
 
