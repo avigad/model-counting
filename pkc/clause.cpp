@@ -30,6 +30,7 @@
 #include "report.h"
 #include "counters.h"
 
+
 // File management
 // Share instance of file manager globally
 File_manager fmgr;
@@ -167,6 +168,8 @@ static cnf_archive_t finish_build(std::vector<int> &varx) {
 
 Cnf::Cnf() {
     arx = NULL;
+    cmap_offsets = NULL;
+    cmap_lists = NULL;
 }
 
 // Process comment, looking additional data variables & weights
@@ -307,10 +310,10 @@ void Cnf::import_file(FILE *infile) {
 	for (int v = 1; v <= variable_count(); v++)
 	    data_variables.insert(v);
     }
+    build_cmap();
     incr_count_by(COUNT_INPUT_CLAUSE, clause_count());
     incr_count_by(COUNT_INPUT_VAR, variable_count());
     incr_count_by(COUNT_DATA_VAR, data_variables.size());
-
 }
 
 void Cnf::import_archive(cnf_archive_t iarx) {
@@ -321,6 +324,8 @@ Cnf::~Cnf() {
     arx = NULL;
     for (auto iter : input_weights)
 	q25_free(iter.second);
+    delete cmap_offsets;
+    delete cmap_lists;
 }
 
 void Cnf::deallocate() {
@@ -413,6 +418,59 @@ void Cnf::find_tautologies(std::unordered_set<int> &tauts) {
     }
 }
 
+// Creating and working with cmap, an inverse map from each projection variable
+// to the clauses containing it.
+
+void Cnf::build_cmap() {
+    // For each projection variable, list of clauses containing it
+    // Lists for data variables stay empty
+    // Indexed by variable - 1
+
+    // Will need degree entry for each projection variable
+    int mcount = variable_count() - data_variables.size();
+    std::unordered_map<int,std::vector<int>> tmp_cmap;
+    for (int cid = 1; cid <= clause_count(); cid++) {
+	int len = clause_length(cid);
+	for (int lid = 0; lid < len; lid++) {
+	    int lit = get_literal(cid, lid);
+	    int var = IABS(lit);
+	    if (data_variables.find(var) == data_variables.end()) {
+		tmp_cmap[var-1].push_back(cid);
+		mcount++;
+	    }
+	}
+    }
+    cmap_offsets = new int[variable_count()];
+    cmap_lists = new int[mcount];
+    // Fill it up
+    int next_offset = 0;
+    for (int var = 1; var <=  variable_count(); var++) {
+	if (data_variables.find(var) == data_variables.end()) {
+	    cmap_offsets[var-1] = next_offset;
+	    cmap_lists[next_offset++] = tmp_cmap[var-1].size();
+	    for (int cid : tmp_cmap[var-1])
+		cmap_lists[next_offset++] = cid;
+	} else
+	    cmap_offsets[var-1] = -1;
+    }
+    report(2, "Inverse clause map contains %d clause IDs\n",
+	   mcount - (variable_count() - data_variables.size()));
+}
+
+// Accessing cmap entries
+int Cnf::get_cmap_clause_count(int var) {
+    int offset = cmap_offsets[var-1];
+    if (offset < 0)
+	return 0;
+    return cmap_lists[offset];
+}
+
+int Cnf::get_cmap_cid(int var, int index) {
+    int offset = cmap_offsets[var-1];
+    if (offset < 0)
+	return 0;
+    return cmap_lists[offset+index+1];
+}
 
 Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
     cnf = icnf;
@@ -427,6 +485,7 @@ Clausal_reasoner::Clausal_reasoner(Cnf *icnf) {
     bcp_step_limit = 0; // Unlimited
     trace_variable = 0;
     context_level = 0;
+    use_local_clauses = false;
 }
 
 Clausal_reasoner::~Clausal_reasoner() {
@@ -560,17 +619,6 @@ void Clausal_reasoner::trigger_conflict() {
     report(3, "Conflict triggered\n");
     has_conflict = true;
     return;
-
-    // Revised.  Don't try to fix up the clausal state. It will just get undone
-    std::vector<int> remove;
-    for (int cid : active_clauses)
-	remove.push_back(cid);
-    deactivate_clauses(remove);
-    remove.clear();
-    for (int lit : bcp_unit_literals)
-	remove.push_back(lit);
-    deactivate_bcp_unit_literals(remove);
-
 }
 
 void Clausal_reasoner::assign_literal(int lit, bool bcp) {
@@ -767,7 +815,7 @@ int Clausal_reasoner::propagate_clause(int cid) {
 bool Clausal_reasoner::unit_propagate() {
     bool new_unit = false;
     std::vector<int> remove;
-    for (int cid : active_clauses) {
+    for (int cid : use_local_clauses ? local_clauses : active_clauses) {
 	int rval = propagate_clause(cid);
 	if (rval == CONFLICT) {
 	    report(3, "Context level %d: Unit propagation finds conflict at clause #%d\n", context_level, cid);
@@ -788,8 +836,13 @@ bool Clausal_reasoner::unit_propagate() {
     if (has_conflict) {
 	trigger_conflict();
 	new_unit = false;
-    } else 
-	deactivate_clauses(remove);
+    } else {
+	if (use_local_clauses) {
+	    for (int cid : remove)
+		local_clauses.erase(cid);
+	} else
+	    deactivate_clauses(remove);
+    }
     return new_unit;
 }
 
@@ -798,6 +851,15 @@ void Clausal_reasoner::bcp(bool full) {
 	if (!unit_propagate())
 	    break;
     }
+}
+
+int Clausal_reasoner::current_clause_count()  { 
+    if (has_conflict)
+	return 1;
+    else if (use_local_clauses)
+	return local_clauses.size() + bcp_unit_literals.size();
+    else
+	return active_clauses.size() + bcp_unit_literals.size();
 }
 
 cnf_archive_t Clausal_reasoner::extract() {
@@ -812,7 +874,7 @@ cnf_archive_t Clausal_reasoner::extract() {
 	new_clause(varx, ++ncid);
 	add_literal(varx, ulit);
     }
-    for (int ocid : active_clauses) {
+    for (int ocid : use_local_clauses ? local_clauses : active_clauses) {
 	if (skip_clause(ocid))
 	    continue;
 	new_clause(varx, ++ncid);
@@ -825,6 +887,7 @@ cnf_archive_t Clausal_reasoner::extract() {
     }
     return finish_build(varx);
 }
+
 bool Clausal_reasoner::write(FILE *outfile) {
     bcp(true);
     if (has_conflict)
@@ -833,7 +896,7 @@ bool Clausal_reasoner::write(FILE *outfile) {
     // Put in the derived unit literals
     for (int ulit : bcp_unit_literals) 
 	fprintf(outfile, "%d 0\n", ulit);
-    for (int ocid : active_clauses) {
+    for (int ocid : use_local_clauses ? local_clauses : active_clauses) {
 	if (skip_clause(ocid)) {
 	    err(false, "Found tautological clause #%d\n", ocid);
 	    continue;
@@ -850,6 +913,7 @@ bool Clausal_reasoner::write(FILE *outfile) {
 }
 
 bool Clausal_reasoner::is_satisfiable() {
+    bcp(true);
     if (has_conflict)
 	return false;
     if (active_clauses.size() <= 1)
@@ -866,6 +930,34 @@ bool Clausal_reasoner::is_satisfiable() {
     incr_count(COUNT_SAT_CALL);
     incr_histo(HISTO_SAT_CLAUSES, current_clause_count());
     return rc == 10 || (rc >> 8) == 10;
+}
+
+bool Clausal_reasoner::is_locally_satisfiable(int var) {
+    // See if local set of clauses unsatisfiable in current context
+    int len = cnf->get_cmap_clause_count(var);
+    if (len == 0) {
+	err(false, "Trying to do local satisfiability with data variable %d\n", var);
+	return is_satisfiable();
+    }
+    use_local_clauses = true;
+    local_clauses.clear();
+    for (int i = 0; i < len; i++) {
+	int cid = cnf->get_cmap_cid(var, i);
+	if (active_clauses.find(cid) != active_clauses.end()) {
+	    local_clauses.insert(cid);
+	}
+    }
+    report(3, "Computing local satisfiability for variable %d over %d clauses\n", var, local_clauses.size());
+    if (verblevel >= 3) {
+	lprintf("  IDs:");
+	for (int cid : local_clauses)
+	    lprintf(" %d", cid);
+	lprintf("\n");
+    }
+    bool result = is_satisfiable();
+    // Undo
+    use_local_clauses = false;
+    return result;
 }
 
 void Clausal_reasoner::show_units(FILE *outfile) {

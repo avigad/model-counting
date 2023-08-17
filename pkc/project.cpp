@@ -38,6 +38,7 @@ Project::~Project() {
 }
 
 int Project::compile(bool normal_form) {
+    cr->bcp(false);
     if (cr->is_conflict())
 	return CONFLICT;
     if (optlevel >= 1) {
@@ -83,7 +84,6 @@ int Project::compile(bool normal_form) {
 }
 
 void Project::projecting_compile() {
-    cr->bcp(false);
     root_literal = traverse(root_literal);
 }
 
@@ -206,9 +206,9 @@ int Project::traverse(int edge) {
 	}
 	if (pog->only_projection_variables(edge)) {
 	    incr_count(COUNT_PKC_PROJECT_ONLY);
-	    report(4, " ... only projection variables in subgraph --> %s\n", 
-		   cr->is_satisfiable() ? "TAUT" : "CONFLIT");
-	    return cr->is_satisfiable() ? TAUTOLOGY : CONFLICT;
+	    bool result = cr->is_satisfiable() ? TAUTOLOGY : CONFLICT;
+	    report(4, " ... only projection variables in subgraph --> %s\n", result);
+	    return result;
 	}
     }
 
@@ -233,26 +233,34 @@ int Project::traverse_sum(int edge) {
     if (!cr->is_data_variable(dvar)) {
 	cr->new_context();
 	cr->quantify(dvar);
-	cr->bcp(false);
-	if (cr->is_satisfiable()) {
+	if (use_local_satisfiability ? cr->is_locally_satisfiable(dvar) : cr->is_satisfiable()) {
 	    int uroot = compile(true);
 	    if (uroot == CONFLICT) {
-		err(false, "Traversing edge %d.  Got conflict when compiled quantified formula\n", edge);
+		descr = "mutex";
+		report(3, "Traversing edge %d.  Got conflict when compiled quantified formula\n", edge);
+		incr_count(COUNT_VISIT_MUTEX_SUM);
 	    }
-	    int xroot = traverse(uroot);
-	    pog->start_node(POG_SUM);
-	    pog->add_argument(-nedge1);
-	    pog->add_argument(xroot);
-	    int mroot = pog->finish_node();
-	    pog->start_node(POG_SUM);
-	    pog->add_argument(-mroot);
-	    pog->add_argument(nedge2);
-	    nedge = pog->finish_node();
-	    descr = "excluding";
-	    incr_count(COUNT_VISIT_EXCLUDING_SUM);
+	    else {
+		int xroot = traverse(uroot);
+		pog->start_node(POG_SUM);
+		pog->add_argument(-nedge1);
+		pog->add_argument(xroot);
+		int mroot = pog->finish_node();
+		pog->start_node(POG_SUM);
+		pog->add_argument(-mroot);
+		pog->add_argument(nedge2);
+		nedge = pog->finish_node();
+		descr = "excluding";
+		incr_count(COUNT_VISIT_EXCLUDING_SUM);
+	    }
 	} else {
-	    descr = "mutex";
-	    incr_count(COUNT_VISIT_MUTEX_SUM);
+	    if (use_local_satisfiability) {
+		descr = "local_mutex";
+		incr_count(COUNT_VISIT_LOCAL_MUTEX_SUM);
+	    } else {
+		descr = "mutex";
+		incr_count(COUNT_VISIT_MUTEX_SUM);
+	    }
 	}
 	cr->pop_context();
     } else {

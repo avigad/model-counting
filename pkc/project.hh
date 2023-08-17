@@ -20,6 +20,9 @@ private:
     // Debugging support
     int trace_variable;
 
+    // Should mutex check be done just with local clauses
+    bool use_local_satisfiability;
+
 public:
     Project(const char *cnf_name, int opt);
     ~Project();
@@ -34,6 +37,12 @@ public:
     void show(FILE *outfile) { pog->show(root_literal, outfile); }
 
     void set_trace_variable(int var) { trace_variable = var; cr->set_trace_variable(var); }
+
+    // Set whether to use local satisfiability
+    void set_local_satisfiability(bool yes) { use_local_satisfiability = yes; }
+
+    // Set BCP limit
+    void set_bcp_limit(int lim) { if (cr) cr->set_bcp_limit(lim); }
 
 private:
     // Perform ordinary knowledge compilation by invoking D4

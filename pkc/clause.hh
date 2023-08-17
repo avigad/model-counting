@@ -73,6 +73,15 @@ private:
     // 5. Sequence of literals for each clause
     cnf_archive_t arx;
 
+    // Cmap: Inverse mapping from projection variables to all clauses in which they occur
+    // For each variable (both data and projection, give offset int cmap list
+    // Offset for data variable = -1
+    // Indexed by variable-1
+    int *cmap_offsets;
+    // Concatenated lists.  For each variable, start with number of clauses.  Then list their clause Ids
+    int *cmap_lists;
+
+
 public:
     Cnf();
 
@@ -104,6 +113,14 @@ public:
 
     std::unordered_set<int> data_variables;
     std::unordered_map<int,q25_ptr> input_weights;
+
+    // Accessing cmap entries
+    int get_cmap_clause_count(int var);
+    int get_cmap_cid(int var, int index);
+
+private:
+    void build_cmap();
+
 };
 
 // Previous state of literal to store on unit trail
@@ -119,6 +136,7 @@ class Clausal_reasoner {
  private:
     // Potential limit on BCP steps
     int bcp_step_limit;
+
     // Tracing variable
     int trace_variable;
     // Level in context management
@@ -143,6 +161,10 @@ class Clausal_reasoner {
     // Set of non-satisfied clauses in current context
     // Used as iterator
     std::set<int> active_clauses;
+    // Allow further narrowing of the set of active clauses
+    // This is only done when testing whether subset of clauses is locally satisfiable
+    bool use_local_clauses;
+    std::set<int> local_clauses;
 
     // Stacks to enable return to earlier state
     // Use value 0 to indicate start of new context
@@ -166,6 +188,8 @@ class Clausal_reasoner {
     // Set tracing variable
     void set_trace_variable(int var) { trace_variable = var; }
 
+    void set_bcp_limit(int lim) { bcp_step_limit = lim; }
+
     // Begin new clausal context.
     void new_context();
 
@@ -173,6 +197,8 @@ class Clausal_reasoner {
     void pop_context();
 
     void assign_literal(int lit, bool bcp);
+
+
 
     void bcp(bool full);
 
@@ -187,10 +213,13 @@ class Clausal_reasoner {
     // Extract clausal representation and write as CNF file
     bool write(FILE *outfile);
 
-    int current_clause_count() { return has_conflict ? 1 : active_clauses.size() + bcp_unit_literals.size(); }
+    int current_clause_count();
 
     // Is the current state satisfiable?
     bool is_satisfiable();
+
+    // Would the subset of clauses containing quantified variable be satisfiable?
+    bool is_locally_satisfiable(int var);
 
     // Is the current state a conflict?
     bool is_conflict() { return has_conflict; }

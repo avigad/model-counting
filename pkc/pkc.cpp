@@ -9,15 +9,24 @@
 
 
 void usage(const char *name) {
-    lprintf("Usage: %s [-h] [-k] [-v VLEVEL] [-L LOG] [-O OPT] [-b BLIM] [-t TVAR] FORMULA.cnf [FORMULA.pog]\n", name);
+    lprintf("Usage: %s [-h] [-k] [-x] [-v VLEVEL] [-L LOG] [-O OPT] [-b BLIM] [-t TVAR] FORMULA.cnf [FORMULA.pog]\n", name);
     lprintf("  -h          Print this information\n");
-    lprintf("  -k          Keep intermdiate files\n");
+    lprintf("  -k          Keep intermediate files\n");
+    lprintf("  -x          Use general satisfiability for mutex check\n");
     lprintf("  -v VERB     Set verbosity level\n");
     lprintf("  -L LOG      Record all results to file LOG\n");
     lprintf("  -O OPT      Select optimization level: 0 None, 1 +Simple KC, 2 +Reuse, 3 +Analyze vars, 4 +Pure literal\n");
     lprintf("  -b BLIM     Limit iterations of Boolean constraint propagation\n");
     lprintf("  -t TVAR     Print trace information related to variable TVAR\n");
 }
+
+// Program options
+bool keep = false;
+bool use_local_satisfiability = true;
+int optlevel = 4;
+int bcp_limit = 0;
+int trace_variable = 0;
+
 
 const char *prefix = "c PKC:";
 
@@ -89,15 +98,16 @@ static void stat_report(double elapsed) {
     lprintf("%s    KC POG MAX             : %d\n", prefix, pog_max);
 
     lprintf("%s Node Traversals:\n", prefix);
-    int vpp, vpl, vpm, vp, vsd, vsm, vse, vs;
+    int vpp, vpl, vpm, vp, vsd, vsl, vsm, vse, vs;
     lprintf("%s         Literal Prod      : %d\n", prefix, vpl = get_count(COUNT_VISIT_LITERAL_PRODUCT));
     lprintf("%s         Partition Prod    : %d\n", prefix, vpp = get_count(COUNT_VISIT_PARTITION_PRODUCT));
     lprintf("%s         Mixed  Prod       : %d\n", prefix, vpm = get_count(COUNT_VISIT_MIXED_PRODUCT));
     lprintf("%s       Total Product       : %d\n", prefix, vp = vpl+vpp+vpm);
     lprintf("%s         Data Sum          : %d\n", prefix, vsd = get_count(COUNT_VISIT_DATA_SUM));
-    lprintf("%s         Mutex Sum         : %d\n", prefix, vsm = get_count(COUNT_VISIT_MUTEX_SUM));    
+    lprintf("%s         Local Mutex Sum   : %d\n", prefix, vsl = get_count(COUNT_VISIT_LOCAL_MUTEX_SUM));    
+    lprintf("%s         Other Mutex Sum   : %d\n", prefix, vsm = get_count(COUNT_VISIT_MUTEX_SUM));    
     lprintf("%s         Excluding Sum     : %d\n", prefix, vse = get_count(COUNT_VISIT_EXCLUDING_SUM));    
-    lprintf("%s       Total Sum           : %d\n", prefix, vs = vsd + vsm + vse);
+    lprintf("%s       Total Sum           : %d\n", prefix, vs = vsd + vsl + vsm + vse);
     lprintf("%s    Traverse TOTAL         : %d\n", prefix, vp+vs);
 
     lprintf("%s PKC Optimizations:\n", prefix);
@@ -120,7 +130,7 @@ static void stat_report(double elapsed) {
     lprintf("%s    Time TOTAL             : %.2f\n", prefix, elapsed);
 }
 
-static int run(double start, const char *cnf_name, const char *pog_name, int optlevel, int trace_variable) {
+static int run(double start, const char *cnf_name, const char *pog_name) {
     Project proj(cnf_name, optlevel);
     if (trace_variable != 0)
 	proj.set_trace_variable(trace_variable);
@@ -128,6 +138,9 @@ static int run(double start, const char *cnf_name, const char *pog_name, int opt
 	printf("Initial POG:\n");
 	proj.show(stdout);
     }
+    proj.set_bcp_limit(bcp_limit);
+    proj.set_local_satisfiability(use_local_satisfiability);
+
     report(1, "Time %.2f: Initial compilation completed\n", tod() - start);
     proj.projecting_compile();
     if (verblevel >= 5) {
@@ -146,12 +159,12 @@ static int run(double start, const char *cnf_name, const char *pog_name, int opt
 int main(int argc, char *const argv[]) {
     FILE *cnf_file = NULL;
     verblevel = 1;
-    int optlevel = 4;
-    int bcp_limit = 0;
-    bool keep = false;
-    int trace_variable = 0;
+    optlevel = 4;
+    bcp_limit = 0;
+    keep = false;
+    trace_variable = 0;
     int c;
-    while ((c = getopt(argc, argv, "hkv:L:O:b:t:")) != -1) {
+    while ((c = getopt(argc, argv, "hkxv:L:O:b:t:")) != -1) {
 	switch (c) {
 	case 'h':
 	    usage(argv[0]);
@@ -161,6 +174,9 @@ int main(int argc, char *const argv[]) {
 	    break;
 	case 'k':
 	    keep = true;
+	    break;
+	case 'x':
+	    use_local_satisfiability = false;
 	    break;
 	case 'L':
 	    set_logname(optarg);
@@ -205,11 +221,13 @@ int main(int argc, char *const argv[]) {
     else
 	lprintf("%s   BCP limit:                Unlimited\n", prefix);
     lprintf("%s   Optimization level:       %d\n", prefix, optlevel);
-
+    lprintf("%s   Use local satisfiability? %s\n", prefix, use_local_satisfiability ? "true" : "false");
+    if (trace_variable != 0)
+	lprintf("%s   Trace variable:           %d\n", prefix, trace_variable);
     double start = tod();
     if (!keep)
 	fmgr.enable_flush();
-    int result = run(start, cnf_name, pog_name, optlevel, trace_variable);
+    int result = run(start, cnf_name, pog_name);
     stat_report(tod()-start);
     if (ucount != NULL) {
 	lprintf("Unweighted count:");
