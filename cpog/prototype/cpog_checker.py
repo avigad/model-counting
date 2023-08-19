@@ -890,7 +890,7 @@ class OperationManager:
                 return (False, "Operator input literal %d undefined" % lit)
             adset = self.dependencySetDict[var]
             if op == self.conjunction and not adset.isdisjoint(dset):
-                return (False, "Overlapping dependency sets for conjunction operation")
+                return (False, "Overlapping dependency sets for conjunction operation.  Overlap = %s" % (dset & adset))
             dset = dset.union(adset)
         self.dependencySetDict[outVar] = dset
         if op == self.conjunction:
@@ -1011,7 +1011,11 @@ class OperationManager:
                 result = result.mul(w) if op == self.conjunction else result.add(w)
             weights[outVar] = result
         rootVar = abs(root)
-        rval = weights[rootVar]
+        try:
+            rval = weights[rootVar]
+        except:
+            print("CHECKER: Couldn't compute count.  No value for root literal")
+            return P52(0)
         if root < 0:
             rval = rval.oneminus()
         if finalScale is not None:
@@ -1267,16 +1271,17 @@ class Prover:
         try:
             args = [int(field) for field in rest]
         except:
-            self.flagError("Couldn't add operation with clause #%d: Non-integer arguments" % (id))
+            self.flagError("Couldn't add product operation with clause #%d: Non-integer arguments" % (id))
             return
+        op = args[0]
         if args[-1] == 0:
             args = args[:-1]
         elif not self.countMode:
-            self.flagError("Couldn't add operation with clause #%d: No terminating 0 found" % (id))
+            self.flagError("Couldn't add product operation %d with clause #%d: No terminating 0 found" % (op, id))
             return
-        (ok, msg) = self.omgr.addOperation(self.omgr.conjunction, args[0], args[1:], id)
+        (ok, msg) = self.omgr.addOperation(self.omgr.conjunction, op, args[1:], id)
         if not ok:
-            self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
+            self.flagError("Couldn't add product operation %d with clause #%d: %s" % (op, id, msg))
         if self.cpogWriter is not None:
             self.cpogWriter.doAnd(args[1:], xvar=args[0], id=id)
         self.clauseCount += 1 + len(args)
@@ -1289,21 +1294,21 @@ class Prover:
             args = [int(field) for field in rest[:3]]
             rest = rest[3:]
         except:
-            self.flagError("Couldn't add operation with clause #%d: Non-integer arguments" % (id))
+            self.flagError("Couldn't add sum operation with clause #%d: Non-integer arguments" % (id))
             return
         (hints, rest) = self.findList(rest, starOk = True)
         if self.failed:
             return
         (ok, msg) = self.omgr.addOperation(self.omgr.disjunction, args[0], [args[1], args[2]], id)
         if not ok:
-            self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
+            self.flagError("Couldn't add sum operation with clause #%d: %s" % (id, msg))
             return
         if len(rest) > 0:
-            self.flagError("Couldn't add operation with clause #%d: Items beyond terminating 0" % (id))
+            self.flagError("Couldn't add sum operation with clause #%d: Items beyond terminating 0" % (id))
             return
         (ok, msg, hints) = self.omgr.checkDisjunction(args[1], args[2], hints)
         if not ok:
-            self.flagError("Couldn't add operation with clause #%d: %s" % (id, msg))
+            self.flagError("Couldn't add sum operation with clause #%d: %s" % (id, msg))
             return
         if self.cpogWriter is not None:
             self.cpogWriter.doOr(args[1], args[2], hints = hints, xvar=args[0], id=id)
