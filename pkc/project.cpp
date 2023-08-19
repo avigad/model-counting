@@ -206,7 +206,7 @@ int Project::traverse(int edge) {
 	}
 	if (pog->only_projection_variables(edge)) {
 	    incr_count(COUNT_PKC_PROJECT_ONLY);
-	    bool result = cr->is_satisfiable() ? TAUTOLOGY : CONFLICT;
+	    int result = cr->is_satisfiable() ? TAUTOLOGY : CONFLICT;
 	    report(4, " ... only projection variables in subgraph --> %s\n", result);
 	    return result;
 	}
