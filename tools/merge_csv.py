@@ -16,10 +16,12 @@ def eprint(s):
 
 
 def usage(name):
-    eprint("Usage: %s [-h] [-f]  [-s I1:I2:...:Ik] [-r I1:I2] [-l L0,L1,L2,...] FILE1.csv FILE2.csv ... FILEn.csv" % name)
+    eprint("Usage: %s [-h] [-f]  [-s I1:I2:...:Ik] [-r I1:I2] [-t I:T1:T2] [-o I:T] [-l L0,L1,L2,...] FILE1.csv FILE2.csv ... FILEn.csv" % name)
     eprint("  -f            Filter out lines that have at least one field missing")
-    eprint("  -s I1:I2:...:Ik Sum the values from specified files 1..n and add as new column")
-    eprint("  -r I1:I2      Form the ratio between the values from specified files 1 and 2 and add as new column")
+    eprint("  -s I1:I2:...:Ik Sum the values from specified columns 1..k and add as new column")
+    eprint("  -r I1:I2      Form the ratio between the values from specified columns 1 and 2 and add as new column")
+    eprint("  -t I:T1:T2    Compare value from column with value T1.  If greater, set to T2. Add as new column")
+    eprint("  -o I:T        Compare value from column with value T1.  If greater, omit entire line.  If I negative, invert sense of test")
     eprint("  -h            Print this message")
     eprint("  -l LABELS     Provide comma-separated set of heading labels")
     eprint("  FILE1.csv ... Source files")
@@ -136,8 +138,52 @@ def divideEntries(ratioList):
         fields.append(rval)
     globalCount += 1
 
+def omitEntries(omitTuple):
+    global globalEntries, globalCount
+    idx, thresh = omitTuple
+    gt = True
+    if idx < 0:
+        gt = False
+        idx = -idx
+    omitList = []
+    for k in globalEntries.keys():
+        fields = globalEntries[k]
+        try:
+            sfield = fields[idx-1]
+        except:
+            print("Couldn't get field #%d from line with key %s.  Fields: %s" % (idx, k, str(fields)))
+            sys.exit(1)
+        try:
+            vfield = float(sfield)
+        except:
+            print("Couldn't convert value '%s' to float.  Fields: %s" % (sfield, str(fields)))
+            sys.exit(1)
+        if gt and vfield > thresh or not gt and vfield <= thresh:
+            omitList.append(k)
+    for k in omitList:
+        del globalEntries[k]
 
-def build(lstring, flist, doFilter, sumList, ratioList):
+
+def thresholdEntries(thresholdTuple):
+    global globalEntries, globalCount
+    idx, thresh, nval = thresholdTuple
+    for k in globalEntries.keys():
+        fields = globalEntries[k]
+        try:
+            sfield = fields[idx-1]
+        except:
+            print("Couldn't get field #%d from line with key %s.  Fields: %s" % (idx, k, str(fields)))
+            sys.exit(1)
+        try:
+            vfield = float(sfield)
+        except:
+            print("Couldn't convert value '%s' to float.  Fields: %s" % (sfield, str(fields)))
+            sys.exit(1)
+        tval = vfield if vfield <= thresh else nval
+        fields.append(tval)
+
+
+def build(lstring, flist, doFilter, sumList, ratioList, thresholdTuple, omitTuple):
     first = True
     for fname in flist:
         nextFile(fname, first, doFilter)
@@ -146,6 +192,10 @@ def build(lstring, flist, doFilter, sumList, ratioList):
         sumEntries(sumList)
     if ratioList is not None:
         divideEntries(ratioList)
+    if thresholdTuple is not None:
+        thresholdEntries(thresholdTuple)
+    if omitTuple is not None:
+        omitEntries(omitTuple)
     if len(lstring) > 0:
         print(lstring)
     for k in sorted(globalEntries.keys()):
@@ -156,26 +206,41 @@ def run(name, args):
     doFilter = False
     sumList = None
     ratioList = None
+    thresholdTuple = None
+    omitTuple = None
     lstring = ""
-    optList, args = getopt.getopt(args, "hfs:r:l:")
+    optList, args = getopt.getopt(args, "hfs:r:t:o:l:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             sys.exit(0)
         elif opt == '-f':
             doFilter = True
-        elif opt == '-s' or opt == '-r':
+        elif opt == '-s' or opt == '-r' or opt == '-t' or opt == '-o':
             fields = val.split(':')
             try:
                 ivals = [int(field) for field in fields]
                 if opt == '-s':
                     sumList = ivals
-                else:
+                elif opt == '-r':
                     ratioList = ivals
                     if len(ratioList) != 2:
                         eprint("Ratio can only be between two elements")
                         usage(name)
                         sys.exit(1)
+                elif opt == '-t':
+                    thresholdTuple = tuple(ivals)
+                    if len(thresholdTuple) != 3:
+                        eprint("Thresholding requires three values: index, threshold, and new value")
+                        usage(name)
+                        sys.exit(1)
+                else:
+                    omitTuple = tuple(ivals)
+                    if len(omitTuple) != 2:
+                        eprint("Omitting requires two values: index and threshold")
+                        usage(name)
+                        sys.exit(1)
+
             except Exception as ex:
                 eprint("Couldn't extract column numbers from argument '%s' (%s)" % (val % str(ex)))
                 usage(name)
@@ -186,7 +251,7 @@ def run(name, args):
             eprint("Unknown option '%s'" % opt)
             usage(name)
             sys.exit(1)
-    build(lstring, args, doFilter, sumList, ratioList)
+    build(lstring, args, doFilter, sumList, ratioList, thresholdTuple, omitTuple)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
