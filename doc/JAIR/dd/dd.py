@@ -27,9 +27,9 @@ import math
 #       Position options: above, below, left, right
 
 # Edge
-#    e FID TID value=neutral mark=none radius=10 arrow=none[only=XX]
+#    e FID TID type=neutral mark=none radius=10 arrow=none[only=XX]
 #       FID and TID are Ids of source and destination nodes
-#       value options: neutral, high, low, path
+#       type options: neutral, high, low, path
 #       mark options: none, bubble   
 #       arrow options: none, to, from, both
 

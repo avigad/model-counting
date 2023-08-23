@@ -1,0 +1,45 @@
+# Representation of schema for SDD node with k children
+# Nodes
+# Root
+n r    200 550 e=fillcolor l=$\hat{\mathbf{u}}$
+# Sum nodes
+n w1   200 500 l=$\lor^{\textsf{s}}$
+n w2   300 400 l=$\lor^{\textsf{s}}$
+n wkm1 500 200 l=$\lor^{\textsf{s}}$
+# Product nodes
+n v1   100 400 l=$\land^{\textsf{p}}$
+n v2   200 300 l=$\land^{\textsf{p}}$
+n vkm1 400 100 l=$\land^{\textsf{p}}$
+n vk   600 100 l=$\land^{\textsf{p}}$
+# Connector nodes
+n w3   350 350 t=e
+n wkm2 450 250 t=e
+# Arguments
+n s1   60  325 e=fillcolor l=$\hat{\mathbf{s}}_1$
+n p1   140 325 e=fillcolor l=$\hat{\mathbf{p}}_1$
+n s2   160 225 e=fillcolor l=$\hat{\mathbf{s}}_2$
+n p2   240 225 e=fillcolor l=$\hat{\mathbf{p}}_2$
+n skm1 360  25 e=fillcolor l=$\hat{\mathbf{s}}_{k-1}$
+n pkm1 440  25 e=fillcolor l=$\hat{\mathbf{p}}_{k-1}$
+n sk   560  25 e=fillcolor l=$\hat{\mathbf{s}}_{k}$
+n pk   640  25 e=fillcolor l=$\hat{\mathbf{p}}_{k}$
+# Edges
+# Between operators
+e w1 v1
+e w1 w2
+e w2 v2
+e w2 w3
+e w3 wkm2 t=l
+e wkm2 wkm1
+e wkm1 vkm1
+e wkm1 vk
+# To arguments
+e v1 s1
+e v1 p1
+e v2 s2
+e v2 p2
+e vkm1 skm1
+e vkm1 pkm1
+e vk sk
+e vk pk
+
