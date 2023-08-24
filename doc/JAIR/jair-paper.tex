@@ -67,6 +67,7 @@
 \newcommand{\makenode}[1]{\mathbf{#1}}
 \newcommand{\nodeu}{\makenode{u}}
 \newcommand{\nodev}{\makenode{v}}
+\newcommand{\nodew}{\makenode{w}}
 \newcommand{\nodes}{\makenode{s}}
 \newcommand{\nodep}{\makenode{p}}
 \newcommand{\noder}{\makenode{r}}
@@ -79,6 +80,7 @@
 \newcommand{\Dfour}{\progname{D4}}
 \newcommand{\cadical}{\progname{CaDiCal}}
 \newcommand{\dtrim}{\progname{drat-trim}}
+\newcommand{\ltrim}{\progname{lrat-trim}}
 \newcommand{\Dtrim}{\progname{Drat-trim}}
 
 \definecolor{redorange}{rgb}{0.878431, 0.235294, 0.192157}
@@ -382,7 +384,7 @@ property and use a separate program to perform a series of additional
 checks.  They use \dtrim{} to prove the implication, checking that each clause in $R$
 satisifies the \emph{reverse asymmetric tautology} (RAT) property with
 respect to the preceding
-clauses~\cite{heule:cade:2013,jarvisalo:ijcar:2012}.  Adding a RAT
+clauses~\cite{jarvisalo:ijcar:2012,heule:cade:2013}.  Adding a RAT
 clause $C$ to a set of clauses maintains satisfiability, but it does not necessarily
 preserve models.  As an example, consider the following formulas:
 \begin{center}
@@ -1344,7 +1346,7 @@ order, those clauses that were used in the hint when a clause was
 added will still remain when it is deleted.
 
 Each input clause deletion can be done as a single RUP step, based
-on an algorithm to test for clausal entailment in det-DNNF graphs~\cite{capelli:sat:2019,darwiche:jair:2002}.  The
+on an algorithm to test for clausal entailment in det-DNNF graphs~\cite{darwiche:jair:2002,capelli:sat:2019}.  The
 proof generator constructs the hint sequence from the defining
 clauses of the POG nodes via a single, bottom-up pass through the
 graph.  The RUP deletion proof for input clause $C$ effectively proves that any
@@ -1573,7 +1575,7 @@ is only because it is such a simple formula.
 \label{section:formally-verified-toolchain}
 
 We set out to formally verify the system with two goals in mind: first, to ensure that the CPOG framework is mathematically
-sound; and second, to implement correct-by-construction proof checking and ring evaluation (the ``Trusted Code'' components of \ref{fig:chain}). These two goals are achieved with a single proof development in the \lean{} programming language~\cite{demoura:cade:2021}. Verification was greatly aided by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean} automated tactic. In this section, we briefly describe the functionality we implemented and what we proved about it. More information is provided in the supplement~\cite{bryant:sat:2023:supplement}.
+sound; and second, to implement correct-by-construction proof checking and ring evaluation (the ``Trusted Code'' components of \ref{fig:chain}). These two goals are achieved with a single proof development in the \lean{} programming language~\cite{demoura:cade:2021}. Verification was greatly aided by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean} automated tactic. In this section, we briefly describe the functionality we implemented and what we proved about it.
 
 \vspace{1em}\noindent
 \textbf{Proof checking.} The goal of a CPOG proof is to construct a POG that is equivalent to the input CNF $\inputformula$. The POG being constructed, and the set of active clauses are stored in the checker state \texttt{st}. The checker begins by parsing the input formula, initializing the active clauses to $\theta \leftarrow \inputformula$, and initializing the POG $P$ to an empty one. It then processes every step of the CPOG proof, either modifying its state by adding/deleting clauses in $\theta$ and adding nodes to $P$, or throwing an exception if a step is incorrect. Afterwards, it carries out the \textsc{final conditions} check of \ref{subsection:semantics}. Throughout the process, we maintain invariants that ensure that $P$ is partitioned and that a successful final check entails the logical equivalence of $\inputformula$ and $\phi_\noder$, where $\noder$ is the final POG root (\ref{thm:lean:equiv}).
@@ -1685,7 +1687,7 @@ we have that the number of models of \lstinline{φ} on its variables is
 \lstinline{countModels φ (card (vars φ))}.
 
 
-\section{Implementations}
+\section{Implementation}
 We have implemented programs that, along with
 the \dfour{} knowledge compiler, form the toolchain illustrated in
 Figure~\ref{fig:chain}.\footnote{The source code for all tools
@@ -1711,14 +1713,10 @@ verified version is further optimized.
 %% that works on some subset of the benchmarks would provide an
 %% additional degree of certainty.
 
-Our proof generator is written in C/C++ and uses
-\cadical{}~\cite{biere-cadical-2019} as its SAT solver.  To convert
-proof steps back into hinted CPOG clause additions, the generator can
-use either its own RUP proof generator, or it can invoke
-\dtrim{}~\cite{heule:cade:2013}.  The latter yields shorter proofs and scales well
-to large proofs, but each invocation has a high startup cost.  We
-therefore only use it when solving larger problems (currently ones
-with over 1000 clauses).
+Our proof generator is written in C/C++ and uses a recent version of
+the \cadical{} SAT solver that directly generates hinted proofs in
+LRAT format~\cite{biere:sat:2023}.  It also uses their tool \ltrim{}
+to reduce the length of the generated proofs.
 
 The proof generator can optionally be instructed to generate a {\em
 one-sided} proof, providing only the reverse-implication portion of the proof via
@@ -1727,18 +1725,22 @@ assignment that is a model for the compiled representation
 must also be a model for the input formula---even when
 full validation is impractical.
 
-We incorporated a ring evaluator into the prototype checker.  It
-can perform both standard and weighted
-model counting with full precision.  It performs arithmetic over a subset of the rationals
-we call $\drational$, consisting of numbers of the form $a \cdot 2^{b}
-\cdot 5^{c}$, for integers $a$, $b$, and $c$, and with $a$ implemented
-to have arbitrary range.  Allowing scaling by powers of 2 enables the
+We incorporated a ring evaluator into the prototype checker.  It can
+perform both standard and weighted model counting with full precision.
+It performs arithmetic over a subset of the rationals we call
+$\drational$, consisting of numbers of the form $a \cdot 2^{b} \cdot
+5^{c}$, for integers $a$, $b$, and $c$, and with $a$ implemented to
+have arbitrary range.  Allowing scaling by powers of 2 enables the
 density computation and rescaling required for standard model
 counting.  Allowing scaling by powers of both 2 and 5 enables exact
 decimal arithmetic, handling the weights used in the weighted model
 counting competitions.  To give a sense of scale, the counter
-generated a result with 260,909 decimal digits
-for one of the weighted benchmarks.
+generated a result with 260,909 decimal digits for one of the weighted
+benchmarks.  Our implementation of arbitrary-range integers represents
+a number as a sequence of ``digits'' with each digit ranging from $0$
+to $10^9-1$, and with the digits stored as four-byte blocks.  This
+allows easy conversion to and from a decimal representation of the
+number.
 
 
 \section{Experimental Evaluation}
@@ -1909,33 +1911,79 @@ the recursion through lemmas.  Neither of these prior
 toolchains could perform end-to-end verification when the knowledge
 compilation was preceded by preprocessing.
 
-\section{Concluding Remarks}
-\label{sect:future}
-
-This paper demonstrates a method for certifying the equivalence of two
-different representations of a Boolean formula: an input formula
-represented in conjunctive normal form, and a compiled representation
-that can then be used to extract useful information about the formula,
-including its weighted and unweighted model counts.  It builds on the
-extensive techniques that have been developed for clausal
-proof systems, including extended resolution and reverse unit propagation, as well as established tools, such as
-proof-generating SAT solvers and \dtrim{}.
-
+\section{Extensions}
 
 We are hopeful that having checkable proofs for knowledge compilers
 will allow them to be used in applications where high levels of trust
 are required, and that it will provide a useful tool for developers of
-knowledge compilers.
-%%Although our current implementation only handles
-%%the outputs of one particular program, it could be adapted
-Our experiments demonstrate that our toolchain can already handle
-problems nearly at the limits of current knowledge compilers.  Further
-engineering and optimization of our proof generator and checker could
-improve their performance and capacity substantially.  We are hopeful
-that our tool can be adapted to handle other knowledge compiler
-representations, such as sentential decision diagrams (SDDs)~\cite{darwiche:ijcai:2011}.
+knowledge compilers.  Our current implementation only handles the
+outputs of knowledge compilers that generate dec-DNNF graphs, and it
+supports only queries that can be computed via ring evaluation.  Here
+we discuss ways to extend both capabilities.
+
+
+\subsection{Validating Sentential Decision Diagrams}
+\label{sect:sdd}
+
+\begin{figure}
+  \begin{center}
+    \input{dd/sdd}
+  \end{center}
+\caption{Translation of SDD node $\nodeu$ into POG node $\hat{\nodeu}$.  An SDD node with $2k$ children expands into $k$ product nodes and $k-1$ sum nodes.}
+\label{fig:sdd:pog}
+\end{figure}
+
+\citeA{darwiche:ijcai:2011} introduced \emph{Sentential
+Decision Diagrams} (SDDs) as a generalization of 
+Ordered Binary Decision Diagrams (OBDDs)~\cite{Bryant:1986}.  Like
+OBDDs, SDDs are a canonical representation and support bottom-up
+construction.
+
+As with other representations, each node $\nodeu$ in an SDD denotes a
+Boolean formula $\phi_{\nodeu}$.  Leaf nodes correspond to $\tautology$, $\nil$, and literals.
+Each nonterminal node has $2k$ children,
+organized as pairs $\nodep_i$ and $\nodes_i$ for $1\leq i \leq k$.
+The dependency set for the node must be partitioned into disjoint sets $X_p$ and $X_s$ such that
+$\dependencyset(\phi_{\nodep_i}) \subseteq X_p$ and
+$\dependencyset(\phi_{\nodes_i}) \subseteq X_s$ for all $1 \leq i \leq k$.
+Children $\nodep_1, \nodep_2, \ldots, \nodep_k$ serve as a set of
+\emph{selector} functions with mutually disjoint models.  That is,
+$\modelset(\phi_{\nodep_i}) \cap \modelset(\phi_{\nodep_j}) =
+\emptyset$ for $1 \leq i < j \leq k$.
+The Boolean formula associated with node $\nodeu$ is then
+\begin{eqnarray}
+\phi_{\nodeu} & = & \bigvee_{1 \leq i \leq k} \left[\phi_{\nodep_i} \land \phi_{\nodes_i}\right] \label{eqn:sdd}
+\end{eqnarray}
+
+An SDD can be translated into a POG, where an SDD node with $2k$
+children expands into $k$ product nodes and $k-1$ sum nodes.
+In particular, assume that each nonterminal SDD node $\nodev$ can be represented by a
+subgraph in the POG with root node $\hat{\nodev}$.  For leaf node $\nodev$, its counterpart $\hat{\nodev}$ is
+the associated constant or literal, rather than a POG node.  Figure~\ref{fig:sdd:pog} then
+illustrates how node $\nodeu$ with $2k$ children would be expanded
+into a subgraph with root node $\hat{\nodeu}$.  We can see that each
+of the product nodes has arguments with disjoint dependency sets, and
+each of the sum nodes has disjoint sets of models.
+
+Several different methods could be used to generate a CPOG
+certification from an SDD\@.  For the forward implication proof, the
+monolithic approach we have used could generate the proof via a single
+call to a proof-generating SAT solver.  For an SDD generated by the
+bottom up approach originally proposed by \citeA{darwiche:ijcai:2011},
+the generator could be modified to generate proof steps for each
+recursive call during the construction, as is done to generate proofs
+of unsatisfiability with proof-generating, BDD-based SAT
+solvers~\cite{Jussila:2006,ebddres,bryant:fmcad:2022,bryant:tocl:2023}.
+For an SDD generated by a top-down process, a structural method
+similar to the one we have described could be applied.  A further
+requirement would be to generate mutual exclusion proofs for the $k-1$
+sum nodes illustrated in Figure~\ref{fig:sdd:pog}.  These would be
+based on the disjoint model property of the $k$ nodes of the form
+$\hat{\nodep}_i$.  One approach would be to simply make $k-1$ calls a
+proof-generating SAT solver.
 
 \subsection{Generalizing to Semirings}
+\label{sect:semiring}
 
 Kimmig's formulation of algebraic model
 counting~\cite{kimmig:jal:2017} is more general than ours.  It allows
@@ -1986,17 +2034,25 @@ convert this into a smooth POG in normal form and verify its
 equivalence to the input formula.  Full verification would also require checking that the POG is smooth.
 
 
-%% Each node $\nodeu$ in an $SDD$ has children $p_1, p_2, \ldots, p_k$ and
-%% $s_1, s_2, \ldots p_k$, where the Boolean formula $\phi(\nodeu)$ associated
-%% with the node is defined recursively as $\phi(\nodeu) = \bigwedge_{1 \leq i \leq k}
-%% [\phi(p_i) \land \phi(s_i)]$.  Moreover, each children $p_i$ and $p_j$
-%% such that $1 \leq i < j \leq k$ must satisfy $\modelset(\phi(p_i))
-%% \cap \modelset(\phi(p_j)) = \emptyset$, and for every $p_i$ and $s_j$
-%% such that $1 \leq i,j \leq k$, we must have $\dependencyset(\phi(p_i))
-%% \cap \dependencyset(\phi(s_j)) = \emptyset$.  The POG representation
-%% of such a node could have $k$ product nodes: $t_i = p_i \pand s_i$
-%% for $1 \leq i \leq k$, and then $k-1$ binary sum nodes to form
-%% the sum of $t_1, \ldots, t_k$.
+\section{Concluding Remarks}
+\label{sect:future}
+
+This paper demonstrates a method for certifying the equivalence of two
+different representations of a Boolean formula: an input formula
+represented in conjunctive normal form, and a compiled representation
+that can then be used to extract useful information about the formula,
+including its weighted and unweighted model counts.  It builds on the
+extensive techniques that have been developed for clausal
+proof systems, including extended resolution and reverse unit propagation, as well as established tools, such as
+proof-generating SAT solvers and \dtrim{}.
+
+
+Our experiments demonstrate that our toolchain can already handle
+problems nearly at the limits of current knowledge compilers.  Further
+engineering and optimization of our proof generator and checker could
+improve their performance and capacity substantially.  
+
+
 
 %%\newpage
 
