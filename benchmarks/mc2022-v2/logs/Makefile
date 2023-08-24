@@ -15,11 +15,16 @@ data:
 	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.hybrid_log > seconds-gen-hybrid.csv
 	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.hybrid_log > seconds-check-hybrid.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.hybrid_log > clauses-hybrid.csv
-	$(INTERP) $(GRAB) "GEN ERROR" *.hybrid_log > failures-hybrid.csv
+	$(INTERP) $(GRAB) "GEN ERROR" *.hybrid_onesided_log > failures-hybrid.csv
+	$(INTERP) $(GRAB) "CHECK: Elapsed" *.hybrid_onesided_log > seconds-gen-onesided.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.hybrid_onesided_log > seconds-check-onesided.csv
 	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-hybrid.csv seconds-check-hybrid.csv > seconds-summary.csv
+	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-onesided.csv seconds-check-onesided.csv > seconds-summary-onesided.csv
+	$(INTERP) $(MERGE) -f seconds-gen-onesided.csv clauses-defining.csv 1500000000 > clauses-summary-onesided.csv
 	$(INTERP) $(MERGE) -f failures-hybrid.csv seconds-d4.csv 25000 > seconds-summary-failures.csv
 	$(INTERP) $(MERGE) -f clauses-defining.csv clauses-hybrid.csv > clauses-summary.csv
 	$(INTERP) $(MERGE) -f failures-hybrid.csv clauses-defining.csv 1500000000 > clauses-summary-failures.csv
+
 
 # Mono
 	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.mono_log > seconds-gen-mono.csv

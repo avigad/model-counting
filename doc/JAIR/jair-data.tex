@@ -195,6 +195,8 @@ Summary:
 
 \begin{itemize}
 \item Of the 122 benchmarks, 100 were completed using the hybrid approach within 10,000 seconds.
+\item Of the 12 that did not completed, able to perform one-sided verification for 8 of them.
+\item Leaves 4 (+ 1 overflow case) for which no form of validation succeeded
 \end{itemize}
 
 \begin{figure}
@@ -213,11 +215,11 @@ Summary:
 %                              title={D4 Defining Clause Generation}
             ]
     \input{data-formatted/seconds-summary}
-%    \input{data-formatted/seconds-summary-onesided}
+    \input{data-formatted/seconds-summary-onesided}
     \input{data-formatted/seconds-summary-failures}
     \legend{
       \scriptsize \textsf{Full validation},
-%      \scriptsize \textsf{One-sided validation},
+      \scriptsize \textsf{One-sided validation},
       \scriptsize \textsf{Resource limit exceeded},
     }
     \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};
@@ -256,12 +258,12 @@ Summary:
                               xlabel={Defining Clauses}, ylabel={Proof Clauses},
             ]
     \input{data-formatted/clauses-summary}
-%%    \input{data-formatted/clauses-defining-onesided}
+    \input{data-formatted/clauses-summary-onesided}
     \input{data-formatted/clauses-summary-failures}
 
     \legend{
       \scriptsize \textsf{Full validation},
-%      \scriptsize \textsf{One-sided validation},
+      \scriptsize \textsf{One-sided validation},
       \scriptsize \textsf{No validation},
     }
     \addplot[mark=none, color=lightblue] coordinates{(100,100) (1e9,1e9)};
