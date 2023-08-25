@@ -29,14 +29,14 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m (m|s|h|f)] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
+    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m (m|s|h|f|k)] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
     print("  -v       Set verbosity level")
     print("  -s n|g   Stop after NNF generation or CPOG generation (g)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
     print("  -2       Use D4 version 2")
-    print("  -m MODE  Generation mode: monolithic (m), structured (s), hybrid (h), or forced-hybrid (f)")
+    print("  -m MODE  Generation mode: monolithic (m), structured (s), hybrid (h), forced-hybrid (f), or hybrid_100k")
     print("  -p       Preprocess (within D4).  Should then use monolithic mode for CPOG generation")
     print("  -L       Expand each node, rather than using lemmas")
     print("  -G       Prove each literal separately, rather than grouping into single proof")
@@ -213,6 +213,8 @@ def runGen(root, home, logFile, force):
         tree_ratio_threshold = 0
     elif mode == 'f':
         tree_ratio_threshold = 1e12
+    elif mode == 'k':
+        monolithic_threshold = 100 * 1000
     extraLogName = "d2p.log"
     cnfName = home + "/" + root + ".cnf"
     nnfName = nnfNamer(root, home)
@@ -245,6 +247,8 @@ def runCheck(root, home, logFile):
         cmd += ['-1']
     cmd += [cnfName, cpogName]
     ok =  runProgram("FCHECK", root, cmd, logFile)
+    if os.path.exists(cpogName):
+        os.remove(cpogName)
     return ok
 
 def runLeanCheck(root, home, logFile):
@@ -264,7 +268,7 @@ def runSequence(root, home, stopD4, stopGen, force):
     extension = "log"
     if oneSided:
         extension = "onesided_" + extension
-    prefix = "mono" if mode == 'm' else "structured" if mode == 's' else "forced_hybrid" if mode == 'f' else 'hybrid'
+    prefix = "mono" if mode == 'm' else "structured" if mode == 's' else "forced_hybrid" if mode == 'f' else "hybrid_100k" if mode == 'k' else 'hybrid'
     extension = prefix + "_" + extension
     if preprocess:
         extension = "preprocess_" + extension
@@ -348,7 +352,7 @@ def run(name, args):
             d4v2 = True
         elif opt == '-m':
             mode = val
-            if val not in "hmsf":
+            if val not in "hmsfk":
                 print("Unknown mode '%s'" % val)
                 usage(name)
                 return
