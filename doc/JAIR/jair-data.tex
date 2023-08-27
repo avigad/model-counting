@@ -232,7 +232,7 @@ Summary:
       \scriptsize \textsf{One-sided validation},
       \scriptsize \textsf{Resource limit exceeded},
     }
-    \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};
+    \addplot[mark=none, dashed] coordinates{(0.01,25000) (4000, 25000)};) 
     \addplot[mark=none, color=lightblue] coordinates{(0.01,20000) (4000,20000)};
     \addplot[mark=none, color=lightblue] coordinates{(0.1,0.01) (10000.0,1000.0)};
     \addplot[mark=none, color=lightblue] coordinates{(0.01,0.01) (10000.0,10000.0)};
@@ -251,6 +251,15 @@ Summary:
 \caption{Combined runtime for CPOG proof generation and checking  as function of D4 runtime.  Timeouts are shown as points on the dashed line.}
 \label{fig:d4:cpog}
 \end{figure}
+
+Figure~\ref{fig:d4:cpog} compares the running time for the combination
+of generating and checking the CPOG file (Y axis), versus the running
+time for C4 (X Axis).  If we compare the ratio between the two we find the following:
+\begin{itemize}
+\item Min = 0.27 (i.e., Verification chain was $3.64\times$ faster
+\item Max = 177.0
+\item Median = 12.5
+\end{itemize}
 
 \begin{figure}
 \centering{%
@@ -297,6 +306,15 @@ Summary:
 \caption{Total number of clauses in CPOG file as function of number of defining clauses}
 \label{fig:defining:total}
 \end{figure}
+
+Figure~\ref{fig:defining:total} compares the total number of clauses in the CPOG representation (Y axis) versus the number of defining clauses (X axis).  Since the former include the latter, the ratio between these cannot be less than 1.0.
+Comparing the ratios gives:
+\begin{itemize}
+\item Min = 1.02
+\item Max = 9460.2
+\item Median = 2.29
+\end{itemize}
+
 
 
 \section*{Selecting Reduced Benchmark Set}
