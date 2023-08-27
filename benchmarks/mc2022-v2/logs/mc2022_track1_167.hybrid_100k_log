@@ -1,0 +1,82 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 100000 -r 5.0 -C 2147483647 -L d2p.log ./mc2022_track1_167.cnf ./mc2022_track1_167.nnf ./mc2022_track1_167.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold 100000
+c GEN:   Tree ratio threshold 5.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.19  Read input file with 349990 variables and 579972 clauses
+c Read D4 NNF file with 47155 nodes (15720 explicit) and 31435 edges
+c Compressed POG has 45716 nodes, root literal 395706, and 3195277 defining clauses
+c POG has DAG size 3195277 and tree size 3195277 ratio = 1.00
+c GEN: Time 1.22  Generated POG representation
+c Time = 19.22.  Justifications of 475 nodes, including root, completed.  5052680 total clauses
+c GEN: Time 19.22  Completed forward implication proof
+c GEN: Time 20.57  Deleted asserted clauses
+c GEN: Time 2975.40  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 349990
+c GEN:    input clauses  : 579972
+c GEN: POG nodes
+c GEN:    product   : 30716
+c GEN:    sum       : 14999
+c GEN:    node TOTAL: 45715
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 158
+c GEN:    product/SAT: 0
+c GEN:    sum        : 158
+c GEN:    visit TOTAL: 316
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (159 instances)
+c GEN:    PROBLEM MIN   : 11492
+c GEN:    PROBLEM AVG   : 29237.82
+c GEN:    PROBLEM MAX   : 180777
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF MIN   : 3167
+c GEN:    PROOF AVG   : 9514.72
+c GEN:    PROOF MAX   : 80026
+c GEN: Clauses
+c GEN:    POG definition       : 3195277
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 158
+c GEN:    sum justification    : 316
+c GEN:    literal justification: 344088
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 1512841
+c GEN:    clause TOTAL         : 5052680
+c GEN: Time
+c GEN:   Setup POG           : 1.22
+c GEN:   Forward implication : 18.01
+c GEN:             SAT execution  : 6.12
+c GEN:             Other forward  : 11.89
+c GEN:   Reverse implication : 2956.19
+c GEN:   Time TOTAL          : 2975.41
+GEN LOG: Elapsed time = 2976.425 seconds
+GEN OUTCOME: normal
+mc2022_track1_167. GEN: LOG: size ./mc2022_track1_167.cpog 4340494 lines 653993309 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track1_167.cnf ./mc2022_track1_167.cpog
+FCHECK LOG: Time limit 10000 seconds
+CHECK: Read CNF file with 349990 variables and 579972 clauses
+CHECK: Read CPOG file with 45716 operations,  1857403 asserted + 3195277 defining = 5052680 clauses
+CHECK: Deleted 2437374 input and asserted clauses
+CHECK: Final root literal 395706
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 15000
+CHECK: Time to compute model counts: 0.207
+CHECK: Elapsed seconds: 42.969
+FCHECK LOG: Elapsed time = 43.012 seconds
+FCHECK OUTCOME: normal
+hybrid_100k LOG: Elapsed time = 3020.344 seconds
+hybrid_100k OUTCOME: normal

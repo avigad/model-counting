@@ -1,0 +1,23 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 100000 -r 5.0 -C 2147483647 -L d2p.log ./mc2022_track1_143.cnf ./mc2022_track1_143.nnf ./mc2022_track1_143.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold 100000
+c GEN:   Tree ratio threshold 5.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.01  Read input file with 729 variables and 3174 clauses
+c Read D4 NNF file with 16556321 nodes (5549901 explicit) and 11093213 edges
+c Compressed POG has 11327971 nodes, root literal 11328700, and 355091217 defining clauses
+c POG has DAG size 355091217 and tree size 456045270 ratio = 1.28
+c GEN: Time 108.14  Generated POG representation
+GEN ERROR: Timeout after 10000 seconds
+GEN LOG: Elapsed time = 10004.979 seconds
+GEN OUTCOME: Timeout
+hybrid_100k LOG: Elapsed time = 10023.270 seconds
+hybrid_100k OUTCOME: failed
