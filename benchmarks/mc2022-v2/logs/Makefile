@@ -45,11 +45,20 @@ data:
 	$(INTERP) $(GRAB) "GEN ERROR" *.structured_log > failures-structured.csv
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-structured.csv seconds-check-structured.csv > seconds-structured.csv
 
+
 	$(INTERP) $(MERGE) -f -t 4:1000:1500 sub10M.arch-csv seconds-d4.csv seconds-structured.csv > sub10M-seconds-structured.csv
 	$(INTERP) $(MERGE) -f -t 2:999:1500 sub10M.arch-csv seconds-d4.csv failures-structured.csv > sub10M-seconds-failures-structured.csv
 	$(INTERP) $(MERGE) -f -o 5:1000 sub10M-seconds-structured.csv clauses-defining.csv clauses-structured.csv > sub10M-clauses-structured.csv
 	$(INTERP) $(MERGE) -f sub10M.arch-csv failures-structured.csv clauses-defining.csv 15000000 > sub10M-clauses-failures-structured.csv
 	$(INTERP) $(MERGE) -f -o -5:1000 sub10M-seconds-structured.csv clauses-defining.csv 15000000 > sub10M-clauses-toobig-structured.csv
+
+#Structured Only
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.structured_only_log > seconds-gen-structured-only.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.structured_only_log > seconds-check-structured-only.csv
+	$(INTERP) $(GRAB) "clause TOTAL" *.structured_only_log > clauses-structured-only.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-structured-only.csv seconds-check-structured-only.csv > seconds-structured-only.csv
+
+
 
 # Hybrid
 	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-hybrid.csv seconds-check-hybrid.csv > seconds-hybrid.csv
