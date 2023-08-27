@@ -56,8 +56,8 @@ data:
 	$(INTERP) $(GRAB) "GEN LOG: Elapsed" *.structured_only_log > seconds-gen-structured-only.csv
 	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" *.structured_only_log > seconds-check-structured-only.csv
 	$(INTERP) $(GRAB) "clause TOTAL" *.structured_only_log > clauses-structured-only.csv
-	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-structured-only.csv seconds-check-structured-only.csv > seconds-structured-only.csv
-
+	$(INTERP) $(MERGE) -f -s 2:3 seconds-d4.csv seconds-gen-structured-only.csv seconds-check-structured-only.csv > seconds-summary-structured-only.csv
+	$(INTERP) $(MERGE) -f clauses-defining.csv clauses-structured-only.csv > clauses-summary-structured-only.csv
 
 
 # Hybrid

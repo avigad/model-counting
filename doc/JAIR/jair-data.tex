@@ -148,7 +148,7 @@
        \begin{itemize}
        \item Product or sum node with degree $k$ requires $k+1$ clauses
        \item $D$ also equals sum of number of edges and number of nodes
-       \item For 122 instances, Min = 304, Median = 774,883, Mean = 72,389,514, Max = 1,765,743,261
+       \item For 123 instances, Min = 304, Median = 774,883, Mean = 72,389,514, Max = 2,761,457,765 (1,765,743,261 for those that didn't overflow).
        \end{itemize}
 
      \item Also measure \emph{tree ratio}: $D_t / D$.
@@ -158,7 +158,7 @@
        \item Provides an indication of the importance of exploiting shared subgraphs in the POG generation
        \end{itemize}
 
-     \item Performance (122 instances):
+     \item Performance (122 instances.  Don't include the one that overflowed):
        \begin{itemize}
        \item Times: Min = 0.012 secs, Max = 2804.5 secs, Median = 3.46 secs
        \item Defining clauses: Min = 304, Max = 1,765,743,261, Median = 774,883
@@ -184,9 +184,10 @@ shift from structured to monolithic.
 General findings:
 \begin{itemize}
 \item The tree ratio provides a reasonable discriminator for monolithic vs.~structured.  Based on experiments, set threshold at 5.0. Use monolithic below this and structured above.
-\item We could not find any way to exploit the hybrid approach for these benchmarks.
-\item On the other hand, the monolithic approach becomes impractical beyond around $10^7$ defining clauses.  Even the best SAT solvers become unstable beyond this.
-\item Therefore, use hybrid approach for very large problems with tree ratios below 5.0, shift to monolithic once the tree size is at most $10^7$.
+\item We could not find any way to exploit the hybrid approach for the smaller benchmarks.
+\item On the other hand, the monolithic approach becomes impractical beyond around $10^6$ defining clauses.  Even the best SAT solvers become unstable beyond this.
+\item Therefore, use hybrid approach for very large problems with tree ratios below 5.0, shift to monolithic once the tree size is at most $10^6$.
+\item Also tried with limit of $10^5$ clauses.  Generally did worse in terms of completions.
 \end{itemize}
 
 Our summary data is based on this set of rules.
@@ -194,9 +195,16 @@ Our summary data is based on this set of rules.
 Summary:
 
 \begin{itemize}
-\item Of the 122 benchmarks, 100 were completed using the hybrid approach within 10,000 seconds.
-\item Of the 12 that did not completed, able to perform one-sided verification for 8 of them.
-\item Leaves 4 (+ 1 overflow case) for which no form of validation succeeded
+\item Of the 123 benchmarks, 110 were completed using the hybrid approach within 10,000 seconds.
+\item One additional one completed within 10,000 for structural (and for hybrid with a threshold of $10^5$ clauses.
+\item For seven others, was able to do one-sided proof
+\item Only one had more than $10^9$ defining clauses.
+\item Total of 5 (including 1 overflow case) for which no form of validation succeeded.
+  \begin{itemize}
+  \item Three of these had more than $10^9$ defining clauses
+  \item Smallest had 405 million
+  
+  \end{itemize}
 \end{itemize}
 
 \begin{figure}
@@ -215,10 +223,12 @@ Summary:
 %                              title={D4 Defining Clause Generation}
             ]
     \input{data-formatted/seconds-summary}
+    \input{data-formatted/seconds-summary-structured-only}
     \input{data-formatted/seconds-summary-onesided}
     \input{data-formatted/seconds-summary-failures}
     \legend{
-      \scriptsize \textsf{Full validation},
+      \scriptsize \textsf{Full validation, Hybrid},
+      \scriptsize \textsf{Full validation, Structural},
       \scriptsize \textsf{One-sided validation},
       \scriptsize \textsf{Resource limit exceeded},
     }
@@ -258,11 +268,13 @@ Summary:
                               xlabel={Defining Clauses}, ylabel={Proof Clauses},
             ]
     \input{data-formatted/clauses-summary}
+    \input{data-formatted/clauses-summary-structured-only}
     \input{data-formatted/clauses-summary-onesided}
     \input{data-formatted/clauses-summary-failures}
 
     \legend{
-      \scriptsize \textsf{Full validation},
+      \scriptsize \textsf{Full validation, Hybrid},
+      \scriptsize \textsf{Full validation, Structural},
       \scriptsize \textsf{One-sided validation},
       \scriptsize \textsf{No validation},
     }
