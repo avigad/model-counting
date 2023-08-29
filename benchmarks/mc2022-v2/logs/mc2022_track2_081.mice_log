@@ -1,0 +1,240 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_081.cnf -dDNNF -out=./mc2022_track2_081.nnf
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 33667
+c Number of clauses: 56116
+c Number of literals: 94378
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -27880 
+c top 5: -27880 -30300 
+c top 5: -27880 -30300 -28838 
+c top 5: -27880 -30300 -28838 -28650 
+c unitLits 1048577 4194308 Bytes
+c top 5: -27880 -30300 -28838 28650 
+c top 5: -27880 -30300 28838 
+c top 5: -27880 -30300 28838 -6635 
+c top 5: -27880 -30300 28838 6635 
+c top 5: 27880 
+c top 5: 27880 -6665 
+c top 5: 27880 -6665 6713 
+c top 5: 27880 6665 
+c top 5: 27880 6665 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 615
+c Number of split formula: 347
+c Number of decision node: 307
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 165
+c Number of backbone calls: 0
+c Number of partitioner calls: 144
+c Average number of assigned literal to obtain decomposable AND nodes: 32504.27/33667
+c Minimum number of assigned variable where a decomposable AND appeared: 27612
+c 
+c [33mGraph Information[0m
+c Number of nodes: 290038
+c Number of edges: 290527
+c 
+c [1m[34mCache Information[0m
+c Memory used: 597 MB
+c
+c Number of positive hit: 344
+c Number of negative hit: 307
+c Number of reduceCall: 0
+c
+c Final time: 0.227326
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.831 seconds
+D4 OUTCOME: normal
+N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track2_081.cnf ./mc2022_track2_081.nnf
+N2T LOG: Time limit 1000 seconds
+annotating...
+smoothing...
+tracing...
+N2T LOG: Elapsed time = 73.315 seconds
+N2T OUTCOME: normal
+N2T: LOG: size ./mc2022_track2_081.trace 64496 lines 27745860 bytes
+TC LOG: Running /Users/bryant/repos/vroland/sharptrace/target/release/sharptrace_checker ./mc2022_track2_081.trace
+TC LOG: Time limit 1000 seconds
+reading from "./mc2022_track2_081.trace"...done.
+parsing...done.
+clauses: 56116
+variables: 33667
+components: 1094
+proofs: 924 with 1040 steps in total
+claims: 2179
+
+verifying claims... 0%
+verifying claims... 0%
+verifying claims... 1%
+verifying claims... 2%
+verifying claims... 3%
+verifying claims... 4%
+verifying claims... 5%
+verifying claims... 6%
+verifying claims... 7%
+verifying claims... 8%
+verifying claims... 9%
+verifying claims... 10%
+verifying claims... 11%
+verifying claims... 12%
+verifying claims... 13%
+verifying claims... 14%
+verifying claims... 15%
+verifying claims... 16%
+verifying claims... 17%
+verifying claims... 18%
+verifying claims... 19%
+verifying claims... 20%
+verifying claims... 21%
+verifying claims... 22%
+verifying claims... 23%
+verifying claims... 24%
+verifying claims... 25%
+verifying claims... 26%
+verifying claims... 26%
+verifying claims... 27%
+verifying claims... 28%
+verifying claims... 29%
+verifying claims... 30%
+verifying claims... 31%
+verifying claims... 32%
+verifying claims... 33%
+verifying claims... 34%
+verifying claims... 35%
+verifying claims... 36%
+verifying claims... 37%
+verifying claims... 38%
+verifying claims... 39%
+verifying claims... 40%
+verifying claims... 41%
+verifying claims... 42%
+verifying claims... 43%
+verifying claims... 44%
+verifying claims... 45%
+verifying claims... 46%
+verifying claims... 47%
+verifying claims... 48%
+verifying claims... 49%
+verifying claims... 50%
+verifying claims... 51%
+verifying claims... 52%
+verifying claims... 53%
+verifying claims... 53%
+verifying claims... 54%
+verifying claims... 55%
+verifying claims... 56%
+verifying claims... 57%
+verifying claims... 58%
+verifying claims... 59%
+verifying claims... 60%
+verifying claims... 61%
+verifying claims... 62%
+verifying claims... 63%
+verifying claims... 64%
+verifying claims... 65%
+verifying claims... 66%
+verifying claims... 67%
+verifying claims... 68%
+verifying claims... 69%
+verifying claims... 70%
+verifying claims... 71%
+verifying claims... 72%
+verifying claims... 73%
+verifying claims... 74%
+verifying claims... 75%
+verifying claims... 76%
+verifying claims... 77%
+verifying claims... 78%
+verifying claims... 79%
+verifying claims... 79%
+verifying claims... 80%
+verifying claims... 81%
+verifying claims... 82%
+verifying claims... 83%
+verifying claims... 84%
+verifying claims... 85%
+verifying claims... 86%
+verifying claims... 87%
+verifying claims... 88%
+verifying claims... 89%
+verifying claims... 90%
+verifying claims... 91%
+verifying claims... 92%
+verifying claims... 93%
+verifying claims... 94%
+verifying claims... 95%
+verifying claims... 96%
+verifying claims... 97%
+verifying claims... 98%
+verifying claims... 99%
+claims verified.          
+
+verifying proofs... 0%
+verifying proofs... 0%
+verifying proofs... 1%
+verifying proofs... 2%
+verifying proofs... 3%
+verifying proofs... 4%
+verifying proofs... 5%
+verifying proofs... 6%
+verifying proofs... 7%
+verifying proofs... 8%
+verifying proofs... 9%
+verifying proofs... 10%
+verifying proofs... 11%
+verifying proofs... 12%
+verifying proofs... 13%
+verifying proofs... 14%
+verifying proofs... 15%
+verifying proofs... 16%
+verifying proofs... 17%
+verifying proofs... 18%
+verifying proofs... 19%
+verifying proofs... 20%
+verifying proofs... 21%
+verifying proofs... 22%
+verifying proofs... 23%
+verifying proofs... 24%
+verifying proofs... 25%
+verifying proofs... 26%
+verifying proofs... 26%
+verifying proofs... 27%
+verifying proofs... 28%
+verifying proofs... 29%
+verifying proofs... 30%
+verifying proofs... 31%
+verifying proofs... 32%
+verifying proofs... 33%
+verifying proofs... 34%
+verifying proofs... 35%
+verifying proofs... 36%
+verifying proofs... 37%
+verifying proofs... 38%
+verifying proofs... 39%
+verifying proofs... 40%
+verifying proofs... 41%
+proofs verified.          
+root model count: 100536
+TC LOG: Elapsed time = 8.963 seconds
+TC OUTCOME: normal
+OVERALL LOG: Elapsed time = 83.128 seconds
+OVERALL OUTCOME: normal

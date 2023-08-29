@@ -1,0 +1,508 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_045.cnf -dDNNF -out=./mc2022_track2_045.nnf
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 78
+c Number of clauses: 416
+c Number of literals: 2080
+c Preproc options: 
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -17 
+c top 5: -17 -28 
+c top 5: -17 -28 -55 
+c top 5: -17 -28 -55 -77 
+c unitLits 1048577 4194308 Bytes
+c top 5: -17 -28 -55 -77 
+c top 5: -17 -28 -55 77 
+c top 5: -17 -28 -55 77 
+c top 5: -17 -28 55 
+c top 5: -17 -28 55 -77 
+c top 5: -17 -28 55 -77 
+c top 5: -17 -28 55 77 
+c top 5: -17 -28 55 77 
+c top 5: -17 28 
+c top 5: 17 
+c top 5: 17 -28 
+c top 5: 17 -28 -55 
+c top 5: 17 -28 55 
+c top 5: 17 28 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 567
+c Number of split formula: 272
+c Number of decision node: 283
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 136
+c Number of backbone calls: 0
+c Number of partitioner calls: 25
+c Average number of assigned literal to obtain decomposable AND nodes: 7.76/78
+c Minimum number of assigned variable where a decomposable AND appeared: 4
+c 
+c [33mGraph Information[0m
+c Number of nodes: 1241
+c Number of edges: 1660
+c 
+c [1m[34mCache Information[0m
+c Memory used: 565 MB
+c
+c Number of positive hit: 340
+c Number of negative hit: 283
+c Number of reduceCall: 0
+c
+c Final time: 0.003244
+c 
+s 0.000000
+D4 LOG: Elapsed time = 0.016 seconds
+D4 OUTCOME: normal
+N2T LOG: Running /Users/bryant/repos/vroland/nnf2trace/target/release/nnf2trace ./mc2022_track2_045.cnf ./mc2022_track2_045.nnf
+N2T LOG: Time limit 1000 seconds
+changing root node to 2
+annotating...
+cloning 18 to 988
+cloning 16 to 991
+cloning 21 to 994
+cloning 20 to 997
+cloning 29 to 1000
+cloning 28 to 1003
+cloning 32 to 1006
+cloning 31 to 1009
+cloning 18 to 1012
+cloning 16 to 1015
+cloning 21 to 1018
+cloning 20 to 1021
+cloning 32 to 1024
+cloning 31 to 1027
+cloning 29 to 1030
+cloning 28 to 1033
+cloning 31 to 1036
+cloning 32 to 1039
+cloning 28 to 1042
+cloning 29 to 1045
+cloning 37 to 1048
+cloning 44 to 1093
+cloning 13 to 1138
+cloning 25 to 1183
+cloning 67 to 1228
+cloning 70 to 1237
+cloning 60 to 1246
+cloning 63 to 1255
+cloning 80 to 1264
+cloning 79 to 1267
+cloning 83 to 1270
+cloning 82 to 1273
+cloning 72 to 1276
+cloning 71 to 1279
+cloning 65 to 1282
+cloning 64 to 1285
+cloning 67 to 1288
+cloning 93 to 1297
+cloning 60 to 1306
+cloning 91 to 1315
+cloning 83 to 1324
+cloning 82 to 1327
+cloning 80 to 1330
+cloning 79 to 1333
+cloning 82 to 1336
+cloning 83 to 1339
+cloning 79 to 1342
+cloning 80 to 1345
+cloning 88 to 1348
+cloning 97 to 1433
+cloning 57 to 1478
+cloning 76 to 1563
+cloning 43 to 1608
+cloning 42 to 1617
+cloning 40 to 1626
+cloning 39 to 1635
+cloning 24 to 1644
+cloning 23 to 1653
+cloning 19 to 1662
+cloning 15 to 1671
+cloning 115 to 1680
+cloning 44 to 1725
+cloning 111 to 1770
+cloning 25 to 1815
+cloning 103 to 1860
+cloning 102 to 1869
+cloning 100 to 1878
+cloning 99 to 1887
+cloning 86 to 1896
+cloning 85 to 1905
+cloning 81 to 1914
+cloning 78 to 1923
+cloning 88 to 1932
+cloning 128 to 2017
+cloning 57 to 2062
+cloning 124 to 2147
+cloning 108 to 2192
+cloning 121 to 2565
+cloning 10 to 3098
+cloning 54 to 3471
+cloning 153 to 4004
+cloning 156 to 4013
+cloning 146 to 4022
+cloning 149 to 4031
+cloning 166 to 4040
+cloning 165 to 4043
+cloning 171 to 4046
+cloning 170 to 4049
+cloning 158 to 4052
+cloning 157 to 4055
+cloning 151 to 4058
+cloning 150 to 4061
+cloning 153 to 4064
+cloning 179 to 4073
+cloning 146 to 4082
+cloning 177 to 4091
+cloning 166 to 4100
+cloning 165 to 4103
+cloning 171 to 4106
+cloning 170 to 4109
+cloning 174 to 4112
+cloning 183 to 4197
+cloning 143 to 4242
+cloning 162 to 4327
+cloning 200 to 4372
+cloning 199 to 4375
+cloning 203 to 4378
+cloning 202 to 4381
+cloning 211 to 4384
+cloning 210 to 4387
+cloning 214 to 4390
+cloning 213 to 4393
+cloning 200 to 4396
+cloning 199 to 4399
+cloning 203 to 4402
+cloning 202 to 4405
+cloning 214 to 4408
+cloning 213 to 4411
+cloning 211 to 4414
+cloning 210 to 4417
+cloning 213 to 4420
+cloning 214 to 4423
+cloning 210 to 4426
+cloning 211 to 4429
+cloning 219 to 4432
+cloning 226 to 4477
+cloning 196 to 4522
+cloning 207 to 4567
+cloning 155 to 4612
+cloning 154 to 4615
+cloning 148 to 4618
+cloning 147 to 4621
+cloning 245 to 4624
+cloning 156 to 4633
+cloning 243 to 4642
+cloning 149 to 4651
+cloning 245 to 4660
+cloning 179 to 4669
+cloning 243 to 4678
+cloning 177 to 4687
+cloning 250 to 4696
+cloning 183 to 4781
+cloning 240 to 4826
+cloning 162 to 4911
+cloning 225 to 4956
+cloning 224 to 4965
+cloning 222 to 4974
+cloning 221 to 4983
+cloning 206 to 4992
+cloning 205 to 5001
+cloning 201 to 5010
+cloning 198 to 5019
+cloning 267 to 5028
+cloning 226 to 5073
+cloning 263 to 5118
+cloning 207 to 5163
+cloning 237 to 5208
+cloning 260 to 5741
+cloning 140 to 6114
+cloning 193 to 6647
+cloning 69 to 7020
+cloning 68 to 7023
+cloning 62 to 7026
+cloning 61 to 7029
+cloning 288 to 7032
+cloning 70 to 7041
+cloning 286 to 7050
+cloning 63 to 7059
+cloning 288 to 7068
+cloning 93 to 7077
+cloning 286 to 7086
+cloning 91 to 7095
+cloning 293 to 7104
+cloning 97 to 7189
+cloning 283 to 7234
+cloning 76 to 7319
+cloning 293 to 7364
+cloning 128 to 7449
+cloning 283 to 7494
+cloning 124 to 7579
+cloning 108 to 7624
+cloning 304 to 7997
+cloning 10 to 8530
+cloning 280 to 8903
+cloning 232 to 9436
+cloning 231 to 9445
+cloning 229 to 9454
+cloning 228 to 9463
+cloning 217 to 9472
+cloning 216 to 9481
+cloning 212 to 9490
+cloning 209 to 9499
+cloning 219 to 9508
+cloning 324 to 9553
+cloning 196 to 9598
+cloning 320 to 9643
+cloning 267 to 9688
+cloning 324 to 9733
+cloning 263 to 9778
+cloning 320 to 9823
+cloning 237 to 9868
+cloning 331 to 10401
+cloning 140 to 10774
+cloning 317 to 11307
+cloning 50 to 11680
+cloning 49 to 11689
+cloning 47 to 11698
+cloning 46 to 11707
+cloning 35 to 11716
+cloning 34 to 11725
+cloning 30 to 11734
+cloning 27 to 11743
+cloning 37 to 11752
+cloning 353 to 11797
+cloning 13 to 11842
+cloning 349 to 11887
+cloning 115 to 11932
+cloning 353 to 11977
+cloning 111 to 12022
+cloning 349 to 12067
+cloning 360 to 12112
+cloning 121 to 12485
+cloning 346 to 13018
+cloning 54 to 13391
+cloning 189 to 13924
+cloning 188 to 13933
+cloning 186 to 13942
+cloning 185 to 13951
+cloning 172 to 13960
+cloning 169 to 13969
+cloning 167 to 13978
+cloning 164 to 13987
+cloning 174 to 13996
+cloning 380 to 14081
+cloning 143 to 14126
+cloning 376 to 14211
+cloning 250 to 14256
+cloning 380 to 14341
+cloning 240 to 14386
+cloning 376 to 14471
+cloning 387 to 14516
+cloning 260 to 15049
+cloning 373 to 15422
+cloning 193 to 15955
+cloning 360 to 16328
+cloning 304 to 16701
+cloning 346 to 17234
+cloning 280 to 17607
+cloning 387 to 18140
+cloning 331 to 18673
+cloning 373 to 19046
+cloning 317 to 19579
+cloning 341 to 19952
+cloning 5 to 34505
+cloning 277 to 49058
+cloning 314 to 52695
+cloning 7 to 56332
+cloning 137 to 59969
+cloning 398 to 63606
+cloning 405 to 67243
+cloning 343 to 70880
+cloning 370 to 74517
+cloning 418 to 78154
+cloning 415 to 92707
+smoothing...
+tracing...
+N2T LOG: Elapsed time = 86.312 seconds
+N2T OUTCOME: normal
+N2T: LOG: size ./mc2022_track2_045.trace 726868 lines 18091497 bytes
+TC LOG: Running /Users/bryant/repos/vroland/sharptrace/target/release/sharptrace_checker ./mc2022_track2_045.trace
+TC LOG: Time limit 1000 seconds
+reading from "./mc2022_track2_045.trace"...done.
+parsing...done.
+clauses: 416
+variables: 78
+components: 107257
+proofs: 83755 with 83755 steps in total
+claims: 188095
+
+verifying claims... 0%
+verifying claims... 0%
+verifying claims... 1%
+verifying claims... 2%
+verifying claims... 3%
+verifying claims... 4%
+verifying claims... 5%
+verifying claims... 6%
+verifying claims... 7%
+verifying claims... 8%
+verifying claims... 9%
+verifying claims... 10%
+verifying claims... 11%
+verifying claims... 12%
+verifying claims... 13%
+verifying claims... 14%
+verifying claims... 15%
+verifying claims... 16%
+verifying claims... 17%
+verifying claims... 18%
+verifying claims... 19%
+verifying claims... 20%
+verifying claims... 21%
+verifying claims... 22%
+verifying claims... 23%
+verifying claims... 24%
+verifying claims... 25%
+verifying claims... 26%
+verifying claims... 27%
+verifying claims... 28%
+verifying claims... 29%
+verifying claims... 30%
+verifying claims... 31%
+verifying claims... 32%
+verifying claims... 33%
+verifying claims... 34%
+verifying claims... 35%
+verifying claims... 36%
+verifying claims... 37%
+verifying claims... 38%
+verifying claims... 39%
+verifying claims... 40%
+verifying claims... 41%
+verifying claims... 42%
+verifying claims... 43%
+verifying claims... 44%
+verifying claims... 45%
+verifying claims... 46%
+verifying claims... 47%
+verifying claims... 48%
+verifying claims... 49%
+verifying claims... 50%
+verifying claims... 51%
+verifying claims... 52%
+verifying claims... 53%
+verifying claims... 54%
+verifying claims... 55%
+verifying claims... 56%
+verifying claims... 57%
+verifying claims... 58%
+verifying claims... 59%
+verifying claims... 60%
+verifying claims... 61%
+verifying claims... 62%
+verifying claims... 63%
+verifying claims... 64%
+verifying claims... 65%
+verifying claims... 66%
+verifying claims... 67%
+verifying claims... 68%
+verifying claims... 69%
+verifying claims... 70%
+verifying claims... 71%
+verifying claims... 72%
+verifying claims... 73%
+verifying claims... 74%
+verifying claims... 75%
+verifying claims... 76%
+verifying claims... 77%
+verifying claims... 78%
+verifying claims... 79%
+verifying claims... 80%
+verifying claims... 81%
+verifying claims... 82%
+verifying claims... 83%
+verifying claims... 84%
+verifying claims... 85%
+verifying claims... 86%
+verifying claims... 87%
+verifying claims... 88%
+verifying claims... 89%
+verifying claims... 90%
+verifying claims... 91%
+verifying claims... 92%
+verifying claims... 93%
+verifying claims... 94%
+verifying claims... 95%
+verifying claims... 96%
+verifying claims... 97%
+verifying claims... 98%
+verifying claims... 99%
+claims verified.          
+
+verifying proofs... 0%
+verifying proofs... 0%
+verifying proofs... 1%
+verifying proofs... 2%
+verifying proofs... 3%
+verifying proofs... 4%
+verifying proofs... 5%
+verifying proofs... 6%
+verifying proofs... 7%
+verifying proofs... 8%
+verifying proofs... 9%
+verifying proofs... 10%
+verifying proofs... 11%
+verifying proofs... 12%
+verifying proofs... 13%
+verifying proofs... 14%
+verifying proofs... 15%
+verifying proofs... 16%
+verifying proofs... 17%
+verifying proofs... 18%
+verifying proofs... 19%
+verifying proofs... 20%
+verifying proofs... 21%
+verifying proofs... 22%
+verifying proofs... 23%
+verifying proofs... 24%
+verifying proofs... 25%
+verifying proofs... 26%
+verifying proofs... 27%
+verifying proofs... 28%
+verifying proofs... 29%
+verifying proofs... 30%
+verifying proofs... 31%
+verifying proofs... 32%
+verifying proofs... 33%
+verifying proofs... 34%
+verifying proofs... 35%
+verifying proofs... 36%
+verifying proofs... 37%
+verifying proofs... 38%
+verifying proofs... 39%
+verifying proofs... 40%
+verifying proofs... 41%
+verifying proofs... 42%
+verifying proofs... 43%
+proofs verified.          
+root model count: 4503599627370496
+TC LOG: Elapsed time = 0.370 seconds
+TC OUTCOME: normal
+OVERALL LOG: Elapsed time = 86.783 seconds
+OVERALL OUTCOME: normal
