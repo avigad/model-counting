@@ -81,6 +81,16 @@ data:
 	$(INTERP) $(MERGE) -f -o -1:5 tree-ratio.csv sub10M-clauses-mono.csv sub10M-clauses-structured.csv | \
 		grep -v 25000000,25000000 > sub10M-clauses-supthresh.csv
 
+# Mice
+mice:
+	$(INTERP) $(GRAB) "root model" *.mice_log > models-mice.csv
+	$(INTERP) $(GRAB) "N2T ERROR: Timeout" *.mice_log > timeouts-mice.csv
+	$(INTERP) $(GRAB) "N2T LOG: Elapsed" *.mice_log > seconds-n2t.csv
+	$(INTERP) $(GRAB) "TC LOG: Elapsed" *.mice_log > seconds-tc.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-n2t.csv seconds-tc.csv >  time-mice.csv
+	$(INTERP) $(MERGE) -f -s 1:2 seconds-gen-hybrid.csv seconds-check-hybrid.csv > time-pog.csv
+	$(INTERP) $(MERGE) -f time-pog.csv time-mice.csv models-mice.csv > time-mice-compare.csv
+	$(INTERP) $(MERGE) -f timeouts-mice.csv time-pog.csv 1500 > time-mice-timeout.csv
 
 
 clean:

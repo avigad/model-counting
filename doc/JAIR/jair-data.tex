@@ -265,14 +265,12 @@ Overall, our results on the 90 benchmarks were:
 
 We tried various experiments where the proof generator starts at the
 top using a structural approach and then switches to a monolithic
-approach once the tree size for a node drops below some threshold.  We
-could not find any selection procedure that improved the overall
-performance for the 90 smaller benchmarks.  On the other hand, it
-proved useful for the very large benchmarks, because calling a SAT
-solver on a problem with more than $10^6$ clauses often causes the
-solver to fail.  We therefore refined the rule into a \emph{hybrid} approach to operate as follows:
+approach once the tree size for a node drops below some threshold.
+This was helpful for very large benchmarks, using high thresholds.
+We also found that SAT solvers could not reliably handle problems with $10^7$ or more clauses.
+We therefore refined the rule into a \emph{hybrid} approach that operates as follows:
 \begin{enumerate}
-\item Label all nodes by the tree size of the subgraph for which it is the root.
+\item With a bottom-up traversal of the graph, Label each node by the tree size of the subgraph for which it is the root.
 \item Compute the total size of the graph and the tree ratio of the root.
 \item Proceed with proof generation with the following rules
   \begin{enumerate}
@@ -282,6 +280,7 @@ solver to fail.  We therefore refined the rule into a \emph{hybrid} approach to 
     with a structural approach.
   \end{enumerate}
 \end{enumerate}
+Unless noted otherwise, The remainder of our experimental data is based on this approach.
 
 \begin{figure}
 \centering{%
