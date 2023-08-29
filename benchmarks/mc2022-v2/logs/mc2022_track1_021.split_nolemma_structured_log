@@ -1,0 +1,128 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 0 -e -s -C 2147483647 -L d2p.log ./mc2022_track1_021.cnf ./mc2022_track1_021.nnf ./mc2022_track1_021.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       no
+c GEN:   Use lemmas:          no
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold 0
+c GEN:   Tree ratio threshold 0.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 586 variables and 1189 clauses
+c Read D4 NNF file with 8582 nodes (3703 explicit) and 7620 edges
+c Compressed POG has 8505 nodes, root literal 9091, and 44178 defining clauses
+c POG has DAG size 44178 and tree size 230785 ratio = 5.22
+c GEN: Time 0.03  Generated POG representation
+c Time = 0.04.  Justifications of 1000 nodes completed.  46676 total clauses.  0 SAT calls
+c Time = 0.05.  Justifications of 2000 nodes completed.  49173 total clauses.  0 SAT calls
+c Time = 0.06.  Justifications of 3000 nodes completed.  51597 total clauses.  0 SAT calls
+c Time = 0.07.  Justifications of 4000 nodes completed.  54076 total clauses.  0 SAT calls
+c Time = 0.07.  Justifications of 5000 nodes completed.  56220 total clauses.  0 SAT calls
+c Time = 0.08.  Justifications of 6000 nodes completed.  58712 total clauses.  0 SAT calls
+c Time = 0.09.  Justifications of 7000 nodes completed.  60735 total clauses.  0 SAT calls
+c Time = 0.09.  Justifications of 8000 nodes completed.  63089 total clauses.  0 SAT calls
+c Time = 0.10.  Justifications of 9000 nodes completed.  65186 total clauses.  0 SAT calls
+c Time = 0.11.  Justifications of 10000 nodes completed.  67543 total clauses.  0 SAT calls
+c Time = 0.12.  Justifications of 11000 nodes completed.  70035 total clauses.  0 SAT calls
+c Time = 0.13.  Justifications of 12000 nodes completed.  72388 total clauses.  0 SAT calls
+c Time = 0.13.  Justifications of 13000 nodes completed.  74781 total clauses.  0 SAT calls
+c Time = 0.14.  Justifications of 14000 nodes completed.  77112 total clauses.  0 SAT calls
+c Time = 0.15.  Justifications of 15000 nodes completed.  79531 total clauses.  0 SAT calls
+c Time = 0.17.  Justifications of 16000 nodes completed.  82021 total clauses.  0 SAT calls
+c Time = 0.17.  Justifications of 17000 nodes completed.  84402 total clauses.  0 SAT calls
+c Time = 0.18.  Justifications of 18000 nodes completed.  86576 total clauses.  0 SAT calls
+c Time = 0.19.  Justifications of 19000 nodes completed.  88800 total clauses.  0 SAT calls
+c Time = 0.19.  Justifications of 20000 nodes completed.  91021 total clauses.  0 SAT calls
+c Time = 0.20.  Justifications of 21000 nodes completed.  93352 total clauses.  0 SAT calls
+c Time = 0.21.  Justifications of 22000 nodes completed.  95656 total clauses.  0 SAT calls
+c Time = 0.22.  Justifications of 23000 nodes completed.  97929 total clauses.  0 SAT calls
+c Time = 0.22.  Justifications of 24000 nodes completed.  100383 total clauses.  0 SAT calls
+c Time = 0.23.  Justifications of 25000 nodes completed.  102700 total clauses.  0 SAT calls
+c Time = 0.24.  Justifications of 26000 nodes completed.  104962 total clauses.  0 SAT calls
+c Time = 0.25.  Justifications of 27000 nodes completed.  107490 total clauses.  0 SAT calls
+c Time = 0.26.  Justifications of 28000 nodes completed.  110045 total clauses.  0 SAT calls
+c Time = 0.26.  Justifications of 29000 nodes completed.  112617 total clauses.  0 SAT calls
+c Time = 0.27.  Justifications of 30000 nodes completed.  115148 total clauses.  0 SAT calls
+c Time = 0.28.  Justifications of 31000 nodes completed.  117691 total clauses.  0 SAT calls
+c Time = 0.29.  Justifications of 32000 nodes completed.  120417 total clauses.  0 SAT calls
+c Time = 0.30.  Justifications of 33000 nodes completed.  122773 total clauses.  0 SAT calls
+c Time = 0.30.  Justifications of 34000 nodes completed.  125197 total clauses.  0 SAT calls
+c Time = 0.31.  Justifications of 35000 nodes completed.  127630 total clauses.  0 SAT calls
+c Time = 0.32.  Justifications of 36000 nodes completed.  129995 total clauses.  0 SAT calls
+c Time = 0.33.  Justifications of 37000 nodes completed.  132495 total clauses.  0 SAT calls
+c Time = 0.34.  Justifications of 38000 nodes completed.  135020 total clauses.  0 SAT calls
+c Time = 0.34.  Justifications of 39000 nodes completed.  137488 total clauses.  0 SAT calls
+c Time = 0.35.  Justifications of 40000 nodes completed.  139700 total clauses.  0 SAT calls
+c Time = 0.36.  Justifications of 41000 nodes completed.  141774 total clauses.  0 SAT calls
+c Time = 0.36.  Justifications of 42000 nodes completed.  143735 total clauses.  0 SAT calls
+c Time = 0.37.  Justifications of 43000 nodes completed.  145552 total clauses.  0 SAT calls
+c Time = 0.37.  Justifications of 44000 nodes completed.  147389 total clauses.  0 SAT calls
+c Time = 0.38.  Justifications of 45000 nodes completed.  149233 total clauses.  0 SAT calls
+c Time = 0.38.  Justifications of 46000 nodes completed.  151148 total clauses.  0 SAT calls
+c Time = 0.39.  Justifications of 47000 nodes completed.  153001 total clauses.  0 SAT calls
+c Time = 0.39.  Justifications of 48000 nodes completed.  154823 total clauses.  0 SAT calls
+c Time = 0.40.  Justifications of 49000 nodes completed.  156675 total clauses.  0 SAT calls
+c Time = 0.41.  Justifications of 50000 nodes completed.  158541 total clauses.  0 SAT calls
+c Time = 0.42.  Justifications of 51000 nodes completed.  160369 total clauses.  0 SAT calls
+c Time = 0.42.  Justifications of 52000 nodes completed.  162189 total clauses.  0 SAT calls
+c Time = 0.43.  Justifications of 53000 nodes completed.  164066 total clauses.  0 SAT calls
+c Time = 0.43.  Justifications of 53864 nodes, including root, completed.  165626 total clauses
+c GEN: Time 0.43  Completed forward implication proof
+c GEN: Time 0.48  Deleted asserted clauses
+c GEN: Time 0.64  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 586
+c GEN:    input clauses  : 1189
+c GEN: POG nodes
+c GEN:    product   : 6100
+c GEN:    sum       : 2404
+c GEN:    node TOTAL: 8504
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 36834
+c GEN:    product/SAT: 0
+c GEN:    sum        : 17030
+c GEN:    visit TOTAL: 53864
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 44178
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 36834
+c GEN:    sum justification    : 33488
+c GEN:    literal justification: 51698
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 166198
+c GEN: Time
+c GEN:   Setup POG           : 0.03
+c GEN:   Forward implication : 0.41
+c GEN:             SAT execution  : 0.00
+c GEN:             Other forward  : 0.41
+c GEN:   Reverse implication : 0.21
+c GEN:   Time TOTAL          : 0.66
+GEN LOG: Elapsed time = 0.699 seconds
+GEN OUTCOME: normal
+mc2022_track1_021. GEN: LOG: size ./mc2022_track1_021.cpog 252590 lines 14473966 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track1_021.cnf ./mc2022_track1_021.cpog
+FCHECK LOG: Time limit 1000 seconds
+CHECK: Read CNF file with 586 variables and 1189 clauses
+CHECK: Read CPOG file with 8505 operations,  121448 asserted + 44178 defining = 165626 clauses
+CHECK: Deleted 122636 input and asserted clauses
+CHECK: Final root literal 9091
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 784637825987894704862177297051569632016580688841015296000
+CHECK: Time to compute model counts: 0.003
+CHECK: Elapsed seconds: 0.446
+FCHECK LOG: Elapsed time = 0.448 seconds
+FCHECK OUTCOME: normal
+structured LOG: Elapsed time = 1.196 seconds
+structured OUTCOME: normal
