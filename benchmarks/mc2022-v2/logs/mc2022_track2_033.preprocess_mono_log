@@ -1,0 +1,187 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_033.cnf -dDNNF -out=./mc2022_track2_033pre.nnf -preproc=backbone+vivification+occElimination
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 168
+c Number of clauses: 722
+c Number of literals: 1518
+c Preproc options: backbone+vivification+occElimination
+c Run Backbone
+c Run Vivification
+c Run Occurrence Elimination
+c
+c Preproc time: 0.001469
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -115 
+c top 5: -115 -116 
+c top 5: -115 -116 -117 
+c top 5: -115 -116 -117 -118 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c      16384 |       0.18 |      12062 |       8210 |       9557 |        566 |      80206 |      93430 |          0 |       8210 |        1485 |          0 | 
+c      32768 |       0.36 |      26412 |      16391 |      21391 |        566 |     158590 |     186625 |          0 |      16391 |        2549 |          0 | 
+c      49152 |       0.54 |      40517 |      24585 |      33019 |        567 |     234761 |     277358 |          0 |      24585 |        3606 |          0 | 
+c      65536 |       0.71 |      61446 |      32775 |      52715 |        567 |     307947 |     371558 |          0 |      32775 |        4204 |          0 | 
+c top 5: -115 -116 -117 118 
+c      81920 |       0.85 |      80188 |      40977 |      70250 |        567 |     385148 |     467659 |          0 |      40977 |        4670 |          0 | 
+c      98304 |       1.04 |      97149 |      49158 |      85333 |        567 |     467744 |     567606 |          0 |      49158 |        5701 |          0 | 
+c     114688 |       1.16 |     112859 |      57361 |      98887 |        567 |     534612 |     650280 |          0 |      57361 |        5929 |          0 | 
+c     131072 |       1.33 |     128207 |      65541 |     112292 |        567 |     609331 |     740625 |          0 |      65541 |        7040 |          0 | 
+c     147456 |       1.46 |     143517 |      73734 |     125640 |        567 |     679453 |     826134 |          0 |      73734 |        7434 |          0 | 
+c top 5: -115 -116 117 
+c top 5: -115 -116 117 -118 
+c     163840 |       1.62 |     161516 |      81928 |     142057 |        567 |     759885 |     924588 |          0 |      81928 |        7802 |          0 | 
+c top 5: -115 -116 117 118 
+c     180224 |       1.75 |     178659 |      90119 |     157861 |        567 |     842339 |    1024232 |          0 |      90119 |        7945 |          0 | 
+c top 5: -115 116 
+c top 5: -115 116 -117 
+c top 5: -115 116 -117 -118 
+c top 5: -115 116 -117 118 
+c top 5: -115 116 117 
+c top 5: -115 116 117 -118 
+c     196608 |       1.88 |     198658 |      98312 |     177341 |        567 |     928435 |    1130337 |          0 |      98312 |        7946 |          0 | 
+c top 5: -115 116 117 118 
+c top 5: 115 
+c top 5: 115 -116 
+c top 5: 115 -116 -117 
+c top 5: 115 -116 -117 -118 
+c top 5: 115 -116 -117 118 
+c top 5: 115 -116 117 
+c top 5: 115 -116 117 -118 
+c top 5: 115 -116 117 118 
+c top 5: 115 116 
+c top 5: 115 116 -117 
+c top 5: 115 116 -117 -118 
+c top 5: 115 116 -117 118 
+c     212992 |       2.02 |     219323 |     106504 |     197493 |        567 |    1018932 |    1241507 |          0 |     106504 |        7946 |          0 | 
+c unitLits 2097153 8388612 Bytes
+c top 5: 115 116 117 
+c top 5: 115 116 117 -118 
+c top 5: 115 116 117 118 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 214681
+c Number of split formula: 199404
+c Number of decision node: 107340
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 82126
+c Number of backbone calls: 0
+c Number of partitioner calls: 7946
+c Average number of assigned literal to obtain decomposable AND nodes: 101.66/168
+c Minimum number of assigned variable where a decomposable AND appeared: 49
+c 
+c [33mGraph Information[0m
+c Number of nodes: 1029921
+c Number of edges: 1254539
+c 
+c [1m[34mCache Information[0m
+c Memory used: 579 MB
+c
+c Number of positive hit: 221363
+c Number of negative hit: 107340
+c Number of reduceCall: 0
+c
+c Final time: 2.030065
+c 
+s 0.000000
+D4 LOG: Elapsed time = 2.939 seconds
+D4 OUTCOME: normal
+mc2022_track2_033. D4 NNF: LOG: size ./mc2022_track2_033pre.nnf 603554 lines 11389114 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m -1 -r 1000000000000.0 -C 2147483647 -L d2p.log ./mc2022_track2_033.cnf ./mc2022_track2_033pre.nnf ./mc2022_track2_033.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold unbounded
+c GEN:   Tree ratio threshold 1000000000000.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 168 variables and 722 clauses
+c Read D4 NNF file with 404150 nodes (189469 explicit) and 414085 edges
+c Compressed POG has 403311 nodes, root literal 403479, and 1868355 defining clauses
+c POG has DAG size 1868355 and tree size 164644414 ratio = 88.12
+c GEN: Time 0.87  Generated POG representation
+c Time = 493.44.  Justifications of 1 nodes, including root, completed.  4422483 total clauses
+c GEN: Time 493.44  Completed forward implication proof
+c GEN: Time 495.49  Deleted asserted clauses
+c GEN: Time 501.57  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 168
+c GEN:    input clauses  : 722
+c GEN: POG nodes
+c GEN:    product   : 296074
+c GEN:    sum       : 107236
+c GEN:    node TOTAL: 403310
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 0
+c GEN:    product/SAT: 0
+c GEN:    sum        : 0
+c GEN:    visit TOTAL: 0
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (1 instances)
+c GEN:    PROBLEM MIN   : 1868937
+c GEN:    PROBLEM AVG   : 1868937.00
+c GEN:    PROBLEM MAX   : 1868937
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF MIN   : 2554109
+c GEN:    PROOF AVG   : 2554109.00
+c GEN:    PROOF MAX   : 2554109
+c GEN: Clauses
+c GEN:    POG definition       : 1868355
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 0
+c GEN:    sum justification    : 0
+c GEN:    literal justification: 19
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 2554109
+c GEN:    clause TOTAL         : 4422483
+c GEN: Time
+c GEN:   Setup POG           : 0.87
+c GEN:   Forward implication : 492.58
+c GEN:             SAT execution  : 477.28
+c GEN:             Other forward  : 15.29
+c GEN:   Reverse implication : 8.13
+c GEN:   Time TOTAL          : 501.58
+GEN LOG: Elapsed time = 501.613 seconds
+GEN OUTCOME: normal
+mc2022_track2_033. GEN: LOG: size ./mc2022_track2_033.cpog 5512289 lines 911928605 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track2_033.cnf ./mc2022_track2_033.cpog
+FCHECK LOG: Time limit 1000 seconds
+CHECK: Read CNF file with 168 variables and 722 clauses
+CHECK: Read CPOG file with 403311 operations,  2554128 asserted + 1868355 defining = 4422483 clauses
+CHECK: Deleted 2554849 input and asserted clauses
+CHECK: Final root literal 403479
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 994298489623589036
+CHECK: Weighted model count = 0.23679488351910034635465425491351434488569400488797438451025042990355132482686719817669274134668420859616249197614138011232114673441135559576119753349602056231130271163620200338390410750876477365712652647356247927081990318485789623322337533966484686482682999179187339615920075975945910392262906071998942367680791425805860387461156240503353459388158061131534470214244212134089410137110294777876247453613849647304763076982249084141388490007539946473456850031114116718100875283175314747795289566608210813311921393114864846140195435014109385163417917822082186172672320017721446909220630390579625732264277718315498389951879713809186778201888298078959482128959495129281678217624087474273611073965910707624906440642086377484800009178155090822986045215315443853983794119225187151827483462305157696012332247301140076872748690380937604173658344451610397159755859129511343777612474504341657249629266123434759220929866556991176909188365050814794912264838935850761477014826309983294872925318797791742233120990658835913753063571139839312328916540956062825845168312850951155579725733470859726836393686236582281590792620443675413044013208622359733046247724571165039627365783039999998094610975795801473039775809994605624622864518858834479523167797004027018568247764161447229601552277874496614336299008
+CHECK: Time to compute model counts: 0.624
+CHECK: Elapsed seconds: 28.254
+FCHECK LOG: Elapsed time = 28.289 seconds
+FCHECK OUTCOME: normal
+mono LOG: Elapsed time = 534.250 seconds
+mono OUTCOME: normal

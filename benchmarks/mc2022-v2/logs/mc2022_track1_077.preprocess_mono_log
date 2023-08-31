@@ -1,0 +1,158 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track1_077.cnf -dDNNF -out=./mc2022_track1_077pre.nnf -preproc=backbone+vivification+occElimination
+D4 LOG: Time limit 24000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 250
+c Number of clauses: 1062
+c Number of literals: 3186
+c Preproc options: backbone+vivification+occElimination
+c Run Backbone
+c Run Vivification
+c Run Occurrence Elimination
+c
+c Preproc time: 8.837348
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -194 
+c top 5: -194 100 
+c top 5: -194 100 76 
+c top 5: -194 100 76 -91 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c top 5: -194 100 76 91 
+c top 5: 194 
+c top 5: 194 -54 
+c top 5: 194 -54 -19 
+c top 5: 194 -54 -19 -33 
+c top 5: 194 -54 -19 33 
+c top 5: 194 -54 19 
+c top 5: 194 -54 19 91 
+c top 5: 194 54 
+c top 5: 194 54 -76 
+c top 5: 194 54 -76 -100 
+c top 5: 194 54 -76 100 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 671
+c Number of split formula: 365
+c Number of decision node: 335
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 152
+c Number of backbone calls: 0
+c Number of partitioner calls: 1
+c Average number of assigned literal to obtain decomposable AND nodes: 227.80/250
+c Minimum number of assigned variable where a decomposable AND appeared: 213
+c 
+c [33mGraph Information[0m
+c Number of nodes: 3755
+c Number of edges: 4303
+c 
+c [1m[34mCache Information[0m
+c Memory used: 580 MB
+c
+c Number of positive hit: 324
+c Number of negative hit: 335
+c Number of reduceCall: 0
+c
+c Final time: 0.004439
+c 
+s 0.000000
+D4 LOG: Elapsed time = 8.907 seconds
+D4 OUTCOME: normal
+mc2022_track1_077. D4 NNF: LOG: size ./mc2022_track1_077pre.nnf 1526 lines 27102 bytes
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m -1 -r 1000000000000.0 -C 2147483647 -L d2p.log ./mc2022_track1_077.cnf ./mc2022_track1_077pre.nnf ./mc2022_track1_077.cpog
+GEN LOG: Time limit 10000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       yes
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold unbounded
+c GEN:   Tree ratio threshold 1000000000000.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 250 variables and 1062 clauses
+c Read D4 NNF file with 1161 nodes (490 explicit) and 1036 edges
+c Compressed POG has 1058 nodes, root literal 1308, and 5748 defining clauses
+c POG has DAG size 5748 and tree size 12166 ratio = 2.12
+c GEN: Time 0.00  Generated POG representation
+c Time = 9.42.  Justifications of 1 nodes, including root, completed.  193552 total clauses
+c GEN: Time 9.42  Completed forward implication proof
+c GEN: Time 9.78  Deleted asserted clauses
+c GEN: Time 9.79  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 250
+c GEN:    input clauses  : 1062
+c GEN: POG nodes
+c GEN:    product   : 738
+c GEN:    sum       : 319
+c GEN:    node TOTAL: 1057
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 0
+c GEN:    product/SAT: 0
+c GEN:    sum        : 0
+c GEN:    visit TOTAL: 0
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (1 instances)
+c GEN:    PROBLEM MIN   : 6752
+c GEN:    PROBLEM AVG   : 6752.00
+c GEN:    PROBLEM MAX   : 6752
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF MIN   : 187804
+c GEN:    PROOF AVG   : 187804.00
+c GEN:    PROOF MAX   : 187804
+c GEN: Clauses
+c GEN:    POG definition       : 5748
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 0
+c GEN:    sum justification    : 0
+c GEN:    literal justification: 0
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 187804
+c GEN:    clause TOTAL         : 193552
+c GEN: Time
+c GEN:   Setup POG           : 0.00
+c GEN:   Forward implication : 9.42
+c GEN:             SAT execution  : 7.93
+c GEN:             Other forward  : 1.49
+c GEN:   Reverse implication : 0.37
+c GEN:   Time TOTAL          : 9.80
+GEN LOG: Elapsed time = 9.839 seconds
+GEN OUTCOME: normal
+mc2022_track1_077. GEN: LOG: size ./mc2022_track1_077.cpog 377728 lines 60404226 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track1_077.cnf ./mc2022_track1_077.cpog
+FCHECK LOG: Time limit 10000 seconds
+CHECK: Read CNF file with 250 variables and 1062 clauses
+CHECK: Read CPOG file with 1058 operations,  187804 asserted + 5748 defining = 193552 clauses
+CHECK: Deleted 188865 input and asserted clauses
+CHECK: Final root literal 1308
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 103228000
+CHECK: Time to compute model counts: 0.000
+CHECK: Elapsed seconds: 2.106
+FCHECK LOG: Elapsed time = 2.133 seconds
+FCHECK OUTCOME: normal
+mono LOG: Elapsed time = 20.973 seconds
+mono OUTCOME: normal

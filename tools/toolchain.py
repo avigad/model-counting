@@ -82,7 +82,7 @@ leanHome = homePath + "/model-counting/lean4"
 leanCheckProgram = leanHome + "/ProofChecker/build/bin/checker"
 
 #timeLimits = { "D4" : 4000, "GEN" : 1000, "FCHECK" : 1000, "LCHECK" : 1000 }
-timeLimits = { "D4" : 24000, "GEN" : 10000, "FCHECK" : 10000, "LCHECK" : 10000}
+timeLimits = { "D4" : 1000, "GEN" : 10000, "FCHECK" : 10000, "LCHECK" : 10000}
 
 clauseLimit = (1 << 31) - 1
 

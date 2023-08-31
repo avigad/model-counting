@@ -1,5 +1,100 @@
+D4 LOG: Running /Users/bryant/repos/d4/d4 ./mc2022_track2_183.cnf -dDNNF -out=./mc2022_track2_183.nnf
+D4 LOG: Time limit 1000 seconds
+c [33mBenchmark Information[0m
+c Number of variables: 2701
+c Number of clauses: 12460
+c Number of literals: 24272
+c Preproc options: 
+c
+c Preproc time: 0.003665
+c Integer mode 
+c
+c [1m[32mOption list [0m
+c Caching: 1
+c Reduce cache procedure level: 20
+c Strategy for Reducing the cache: 0
+c Cache representation: CL
+c Part of the formula that is cached: NT
+c Variable heuristic: VSADS
+c Phase heuristic: TRUE
+c Partitioning heuristic: CB + graph reduction + equivalence simplication
+c
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c   #compile |       time |    #posHit |    #negHit |     #split |    Mem(MB) |     #nodes |     #edges | #equivCall | #Dec. Node | #paritioner |  limit dyn | 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c top 5: -878 
+c top 5: -878 -745 
+c top 5: -878 -745 -889 
+c top 5: -878 -745 -889 -836 
+c unitLits 1048577 4194308 Bytes
+c freeVariables 1048577
+c      16384 |       1.49 |      15779 |       8223 |      16056 |        585 |     369624 |     388440 |          0 |       8221 |        1737 |          0 | 
+c      32768 |       2.68 |      33735 |      16408 |      34238 |        586 |     743422 |     782860 |          0 |      16406 |        3352 |          0 | 
+c unitLits 2097153 8388612 Bytes
+c      49152 |       4.37 |      54941 |      24601 |      56138 |        599 |    1167490 |    1230303 |          0 |      24599 |        4995 |          0 | 
+c      65536 |       6.24 |      77903 |      32789 |      79708 |        599 |    1686030 |    1773573 |          0 |      32786 |        6821 |          0 | 
+c      81920 |       7.54 |     100676 |      40974 |     102637 |        599 |    2064106 |    2176236 |          0 |      40970 |        8615 |          0 | 
+c unitLits 3145729 12582916 Bytes
+c      98304 |       9.66 |     125249 |      49162 |     127671 |        599 |    2508162 |    2646262 |          0 |      49158 |       10447 |          0 | 
+c top 5: -878 -745 -889 836 
+c top 5: -878 -745 889 
+c top 5: -878 -745 889 -2245 
+c top 5: -878 -745 889 2245 
+c top 5: -878 745 
+c top 5: -878 745 -2245 
+c top 5: -878 745 -2245 -883 
+c     114688 |      11.70 |     148287 |      57364 |     151104 |        600 |    2940300 |    3102918 |          0 |      57360 |       12243 |          0 | 
+c unitLits 4194305 16777220 Bytes
+c top 5: -878 745 -2245 883 
+c top 5: -878 745 2245 
+c top 5: -878 745 2245 -2252 
+c top 5: -878 745 2245 2252 
+c top 5: 878 
+c top 5: 878 -2245 
+c top 5: 878 -2245 -836 
+c top 5: 878 -2245 -836 -920 
+c top 5: 878 -2245 -836 920 
+c top 5: 878 -2245 836 
+c top 5: 878 -2245 836 -2315 
+c top 5: 878 2245 
+c top 5: 878 2245 -2252 
+c top 5: 878 2245 -2252 -2269 
+c top 5: 878 2245 -2252 2269 
+c top 5: 878 2245 2252 
+c top 5: 878 2245 2252 -2249 
+c ----------------------------------------------------------------------------------------------------------------------------------------------------------
+c
+c [1m[31mStatistics [0m
+c [33mCompilation Information[0m
+c Number of compiled node: 129105
+c Number of split formula: 175914
+c Number of decision node: 64552
+c Number of node built on domain constraints: 0
+c Number of decomposable AND nodes: 52826
+c Number of backbone calls: 0
+c Number of partitioner calls: 13776
+c Average number of assigned literal to obtain decomposable AND nodes: 2294.28/2701
+c Minimum number of assigned variable where a decomposable AND appeared: 1667
+c 
+c [33mGraph Information[0m
+c Number of nodes: 3443265
+c Number of edges: 3630905
+c 
+c [1m[34mCache Information[0m
+c Memory used: 604 MB
+c
+c Number of positive hit: 172308
+c Number of negative hit: 64556
+c Number of reduceCall: 0
+c
+c Final time: 14.382056
+c 
+s 0.000000
+D4 LOG: Elapsed time = 15.422 seconds
+D4 OUTCOME: normal
+mc2022_track2_183. D4 NNF: LOG: size ./mc2022_track2_183.nnf 422408 lines 23046871 bytes
 GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 0 -e -s -C 2147483647 -L d2p.log ./mc2022_track2_183.cnf ./mc2022_track2_183.nnf ./mc2022_track2_183.cpog
-GEN LOG: Time limit 1000 seconds
+GEN LOG: Time limit 10000 seconds
 c GEN: Program options
 c GEN:   Multi-literal:       no
 c GEN:   Use lemmas:          no
@@ -15,249 +110,791 @@ c GEN: Time 0.01  Read input file with 2701 variables and 12460 clauses
 c Read D4 NNF file with 246494 nodes (117385 explicit) and 305023 edges
 c Compressed POG has 239541 nodes, root literal 242242, and 3975194 defining clauses
 c POG has DAG size 3975194 and tree size 94363296 ratio = 23.74
-c GEN: Time 1.25  Generated POG representation
-c Time = 9.30.  Justifications of 23954 nodes completed.  4357332 total clauses.  546 SAT calls
-c Time = 14.44.  Justifications of 47908 nodes completed.  4629899 total clauses.  928 SAT calls
-c Time = 21.21.  Justifications of 71862 nodes completed.  4966479 total clauses.  1379 SAT calls
-c Time = 23.77.  Justifications of 95816 nodes completed.  5125385 total clauses.  1596 SAT calls
-c Time = 29.11.  Justifications of 119770 nodes completed.  5386844 total clauses.  1959 SAT calls
-c Time = 32.25.  Justifications of 143724 nodes completed.  5573933 total clauses.  2222 SAT calls
-c Time = 34.20.  Justifications of 167678 nodes completed.  5735285 total clauses.  2403 SAT calls
-c Time = 36.31.  Justifications of 191632 nodes completed.  5899132 total clauses.  2623 SAT calls
-c Time = 38.79.  Justifications of 215586 nodes completed.  6077023 total clauses.  2843 SAT calls
-c Time = 41.32.  Justifications of 239540 nodes completed.  6273913 total clauses.  3075 SAT calls
-c Time = 43.83.  Justifications of 263494 nodes completed.  6460068 total clauses.  3292 SAT calls
-c Time = 46.35.  Justifications of 287448 nodes completed.  6613123 total clauses.  3520 SAT calls
-c Time = 49.11.  Justifications of 311402 nodes completed.  6781842 total clauses.  3765 SAT calls
-c Time = 51.27.  Justifications of 335356 nodes completed.  6903259 total clauses.  3994 SAT calls
-c Time = 55.76.  Justifications of 359310 nodes completed.  7158502 total clauses.  4305 SAT calls
-c Time = 60.17.  Justifications of 383264 nodes completed.  7407323 total clauses.  4585 SAT calls
-c Time = 70.39.  Justifications of 407218 nodes completed.  7899653 total clauses.  5227 SAT calls
-c Time = 74.97.  Justifications of 431172 nodes completed.  8132203 total clauses.  5608 SAT calls
-c Time = 78.45.  Justifications of 455126 nodes completed.  8320482 total clauses.  5915 SAT calls
-c Time = 84.40.  Justifications of 479080 nodes completed.  8592786 total clauses.  6319 SAT calls
-c Time = 86.95.  Justifications of 503034 nodes completed.  8782009 total clauses.  6516 SAT calls
-c Time = 93.87.  Justifications of 526988 nodes completed.  9102855 total clauses.  7077 SAT calls
-c Time = 98.17.  Justifications of 550942 nodes completed.  9339937 total clauses.  7378 SAT calls
-c Time = 102.32.  Justifications of 574896 nodes completed.  9564584 total clauses.  7704 SAT calls
-c Time = 108.65.  Justifications of 598850 nodes completed.  9851341 total clauses.  8230 SAT calls
-c Time = 113.28.  Justifications of 622804 nodes completed.  10082973 total clauses.  8600 SAT calls
-c Time = 119.07.  Justifications of 646758 nodes completed.  10322523 total clauses.  9060 SAT calls
-c Time = 122.81.  Justifications of 670712 nodes completed.  10540001 total clauses.  9365 SAT calls
-c Time = 126.83.  Justifications of 694666 nodes completed.  10755936 total clauses.  9691 SAT calls
-c Time = 133.63.  Justifications of 718620 nodes completed.  11067888 total clauses.  10212 SAT calls
-c Time = 138.71.  Justifications of 742574 nodes completed.  11300777 total clauses.  10646 SAT calls
-c Time = 141.51.  Justifications of 766528 nodes completed.  11459503 total clauses.  10830 SAT calls
-c Time = 142.29.  Justifications of 790482 nodes completed.  11540524 total clauses.  10883 SAT calls
-c Time = 143.21.  Justifications of 814436 nodes completed.  11619877 total clauses.  10954 SAT calls
-c Time = 144.83.  Justifications of 838390 nodes completed.  11733745 total clauses.  11073 SAT calls
-c Time = 151.44.  Justifications of 862344 nodes completed.  12048872 total clauses.  11517 SAT calls
-c Time = 157.02.  Justifications of 886298 nodes completed.  12290706 total clauses.  11969 SAT calls
-c Time = 161.19.  Justifications of 910252 nodes completed.  12508069 total clauses.  12302 SAT calls
-c Time = 166.19.  Justifications of 934206 nodes completed.  12748604 total clauses.  12736 SAT calls
-c Time = 170.01.  Justifications of 958160 nodes completed.  12968498 total clauses.  13048 SAT calls
-c Time = 172.22.  Justifications of 982114 nodes completed.  13127301 total clauses.  13276 SAT calls
-c Time = 177.66.  Justifications of 1006068 nodes completed.  13375617 total clauses.  13783 SAT calls
-c Time = 181.07.  Justifications of 1030022 nodes completed.  13563749 total clauses.  14115 SAT calls
-c Time = 184.64.  Justifications of 1053976 nodes completed.  13750023 total clauses.  14429 SAT calls
-c Time = 186.81.  Justifications of 1077930 nodes completed.  13896233 total clauses.  14598 SAT calls
-c Time = 189.01.  Justifications of 1101884 nodes completed.  14029637 total clauses.  14810 SAT calls
-c Time = 189.90.  Justifications of 1125838 nodes completed.  14120839 total clauses.  14858 SAT calls
-c Time = 190.79.  Justifications of 1149792 nodes completed.  14212660 total clauses.  14906 SAT calls
-c Time = 191.51.  Justifications of 1173746 nodes completed.  14291733 total clauses.  14944 SAT calls
-c Time = 196.07.  Justifications of 1197700 nodes completed.  14489030 total clauses.  15345 SAT calls
-c Time = 200.05.  Justifications of 1221654 nodes completed.  14695882 total clauses.  15702 SAT calls
-c Time = 204.75.  Justifications of 1245608 nodes completed.  14931873 total clauses.  16153 SAT calls
-c Time = 212.13.  Justifications of 1269562 nodes completed.  15228552 total clauses.  16905 SAT calls
-c Time = 217.44.  Justifications of 1293516 nodes completed.  15473814 total clauses.  17457 SAT calls
-c Time = 220.56.  Justifications of 1317470 nodes completed.  15681695 total clauses.  17746 SAT calls
-c Time = 225.47.  Justifications of 1341424 nodes completed.  15924698 total clauses.  18255 SAT calls
-c Time = 232.58.  Justifications of 1365378 nodes completed.  16196565 total clauses.  18909 SAT calls
-c Time = 237.72.  Justifications of 1389332 nodes completed.  16423671 total clauses.  19452 SAT calls
-c Time = 245.45.  Justifications of 1413286 nodes completed.  16828307 total clauses.  19978 SAT calls
-c Time = 249.34.  Justifications of 1437240 nodes completed.  17055870 total clauses.  20203 SAT calls
-c Time = 251.51.  Justifications of 1461194 nodes completed.  17233552 total clauses.  20338 SAT calls
-c Time = 257.79.  Justifications of 1485148 nodes completed.  17597324 total clauses.  20799 SAT calls
-c Time = 261.42.  Justifications of 1509102 nodes completed.  17876210 total clauses.  21007 SAT calls
-c Time = 266.97.  Justifications of 1533056 nodes completed.  18208202 total clauses.  21354 SAT calls
-c Time = 271.12.  Justifications of 1557010 nodes completed.  18441393 total clauses.  21657 SAT calls
-c Time = 274.32.  Justifications of 1580964 nodes completed.  18635137 total clauses.  21947 SAT calls
-c Time = 279.69.  Justifications of 1604918 nodes completed.  18882485 total clauses.  22388 SAT calls
-c Time = 282.37.  Justifications of 1628872 nodes completed.  19060077 total clauses.  22646 SAT calls
-c Time = 285.80.  Justifications of 1652826 nodes completed.  19267361 total clauses.  22923 SAT calls
-c Time = 288.62.  Justifications of 1676780 nodes completed.  19419666 total clauses.  23188 SAT calls
-c Time = 290.84.  Justifications of 1700734 nodes completed.  19555522 total clauses.  23375 SAT calls
-c Time = 296.39.  Justifications of 1724688 nodes completed.  19813179 total clauses.  23823 SAT calls
-c Time = 303.13.  Justifications of 1748642 nodes completed.  20119421 total clauses.  24444 SAT calls
-c Time = 307.95.  Justifications of 1772596 nodes completed.  20326069 total clauses.  24909 SAT calls
-c Time = 311.85.  Justifications of 1796550 nodes completed.  20520989 total clauses.  25434 SAT calls
-c Time = 316.04.  Justifications of 1820504 nodes completed.  20724544 total clauses.  25922 SAT calls
-c Time = 319.89.  Justifications of 1844458 nodes completed.  20930290 total clauses.  26370 SAT calls
-c Time = 326.02.  Justifications of 1868412 nodes completed.  21219099 total clauses.  26809 SAT calls
-c Time = 330.88.  Justifications of 1892366 nodes completed.  21430921 total clauses.  27233 SAT calls
-c Time = 338.59.  Justifications of 1916320 nodes completed.  21783027 total clauses.  27833 SAT calls
-c Time = 344.86.  Justifications of 1940274 nodes completed.  22098956 total clauses.  28311 SAT calls
-c Time = 352.86.  Justifications of 1964228 nodes completed.  22422199 total clauses.  28875 SAT calls
-c Time = 358.71.  Justifications of 1988182 nodes completed.  22736706 total clauses.  29278 SAT calls
-c Time = 365.39.  Justifications of 2012136 nodes completed.  23053362 total clauses.  29742 SAT calls
-c Time = 372.64.  Justifications of 2036090 nodes completed.  23400421 total clauses.  30120 SAT calls
-c Time = 380.18.  Justifications of 2060044 nodes completed.  23733218 total clauses.  30568 SAT calls
-c Time = 388.57.  Justifications of 2083998 nodes completed.  24055321 total clauses.  31209 SAT calls
-c Time = 399.22.  Justifications of 2107952 nodes completed.  24509004 total clauses.  31847 SAT calls
-c Time = 409.12.  Justifications of 2131906 nodes completed.  24931989 total clauses.  32531 SAT calls
-c Time = 412.56.  Justifications of 2155860 nodes completed.  25085985 total clauses.  32867 SAT calls
-c Time = 415.45.  Justifications of 2179814 nodes completed.  25216552 total clauses.  33191 SAT calls
-c Time = 416.85.  Justifications of 2203768 nodes completed.  25308277 total clauses.  33342 SAT calls
-c Time = 418.57.  Justifications of 2227722 nodes completed.  25409776 total clauses.  33564 SAT calls
-c Time = 420.81.  Justifications of 2251676 nodes completed.  25545767 total clauses.  33762 SAT calls
-c Time = 428.88.  Justifications of 2275630 nodes completed.  25946192 total clauses.  34240 SAT calls
-c Time = 433.94.  Justifications of 2299584 nodes completed.  26207460 total clauses.  34607 SAT calls
-c Time = 436.01.  Justifications of 2323538 nodes completed.  26320375 total clauses.  34859 SAT calls
-c Time = 442.69.  Justifications of 2347492 nodes completed.  26588579 total clauses.  35447 SAT calls
-c Time = 450.88.  Justifications of 2371446 nodes completed.  26936520 total clauses.  36089 SAT calls
-c Time = 454.83.  Justifications of 2395400 nodes completed.  27147797 total clauses.  36377 SAT calls
-c Time = 458.08.  Justifications of 2419354 nodes completed.  27292101 total clauses.  36686 SAT calls
-c Time = 460.31.  Justifications of 2443308 nodes completed.  27411750 total clauses.  36925 SAT calls
-c Time = 461.85.  Justifications of 2467262 nodes completed.  27501412 total clauses.  37102 SAT calls
-c Time = 463.57.  Justifications of 2491216 nodes completed.  27607628 total clauses.  37287 SAT calls
-c Time = 466.93.  Justifications of 2515170 nodes completed.  27754485 total clauses.  37660 SAT calls
-c Time = 469.89.  Justifications of 2539124 nodes completed.  27902988 total clauses.  37948 SAT calls
-c Time = 471.91.  Justifications of 2563078 nodes completed.  28023639 total clauses.  38129 SAT calls
-c Time = 477.61.  Justifications of 2587032 nodes completed.  28239465 total clauses.  38536 SAT calls
-c Time = 478.78.  Justifications of 2610986 nodes completed.  28322567 total clauses.  38659 SAT calls
-c Time = 486.71.  Justifications of 2634940 nodes completed.  28663594 total clauses.  39266 SAT calls
-c Time = 491.15.  Justifications of 2658894 nodes completed.  28896394 total clauses.  39693 SAT calls
-c Time = 493.08.  Justifications of 2682848 nodes completed.  29045728 total clauses.  39809 SAT calls
-c Time = 501.95.  Justifications of 2706802 nodes completed.  29471414 total clauses.  40426 SAT calls
-c Time = 510.20.  Justifications of 2730756 nodes completed.  29849882 total clauses.  41021 SAT calls
-c Time = 518.30.  Justifications of 2754710 nodes completed.  30183320 total clauses.  41774 SAT calls
-c Time = 521.87.  Justifications of 2778664 nodes completed.  30398852 total clauses.  42095 SAT calls
-c Time = 525.67.  Justifications of 2802618 nodes completed.  30572214 total clauses.  42569 SAT calls
-c Time = 530.72.  Justifications of 2826572 nodes completed.  30819930 total clauses.  43053 SAT calls
-c Time = 533.65.  Justifications of 2850526 nodes completed.  31014991 total clauses.  43280 SAT calls
-c Time = 541.55.  Justifications of 2874480 nodes completed.  31341548 total clauses.  44053 SAT calls
-c Time = 544.06.  Justifications of 2898434 nodes completed.  31499680 total clauses.  44225 SAT calls
-c Time = 546.38.  Justifications of 2922388 nodes completed.  31644568 total clauses.  44383 SAT calls
-c Time = 551.28.  Justifications of 2946342 nodes completed.  31896214 total clauses.  44716 SAT calls
-c Time = 557.41.  Justifications of 2970296 nodes completed.  32217224 total clauses.  45169 SAT calls
-c Time = 560.35.  Justifications of 2994250 nodes completed.  32397703 total clauses.  45438 SAT calls
-c Time = 562.72.  Justifications of 3018204 nodes completed.  32514406 total clauses.  45681 SAT calls
-c Time = 563.68.  Justifications of 3042158 nodes completed.  32598153 total clauses.  45762 SAT calls
-c Time = 564.47.  Justifications of 3066112 nodes completed.  32671972 total clauses.  45834 SAT calls
-c Time = 565.77.  Justifications of 3090066 nodes completed.  32759947 total clauses.  45969 SAT calls
-c Time = 569.90.  Justifications of 3114020 nodes completed.  32980091 total clauses.  46317 SAT calls
-c Time = 571.92.  Justifications of 3137974 nodes completed.  33128526 total clauses.  46444 SAT calls
-c Time = 576.52.  Justifications of 3161928 nodes completed.  33360184 total clauses.  46899 SAT calls
-c Time = 581.10.  Justifications of 3185882 nodes completed.  33558766 total clauses.  47474 SAT calls
-c Time = 584.10.  Justifications of 3209836 nodes completed.  33746341 total clauses.  47843 SAT calls
-c Time = 587.04.  Justifications of 3233790 nodes completed.  33915328 total clauses.  48161 SAT calls
-c Time = 590.30.  Justifications of 3257744 nodes completed.  34123307 total clauses.  48485 SAT calls
-c Time = 592.80.  Justifications of 3281698 nodes completed.  34281590 total clauses.  48698 SAT calls
-c Time = 594.63.  Justifications of 3305652 nodes completed.  34399239 total clauses.  48866 SAT calls
-c Time = 596.95.  Justifications of 3329606 nodes completed.  34535816 total clauses.  49069 SAT calls
-c Time = 601.50.  Justifications of 3353560 nodes completed.  34790519 total clauses.  49475 SAT calls
-c Time = 603.03.  Justifications of 3377514 nodes completed.  34884183 total clauses.  49663 SAT calls
-c Time = 604.25.  Justifications of 3401468 nodes completed.  34969087 total clauses.  49804 SAT calls
-c Time = 606.22.  Justifications of 3425422 nodes completed.  35085337 total clauses.  50010 SAT calls
-c Time = 607.51.  Justifications of 3449376 nodes completed.  35174769 total clauses.  50161 SAT calls
-c Time = 612.89.  Justifications of 3473330 nodes completed.  35381386 total clauses.  50506 SAT calls
-c Time = 618.41.  Justifications of 3497284 nodes completed.  35615316 total clauses.  50999 SAT calls
-c Time = 625.32.  Justifications of 3521238 nodes completed.  35969642 total clauses.  51437 SAT calls
-c Time = 628.60.  Justifications of 3545192 nodes completed.  36190202 total clauses.  51746 SAT calls
-c Time = 632.75.  Justifications of 3569146 nodes completed.  36423828 total clauses.  52111 SAT calls
-c Time = 635.96.  Justifications of 3593100 nodes completed.  36565501 total clauses.  52338 SAT calls
-c Time = 639.81.  Justifications of 3617054 nodes completed.  36733694 total clauses.  52640 SAT calls
-c Time = 643.62.  Justifications of 3641008 nodes completed.  36890761 total clauses.  52957 SAT calls
-c Time = 644.71.  Justifications of 3664962 nodes completed.  36980894 total clauses.  53028 SAT calls
-c Time = 652.07.  Justifications of 3688916 nodes completed.  37355941 total clauses.  53480 SAT calls
-c Time = 655.45.  Justifications of 3712870 nodes completed.  37574039 total clauses.  53802 SAT calls
-c Time = 659.34.  Justifications of 3736824 nodes completed.  37811897 total clauses.  54147 SAT calls
-c Time = 664.31.  Justifications of 3760778 nodes completed.  38053820 total clauses.  54537 SAT calls
-c Time = 665.90.  Justifications of 3784732 nodes completed.  38159756 total clauses.  54653 SAT calls
-c Time = 667.96.  Justifications of 3808686 nodes completed.  38280105 total clauses.  54803 SAT calls
-c Time = 670.03.  Justifications of 3832640 nodes completed.  38387829 total clauses.  54993 SAT calls
-c Time = 672.12.  Justifications of 3856594 nodes completed.  38504112 total clauses.  55198 SAT calls
-c Time = 674.57.  Justifications of 3880548 nodes completed.  38621923 total clauses.  55369 SAT calls
-c Time = 675.82.  Justifications of 3904502 nodes completed.  38721882 total clauses.  55471 SAT calls
-c Time = 681.62.  Justifications of 3928456 nodes completed.  39001222 total clauses.  55926 SAT calls
-c Time = 684.15.  Justifications of 3952410 nodes completed.  39186334 total clauses.  56194 SAT calls
-c Time = 692.06.  Justifications of 3976364 nodes completed.  39529242 total clauses.  56820 SAT calls
-c Time = 696.12.  Justifications of 4000318 nodes completed.  39709501 total clauses.  57194 SAT calls
-c Time = 699.95.  Justifications of 4024272 nodes completed.  39896018 total clauses.  57642 SAT calls
-c Time = 708.46.  Justifications of 4048226 nodes completed.  40264360 total clauses.  58338 SAT calls
-c Time = 718.00.  Justifications of 4072180 nodes completed.  40631234 total clauses.  59092 SAT calls
-c Time = 725.50.  Justifications of 4096134 nodes completed.  40975274 total clauses.  59647 SAT calls
-c Time = 731.69.  Justifications of 4120088 nodes completed.  41277986 total clauses.  60018 SAT calls
-c Time = 736.16.  Justifications of 4144042 nodes completed.  41517546 total clauses.  60363 SAT calls
-c Time = 739.69.  Justifications of 4167996 nodes completed.  41683171 total clauses.  60625 SAT calls
-c Time = 744.32.  Justifications of 4191950 nodes completed.  41900384 total clauses.  61087 SAT calls
-c Time = 749.53.  Justifications of 4215904 nodes completed.  42140035 total clauses.  61581 SAT calls
-c Time = 755.20.  Justifications of 4239858 nodes completed.  42386415 total clauses.  62066 SAT calls
-c Time = 757.55.  Justifications of 4263812 nodes completed.  42520909 total clauses.  62259 SAT calls
-c Time = 762.50.  Justifications of 4287766 nodes completed.  42768514 total clauses.  62657 SAT calls
-c Time = 769.01.  Justifications of 4311720 nodes completed.  43055377 total clauses.  63194 SAT calls
-c Time = 771.66.  Justifications of 4335674 nodes completed.  43189467 total clauses.  63505 SAT calls
-c Time = 775.44.  Justifications of 4359628 nodes completed.  43363021 total clauses.  63907 SAT calls
-c Time = 777.56.  Justifications of 4383582 nodes completed.  43464798 total clauses.  64166 SAT calls
-c Time = 781.19.  Justifications of 4407536 nodes completed.  43657411 total clauses.  64472 SAT calls
-c Time = 785.44.  Justifications of 4431490 nodes completed.  43885295 total clauses.  64848 SAT calls
-c Time = 789.21.  Justifications of 4455444 nodes completed.  44052337 total clauses.  65257 SAT calls
-c Time = 796.16.  Justifications of 4479398 nodes completed.  44385500 total clauses.  65776 SAT calls
-c Time = 797.81.  Justifications of 4503352 nodes completed.  44541225 total clauses.  65892 SAT calls
-c Time = 803.52.  Justifications of 4527306 nodes completed.  44822539 total clauses.  66377 SAT calls
-c Time = 805.85.  Justifications of 4551260 nodes completed.  44933985 total clauses.  66654 SAT calls
-c Time = 809.25.  Justifications of 4575214 nodes completed.  45089217 total clauses.  66969 SAT calls
-c Time = 812.03.  Justifications of 4599168 nodes completed.  45268633 total clauses.  67220 SAT calls
-c Time = 818.11.  Justifications of 4623122 nodes completed.  45558068 total clauses.  67742 SAT calls
-c Time = 822.73.  Justifications of 4647076 nodes completed.  45781065 total clauses.  68151 SAT calls
-c Time = 824.34.  Justifications of 4671030 nodes completed.  45881147 total clauses.  68304 SAT calls
-c Time = 826.37.  Justifications of 4694984 nodes completed.  46006918 total clauses.  68500 SAT calls
-c Time = 828.29.  Justifications of 4718938 nodes completed.  46114408 total clauses.  68633 SAT calls
-c Time = 830.02.  Justifications of 4742892 nodes completed.  46221204 total clauses.  68812 SAT calls
-c Time = 831.95.  Justifications of 4766846 nodes completed.  46335859 total clauses.  69020 SAT calls
-c Time = 835.60.  Justifications of 4790800 nodes completed.  46547025 total clauses.  69328 SAT calls
-c Time = 841.93.  Justifications of 4814754 nodes completed.  46829447 total clauses.  69852 SAT calls
-c Time = 856.38.  Justifications of 4838708 nodes completed.  47516535 total clauses.  70894 SAT calls
-c Time = 866.32.  Justifications of 4862662 nodes completed.  48009932 total clauses.  71558 SAT calls
-c Time = 868.40.  Justifications of 4886616 nodes completed.  48129933 total clauses.  71766 SAT calls
-c Time = 875.41.  Justifications of 4910570 nodes completed.  48462292 total clauses.  72251 SAT calls
-c Time = 880.75.  Justifications of 4934524 nodes completed.  48681651 total clauses.  72653 SAT calls
-c Time = 884.81.  Justifications of 4958478 nodes completed.  48872348 total clauses.  72917 SAT calls
-c Time = 892.16.  Justifications of 4982432 nodes completed.  49212056 total clauses.  73401 SAT calls
-c Time = 893.34.  Justifications of 5006386 nodes completed.  49297813 total clauses.  73521 SAT calls
-c Time = 897.35.  Justifications of 5030340 nodes completed.  49487738 total clauses.  73827 SAT calls
-c Time = 900.99.  Justifications of 5054294 nodes completed.  49660117 total clauses.  74120 SAT calls
-c Time = 905.57.  Justifications of 5078248 nodes completed.  49893011 total clauses.  74516 SAT calls
-c Time = 911.02.  Justifications of 5102202 nodes completed.  50151876 total clauses.  74994 SAT calls
-c Time = 914.12.  Justifications of 5126156 nodes completed.  50316072 total clauses.  75280 SAT calls
-c Time = 919.74.  Justifications of 5150110 nodes completed.  50531734 total clauses.  75757 SAT calls
-c Time = 923.31.  Justifications of 5174064 nodes completed.  50740813 total clauses.  76056 SAT calls
-c Time = 925.88.  Justifications of 5198018 nodes completed.  50945863 total clauses.  76182 SAT calls
-c Time = 932.26.  Justifications of 5221972 nodes completed.  51275179 total clauses.  76720 SAT calls
-c Time = 934.38.  Justifications of 5245926 nodes completed.  51452869 total clauses.  76894 SAT calls
-c Time = 939.44.  Justifications of 5269880 nodes completed.  51725792 total clauses.  77290 SAT calls
-c Time = 945.04.  Justifications of 5293834 nodes completed.  52004413 total clauses.  77691 SAT calls
-c Time = 948.74.  Justifications of 5317788 nodes completed.  52233522 total clauses.  78035 SAT calls
-c Time = 951.66.  Justifications of 5341742 nodes completed.  52425724 total clauses.  78269 SAT calls
-c Time = 956.62.  Justifications of 5365696 nodes completed.  52672898 total clauses.  78676 SAT calls
-c Time = 959.64.  Justifications of 5389650 nodes completed.  52877702 total clauses.  78917 SAT calls
-c Time = 961.75.  Justifications of 5413604 nodes completed.  53015782 total clauses.  79085 SAT calls
-c Time = 964.35.  Justifications of 5437558 nodes completed.  53164123 total clauses.  79326 SAT calls
-c Time = 967.17.  Justifications of 5461512 nodes completed.  53331246 total clauses.  79545 SAT calls
-c Time = 970.50.  Justifications of 5485466 nodes completed.  53498450 total clauses.  79853 SAT calls
-c Time = 972.72.  Justifications of 5509420 nodes completed.  53665177 total clauses.  80039 SAT calls
-c Time = 975.62.  Justifications of 5533374 nodes completed.  53818213 total clauses.  80300 SAT calls
-c Time = 979.89.  Justifications of 5557328 nodes completed.  54065244 total clauses.  80647 SAT calls
-c Time = 983.47.  Justifications of 5581282 nodes completed.  54323042 total clauses.  80900 SAT calls
-c Time = 986.79.  Justifications of 5605236 nodes completed.  54541717 total clauses.  81160 SAT calls
-c Time = 989.46.  Justifications of 5629190 nodes completed.  54754041 total clauses.  81396 SAT calls
-c Time = 992.96.  Justifications of 5653144 nodes completed.  54931438 total clauses.  81679 SAT calls
-c Time = 995.11.  Justifications of 5677098 nodes completed.  55050362 total clauses.  81837 SAT calls
-c Time = 996.83.  Justifications of 5701052 nodes completed.  55161736 total clauses.  81958 SAT calls
-c Time = 998.14.  Justifications of 5725006 nodes completed.  55259537 total clauses.  82052 SAT calls
-c Time = 999.71.  Justifications of 5748960 nodes completed.  55368828 total clauses.  82176 SAT calls
-GEN ERROR: Timeout after 1000 seconds
-GEN LOG: Elapsed time = 1000.330 seconds
-GEN OUTCOME: Timeout
-structured LOG: Elapsed time = 1000.330 seconds
-structured OUTCOME: failed
+c GEN: Time 1.17  Generated POG representation
+c Time = 8.89.  Justifications of 23954 nodes completed.  4357332 total clauses.  546 SAT calls
+c Time = 13.89.  Justifications of 47908 nodes completed.  4629899 total clauses.  928 SAT calls
+c Time = 20.57.  Justifications of 71862 nodes completed.  4966479 total clauses.  1379 SAT calls
+c Time = 23.18.  Justifications of 95816 nodes completed.  5125385 total clauses.  1596 SAT calls
+c Time = 28.41.  Justifications of 119770 nodes completed.  5386844 total clauses.  1959 SAT calls
+c Time = 31.43.  Justifications of 143724 nodes completed.  5573933 total clauses.  2222 SAT calls
+c Time = 33.37.  Justifications of 167678 nodes completed.  5735285 total clauses.  2403 SAT calls
+c Time = 35.44.  Justifications of 191632 nodes completed.  5899132 total clauses.  2623 SAT calls
+c Time = 37.94.  Justifications of 215586 nodes completed.  6077023 total clauses.  2843 SAT calls
+c Time = 40.50.  Justifications of 239540 nodes completed.  6273913 total clauses.  3075 SAT calls
+c Time = 42.89.  Justifications of 263494 nodes completed.  6460068 total clauses.  3292 SAT calls
+c Time = 45.26.  Justifications of 287448 nodes completed.  6613123 total clauses.  3520 SAT calls
+c Time = 47.84.  Justifications of 311402 nodes completed.  6781842 total clauses.  3765 SAT calls
+c Time = 49.85.  Justifications of 335356 nodes completed.  6903259 total clauses.  3994 SAT calls
+c Time = 54.04.  Justifications of 359310 nodes completed.  7158502 total clauses.  4305 SAT calls
+c Time = 58.15.  Justifications of 383264 nodes completed.  7407323 total clauses.  4585 SAT calls
+c Time = 67.76.  Justifications of 407218 nodes completed.  7899653 total clauses.  5227 SAT calls
+c Time = 72.14.  Justifications of 431172 nodes completed.  8132203 total clauses.  5608 SAT calls
+c Time = 75.61.  Justifications of 455126 nodes completed.  8320482 total clauses.  5915 SAT calls
+c Time = 81.69.  Justifications of 479080 nodes completed.  8592786 total clauses.  6319 SAT calls
+c Time = 84.23.  Justifications of 503034 nodes completed.  8782009 total clauses.  6516 SAT calls
+c Time = 91.51.  Justifications of 526988 nodes completed.  9102855 total clauses.  7077 SAT calls
+c Time = 96.02.  Justifications of 550942 nodes completed.  9339937 total clauses.  7378 SAT calls
+c Time = 100.58.  Justifications of 574896 nodes completed.  9564584 total clauses.  7704 SAT calls
+c Time = 107.83.  Justifications of 598850 nodes completed.  9851341 total clauses.  8230 SAT calls
+c Time = 113.07.  Justifications of 622804 nodes completed.  10082973 total clauses.  8600 SAT calls
+c Time = 119.28.  Justifications of 646758 nodes completed.  10322523 total clauses.  9060 SAT calls
+c Time = 123.27.  Justifications of 670712 nodes completed.  10540001 total clauses.  9365 SAT calls
+c Time = 127.87.  Justifications of 694666 nodes completed.  10755936 total clauses.  9691 SAT calls
+c Time = 135.16.  Justifications of 718620 nodes completed.  11067888 total clauses.  10212 SAT calls
+c Time = 140.49.  Justifications of 742574 nodes completed.  11300777 total clauses.  10646 SAT calls
+c Time = 143.35.  Justifications of 766528 nodes completed.  11459503 total clauses.  10830 SAT calls
+c Time = 144.17.  Justifications of 790482 nodes completed.  11540524 total clauses.  10883 SAT calls
+c Time = 145.10.  Justifications of 814436 nodes completed.  11619877 total clauses.  10954 SAT calls
+c Time = 146.80.  Justifications of 838390 nodes completed.  11733745 total clauses.  11073 SAT calls
+c Time = 153.63.  Justifications of 862344 nodes completed.  12048872 total clauses.  11517 SAT calls
+c Time = 159.26.  Justifications of 886298 nodes completed.  12290706 total clauses.  11969 SAT calls
+c Time = 163.47.  Justifications of 910252 nodes completed.  12508069 total clauses.  12302 SAT calls
+c Time = 168.47.  Justifications of 934206 nodes completed.  12748604 total clauses.  12736 SAT calls
+c Time = 172.33.  Justifications of 958160 nodes completed.  12968498 total clauses.  13048 SAT calls
+c Time = 174.61.  Justifications of 982114 nodes completed.  13127301 total clauses.  13276 SAT calls
+c Time = 180.29.  Justifications of 1006068 nodes completed.  13375617 total clauses.  13783 SAT calls
+c Time = 183.48.  Justifications of 1030022 nodes completed.  13563749 total clauses.  14115 SAT calls
+c Time = 186.90.  Justifications of 1053976 nodes completed.  13750023 total clauses.  14429 SAT calls
+c Time = 189.04.  Justifications of 1077930 nodes completed.  13896233 total clauses.  14598 SAT calls
+c Time = 191.43.  Justifications of 1101884 nodes completed.  14029637 total clauses.  14810 SAT calls
+c Time = 192.34.  Justifications of 1125838 nodes completed.  14120839 total clauses.  14858 SAT calls
+c Time = 193.23.  Justifications of 1149792 nodes completed.  14212660 total clauses.  14906 SAT calls
+c Time = 193.90.  Justifications of 1173746 nodes completed.  14291733 total clauses.  14944 SAT calls
+c Time = 198.28.  Justifications of 1197700 nodes completed.  14489030 total clauses.  15345 SAT calls
+c Time = 202.06.  Justifications of 1221654 nodes completed.  14695882 total clauses.  15702 SAT calls
+c Time = 206.57.  Justifications of 1245608 nodes completed.  14931873 total clauses.  16153 SAT calls
+c Time = 213.85.  Justifications of 1269562 nodes completed.  15228552 total clauses.  16905 SAT calls
+c Time = 218.84.  Justifications of 1293516 nodes completed.  15473814 total clauses.  17457 SAT calls
+c Time = 221.89.  Justifications of 1317470 nodes completed.  15681695 total clauses.  17746 SAT calls
+c Time = 226.52.  Justifications of 1341424 nodes completed.  15924698 total clauses.  18255 SAT calls
+c Time = 233.34.  Justifications of 1365378 nodes completed.  16196565 total clauses.  18909 SAT calls
+c Time = 238.16.  Justifications of 1389332 nodes completed.  16423671 total clauses.  19452 SAT calls
+c Time = 245.82.  Justifications of 1413286 nodes completed.  16828307 total clauses.  19978 SAT calls
+c Time = 249.94.  Justifications of 1437240 nodes completed.  17055870 total clauses.  20203 SAT calls
+c Time = 252.10.  Justifications of 1461194 nodes completed.  17233552 total clauses.  20338 SAT calls
+c Time = 258.34.  Justifications of 1485148 nodes completed.  17597324 total clauses.  20799 SAT calls
+c Time = 262.03.  Justifications of 1509102 nodes completed.  17876210 total clauses.  21007 SAT calls
+c Time = 267.69.  Justifications of 1533056 nodes completed.  18208202 total clauses.  21354 SAT calls
+c Time = 271.76.  Justifications of 1557010 nodes completed.  18441393 total clauses.  21657 SAT calls
+c Time = 274.90.  Justifications of 1580964 nodes completed.  18635137 total clauses.  21947 SAT calls
+c Time = 280.24.  Justifications of 1604918 nodes completed.  18882485 total clauses.  22388 SAT calls
+c Time = 282.83.  Justifications of 1628872 nodes completed.  19060077 total clauses.  22646 SAT calls
+c Time = 286.23.  Justifications of 1652826 nodes completed.  19267361 total clauses.  22923 SAT calls
+c Time = 289.07.  Justifications of 1676780 nodes completed.  19419666 total clauses.  23188 SAT calls
+c Time = 291.31.  Justifications of 1700734 nodes completed.  19555522 total clauses.  23375 SAT calls
+c Time = 296.86.  Justifications of 1724688 nodes completed.  19813179 total clauses.  23823 SAT calls
+c Time = 303.53.  Justifications of 1748642 nodes completed.  20119421 total clauses.  24444 SAT calls
+c Time = 308.41.  Justifications of 1772596 nodes completed.  20326069 total clauses.  24909 SAT calls
+c Time = 312.33.  Justifications of 1796550 nodes completed.  20520989 total clauses.  25434 SAT calls
+c Time = 316.56.  Justifications of 1820504 nodes completed.  20724544 total clauses.  25922 SAT calls
+c Time = 320.26.  Justifications of 1844458 nodes completed.  20930290 total clauses.  26370 SAT calls
+c Time = 326.01.  Justifications of 1868412 nodes completed.  21219099 total clauses.  26809 SAT calls
+c Time = 331.03.  Justifications of 1892366 nodes completed.  21430921 total clauses.  27233 SAT calls
+c Time = 339.28.  Justifications of 1916320 nodes completed.  21783027 total clauses.  27833 SAT calls
+c Time = 345.93.  Justifications of 1940274 nodes completed.  22098956 total clauses.  28311 SAT calls
+c Time = 354.07.  Justifications of 1964228 nodes completed.  22422199 total clauses.  28875 SAT calls
+c Time = 359.93.  Justifications of 1988182 nodes completed.  22736706 total clauses.  29278 SAT calls
+c Time = 366.78.  Justifications of 2012136 nodes completed.  23053362 total clauses.  29742 SAT calls
+c Time = 374.06.  Justifications of 2036090 nodes completed.  23400421 total clauses.  30120 SAT calls
+c Time = 381.58.  Justifications of 2060044 nodes completed.  23733218 total clauses.  30568 SAT calls
+c Time = 390.11.  Justifications of 2083998 nodes completed.  24055321 total clauses.  31209 SAT calls
+c Time = 400.81.  Justifications of 2107952 nodes completed.  24509004 total clauses.  31847 SAT calls
+c Time = 410.52.  Justifications of 2131906 nodes completed.  24931989 total clauses.  32531 SAT calls
+c Time = 413.86.  Justifications of 2155860 nodes completed.  25085985 total clauses.  32867 SAT calls
+c Time = 416.58.  Justifications of 2179814 nodes completed.  25216552 total clauses.  33191 SAT calls
+c Time = 417.97.  Justifications of 2203768 nodes completed.  25308277 total clauses.  33342 SAT calls
+c Time = 419.67.  Justifications of 2227722 nodes completed.  25409776 total clauses.  33564 SAT calls
+c Time = 421.91.  Justifications of 2251676 nodes completed.  25545767 total clauses.  33762 SAT calls
+c Time = 430.38.  Justifications of 2275630 nodes completed.  25946192 total clauses.  34240 SAT calls
+c Time = 435.47.  Justifications of 2299584 nodes completed.  26207460 total clauses.  34607 SAT calls
+c Time = 437.63.  Justifications of 2323538 nodes completed.  26320375 total clauses.  34859 SAT calls
+c Time = 444.33.  Justifications of 2347492 nodes completed.  26588579 total clauses.  35447 SAT calls
+c Time = 453.24.  Justifications of 2371446 nodes completed.  26936520 total clauses.  36089 SAT calls
+c Time = 457.45.  Justifications of 2395400 nodes completed.  27147797 total clauses.  36377 SAT calls
+c Time = 460.71.  Justifications of 2419354 nodes completed.  27292101 total clauses.  36686 SAT calls
+c Time = 462.93.  Justifications of 2443308 nodes completed.  27411750 total clauses.  36925 SAT calls
+c Time = 464.38.  Justifications of 2467262 nodes completed.  27501412 total clauses.  37102 SAT calls
+c Time = 465.99.  Justifications of 2491216 nodes completed.  27607628 total clauses.  37287 SAT calls
+c Time = 469.27.  Justifications of 2515170 nodes completed.  27754485 total clauses.  37660 SAT calls
+c Time = 472.17.  Justifications of 2539124 nodes completed.  27902988 total clauses.  37948 SAT calls
+c Time = 474.16.  Justifications of 2563078 nodes completed.  28023639 total clauses.  38129 SAT calls
+c Time = 479.60.  Justifications of 2587032 nodes completed.  28239465 total clauses.  38536 SAT calls
+c Time = 480.70.  Justifications of 2610986 nodes completed.  28322567 total clauses.  38659 SAT calls
+c Time = 488.43.  Justifications of 2634940 nodes completed.  28663594 total clauses.  39266 SAT calls
+c Time = 492.72.  Justifications of 2658894 nodes completed.  28896394 total clauses.  39693 SAT calls
+c Time = 494.57.  Justifications of 2682848 nodes completed.  29045728 total clauses.  39809 SAT calls
+c Time = 503.42.  Justifications of 2706802 nodes completed.  29471414 total clauses.  40426 SAT calls
+c Time = 511.50.  Justifications of 2730756 nodes completed.  29849882 total clauses.  41021 SAT calls
+c Time = 519.09.  Justifications of 2754710 nodes completed.  30183320 total clauses.  41774 SAT calls
+c Time = 522.59.  Justifications of 2778664 nodes completed.  30398852 total clauses.  42095 SAT calls
+c Time = 526.24.  Justifications of 2802618 nodes completed.  30572214 total clauses.  42569 SAT calls
+c Time = 531.16.  Justifications of 2826572 nodes completed.  30819930 total clauses.  43053 SAT calls
+c Time = 533.98.  Justifications of 2850526 nodes completed.  31014991 total clauses.  43280 SAT calls
+c Time = 541.71.  Justifications of 2874480 nodes completed.  31341548 total clauses.  44053 SAT calls
+c Time = 544.12.  Justifications of 2898434 nodes completed.  31499680 total clauses.  44225 SAT calls
+c Time = 546.50.  Justifications of 2922388 nodes completed.  31644568 total clauses.  44383 SAT calls
+c Time = 551.26.  Justifications of 2946342 nodes completed.  31896214 total clauses.  44716 SAT calls
+c Time = 557.33.  Justifications of 2970296 nodes completed.  32217224 total clauses.  45169 SAT calls
+c Time = 560.18.  Justifications of 2994250 nodes completed.  32397703 total clauses.  45438 SAT calls
+c Time = 562.44.  Justifications of 3018204 nodes completed.  32514406 total clauses.  45681 SAT calls
+c Time = 563.34.  Justifications of 3042158 nodes completed.  32598153 total clauses.  45762 SAT calls
+c Time = 564.14.  Justifications of 3066112 nodes completed.  32671972 total clauses.  45834 SAT calls
+c Time = 565.34.  Justifications of 3090066 nodes completed.  32759947 total clauses.  45969 SAT calls
+c Time = 569.38.  Justifications of 3114020 nodes completed.  32980091 total clauses.  46317 SAT calls
+c Time = 571.41.  Justifications of 3137974 nodes completed.  33128526 total clauses.  46444 SAT calls
+c Time = 576.11.  Justifications of 3161928 nodes completed.  33360184 total clauses.  46899 SAT calls
+c Time = 580.68.  Justifications of 3185882 nodes completed.  33558766 total clauses.  47474 SAT calls
+c Time = 583.75.  Justifications of 3209836 nodes completed.  33746341 total clauses.  47843 SAT calls
+c Time = 586.89.  Justifications of 3233790 nodes completed.  33915328 total clauses.  48161 SAT calls
+c Time = 590.55.  Justifications of 3257744 nodes completed.  34123307 total clauses.  48485 SAT calls
+c Time = 592.95.  Justifications of 3281698 nodes completed.  34281590 total clauses.  48698 SAT calls
+c Time = 594.69.  Justifications of 3305652 nodes completed.  34399239 total clauses.  48866 SAT calls
+c Time = 596.98.  Justifications of 3329606 nodes completed.  34535816 total clauses.  49069 SAT calls
+c Time = 601.36.  Justifications of 3353560 nodes completed.  34790519 total clauses.  49475 SAT calls
+c Time = 602.83.  Justifications of 3377514 nodes completed.  34884183 total clauses.  49663 SAT calls
+c Time = 603.96.  Justifications of 3401468 nodes completed.  34969087 total clauses.  49804 SAT calls
+c Time = 605.75.  Justifications of 3425422 nodes completed.  35085337 total clauses.  50010 SAT calls
+c Time = 606.94.  Justifications of 3449376 nodes completed.  35174769 total clauses.  50161 SAT calls
+c Time = 611.97.  Justifications of 3473330 nodes completed.  35381386 total clauses.  50506 SAT calls
+c Time = 617.02.  Justifications of 3497284 nodes completed.  35615316 total clauses.  50999 SAT calls
+c Time = 623.48.  Justifications of 3521238 nodes completed.  35969642 total clauses.  51437 SAT calls
+c Time = 626.50.  Justifications of 3545192 nodes completed.  36190202 total clauses.  51746 SAT calls
+c Time = 630.30.  Justifications of 3569146 nodes completed.  36423828 total clauses.  52111 SAT calls
+c Time = 633.28.  Justifications of 3593100 nodes completed.  36565501 total clauses.  52338 SAT calls
+c Time = 636.78.  Justifications of 3617054 nodes completed.  36733694 total clauses.  52640 SAT calls
+c Time = 640.16.  Justifications of 3641008 nodes completed.  36890761 total clauses.  52957 SAT calls
+c Time = 641.17.  Justifications of 3664962 nodes completed.  36980894 total clauses.  53028 SAT calls
+c Time = 648.01.  Justifications of 3688916 nodes completed.  37355941 total clauses.  53480 SAT calls
+c Time = 651.23.  Justifications of 3712870 nodes completed.  37574039 total clauses.  53802 SAT calls
+c Time = 654.79.  Justifications of 3736824 nodes completed.  37811897 total clauses.  54147 SAT calls
+c Time = 659.35.  Justifications of 3760778 nodes completed.  38053820 total clauses.  54537 SAT calls
+c Time = 660.86.  Justifications of 3784732 nodes completed.  38159756 total clauses.  54653 SAT calls
+c Time = 662.73.  Justifications of 3808686 nodes completed.  38280105 total clauses.  54803 SAT calls
+c Time = 664.73.  Justifications of 3832640 nodes completed.  38387829 total clauses.  54993 SAT calls
+c Time = 666.93.  Justifications of 3856594 nodes completed.  38504112 total clauses.  55198 SAT calls
+c Time = 669.26.  Justifications of 3880548 nodes completed.  38621923 total clauses.  55369 SAT calls
+c Time = 670.49.  Justifications of 3904502 nodes completed.  38721882 total clauses.  55471 SAT calls
+c Time = 676.08.  Justifications of 3928456 nodes completed.  39001222 total clauses.  55926 SAT calls
+c Time = 678.49.  Justifications of 3952410 nodes completed.  39186334 total clauses.  56194 SAT calls
+c Time = 686.05.  Justifications of 3976364 nodes completed.  39529242 total clauses.  56820 SAT calls
+c Time = 689.91.  Justifications of 4000318 nodes completed.  39709501 total clauses.  57194 SAT calls
+c Time = 693.92.  Justifications of 4024272 nodes completed.  39896018 total clauses.  57642 SAT calls
+c Time = 702.83.  Justifications of 4048226 nodes completed.  40264360 total clauses.  58338 SAT calls
+c Time = 712.73.  Justifications of 4072180 nodes completed.  40631234 total clauses.  59092 SAT calls
+c Time = 720.69.  Justifications of 4096134 nodes completed.  40975274 total clauses.  59647 SAT calls
+c Time = 727.19.  Justifications of 4120088 nodes completed.  41277986 total clauses.  60018 SAT calls
+c Time = 731.93.  Justifications of 4144042 nodes completed.  41517546 total clauses.  60363 SAT calls
+c Time = 735.63.  Justifications of 4167996 nodes completed.  41683171 total clauses.  60625 SAT calls
+c Time = 740.89.  Justifications of 4191950 nodes completed.  41900384 total clauses.  61087 SAT calls
+c Time = 747.17.  Justifications of 4215904 nodes completed.  42140035 total clauses.  61581 SAT calls
+c Time = 753.44.  Justifications of 4239858 nodes completed.  42386415 total clauses.  62066 SAT calls
+c Time = 756.10.  Justifications of 4263812 nodes completed.  42520909 total clauses.  62259 SAT calls
+c Time = 761.75.  Justifications of 4287766 nodes completed.  42768514 total clauses.  62657 SAT calls
+c Time = 768.56.  Justifications of 4311720 nodes completed.  43055377 total clauses.  63194 SAT calls
+c Time = 771.62.  Justifications of 4335674 nodes completed.  43189467 total clauses.  63505 SAT calls
+c Time = 775.51.  Justifications of 4359628 nodes completed.  43363021 total clauses.  63907 SAT calls
+c Time = 777.51.  Justifications of 4383582 nodes completed.  43464798 total clauses.  64166 SAT calls
+c Time = 781.07.  Justifications of 4407536 nodes completed.  43657411 total clauses.  64472 SAT calls
+c Time = 785.20.  Justifications of 4431490 nodes completed.  43885295 total clauses.  64848 SAT calls
+c Time = 788.87.  Justifications of 4455444 nodes completed.  44052337 total clauses.  65257 SAT calls
+c Time = 795.88.  Justifications of 4479398 nodes completed.  44385500 total clauses.  65776 SAT calls
+c Time = 797.47.  Justifications of 4503352 nodes completed.  44541225 total clauses.  65892 SAT calls
+c Time = 803.10.  Justifications of 4527306 nodes completed.  44822539 total clauses.  66377 SAT calls
+c Time = 805.44.  Justifications of 4551260 nodes completed.  44933985 total clauses.  66654 SAT calls
+c Time = 808.79.  Justifications of 4575214 nodes completed.  45089217 total clauses.  66969 SAT calls
+c Time = 811.54.  Justifications of 4599168 nodes completed.  45268633 total clauses.  67220 SAT calls
+c Time = 817.60.  Justifications of 4623122 nodes completed.  45558068 total clauses.  67742 SAT calls
+c Time = 822.32.  Justifications of 4647076 nodes completed.  45781065 total clauses.  68151 SAT calls
+c Time = 823.88.  Justifications of 4671030 nodes completed.  45881147 total clauses.  68304 SAT calls
+c Time = 825.82.  Justifications of 4694984 nodes completed.  46006918 total clauses.  68500 SAT calls
+c Time = 827.70.  Justifications of 4718938 nodes completed.  46114408 total clauses.  68633 SAT calls
+c Time = 829.48.  Justifications of 4742892 nodes completed.  46221204 total clauses.  68812 SAT calls
+c Time = 831.51.  Justifications of 4766846 nodes completed.  46335859 total clauses.  69020 SAT calls
+c Time = 835.43.  Justifications of 4790800 nodes completed.  46547025 total clauses.  69328 SAT calls
+c Time = 842.08.  Justifications of 4814754 nodes completed.  46829447 total clauses.  69852 SAT calls
+c Time = 857.39.  Justifications of 4838708 nodes completed.  47516535 total clauses.  70894 SAT calls
+c Time = 867.97.  Justifications of 4862662 nodes completed.  48009932 total clauses.  71558 SAT calls
+c Time = 869.94.  Justifications of 4886616 nodes completed.  48129933 total clauses.  71766 SAT calls
+c Time = 876.88.  Justifications of 4910570 nodes completed.  48462292 total clauses.  72251 SAT calls
+c Time = 882.02.  Justifications of 4934524 nodes completed.  48681651 total clauses.  72653 SAT calls
+c Time = 886.00.  Justifications of 4958478 nodes completed.  48872348 total clauses.  72917 SAT calls
+c Time = 893.18.  Justifications of 4982432 nodes completed.  49212056 total clauses.  73401 SAT calls
+c Time = 894.30.  Justifications of 5006386 nodes completed.  49297813 total clauses.  73521 SAT calls
+c Time = 898.18.  Justifications of 5030340 nodes completed.  49487738 total clauses.  73827 SAT calls
+c Time = 901.67.  Justifications of 5054294 nodes completed.  49660117 total clauses.  74120 SAT calls
+c Time = 905.96.  Justifications of 5078248 nodes completed.  49893011 total clauses.  74516 SAT calls
+c Time = 911.09.  Justifications of 5102202 nodes completed.  50151876 total clauses.  74994 SAT calls
+c Time = 913.99.  Justifications of 5126156 nodes completed.  50316072 total clauses.  75280 SAT calls
+c Time = 919.48.  Justifications of 5150110 nodes completed.  50531734 total clauses.  75757 SAT calls
+c Time = 923.02.  Justifications of 5174064 nodes completed.  50740813 total clauses.  76056 SAT calls
+c Time = 925.46.  Justifications of 5198018 nodes completed.  50945863 total clauses.  76182 SAT calls
+c Time = 931.83.  Justifications of 5221972 nodes completed.  51275179 total clauses.  76720 SAT calls
+c Time = 933.99.  Justifications of 5245926 nodes completed.  51452869 total clauses.  76894 SAT calls
+c Time = 939.06.  Justifications of 5269880 nodes completed.  51725792 total clauses.  77290 SAT calls
+c Time = 944.63.  Justifications of 5293834 nodes completed.  52004413 total clauses.  77691 SAT calls
+c Time = 948.37.  Justifications of 5317788 nodes completed.  52233522 total clauses.  78035 SAT calls
+c Time = 951.33.  Justifications of 5341742 nodes completed.  52425724 total clauses.  78269 SAT calls
+c Time = 956.36.  Justifications of 5365696 nodes completed.  52672898 total clauses.  78676 SAT calls
+c Time = 959.53.  Justifications of 5389650 nodes completed.  52877702 total clauses.  78917 SAT calls
+c Time = 961.55.  Justifications of 5413604 nodes completed.  53015782 total clauses.  79085 SAT calls
+c Time = 963.98.  Justifications of 5437558 nodes completed.  53164123 total clauses.  79326 SAT calls
+c Time = 966.72.  Justifications of 5461512 nodes completed.  53331246 total clauses.  79545 SAT calls
+c Time = 970.13.  Justifications of 5485466 nodes completed.  53498450 total clauses.  79853 SAT calls
+c Time = 972.35.  Justifications of 5509420 nodes completed.  53665177 total clauses.  80039 SAT calls
+c Time = 975.36.  Justifications of 5533374 nodes completed.  53818213 total clauses.  80300 SAT calls
+c Time = 979.93.  Justifications of 5557328 nodes completed.  54065244 total clauses.  80647 SAT calls
+c Time = 983.72.  Justifications of 5581282 nodes completed.  54323042 total clauses.  80900 SAT calls
+c Time = 987.25.  Justifications of 5605236 nodes completed.  54541717 total clauses.  81160 SAT calls
+c Time = 990.17.  Justifications of 5629190 nodes completed.  54754041 total clauses.  81396 SAT calls
+c Time = 993.83.  Justifications of 5653144 nodes completed.  54931438 total clauses.  81679 SAT calls
+c Time = 995.75.  Justifications of 5677098 nodes completed.  55050362 total clauses.  81837 SAT calls
+c Time = 997.64.  Justifications of 5701052 nodes completed.  55161736 total clauses.  81958 SAT calls
+c Time = 999.03.  Justifications of 5725006 nodes completed.  55259537 total clauses.  82052 SAT calls
+c Time = 1000.81.  Justifications of 5748960 nodes completed.  55368828 total clauses.  82176 SAT calls
+c Time = 1002.55.  Justifications of 5772914 nodes completed.  55475468 total clauses.  82336 SAT calls
+c Time = 1005.43.  Justifications of 5796868 nodes completed.  55617078 total clauses.  82551 SAT calls
+c Time = 1007.00.  Justifications of 5820822 nodes completed.  55712821 total clauses.  82682 SAT calls
+c Time = 1008.79.  Justifications of 5844776 nodes completed.  55823836 total clauses.  82856 SAT calls
+c Time = 1017.18.  Justifications of 5868730 nodes completed.  56275541 total clauses.  83402 SAT calls
+c Time = 1022.44.  Justifications of 5892684 nodes completed.  56538600 total clauses.  83780 SAT calls
+c Time = 1027.63.  Justifications of 5916638 nodes completed.  56773893 total clauses.  84241 SAT calls
+c Time = 1030.78.  Justifications of 5940592 nodes completed.  56967656 total clauses.  84541 SAT calls
+c Time = 1035.26.  Justifications of 5964546 nodes completed.  57173913 total clauses.  84942 SAT calls
+c Time = 1038.62.  Justifications of 5988500 nodes completed.  57324573 total clauses.  85252 SAT calls
+c Time = 1045.24.  Justifications of 6012454 nodes completed.  57644230 total clauses.  85732 SAT calls
+c Time = 1051.25.  Justifications of 6036408 nodes completed.  58013525 total clauses.  86167 SAT calls
+c Time = 1056.85.  Justifications of 6060362 nodes completed.  58322376 total clauses.  86562 SAT calls
+c Time = 1063.88.  Justifications of 6084316 nodes completed.  58671204 total clauses.  87118 SAT calls
+c Time = 1070.08.  Justifications of 6108270 nodes completed.  59005055 total clauses.  87554 SAT calls
+c Time = 1079.21.  Justifications of 6132224 nodes completed.  59413449 total clauses.  88336 SAT calls
+c Time = 1084.83.  Justifications of 6156178 nodes completed.  59652492 total clauses.  88845 SAT calls
+c Time = 1086.98.  Justifications of 6180132 nodes completed.  59767620 total clauses.  89126 SAT calls
+c Time = 1096.38.  Justifications of 6204086 nodes completed.  60209855 total clauses.  89842 SAT calls
+c Time = 1101.39.  Justifications of 6228040 nodes completed.  60498188 total clauses.  90248 SAT calls
+c Time = 1104.45.  Justifications of 6251994 nodes completed.  60657821 total clauses.  90530 SAT calls
+c Time = 1107.76.  Justifications of 6275948 nodes completed.  60813374 total clauses.  90854 SAT calls
+c Time = 1112.42.  Justifications of 6299902 nodes completed.  61042708 total clauses.  91226 SAT calls
+c Time = 1116.70.  Justifications of 6323856 nodes completed.  61298461 total clauses.  91493 SAT calls
+c Time = 1121.75.  Justifications of 6347810 nodes completed.  61537512 total clauses.  91945 SAT calls
+c Time = 1126.54.  Justifications of 6371764 nodes completed.  61790207 total clauses.  92357 SAT calls
+c Time = 1131.37.  Justifications of 6395718 nodes completed.  62113167 total clauses.  92675 SAT calls
+c Time = 1135.69.  Justifications of 6419672 nodes completed.  62329673 total clauses.  93164 SAT calls
+c Time = 1143.41.  Justifications of 6443626 nodes completed.  62693190 total clauses.  93743 SAT calls
+c Time = 1147.81.  Justifications of 6467580 nodes completed.  62906949 total clauses.  94155 SAT calls
+c Time = 1150.81.  Justifications of 6491534 nodes completed.  63047620 total clauses.  94523 SAT calls
+c Time = 1154.81.  Justifications of 6515488 nodes completed.  63253643 total clauses.  94869 SAT calls
+c Time = 1159.75.  Justifications of 6539442 nodes completed.  63470487 total clauses.  95349 SAT calls
+c Time = 1164.18.  Justifications of 6563396 nodes completed.  63663175 total clauses.  95749 SAT calls
+c Time = 1170.66.  Justifications of 6587350 nodes completed.  63925640 total clauses.  96309 SAT calls
+c Time = 1176.73.  Justifications of 6611304 nodes completed.  64210948 total clauses.  96730 SAT calls
+c Time = 1183.15.  Justifications of 6635258 nodes completed.  64454910 total clauses.  97266 SAT calls
+c Time = 1191.71.  Justifications of 6659212 nodes completed.  64839056 total clauses.  97865 SAT calls
+c Time = 1199.07.  Justifications of 6683166 nodes completed.  65176663 total clauses.  98436 SAT calls
+c Time = 1205.00.  Justifications of 6707120 nodes completed.  65461772 total clauses.  98954 SAT calls
+c Time = 1208.98.  Justifications of 6731074 nodes completed.  65672270 total clauses.  99303 SAT calls
+c Time = 1212.72.  Justifications of 6755028 nodes completed.  65855729 total clauses.  99698 SAT calls
+c Time = 1215.98.  Justifications of 6778982 nodes completed.  66010644 total clauses.  100075 SAT calls
+c Time = 1220.27.  Justifications of 6802936 nodes completed.  66236921 total clauses.  100427 SAT calls
+c Time = 1224.27.  Justifications of 6826890 nodes completed.  66459138 total clauses.  100810 SAT calls
+c Time = 1229.04.  Justifications of 6850844 nodes completed.  66659292 total clauses.  101335 SAT calls
+c Time = 1232.15.  Justifications of 6874798 nodes completed.  66852040 total clauses.  101607 SAT calls
+c Time = 1233.51.  Justifications of 6898752 nodes completed.  66962754 total clauses.  101727 SAT calls
+c Time = 1238.62.  Justifications of 6922706 nodes completed.  67207001 total clauses.  102141 SAT calls
+c Time = 1246.85.  Justifications of 6946660 nodes completed.  67582586 total clauses.  102698 SAT calls
+c Time = 1256.78.  Justifications of 6970614 nodes completed.  68027174 total clauses.  103397 SAT calls
+c Time = 1262.39.  Justifications of 6994568 nodes completed.  68305137 total clauses.  103863 SAT calls
+c Time = 1267.48.  Justifications of 7018522 nodes completed.  68554269 total clauses.  104314 SAT calls
+c Time = 1272.01.  Justifications of 7042476 nodes completed.  68755041 total clauses.  104750 SAT calls
+c Time = 1275.59.  Justifications of 7066430 nodes completed.  68922921 total clauses.  105138 SAT calls
+c Time = 1276.93.  Justifications of 7090384 nodes completed.  69010246 total clauses.  105306 SAT calls
+c Time = 1278.51.  Justifications of 7114338 nodes completed.  69102439 total clauses.  105510 SAT calls
+c Time = 1280.93.  Justifications of 7138292 nodes completed.  69219674 total clauses.  105782 SAT calls
+c Time = 1282.28.  Justifications of 7162246 nodes completed.  69311679 total clauses.  105948 SAT calls
+c Time = 1284.12.  Justifications of 7186200 nodes completed.  69415746 total clauses.  106195 SAT calls
+c Time = 1285.74.  Justifications of 7210154 nodes completed.  69515515 total clauses.  106386 SAT calls
+c Time = 1291.24.  Justifications of 7234108 nodes completed.  69791836 total clauses.  106794 SAT calls
+c Time = 1295.18.  Justifications of 7258062 nodes completed.  70033448 total clauses.  107104 SAT calls
+c Time = 1298.86.  Justifications of 7282016 nodes completed.  70240771 total clauses.  107403 SAT calls
+c Time = 1302.71.  Justifications of 7305970 nodes completed.  70478328 total clauses.  107629 SAT calls
+c Time = 1304.61.  Justifications of 7329924 nodes completed.  70659818 total clauses.  107787 SAT calls
+c Time = 1306.47.  Justifications of 7353878 nodes completed.  70830461 total clauses.  107954 SAT calls
+c Time = 1308.48.  Justifications of 7377832 nodes completed.  71006257 total clauses.  108134 SAT calls
+c Time = 1312.87.  Justifications of 7401786 nodes completed.  71257329 total clauses.  108502 SAT calls
+c Time = 1316.78.  Justifications of 7425740 nodes completed.  71489535 total clauses.  108931 SAT calls
+c Time = 1321.64.  Justifications of 7449694 nodes completed.  71751410 total clauses.  109337 SAT calls
+c Time = 1324.52.  Justifications of 7473648 nodes completed.  71919436 total clauses.  109749 SAT calls
+c Time = 1327.37.  Justifications of 7497602 nodes completed.  72104593 total clauses.  109967 SAT calls
+c Time = 1333.51.  Justifications of 7521556 nodes completed.  72371497 total clauses.  110531 SAT calls
+c Time = 1339.06.  Justifications of 7545510 nodes completed.  72672678 total clauses.  110941 SAT calls
+c Time = 1340.38.  Justifications of 7569464 nodes completed.  72784245 total clauses.  111070 SAT calls
+c Time = 1340.89.  Justifications of 7593418 nodes completed.  72856253 total clauses.  111086 SAT calls
+c Time = 1342.19.  Justifications of 7617372 nodes completed.  72966966 total clauses.  111218 SAT calls
+c Time = 1342.93.  Justifications of 7641326 nodes completed.  73046078 total clauses.  111276 SAT calls
+c Time = 1344.55.  Justifications of 7665280 nodes completed.  73166582 total clauses.  111497 SAT calls
+c Time = 1346.33.  Justifications of 7689234 nodes completed.  73283767 total clauses.  111648 SAT calls
+c Time = 1347.97.  Justifications of 7713188 nodes completed.  73394411 total clauses.  111864 SAT calls
+c Time = 1349.69.  Justifications of 7737142 nodes completed.  73502513 total clauses.  112038 SAT calls
+c Time = 1350.95.  Justifications of 7761096 nodes completed.  73596396 total clauses.  112191 SAT calls
+c Time = 1353.59.  Justifications of 7785050 nodes completed.  73752159 total clauses.  112467 SAT calls
+c Time = 1355.50.  Justifications of 7809004 nodes completed.  73896982 total clauses.  112638 SAT calls
+c Time = 1356.85.  Justifications of 7832958 nodes completed.  73998317 total clauses.  112780 SAT calls
+c Time = 1360.34.  Justifications of 7856912 nodes completed.  74181862 total clauses.  113103 SAT calls
+c Time = 1362.90.  Justifications of 7880866 nodes completed.  74336709 total clauses.  113359 SAT calls
+c Time = 1367.90.  Justifications of 7904820 nodes completed.  74606274 total clauses.  113701 SAT calls
+c Time = 1372.48.  Justifications of 7928774 nodes completed.  74818090 total clauses.  114092 SAT calls
+c Time = 1375.80.  Justifications of 7952728 nodes completed.  74989057 total clauses.  114449 SAT calls
+c Time = 1378.49.  Justifications of 7976682 nodes completed.  75122001 total clauses.  114682 SAT calls
+c Time = 1381.57.  Justifications of 8000636 nodes completed.  75285591 total clauses.  114999 SAT calls
+c Time = 1384.01.  Justifications of 8024590 nodes completed.  75461774 total clauses.  115212 SAT calls
+c Time = 1388.36.  Justifications of 8048544 nodes completed.  75648958 total clauses.  115513 SAT calls
+c Time = 1389.94.  Justifications of 8072498 nodes completed.  75815378 total clauses.  115607 SAT calls
+c Time = 1394.35.  Justifications of 8096452 nodes completed.  76044526 total clauses.  115884 SAT calls
+c Time = 1396.63.  Justifications of 8120406 nodes completed.  76207302 total clauses.  116011 SAT calls
+c Time = 1399.14.  Justifications of 8144360 nodes completed.  76373912 total clauses.  116239 SAT calls
+c Time = 1401.14.  Justifications of 8168314 nodes completed.  76519484 total clauses.  116360 SAT calls
+c Time = 1403.76.  Justifications of 8192268 nodes completed.  76675482 total clauses.  116582 SAT calls
+c Time = 1406.89.  Justifications of 8216222 nodes completed.  76836074 total clauses.  116842 SAT calls
+c Time = 1409.29.  Justifications of 8240176 nodes completed.  76982685 total clauses.  117036 SAT calls
+c Time = 1413.71.  Justifications of 8264130 nodes completed.  77175802 total clauses.  117417 SAT calls
+c Time = 1419.64.  Justifications of 8288084 nodes completed.  77455685 total clauses.  117818 SAT calls
+c Time = 1423.62.  Justifications of 8312038 nodes completed.  77626921 total clauses.  118235 SAT calls
+c Time = 1429.63.  Justifications of 8335992 nodes completed.  77920552 total clauses.  118670 SAT calls
+c Time = 1433.12.  Justifications of 8359946 nodes completed.  78090485 total clauses.  118927 SAT calls
+c Time = 1435.88.  Justifications of 8383900 nodes completed.  78258880 total clauses.  119222 SAT calls
+c Time = 1438.71.  Justifications of 8407854 nodes completed.  78414088 total clauses.  119494 SAT calls
+c Time = 1440.23.  Justifications of 8431808 nodes completed.  78524324 total clauses.  119654 SAT calls
+c Time = 1441.71.  Justifications of 8455762 nodes completed.  78624406 total clauses.  119821 SAT calls
+c Time = 1443.39.  Justifications of 8479716 nodes completed.  78726917 total clauses.  120024 SAT calls
+c Time = 1445.18.  Justifications of 8503670 nodes completed.  78834275 total clauses.  120178 SAT calls
+c Time = 1446.02.  Justifications of 8527624 nodes completed.  78918432 total clauses.  120242 SAT calls
+c Time = 1446.63.  Justifications of 8551578 nodes completed.  78988538 total clauses.  120270 SAT calls
+c Time = 1448.04.  Justifications of 8575532 nodes completed.  79086574 total clauses.  120424 SAT calls
+c Time = 1449.62.  Justifications of 8599486 nodes completed.  79197993 total clauses.  120585 SAT calls
+c Time = 1450.10.  Justifications of 8623440 nodes completed.  79267748 total clauses.  120600 SAT calls
+c Time = 1452.02.  Justifications of 8647394 nodes completed.  79393308 total clauses.  120763 SAT calls
+c Time = 1453.27.  Justifications of 8671348 nodes completed.  79489059 total clauses.  120848 SAT calls
+c Time = 1454.96.  Justifications of 8695302 nodes completed.  79596608 total clauses.  121028 SAT calls
+c Time = 1456.41.  Justifications of 8719256 nodes completed.  79693957 total clauses.  121206 SAT calls
+c Time = 1460.77.  Justifications of 8743210 nodes completed.  79909855 total clauses.  121563 SAT calls
+c Time = 1462.14.  Justifications of 8767164 nodes completed.  80014623 total clauses.  121707 SAT calls
+c Time = 1466.11.  Justifications of 8791118 nodes completed.  80229868 total clauses.  121977 SAT calls
+c Time = 1471.39.  Justifications of 8815072 nodes completed.  80507012 total clauses.  122380 SAT calls
+c Time = 1475.30.  Justifications of 8839026 nodes completed.  80693951 total clauses.  122673 SAT calls
+c Time = 1480.48.  Justifications of 8862980 nodes completed.  80986958 total clauses.  123077 SAT calls
+c Time = 1483.12.  Justifications of 8886934 nodes completed.  81187994 total clauses.  123397 SAT calls
+c Time = 1486.01.  Justifications of 8910888 nodes completed.  81403899 total clauses.  123705 SAT calls
+c Time = 1490.70.  Justifications of 8934842 nodes completed.  81672888 total clauses.  124211 SAT calls
+c Time = 1497.01.  Justifications of 8958796 nodes completed.  81992824 total clauses.  124866 SAT calls
+c Time = 1502.80.  Justifications of 8982750 nodes completed.  82298995 total clauses.  125383 SAT calls
+c Time = 1511.63.  Justifications of 9006704 nodes completed.  82721712 total clauses.  126023 SAT calls
+c Time = 1512.83.  Justifications of 9030658 nodes completed.  82819763 total clauses.  126175 SAT calls
+c Time = 1516.45.  Justifications of 9054612 nodes completed.  82978001 total clauses.  126503 SAT calls
+c Time = 1521.33.  Justifications of 9078566 nodes completed.  83197778 total clauses.  126910 SAT calls
+c Time = 1525.36.  Justifications of 9102520 nodes completed.  83383710 total clauses.  127346 SAT calls
+c Time = 1527.46.  Justifications of 9126474 nodes completed.  83531631 total clauses.  127605 SAT calls
+c Time = 1530.09.  Justifications of 9150428 nodes completed.  83700483 total clauses.  127916 SAT calls
+c Time = 1533.06.  Justifications of 9174382 nodes completed.  83876112 total clauses.  128285 SAT calls
+c Time = 1535.71.  Justifications of 9198336 nodes completed.  84047554 total clauses.  128598 SAT calls
+c Time = 1539.19.  Justifications of 9222290 nodes completed.  84228285 total clauses.  128978 SAT calls
+c Time = 1545.41.  Justifications of 9246244 nodes completed.  84504024 total clauses.  129426 SAT calls
+c Time = 1546.87.  Justifications of 9270198 nodes completed.  84617180 total clauses.  129598 SAT calls
+c Time = 1551.65.  Justifications of 9294152 nodes completed.  84840931 total clauses.  130015 SAT calls
+c Time = 1554.84.  Justifications of 9318106 nodes completed.  84996179 total clauses.  130378 SAT calls
+c Time = 1557.26.  Justifications of 9342060 nodes completed.  85137463 total clauses.  130678 SAT calls
+c Time = 1559.49.  Justifications of 9366014 nodes completed.  85273049 total clauses.  130995 SAT calls
+c Time = 1561.65.  Justifications of 9389968 nodes completed.  85403118 total clauses.  131265 SAT calls
+c Time = 1564.08.  Justifications of 9413922 nodes completed.  85546696 total clauses.  131619 SAT calls
+c Time = 1568.81.  Justifications of 9437876 nodes completed.  85753934 total clauses.  132052 SAT calls
+c Time = 1570.35.  Justifications of 9461830 nodes completed.  85862556 total clauses.  132232 SAT calls
+c Time = 1571.66.  Justifications of 9485784 nodes completed.  85963869 total clauses.  132342 SAT calls
+c Time = 1573.56.  Justifications of 9509738 nodes completed.  86094188 total clauses.  132545 SAT calls
+c Time = 1574.96.  Justifications of 9533692 nodes completed.  86206415 total clauses.  132709 SAT calls
+c Time = 1576.55.  Justifications of 9557646 nodes completed.  86327648 total clauses.  132863 SAT calls
+c Time = 1578.57.  Justifications of 9581600 nodes completed.  86457868 total clauses.  133090 SAT calls
+c Time = 1580.96.  Justifications of 9605554 nodes completed.  86615103 total clauses.  133295 SAT calls
+c Time = 1583.56.  Justifications of 9629508 nodes completed.  86770387 total clauses.  133540 SAT calls
+c Time = 1586.90.  Justifications of 9653462 nodes completed.  86944686 total clauses.  133799 SAT calls
+c Time = 1591.20.  Justifications of 9677416 nodes completed.  87163752 total clauses.  134115 SAT calls
+c Time = 1593.44.  Justifications of 9701370 nodes completed.  87313028 total clauses.  134313 SAT calls
+c Time = 1596.02.  Justifications of 9725324 nodes completed.  87471097 total clauses.  134516 SAT calls
+c Time = 1598.55.  Justifications of 9749278 nodes completed.  87610154 total clauses.  134787 SAT calls
+c Time = 1600.13.  Justifications of 9773232 nodes completed.  87716277 total clauses.  134957 SAT calls
+c Time = 1601.74.  Justifications of 9797186 nodes completed.  87836637 total clauses.  135121 SAT calls
+c Time = 1603.48.  Justifications of 9821140 nodes completed.  87945325 total clauses.  135321 SAT calls
+c Time = 1605.45.  Justifications of 9845094 nodes completed.  88069755 total clauses.  135504 SAT calls
+c Time = 1607.55.  Justifications of 9869048 nodes completed.  88202928 total clauses.  135704 SAT calls
+c Time = 1609.56.  Justifications of 9893002 nodes completed.  88332956 total clauses.  135955 SAT calls
+c Time = 1613.67.  Justifications of 9916956 nodes completed.  88550409 total clauses.  136264 SAT calls
+c Time = 1619.79.  Justifications of 9940910 nodes completed.  88830397 total clauses.  136818 SAT calls
+c Time = 1621.84.  Justifications of 9964864 nodes completed.  88970635 total clauses.  137098 SAT calls
+c Time = 1623.21.  Justifications of 9988818 nodes completed.  89092637 total clauses.  137237 SAT calls
+c Time = 1624.41.  Justifications of 10012772 nodes completed.  89193160 total clauses.  137370 SAT calls
+c Time = 1625.45.  Justifications of 10036726 nodes completed.  89278086 total clauses.  137503 SAT calls
+c Time = 1627.53.  Justifications of 10060680 nodes completed.  89412706 total clauses.  137707 SAT calls
+c Time = 1628.34.  Justifications of 10084634 nodes completed.  89492563 total clauses.  137812 SAT calls
+c Time = 1629.34.  Justifications of 10108588 nodes completed.  89573449 total clauses.  137923 SAT calls
+c Time = 1632.09.  Justifications of 10132542 nodes completed.  89728401 total clauses.  138156 SAT calls
+c Time = 1634.32.  Justifications of 10156496 nodes completed.  89886291 total clauses.  138361 SAT calls
+c Time = 1638.66.  Justifications of 10180450 nodes completed.  90118973 total clauses.  138584 SAT calls
+c Time = 1640.56.  Justifications of 10204404 nodes completed.  90279966 total clauses.  138705 SAT calls
+c Time = 1642.89.  Justifications of 10228358 nodes completed.  90460485 total clauses.  138871 SAT calls
+c Time = 1646.38.  Justifications of 10252312 nodes completed.  90669876 total clauses.  139176 SAT calls
+c Time = 1648.94.  Justifications of 10276266 nodes completed.  90848827 total clauses.  139425 SAT calls
+c Time = 1653.40.  Justifications of 10300220 nodes completed.  91078194 total clauses.  139764 SAT calls
+c Time = 1657.35.  Justifications of 10324174 nodes completed.  91308946 total clauses.  140004 SAT calls
+c Time = 1659.63.  Justifications of 10348128 nodes completed.  91511428 total clauses.  140180 SAT calls
+c Time = 1661.98.  Justifications of 10372082 nodes completed.  91709010 total clauses.  140378 SAT calls
+c Time = 1665.74.  Justifications of 10396036 nodes completed.  91908093 total clauses.  140709 SAT calls
+c Time = 1668.19.  Justifications of 10419990 nodes completed.  92028292 total clauses.  141008 SAT calls
+c Time = 1672.75.  Justifications of 10443944 nodes completed.  92258069 total clauses.  141364 SAT calls
+c Time = 1677.68.  Justifications of 10467898 nodes completed.  92462803 total clauses.  141755 SAT calls
+c Time = 1679.84.  Justifications of 10491852 nodes completed.  92660496 total clauses.  141908 SAT calls
+c Time = 1681.88.  Justifications of 10515806 nodes completed.  92852600 total clauses.  142032 SAT calls
+c Time = 1686.78.  Justifications of 10539760 nodes completed.  93067244 total clauses.  142433 SAT calls
+c Time = 1689.48.  Justifications of 10563714 nodes completed.  93217507 total clauses.  142727 SAT calls
+c Time = 1695.13.  Justifications of 10587668 nodes completed.  93507567 total clauses.  143158 SAT calls
+c Time = 1699.14.  Justifications of 10611622 nodes completed.  93727111 total clauses.  143492 SAT calls
+c Time = 1703.85.  Justifications of 10635576 nodes completed.  93959520 total clauses.  143852 SAT calls
+c Time = 1706.67.  Justifications of 10659530 nodes completed.  94097411 total clauses.  144096 SAT calls
+c Time = 1709.41.  Justifications of 10683484 nodes completed.  94277570 total clauses.  144370 SAT calls
+c Time = 1712.70.  Justifications of 10707438 nodes completed.  94472704 total clauses.  144710 SAT calls
+c Time = 1714.20.  Justifications of 10731392 nodes completed.  94594579 total clauses.  144839 SAT calls
+c Time = 1717.87.  Justifications of 10755346 nodes completed.  94785557 total clauses.  145202 SAT calls
+c Time = 1721.82.  Justifications of 10779300 nodes completed.  94965371 total clauses.  145597 SAT calls
+c Time = 1725.74.  Justifications of 10803254 nodes completed.  95159855 total clauses.  145969 SAT calls
+c Time = 1728.77.  Justifications of 10827208 nodes completed.  95361925 total clauses.  146331 SAT calls
+c Time = 1730.59.  Justifications of 10851162 nodes completed.  95487480 total clauses.  146494 SAT calls
+c Time = 1732.33.  Justifications of 10875116 nodes completed.  95618831 total clauses.  146660 SAT calls
+c Time = 1735.11.  Justifications of 10899070 nodes completed.  95774202 total clauses.  146945 SAT calls
+c Time = 1737.93.  Justifications of 10923024 nodes completed.  95933195 total clauses.  147258 SAT calls
+c Time = 1740.20.  Justifications of 10946978 nodes completed.  96061787 total clauses.  147518 SAT calls
+c Time = 1742.41.  Justifications of 10970932 nodes completed.  96214051 total clauses.  147747 SAT calls
+c Time = 1744.74.  Justifications of 10994886 nodes completed.  96362568 total clauses.  148011 SAT calls
+c Time = 1749.11.  Justifications of 11018840 nodes completed.  96589108 total clauses.  148434 SAT calls
+c Time = 1753.23.  Justifications of 11042794 nodes completed.  96848636 total clauses.  148892 SAT calls
+c Time = 1756.20.  Justifications of 11066748 nodes completed.  97039730 total clauses.  149250 SAT calls
+c Time = 1759.62.  Justifications of 11090702 nodes completed.  97208303 total clauses.  149665 SAT calls
+c Time = 1763.14.  Justifications of 11114656 nodes completed.  97433379 total clauses.  150059 SAT calls
+c Time = 1766.75.  Justifications of 11138610 nodes completed.  97672493 total clauses.  150472 SAT calls
+c Time = 1769.50.  Justifications of 11162564 nodes completed.  97862637 total clauses.  150789 SAT calls
+c Time = 1771.89.  Justifications of 11186518 nodes completed.  98010842 total clauses.  151093 SAT calls
+c Time = 1775.08.  Justifications of 11210472 nodes completed.  98176249 total clauses.  151460 SAT calls
+c Time = 1777.38.  Justifications of 11234426 nodes completed.  98326675 total clauses.  151756 SAT calls
+c Time = 1779.46.  Justifications of 11258380 nodes completed.  98470043 total clauses.  152030 SAT calls
+c Time = 1780.66.  Justifications of 11282334 nodes completed.  98569998 total clauses.  152183 SAT calls
+c Time = 1782.37.  Justifications of 11306288 nodes completed.  98694813 total clauses.  152385 SAT calls
+c Time = 1784.77.  Justifications of 11330242 nodes completed.  98819117 total clauses.  152680 SAT calls
+c Time = 1787.66.  Justifications of 11354196 nodes completed.  99001452 total clauses.  152950 SAT calls
+c Time = 1790.75.  Justifications of 11378150 nodes completed.  99191961 total clauses.  153263 SAT calls
+c Time = 1793.40.  Justifications of 11402104 nodes completed.  99384048 total clauses.  153506 SAT calls
+c Time = 1795.75.  Justifications of 11426058 nodes completed.  99528292 total clauses.  153763 SAT calls
+c Time = 1797.58.  Justifications of 11450012 nodes completed.  99651457 total clauses.  153980 SAT calls
+c Time = 1801.38.  Justifications of 11473966 nodes completed.  99827501 total clauses.  154388 SAT calls
+c Time = 1803.45.  Justifications of 11497920 nodes completed.  99962997 total clauses.  154587 SAT calls
+c Time = 1806.30.  Justifications of 11521874 nodes completed.  100112476 total clauses.  154936 SAT calls
+c Time = 1808.47.  Justifications of 11545828 nodes completed.  100259964 total clauses.  155161 SAT calls
+c Time = 1811.62.  Justifications of 11569782 nodes completed.  100454243 total clauses.  155508 SAT calls
+c Time = 1814.86.  Justifications of 11593736 nodes completed.  100614332 total clauses.  155768 SAT calls
+c Time = 1819.16.  Justifications of 11617690 nodes completed.  100846672 total clauses.  156119 SAT calls
+c Time = 1821.90.  Justifications of 11641644 nodes completed.  101010271 total clauses.  156379 SAT calls
+c Time = 1825.81.  Justifications of 11665598 nodes completed.  101195211 total clauses.  156736 SAT calls
+c Time = 1831.08.  Justifications of 11689552 nodes completed.  101442411 total clauses.  157110 SAT calls
+c Time = 1833.42.  Justifications of 11713506 nodes completed.  101658474 total clauses.  157316 SAT calls
+c Time = 1836.39.  Justifications of 11737460 nodes completed.  101884474 total clauses.  157662 SAT calls
+c Time = 1838.75.  Justifications of 11761414 nodes completed.  102052253 total clauses.  157916 SAT calls
+c Time = 1841.75.  Justifications of 11785368 nodes completed.  102246325 total clauses.  158163 SAT calls
+c Time = 1844.45.  Justifications of 11809322 nodes completed.  102434893 total clauses.  158343 SAT calls
+c Time = 1849.11.  Justifications of 11833276 nodes completed.  102696911 total clauses.  158801 SAT calls
+c Time = 1853.89.  Justifications of 11857230 nodes completed.  102940021 total clauses.  159212 SAT calls
+c Time = 1859.99.  Justifications of 11881184 nodes completed.  103222317 total clauses.  159715 SAT calls
+c Time = 1862.70.  Justifications of 11905138 nodes completed.  103353270 total clauses.  160021 SAT calls
+c Time = 1867.18.  Justifications of 11929092 nodes completed.  103594417 total clauses.  160376 SAT calls
+c Time = 1874.01.  Justifications of 11953046 nodes completed.  103882985 total clauses.  160927 SAT calls
+c Time = 1876.80.  Justifications of 11977000 nodes completed.  104033415 total clauses.  161160 SAT calls
+c Time = 1881.18.  Justifications of 12000954 nodes completed.  104261480 total clauses.  161520 SAT calls
+c Time = 1883.02.  Justifications of 12024908 nodes completed.  104408305 total clauses.  161720 SAT calls
+c Time = 1884.05.  Justifications of 12048862 nodes completed.  104500721 total clauses.  161834 SAT calls
+c Time = 1884.96.  Justifications of 12072816 nodes completed.  104583371 total clauses.  161934 SAT calls
+c Time = 1891.28.  Justifications of 12096770 nodes completed.  104944824 total clauses.  162436 SAT calls
+c Time = 1894.50.  Justifications of 12120724 nodes completed.  105173352 total clauses.  162704 SAT calls
+c Time = 1895.62.  Justifications of 12144678 nodes completed.  105259091 total clauses.  162848 SAT calls
+c Time = 1898.29.  Justifications of 12168632 nodes completed.  105436660 total clauses.  163077 SAT calls
+c Time = 1901.74.  Justifications of 12192586 nodes completed.  105596927 total clauses.  163371 SAT calls
+c Time = 1904.47.  Justifications of 12216540 nodes completed.  105754173 total clauses.  163560 SAT calls
+c Time = 1908.30.  Justifications of 12240494 nodes completed.  105992341 total clauses.  163875 SAT calls
+c Time = 1911.13.  Justifications of 12264448 nodes completed.  106212130 total clauses.  164105 SAT calls
+c Time = 1913.02.  Justifications of 12288402 nodes completed.  106380792 total clauses.  164263 SAT calls
+c Time = 1915.53.  Justifications of 12312356 nodes completed.  106560006 total clauses.  164443 SAT calls
+c Time = 1917.34.  Justifications of 12336310 nodes completed.  106708874 total clauses.  164622 SAT calls
+c Time = 1919.87.  Justifications of 12360264 nodes completed.  106869910 total clauses.  164831 SAT calls
+c Time = 1922.72.  Justifications of 12384218 nodes completed.  107063117 total clauses.  165028 SAT calls
+c Time = 1930.57.  Justifications of 12408172 nodes completed.  107462780 total clauses.  165534 SAT calls
+c Time = 1934.72.  Justifications of 12432126 nodes completed.  107709603 total clauses.  165815 SAT calls
+c Time = 1938.18.  Justifications of 12456080 nodes completed.  107904997 total clauses.  166122 SAT calls
+c Time = 1941.96.  Justifications of 12480034 nodes completed.  108155140 total clauses.  166387 SAT calls
+c Time = 1946.66.  Justifications of 12503988 nodes completed.  108398180 total clauses.  166716 SAT calls
+c Time = 1948.03.  Justifications of 12527942 nodes completed.  108551625 total clauses.  166773 SAT calls
+c Time = 1951.00.  Justifications of 12551896 nodes completed.  108762776 total clauses.  166970 SAT calls
+c Time = 1952.28.  Justifications of 12575850 nodes completed.  108915771 total clauses.  167025 SAT calls
+c Time = 1953.83.  Justifications of 12599804 nodes completed.  109083848 total clauses.  167088 SAT calls
+c Time = 1957.55.  Justifications of 12623758 nodes completed.  109304531 total clauses.  167344 SAT calls
+c Time = 1961.38.  Justifications of 12647712 nodes completed.  109490686 total clauses.  167726 SAT calls
+c Time = 1964.49.  Justifications of 12671666 nodes completed.  109675928 total clauses.  167978 SAT calls
+c Time = 1966.25.  Justifications of 12695620 nodes completed.  109823339 total clauses.  168143 SAT calls
+c Time = 1968.38.  Justifications of 12719574 nodes completed.  109994395 total clauses.  168341 SAT calls
+c Time = 1971.33.  Justifications of 12743528 nodes completed.  110184803 total clauses.  168629 SAT calls
+c Time = 1974.57.  Justifications of 12767482 nodes completed.  110397450 total clauses.  168900 SAT calls
+c Time = 1977.57.  Justifications of 12791436 nodes completed.  110558004 total clauses.  169194 SAT calls
+c Time = 1980.65.  Justifications of 12815390 nodes completed.  110744484 total clauses.  169428 SAT calls
+c Time = 1982.35.  Justifications of 12839344 nodes completed.  110880170 total clauses.  169560 SAT calls
+c Time = 1984.21.  Justifications of 12863298 nodes completed.  111016103 total clauses.  169730 SAT calls
+c Time = 1985.41.  Justifications of 12887252 nodes completed.  111137581 total clauses.  169829 SAT calls
+c Time = 1986.97.  Justifications of 12911206 nodes completed.  111265294 total clauses.  169973 SAT calls
+c Time = 1988.44.  Justifications of 12935160 nodes completed.  111391809 total clauses.  170114 SAT calls
+c Time = 1990.00.  Justifications of 12959114 nodes completed.  111518310 total clauses.  170257 SAT calls
+c Time = 1992.12.  Justifications of 12983068 nodes completed.  111660873 total clauses.  170449 SAT calls
+c Time = 1993.50.  Justifications of 13007022 nodes completed.  111771236 total clauses.  170571 SAT calls
+c Time = 1994.82.  Justifications of 13030976 nodes completed.  111880264 total clauses.  170690 SAT calls
+c Time = 1995.79.  Justifications of 13054930 nodes completed.  111973927 total clauses.  170771 SAT calls
+c Time = 1997.84.  Justifications of 13078884 nodes completed.  112114562 total clauses.  171006 SAT calls
+c Time = 2000.62.  Justifications of 13102838 nodes completed.  112295788 total clauses.  171297 SAT calls
+c Time = 2003.13.  Justifications of 13126792 nodes completed.  112472114 total clauses.  171503 SAT calls
+c Time = 2005.16.  Justifications of 13150746 nodes completed.  112620989 total clauses.  171686 SAT calls
+c Time = 2007.05.  Justifications of 13174700 nodes completed.  112768912 total clauses.  171839 SAT calls
+c Time = 2008.09.  Justifications of 13198654 nodes completed.  112869953 total clauses.  171934 SAT calls
+c Time = 2009.35.  Justifications of 13222608 nodes completed.  112993231 total clauses.  172041 SAT calls
+c Time = 2010.78.  Justifications of 13246562 nodes completed.  113106525 total clauses.  172166 SAT calls
+c Time = 2012.49.  Justifications of 13270516 nodes completed.  113246867 total clauses.  172326 SAT calls
+c Time = 2016.56.  Justifications of 13294470 nodes completed.  113440833 total clauses.  172734 SAT calls
+c Time = 2018.60.  Justifications of 13318424 nodes completed.  113603075 total clauses.  172892 SAT calls
+c Time = 2020.42.  Justifications of 13342378 nodes completed.  113740774 total clauses.  173054 SAT calls
+c Time = 2022.05.  Justifications of 13366332 nodes completed.  113881883 total clauses.  173201 SAT calls
+c Time = 2025.79.  Justifications of 13390286 nodes completed.  114045213 total clauses.  173621 SAT calls
+c Time = 2031.00.  Justifications of 13414240 nodes completed.  114253874 total clauses.  174375 SAT calls
+c Time = 2032.68.  Justifications of 13438194 nodes completed.  114356248 total clauses.  174538 SAT calls
+c Time = 2034.37.  Justifications of 13462148 nodes completed.  114474850 total clauses.  174693 SAT calls
+c Time = 2036.41.  Justifications of 13486102 nodes completed.  114594378 total clauses.  174903 SAT calls
+c Time = 2039.89.  Justifications of 13510056 nodes completed.  114790834 total clauses.  175198 SAT calls
+c Time = 2042.28.  Justifications of 13534010 nodes completed.  114938010 total clauses.  175393 SAT calls
+c Time = 2043.61.  Justifications of 13557964 nodes completed.  115036176 total clauses.  175499 SAT calls
+c Time = 2046.78.  Justifications of 13581918 nodes completed.  115188157 total clauses.  175743 SAT calls
+c Time = 2050.47.  Justifications of 13605872 nodes completed.  115376070 total clauses.  176313 SAT calls
+c Time = 2056.34.  Justifications of 13629826 nodes completed.  115703630 total clauses.  176737 SAT calls
+c Time = 2057.93.  Justifications of 13653780 nodes completed.  115813948 total clauses.  176887 SAT calls
+c Time = 2060.47.  Justifications of 13677734 nodes completed.  115968061 total clauses.  177101 SAT calls
+c Time = 2064.36.  Justifications of 13701688 nodes completed.  116203790 total clauses.  177405 SAT calls
+c Time = 2067.88.  Justifications of 13725642 nodes completed.  116440710 total clauses.  177648 SAT calls
+c Time = 2072.09.  Justifications of 13749596 nodes completed.  116649433 total clauses.  177959 SAT calls
+c Time = 2075.96.  Justifications of 13773550 nodes completed.  116889142 total clauses.  178261 SAT calls
+c Time = 2079.95.  Justifications of 13797504 nodes completed.  117087889 total clauses.  178568 SAT calls
+c Time = 2083.80.  Justifications of 13821458 nodes completed.  117284867 total clauses.  178910 SAT calls
+c Time = 2086.65.  Justifications of 13845412 nodes completed.  117433501 total clauses.  179170 SAT calls
+c Time = 2090.96.  Justifications of 13869366 nodes completed.  117614093 total clauses.  179502 SAT calls
+c Time = 2093.39.  Justifications of 13893320 nodes completed.  117781987 total clauses.  179681 SAT calls
+c Time = 2095.76.  Justifications of 13917274 nodes completed.  117967578 total clauses.  179816 SAT calls
+c Time = 2099.99.  Justifications of 13941228 nodes completed.  118213131 total clauses.  180082 SAT calls
+c Time = 2102.56.  Justifications of 13965182 nodes completed.  118391854 total clauses.  180274 SAT calls
+c Time = 2107.13.  Justifications of 13989136 nodes completed.  118668363 total clauses.  180531 SAT calls
+c Time = 2110.01.  Justifications of 14013090 nodes completed.  118867012 total clauses.  180756 SAT calls
+c Time = 2113.53.  Justifications of 14037044 nodes completed.  119055754 total clauses.  181044 SAT calls
+c Time = 2118.79.  Justifications of 14060998 nodes completed.  119326206 total clauses.  181409 SAT calls
+c Time = 2121.18.  Justifications of 14084952 nodes completed.  119478621 total clauses.  181622 SAT calls
+c Time = 2126.04.  Justifications of 14108906 nodes completed.  119738758 total clauses.  181944 SAT calls
+c Time = 2127.90.  Justifications of 14132860 nodes completed.  119923095 total clauses.  182075 SAT calls
+c Time = 2129.80.  Justifications of 14156814 nodes completed.  120089303 total clauses.  182256 SAT calls
+c Time = 2132.96.  Justifications of 14180768 nodes completed.  120317497 total clauses.  182518 SAT calls
+c Time = 2135.23.  Justifications of 14204722 nodes completed.  120548706 total clauses.  182701 SAT calls
+c Time = 2137.61.  Justifications of 14228676 nodes completed.  120784028 total clauses.  182911 SAT calls
+c Time = 2139.50.  Justifications of 14252630 nodes completed.  120946213 total clauses.  183090 SAT calls
+c Time = 2143.95.  Justifications of 14276584 nodes completed.  121193670 total clauses.  183477 SAT calls
+c Time = 2145.65.  Justifications of 14300538 nodes completed.  121361665 total clauses.  183606 SAT calls
+c Time = 2149.51.  Justifications of 14324492 nodes completed.  121627014 total clauses.  183901 SAT calls
+c Time = 2153.23.  Justifications of 14348446 nodes completed.  121862440 total clauses.  184137 SAT calls
+c Time = 2157.57.  Justifications of 14372400 nodes completed.  122059357 total clauses.  184633 SAT calls
+c Time = 2161.55.  Justifications of 14396354 nodes completed.  122237352 total clauses.  185223 SAT calls
+c Time = 2165.42.  Justifications of 14420308 nodes completed.  122435262 total clauses.  185812 SAT calls
+c Time = 2169.07.  Justifications of 14444262 nodes completed.  122651757 total clauses.  186205 SAT calls
+c Time = 2170.54.  Justifications of 14468216 nodes completed.  122761527 total clauses.  186312 SAT calls
+c Time = 2172.67.  Justifications of 14492170 nodes completed.  122880425 total clauses.  186455 SAT calls
+c Time = 2175.25.  Justifications of 14516124 nodes completed.  123021133 total clauses.  186622 SAT calls
+c Time = 2177.02.  Justifications of 14540078 nodes completed.  123166455 total clauses.  186748 SAT calls
+c Time = 2179.02.  Justifications of 14564032 nodes completed.  123294554 total clauses.  186890 SAT calls
+c Time = 2179.84.  Justifications of 14587986 nodes completed.  123370254 total clauses.  186964 SAT calls
+c Time = 2180.90.  Justifications of 14611940 nodes completed.  123452404 total clauses.  187064 SAT calls
+c Time = 2181.80.  Justifications of 14635894 nodes completed.  123536624 total clauses.  187123 SAT calls
+c Time = 2183.04.  Justifications of 14659848 nodes completed.  123619658 total clauses.  187228 SAT calls
+c Time = 2183.87.  Justifications of 14683802 nodes completed.  123701355 total clauses.  187289 SAT calls
+c Time = 2186.37.  Justifications of 14707756 nodes completed.  123856442 total clauses.  187499 SAT calls
+c Time = 2190.54.  Justifications of 14731710 nodes completed.  124062280 total clauses.  187863 SAT calls
+c Time = 2191.65.  Justifications of 14755664 nodes completed.  124147326 total clauses.  187987 SAT calls
+c Time = 2196.55.  Justifications of 14779618 nodes completed.  124369222 total clauses.  188416 SAT calls
+c Time = 2201.52.  Justifications of 14803572 nodes completed.  124576112 total clauses.  188880 SAT calls
+c Time = 2206.10.  Justifications of 14827526 nodes completed.  124852894 total clauses.  189221 SAT calls
+c Time = 2209.12.  Justifications of 14851480 nodes completed.  125003238 total clauses.  189501 SAT calls
+c Time = 2211.49.  Justifications of 14875434 nodes completed.  125169600 total clauses.  189717 SAT calls
+c Time = 2213.84.  Justifications of 14899388 nodes completed.  125330373 total clauses.  189953 SAT calls
+c Time = 2215.94.  Justifications of 14923342 nodes completed.  125464265 total clauses.  190186 SAT calls
+c Time = 2217.49.  Justifications of 14947296 nodes completed.  125570447 total clauses.  190357 SAT calls
+c Time = 2218.86.  Justifications of 14971250 nodes completed.  125670991 total clauses.  190485 SAT calls
+c Time = 2222.97.  Justifications of 14995204 nodes completed.  125884402 total clauses.  190873 SAT calls
+c Time = 2226.80.  Justifications of 15019158 nodes completed.  126073716 total clauses.  191180 SAT calls
+c Time = 2232.16.  Justifications of 15043112 nodes completed.  126294789 total clauses.  191662 SAT calls
+c Time = 2235.40.  Justifications of 15067066 nodes completed.  126472451 total clauses.  192085 SAT calls
+c Time = 2239.06.  Justifications of 15091020 nodes completed.  126640729 total clauses.  192628 SAT calls
+c Time = 2243.31.  Justifications of 15114974 nodes completed.  126877004 total clauses.  193076 SAT calls
+c Time = 2247.07.  Justifications of 15138928 nodes completed.  127070412 total clauses.  193432 SAT calls
+c Time = 2250.18.  Justifications of 15162882 nodes completed.  127262738 total clauses.  193652 SAT calls
+c Time = 2252.53.  Justifications of 15186836 nodes completed.  127426545 total clauses.  193846 SAT calls
+c Time = 2253.97.  Justifications of 15210790 nodes completed.  127542313 total clauses.  193980 SAT calls
+c Time = 2255.39.  Justifications of 15234744 nodes completed.  127653696 total clauses.  194093 SAT calls
+c Time = 2256.69.  Justifications of 15258698 nodes completed.  127770479 total clauses.  194188 SAT calls
+c Time = 2260.21.  Justifications of 15282652 nodes completed.  127978554 total clauses.  194515 SAT calls
+c Time = 2263.02.  Justifications of 15306606 nodes completed.  128143139 total clauses.  194783 SAT calls
+c Time = 2264.44.  Justifications of 15330560 nodes completed.  128249333 total clauses.  194947 SAT calls
+c Time = 2267.29.  Justifications of 15354514 nodes completed.  128405819 total clauses.  195225 SAT calls
+c Time = 2270.59.  Justifications of 15378468 nodes completed.  128585949 total clauses.  195558 SAT calls
+c Time = 2275.58.  Justifications of 15402422 nodes completed.  128847778 total clauses.  195973 SAT calls
+c Time = 2281.51.  Justifications of 15426376 nodes completed.  129143094 total clauses.  196454 SAT calls
+c Time = 2283.75.  Justifications of 15450330 nodes completed.  129312447 total clauses.  196686 SAT calls
+c Time = 2286.72.  Justifications of 15474284 nodes completed.  129527875 total clauses.  196989 SAT calls
+c Time = 2289.05.  Justifications of 15498238 nodes completed.  129666093 total clauses.  197281 SAT calls
+c Time = 2291.26.  Justifications of 15522192 nodes completed.  129802969 total clauses.  197568 SAT calls
+c Time = 2295.43.  Justifications of 15546146 nodes completed.  130049740 total clauses.  197962 SAT calls
+c Time = 2299.13.  Justifications of 15570100 nodes completed.  130270000 total clauses.  198288 SAT calls
+c Time = 2304.03.  Justifications of 15594054 nodes completed.  130543081 total clauses.  198739 SAT calls
+c Time = 2307.47.  Justifications of 15618008 nodes completed.  130723295 total clauses.  199094 SAT calls
+c Time = 2311.14.  Justifications of 15641962 nodes completed.  130928315 total clauses.  199428 SAT calls
+c Time = 2316.78.  Justifications of 15665916 nodes completed.  131154726 total clauses.  199866 SAT calls
+c Time = 2318.72.  Justifications of 15689870 nodes completed.  131323658 total clauses.  200037 SAT calls
+c Time = 2321.85.  Justifications of 15713824 nodes completed.  131536237 total clauses.  200288 SAT calls
+c Time = 2325.05.  Justifications of 15737778 nodes completed.  131727639 total clauses.  200532 SAT calls
+c Time = 2328.20.  Justifications of 15761732 nodes completed.  131899901 total clauses.  200799 SAT calls
+c Time = 2332.65.  Justifications of 15785686 nodes completed.  132148190 total clauses.  201138 SAT calls
+c Time = 2335.99.  Justifications of 15809640 nodes completed.  132376578 total clauses.  201368 SAT calls
+c Time = 2337.60.  Justifications of 15833594 nodes completed.  132549842 total clauses.  201436 SAT calls
+c Time = 2338.80.  Justifications of 15857548 nodes completed.  132703289 total clauses.  201479 SAT calls
+c Time = 2340.99.  Justifications of 15881502 nodes completed.  132891799 total clauses.  201605 SAT calls
+c Time = 2343.49.  Justifications of 15905456 nodes completed.  133085096 total clauses.  201757 SAT calls
+c Time = 2345.77.  Justifications of 15929410 nodes completed.  133235427 total clauses.  201951 SAT calls
+c Time = 2349.10.  Justifications of 15953364 nodes completed.  133418463 total clauses.  202242 SAT calls
+c Time = 2352.08.  Justifications of 15977318 nodes completed.  133607861 total clauses.  202544 SAT calls
+c Time = 2354.45.  Justifications of 16001272 nodes completed.  133785743 total clauses.  202786 SAT calls
+c Time = 2357.58.  Justifications of 16025226 nodes completed.  133979722 total clauses.  203058 SAT calls
+c Time = 2360.61.  Justifications of 16049180 nodes completed.  134175867 total clauses.  203414 SAT calls
+c Time = 2363.70.  Justifications of 16073134 nodes completed.  134353813 total clauses.  203720 SAT calls
+c Time = 2367.63.  Justifications of 16097088 nodes completed.  134557598 total clauses.  204039 SAT calls
+c Time = 2370.53.  Justifications of 16121042 nodes completed.  134731052 total clauses.  204291 SAT calls
+c Time = 2375.81.  Justifications of 16144996 nodes completed.  134963868 total clauses.  204633 SAT calls
+c Time = 2380.54.  Justifications of 16168950 nodes completed.  135194397 total clauses.  205138 SAT calls
+c Time = 2384.50.  Justifications of 16192904 nodes completed.  135387040 total clauses.  205519 SAT calls
+c Time = 2387.73.  Justifications of 16216858 nodes completed.  135580062 total clauses.  205814 SAT calls
+c Time = 2388.49.  Justifications of 16240812 nodes completed.  135679819 total clauses.  205853 SAT calls
+c Time = 2391.52.  Justifications of 16264766 nodes completed.  135840255 total clauses.  206094 SAT calls
+c Time = 2393.44.  Justifications of 16288720 nodes completed.  135956132 total clauses.  206304 SAT calls
+c Time = 2395.33.  Justifications of 16312674 nodes completed.  136074166 total clauses.  206490 SAT calls
+c Time = 2397.78.  Justifications of 16336628 nodes completed.  136245825 total clauses.  206634 SAT calls
+c Time = 2402.37.  Justifications of 16360582 nodes completed.  136530167 total clauses.  206895 SAT calls
+c Time = 2406.38.  Justifications of 16384536 nodes completed.  136757332 total clauses.  207289 SAT calls
+c Time = 2409.70.  Justifications of 16408490 nodes completed.  136955280 total clauses.  207508 SAT calls
+c Time = 2411.85.  Justifications of 16432444 nodes completed.  137076725 total clauses.  207664 SAT calls
+c Time = 2416.10.  Justifications of 16456398 nodes completed.  137252383 total clauses.  208041 SAT calls
+c Time = 2417.76.  Justifications of 16480352 nodes completed.  137369503 total clauses.  208172 SAT calls
+c Time = 2419.52.  Justifications of 16504306 nodes completed.  137501958 total clauses.  208336 SAT calls
+c Time = 2421.61.  Justifications of 16528260 nodes completed.  137632235 total clauses.  208568 SAT calls
+c Time = 2425.37.  Justifications of 16552214 nodes completed.  137809828 total clauses.  208900 SAT calls
+c Time = 2427.10.  Justifications of 16576168 nodes completed.  137931460 total clauses.  209067 SAT calls
+c Time = 2430.34.  Justifications of 16600122 nodes completed.  138081582 total clauses.  209374 SAT calls
+c Time = 2435.57.  Justifications of 16624076 nodes completed.  138258791 total clauses.  209753 SAT calls
+c Time = 2437.56.  Justifications of 16648030 nodes completed.  138382771 total clauses.  209952 SAT calls
+c Time = 2439.69.  Justifications of 16671984 nodes completed.  138519463 total clauses.  210158 SAT calls
+c Time = 2447.92.  Justifications of 16695938 nodes completed.  138797127 total clauses.  210759 SAT calls
+c Time = 2455.13.  Justifications of 16719892 nodes completed.  139092526 total clauses.  211311 SAT calls
+c Time = 2458.74.  Justifications of 16743846 nodes completed.  139316975 total clauses.  211565 SAT calls
+c Time = 2462.57.  Justifications of 16767800 nodes completed.  139500087 total clauses.  211840 SAT calls
+c Time = 2464.41.  Justifications of 16791754 nodes completed.  139619444 total clauses.  212029 SAT calls
+c Time = 2466.27.  Justifications of 16815708 nodes completed.  139739454 total clauses.  212207 SAT calls
+c Time = 2471.55.  Justifications of 16839662 nodes completed.  140048245 total clauses.  212488 SAT calls
+c Time = 2476.13.  Justifications of 16863616 nodes completed.  140290955 total clauses.  212929 SAT calls
+c Time = 2481.29.  Justifications of 16887570 nodes completed.  140601407 total clauses.  213225 SAT calls
+c Time = 2484.50.  Justifications of 16911524 nodes completed.  140784292 total clauses.  213486 SAT calls
+c Time = 2488.77.  Justifications of 16935478 nodes completed.  140980176 total clauses.  213855 SAT calls
+c Time = 2491.41.  Justifications of 16959432 nodes completed.  141161016 total clauses.  214063 SAT calls
+c Time = 2493.41.  Justifications of 16983386 nodes completed.  141296471 total clauses.  214291 SAT calls
+c Time = 2495.89.  Justifications of 17007340 nodes completed.  141464577 total clauses.  214546 SAT calls
+c Time = 2498.38.  Justifications of 17031294 nodes completed.  141610838 total clauses.  214794 SAT calls
+c Time = 2501.09.  Justifications of 17055248 nodes completed.  141768130 total clauses.  215069 SAT calls
+c Time = 2504.28.  Justifications of 17079202 nodes completed.  141932404 total clauses.  215374 SAT calls
+c Time = 2507.19.  Justifications of 17103156 nodes completed.  142096943 total clauses.  215622 SAT calls
+c Time = 2509.65.  Justifications of 17127110 nodes completed.  142269723 total clauses.  215901 SAT calls
+c Time = 2514.14.  Justifications of 17151064 nodes completed.  142504423 total clauses.  216269 SAT calls
+c Time = 2516.74.  Justifications of 17175018 nodes completed.  142660758 total clauses.  216615 SAT calls
+c Time = 2519.16.  Justifications of 17198972 nodes completed.  142797257 total clauses.  216922 SAT calls
+c Time = 2521.20.  Justifications of 17222926 nodes completed.  142929449 total clauses.  217177 SAT calls
+c Time = 2528.58.  Justifications of 17246880 nodes completed.  143318996 total clauses.  217694 SAT calls
+c Time = 2531.74.  Justifications of 17270834 nodes completed.  143479165 total clauses.  218080 SAT calls
+c Time = 2534.53.  Justifications of 17294788 nodes completed.  143626871 total clauses.  218349 SAT calls
+c Time = 2537.15.  Justifications of 17312679 nodes, including root, completed.  143762817 total clauses
+c GEN: Time 2537.15  Completed forward implication proof
+c GEN: Time 2603.40  Deleted asserted clauses
+c GEN: Time 2757.59  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 2701
+c GEN:    input clauses  : 12460
+c GEN: POG nodes
+c GEN:    product   : 178315
+c GEN:    sum       : 61225
+c GEN:    node TOTAL: 239540
+c GEN: Other nodes
+c GEN:    aux product: 0
+c GEN: Node visits
+c GEN:    product/BCP: 11175988
+c GEN:    product/SAT: 78169
+c GEN:    sum        : 6058522
+c GEN:    visit TOTAL: 17312679
+c GEN: Lemmas
+c GEN:    definitions : 0
+c GEN:    applications: 0
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (218596 instances)
+c GEN:    PROBLEM MIN   : 9
+c GEN:    PROBLEM AVG   : 1229.75
+c GEN:    PROBLEM MAX   : 9678
+c GEN: SAT Proof Clause Counts
+c GEN:    PROOF MIN   : 4
+c GEN:    PROOF AVG   : 18.39
+c GEN:    PROOF MAX   : 258
+c GEN: Clauses
+c GEN:    POG definition       : 3975194
+c GEN:    AUX definition       : 0
+c GEN:    product justification: 11254157
+c GEN:    sum justification    : 10382955
+c GEN:    literal justification: 119884600
+c GEN:    lemma application    : 0
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 145496906
+c GEN: Time
+c GEN:   Setup POG           : 1.17
+c GEN:   Forward implication : 2536.02
+c GEN:             SAT execution  : 947.78
+c GEN:             Other forward  : 1588.24
+c GEN:   Reverse implication : 220.44
+c GEN:   Time TOTAL          : 2757.63
+GEN LOG: Elapsed time = 2758.956 seconds
+GEN OUTCOME: normal
+mc2022_track2_183. GEN: LOG: size ./mc2022_track2_183.cpog 279827247 lines 32206845765 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track2_183.cnf ./mc2022_track2_183.cpog
+FCHECK LOG: Time limit 10000 seconds
+CHECK: Read CNF file with 2701 variables and 12460 clauses
+CHECK: Read CPOG file with 239541 operations,  139787623 asserted + 3975194 defining = 143762817 clauses
+CHECK: Deleted 139800082 input and asserted clauses
+CHECK: Final root literal 242242
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 724152621485436659540387630662916505600
+CHECK: Weighted model count = 0.0000002536884891060832306989689788795208076203427555565589661825779374681380715886476473475141801827703602612018585205078125
+CHECK: Time to compute model counts: 0.651
+CHECK: Elapsed seconds: 946.812
+FCHECK LOG: Elapsed time = 947.077 seconds
+FCHECK OUTCOME: normal
+structured LOG: Elapsed time = 3838.593 seconds
+structured OUTCOME: normal
