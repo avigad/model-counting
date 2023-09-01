@@ -145,7 +145,6 @@ where
         apply congr_arg
         ext j
         simp only [Function.comp_apply]
-        simp only [ILit.var_mkPos, natPred_succPNat, PropForm.withPolarity_mkPos, dif_pos ASizeLt]
         have harg : PNat.natPred (ILit.var args[j]) < A.size := by
           dsimp at hinv; rw [hinv, PNat.natPred_lt_natPred]
           exact hwf j
@@ -309,7 +308,6 @@ where
         apply congr_arg
         apply funext; intro j
         simp only [Function.comp_apply]
-        simp only [ILit.var_mkPos, natPred_succPNat, PropForm.withPolarity_mkPos, dif_pos ASizeLt]
         have harg : PNat.natPred (ILit.var args[j]) < A.size := by
           dsimp at hinv; rw [hinv, PNat.natPred_lt_natPred]
           exact hwf j

@@ -132,8 +132,7 @@ where go {σ₁ σ₂ : PropAssignment ν} (h₁ : σ₁ ⊨ φ) (h₂ : σ₂ �
     by_cases h₁' : σ₁' ⊨ φ
     case neg =>
       -- If σ₁' no longer satisfies φ, we're done.
-      use x₀, σ₁
-      refine ⟨h' ▸ Finset.mem_insert_self x₀ s', h₁, h₁'⟩
+      use x₀, σ₁ 
     case pos =>
       -- If σ₁' still satisfies φ, proceed by induction.
       have hS' : ∀ x ∈ s', σ₁' x ≠ σ₂ x := fun x hMem => by
