@@ -1,0 +1,85 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 0 -s -C 2147483647 -L d2p.log ./mc2022_track1_011.cnf ./mc2022_track1_011.nnf ./mc2022_track1_011.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       no
+c GEN:   Use lemmas:          yes
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold 0
+c GEN:   Tree ratio threshold 0.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.00  Read input file with 120 variables and 321 clauses
+c Read D4 NNF file with 34804 nodes (18149 explicit) and 39320 edges
+c Compressed POG has 34756 nodes, root literal 34876, and 127284 defining clauses
+c POG has DAG size 127284 and tree size 2069949 ratio = 16.26
+c GEN: Time 0.06  Generated POG representation
+c Time = 0.11.  Justifications of 3475 nodes completed.  138637 total clauses.  0 SAT calls
+c Time = 0.17.  Justifications of 6950 nodes completed.  151063 total clauses.  0 SAT calls
+c Time = 0.23.  Justifications of 10425 nodes completed.  164386 total clauses.  0 SAT calls
+c Time = 0.30.  Justifications of 13900 nodes completed.  177871 total clauses.  0 SAT calls
+c Time = 0.37.  Justifications of 17375 nodes completed.  191554 total clauses.  0 SAT calls
+c Time = 0.43.  Justifications of 20850 nodes completed.  203834 total clauses.  0 SAT calls
+c Time = 0.48.  Justifications of 24325 nodes completed.  215796 total clauses.  0 SAT calls
+c Time = 0.56.  Justifications of 27800 nodes completed.  230485 total clauses.  0 SAT calls
+c Time = 0.63.  Justifications of 31275 nodes completed.  244876 total clauses.  0 SAT calls
+c Time = 0.73.  Justifications of 34750 nodes completed.  262318 total clauses.  0 SAT calls
+c Time = 0.73.  Justifications of 34756 nodes, including root, completed.  262327 total clauses
+c GEN: Time 0.73  Completed forward implication proof
+c GEN: Time 0.79  Deleted asserted clauses
+c GEN: Time 0.95  Deleted input clauses
+c GEN: Formula
+c GEN:    input variables: 120
+c GEN:    input clauses  : 321
+c GEN: POG nodes
+c GEN:    product   : 26428
+c GEN:    sum       : 8327
+c GEN:    node TOTAL: 34755
+c GEN: Other nodes
+c GEN:    aux product: 135
+c GEN: Node visits
+c GEN:    product/BCP: 26429
+c GEN:    product/SAT: 0
+c GEN:    sum        : 8327
+c GEN:    visit TOTAL: 34756
+c GEN: Lemmas
+c GEN:    definitions : 2388
+c GEN:    applications: 22943
+c GEN:    duplicates  : 0
+c GEN:    merged args : 0
+c GEN: SAT Problem Clause Counts (0 instances)
+c GEN: Clauses
+c GEN:    POG definition       : 127284
+c GEN:    AUX definition       : 478
+c GEN:    product justification: 26429
+c GEN:    sum justification    : 16608
+c GEN:    literal justification: 3139
+c GEN:    lemma application    : 88435
+c GEN:    monolithic proof     : 0
+c GEN:    clause TOTAL         : 262373
+c GEN: Time
+c GEN:   Setup POG           : 0.06
+c GEN:   Forward implication : 0.69
+c GEN:             SAT execution  : 0.00
+c GEN:             Other forward  : 0.69
+c GEN:   Reverse implication : 0.22
+c GEN:   Time TOTAL          : 0.97
+GEN LOG: Elapsed time = 0.990 seconds
+GEN OUTCOME: normal
+mc2022_track1_011. GEN: LOG: size ./mc2022_track1_011.cpog 304342 lines 25076279 bytes
+FCHECK LOG: Running /Users/bryant/repos/model-counting/cpog/checker/cpog-check -v 1 ./mc2022_track1_011.cnf ./mc2022_track1_011.cpog
+FCHECK LOG: Time limit 1000 seconds
+CHECK: Read CNF file with 120 variables and 321 clauses
+CHECK: Read CPOG file with 34891 operations,  134565 asserted + 127762 defining = 262327 clauses
+CHECK: Deleted 134885 input and asserted clauses
+CHECK: Final root literal 34876
+CHECK: FULL-PROOF SUCCESS.  CPOG representation verified
+CHECK: Regular model count = 2399034408960
+CHECK: Time to compute model counts: 0.006
+CHECK: Elapsed seconds: 0.738
+FCHECK LOG: Elapsed time = 0.765 seconds
+FCHECK OUTCOME: normal
+structured LOG: Elapsed time = 1.817 seconds
+structured OUTCOME: normal

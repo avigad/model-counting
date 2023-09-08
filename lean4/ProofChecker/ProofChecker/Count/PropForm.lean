@@ -223,7 +223,7 @@ theorem models_neg_Disjoint (φ : PropForm ν) (s : Finset ν) :
 
 theorem models_conj {φ ψ: PropForm ν} (hdisj : φ.vars ∩ ψ.vars = ∅) :
   (φ.conj ψ).models ((φ.conj ψ).vars) =
-    ((φ.models φ.vars).product (ψ.models ψ.vars)).image (PropAssignment.cond φ.vars) := by
+    ((φ.models φ.vars) ×ˢ (ψ.models ψ.vars)).image (PropAssignment.cond φ.vars) := by
   symm; ext v
   simp only [mem_image, mem_product, mem_models, Prod.exists, eval, Bool.and_eq_true,
     PropAssignment.cond, vars]
@@ -260,11 +260,11 @@ theorem models_conj {φ ψ: PropForm ν} (hdisj : φ.vars ∩ ψ.vars = ∅) :
       split <;> simp_all
 
 theorem InjOn_cond (φ ψ : PropForm ν) {s t : Finset ν} (hdisj : s ∩ t = ∅) :
-  Set.InjOn (PropAssignment.cond s) <| (φ.models s).product (ψ.models t) := by
+  Set.InjOn (PropAssignment.cond s) <| ↑((φ.models s) ×ˢ (ψ.models t)) := by
     intro ⟨p11, p12⟩ hp1 ⟨p21, p22⟩ hp2
     simp only [coe_product, Set.mem_prod, mem_coe, mem_models] at hp1 hp2
     simp only [PropAssignment.cond]
-    dsimp; intro h
+    intro h
     rw [Prod.mk.injEq]
     constructor
     . ext x
@@ -358,7 +358,7 @@ theorem card_models_vars {φ : PropForm ν} {s : Finset ν} (h : φ.vars ⊆ s) 
     card (φ.models s) = card (φ.models φ.vars) * 2^(card s - card φ.vars) := by
   let f (p : PropAssignment ν × Finset ν) : PropAssignment ν :=
     fun x => if x ∈ φ.vars then p.1 x else p.2.toPropAssignment x
-  have h1 : ((φ.models φ.vars).product (s \ φ.vars).powerset).image f = φ.models s := by
+  have h1 : ((φ.models φ.vars) ×ˢ (s \ φ.vars).powerset).image f = φ.models s := by
     ext v; simp only [mem_image, mem_product, mem_models, mem_powerset, Prod.exists]
     constructor
     { rintro ⟨v, t, ⟨⟨_, hevalv⟩, hh⟩, rfl⟩
@@ -384,10 +384,10 @@ theorem card_models_vars {φ : PropForm ν} {s : Finset ν} (h : φ.vars ⊆ s) 
       . next hmem =>
           unfold Finset.toPropAssignment
           by_cases hxs : x ∈ s <;> split <;> simp_all [@hvdef x]
-  have h2 : Set.InjOn f <| (φ.models φ.vars).product (s \ φ.vars).powerset := by
+  have h2 : Set.InjOn f <| ↑((φ.models φ.vars) ×ˢ (s \ φ.vars).powerset) := by
     intro ⟨v1, t1⟩ h21 ⟨v2, t2⟩ h22 h23
     simp only [Set.mem_prod, mem_product, mem_coe, mem_models, Set.mem_preimage, mem_powerset,
-      and_imp, subset_sdiff, Prod.forall, Prod.mk.injEq] at h21 h22 h23 |-
+      and_imp, subset_sdiff, Prod.forall, Prod.mk.injEq] at h21 h22 h23 ⊢
     constructor
     . ext x
       by_cases hx : x ∈ φ.vars
@@ -395,7 +395,6 @@ theorem card_models_vars {φ : PropForm ν} {s : Finset ν} (h : φ.vars ⊆ s) 
         simp [hx] at this; exact this
       . rw [h21.1.1 hx, h22.1.1 hx]
     . ext x
-      simp at h21
       by_cases hx : x ∈ φ.vars
       . rw [eq_false (disjoint_right.mp h21.2.2 hx), eq_false (disjoint_right.mp h22.2.2 hx)]
       . have := congr_fun h23 x
@@ -491,7 +490,7 @@ theorem weightSum_insert (weight : ν → R) {φ : PropForm ν} {a : ν} {s : Fi
   rw [Finset.sum_image (injective_models_set h'), ←Finset.sum_add_distrib]
   apply Finset.sum_congr rfl
   intro τ hτ; rw [mem_models] at hτ
-  rw [Finset.prod_insert h', Finset.prod_insert h']; dsimp
+  rw [Finset.prod_insert h', Finset.prod_insert h']
   have : τ a ≠ true := by rw [hτ.1 h']; simp
   rw [if_neg this, PropAssignment.set_get, if_pos rfl]
   have : ∀ x, x = (1 - weight a) * x + weight a * x :=

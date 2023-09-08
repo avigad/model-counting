@@ -1,0 +1,36 @@
+GEN LOG: Running /Users/bryant/repos/model-counting/cpog/generator/cpog-generate -v 1 -m 0 -r 0 -e -s -C 2147483647 -L d2p.log ./mc2022_track1_127.cnf ./mc2022_track1_127.nnf ./mc2022_track1_127.cpog
+GEN LOG: Time limit 1000 seconds
+c GEN: Program options
+c GEN:   Multi-literal:       no
+c GEN:   Use lemmas:          no
+c GEN:   Delete files:        yes
+c GEN:   One-sided:           no
+c GEN:   DRAT threshold:      20
+c GEN:   Clause limit:        2147483647
+c GEN:   BCP limit:           1000
+c GEN:   Monolithic threshold 0
+c GEN:   Tree ratio threshold 0.00
+c GEN:   Solver:              cadical-trimmed-lrat
+c GEN: Time 0.01  Read input file with 630 variables and 33701 clauses
+c Read D4 NNF file with 328117 nodes (119927 explicit) and 243436 edges
+c Compressed POG has 204624 nodes, root literal 205254, and 3133905 defining clauses
+c POG has DAG size 3133905 and tree size 4115777 ratio = 1.31
+c GEN: Time 1.01  Generated POG representation
+c Time = 141.73.  Justifications of 20462 nodes completed.  6092942 total clauses.  6084 SAT calls
+c Time = 219.62.  Justifications of 40924 nodes completed.  7831364 total clauses.  9453 SAT calls
+c Time = 264.50.  Justifications of 61386 nodes completed.  8859860 total clauses.  11433 SAT calls
+c Time = 330.19.  Justifications of 81848 nodes completed.  10292021 total clauses.  13999 SAT calls
+c Time = 375.35.  Justifications of 102310 nodes completed.  11238704 total clauses.  16069 SAT calls
+c Time = 394.44.  Justifications of 122772 nodes completed.  11720991 total clauses.  17226 SAT calls
+c Time = 467.13.  Justifications of 143234 nodes completed.  13256892 total clauses.  20649 SAT calls
+c Time = 573.64.  Justifications of 163696 nodes completed.  15520556 total clauses.  25400 SAT calls
+c Time = 681.20.  Justifications of 184158 nodes completed.  17640116 total clauses.  30161 SAT calls
+c Time = 757.50.  Justifications of 204620 nodes completed.  19266285 total clauses.  33683 SAT calls
+c Time = 828.24.  Justifications of 225082 nodes completed.  20604857 total clauses.  36266 SAT calls
+c Time = 884.57.  Justifications of 245544 nodes completed.  21817106 total clauses.  38887 SAT calls
+c Time = 936.53.  Justifications of 266006 nodes completed.  23015606 total clauses.  41343 SAT calls
+GEN ERROR: Timeout after 1000 seconds
+GEN LOG: Elapsed time = 1000.279 seconds
+GEN OUTCOME: Timeout
+structured LOG: Elapsed time = 1009.537 seconds
+structured OUTCOME: failed

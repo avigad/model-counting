@@ -354,7 +354,7 @@ theorem encodes_insert_of_find?_eq_none {C : IClause} {i : Nat} {enc : HashMap V
     constructor
     . rintro (⟨j, hile, rfl⟩ | rfl)
       . use j, (Nat.le_succ i).trans hile
-      . use ⟨i, ilt⟩; simp
+      . use ⟨i, ilt⟩
     . rintro ⟨j, hile, rfl⟩
       cases lt_or_eq_of_le hile
       case inl h' =>
@@ -372,7 +372,7 @@ theorem tautology_of_encodes_of_find?_eq_some
   rw [tautology_iff]
   use C[i], C.get_mem_data ⟨i, ilt⟩
   have : enc.contains C[i].var := by
-    rw [HashMap.contains_iff]; use p; exact h
+    rw [HashMap.contains_iff]; use p
   rw [henc.2] at this
   rcases this with ⟨j, hj, h'⟩
   use C[j], C.get_mem_data j
@@ -405,7 +405,7 @@ theorem encode_of_encodes_of_find?_eq_some
       case inl h' => use j, Nat.succ_le_of_lt h'
       case inr h' =>
         have : enc.contains C[i].var := by
-          rw [HashMap.contains_iff]; use p; exact h
+          rw [HashMap.contains_iff]; use p
         rw [henc.2] at this
         rcases this with ⟨j', hj', h''⟩
         use j', hj'

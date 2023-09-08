@@ -253,11 +253,11 @@ theorem satisfies_neg {τ : PropAssignment ν} : τ ⊨ (φᶜ) ↔ τ ⊭ φ :=
 
 @[simp]
 theorem satisfies_conj {τ : PropAssignment ν} : τ ⊨ φ₁ ⊓ φ₂ ↔ τ ⊨ φ₁ ∧ τ ⊨ φ₂ := by
-  simp [sEntails, satisfies, HasInf.inf]
+  simp [sEntails, satisfies, Inf.inf]
 
 @[simp]
 theorem satisfies_disj {τ : PropAssignment ν} : τ ⊨ φ₁ ⊔ φ₂ ↔ τ ⊨ φ₁ ∨ τ ⊨ φ₂ := by
-  simp [sEntails, satisfies, HasSup.sup]
+  simp [sEntails, satisfies, Sup.sup]
 
 @[simp]
 theorem satisfies_impl {τ : PropAssignment ν} : τ ⊨ φ₁ ⇨ φ₂ ↔ (τ ⊨ φ₁ → τ ⊨ φ₂) := by
@@ -306,7 +306,7 @@ theorem mk_tr : @Eq (PropTerm ν) ⟦.tr⟧ ⊤ := rfl
 theorem mk_fls : @Eq (PropTerm ν) ⟦.fls⟧ ⊥ := rfl
 
 @[simp]
-theorem mk_neg (φ : PropForm ν) : @Eq (PropTerm ν) ⟦.neg φ⟧ (⟦φ⟧ᶜ) := rfl
+theorem mk_neg (φ : PropForm ν) : @Eq (PropTerm ν) ⟦.neg φ⟧ (⟦φ⟧)ᶜ := rfl
 
 @[simp]
 theorem mk_conj (φ₁ φ₂ : PropForm ν) : @Eq (PropTerm ν) ⟦.conj φ₁ φ₂⟧ (⟦φ₁⟧ ⊓ ⟦φ₂⟧) := rfl
