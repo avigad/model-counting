@@ -21,10 +21,9 @@
 
 import sys
 import  getopt
-import random
+import math
 
 import writer
-import cnf_utilities
 
 
 # Generate CNF or POG file for k/n threshold constraints
@@ -94,15 +93,15 @@ class Node:
     def clausify(self, gtype):
         clist = []
         if self.ntype == Ntype.andn:
-            clist.append(self.children + [-self.id])
-            if gtype != Gtype.plaisted:
-                for child in self.children:
-                    clist.append([-child, self.id])
-        elif self.ntype == Ntype.orn:
             for child in self.children:
                 clist.append([child, -self.id])
             if gtype != Gtype.plaisted:
                 clist.append([-child for child in self.children] +  [self.id])
+        elif self.ntype == Ntype.orn:
+            clist.append(self.children + [-self.id])
+            if gtype != Gtype.plaisted:
+                for child in self.children:
+                    clist.append([-child, self.id])
         elif self.ntype == Ntype.iten:
             i, t, e = self.children
             clist.append([-i, t, -self.id])
@@ -275,12 +274,14 @@ class NodeManager:
                 map[node.id] = nid
         return nmgr
 
-    def genCnf(self, froot, verbLevel):
+    def genCnf(self, froot, verbLevel, descr = None):
         cwriter = writer.LazyCnfWriter(froot, verbLevel = verbLevel)
         cwriter.doComment("t pmc")
         slist = [str(i) for i in range(1, self.nvar+1)]
         cwriter.doComment("p show %s 0" % " ".join(slist))
         cwriter.newVariables(self.nvar + len(self.nodeList))
+        if descr is not None:
+            cwriter.doComment(descr)
         if verbLevel >= 2:
             cwriter.doComment("%s encoding of graph with %d input variables and %d nodes" % (gnames[self.gtype], self.nvar, len(self.nodeList)))
         root = self.nvar + len(self.nodeList)
@@ -295,10 +296,12 @@ class NodeManager:
                 cwriter.doClause(clause)
         cwriter.finish()
 
-    def genPog(self, froot, verbLevel):
+    def genPog(self, froot, verbLevel, descr = None):
         if self.gtype != Gtype.pog:
             raise NodeException("Must build network in POG mode to generate POG")
         pwriter = writer.PogWriter(self.nvar, froot, verbLevel = verbLevel)
+        if descr is not None:
+            pwriter.doComment(descr)
         if verbLevel >= 2:
             pwriter.doComment("POG representation of graph with %d variables and %d nodes" % (self.nvar, len(self.nodeList)))
         for node in self.nodeList:
@@ -324,6 +327,12 @@ class Threshold:
 
     def show(self):
         self.nmgr.show()
+
+    def solutions(self):
+        count = 0
+        for m in range(self.K, self.N+1):
+            count += math.comb(self.N, m)
+        return count
 
     def build(self, verbLevel):
         edgeDict = {}
@@ -353,12 +362,14 @@ class Threshold:
         self.expanded = True
 
     def genCnf(self, froot, verbLevel):
-        self.nmgr.genCnf(froot, verbLevel)
+        descr = "Thresh(%d, %d).  %d solutions" % (self.N, self.K, self.solutions())
+        self.nmgr.genCnf(froot, verbLevel, descr)
 
     def genPog(self, froot, verbLevel):
+        descr = "Thresh(%d, %d).  %d solutions" % (self.N, self.K, self.solutions())
         if not self.expand:
             self.expand()
-        self.nmgr.genPog(froot, verbLevel)
+        self.nmgr.genPog(froot, verbLevel, descr)
 
 def run(name, args):
     verbLevel = 1
@@ -399,7 +410,7 @@ def run(name, args):
         return
     t = Threshold(N, K, gtype)
     if (verbLevel >= 1):
-        print("Building threshold network for N=%d K=%d" % (t.N, t.K))
+        print("Building threshold network for N=%d K=%d (%d solutions)" % (t.N, t.K, t.solutions()))
     t.build(verbLevel)
     if (verbLevel >= 3):
         print("After building:")
