@@ -137,7 +137,7 @@ def CpogStep.ofTokens (tks : Array Token) : Except String CpogStep := do
       | throw s!"missing terminating 0 in hints"
     let hints : Subarray Token := tks[C.size+1:tks.size-1]
     return .addAt (← Nat.ofToken idx) (← IClause.ofTokens C) (← toUpHints hints)
-  | .str "dc", idx =>
+  | .str "d", idx =>
     let some (.int 0) := tks[tks.size-1]?
       | throw s!"missing terminating 0 in hints"
     let hints : Subarray Token := tks[:tks.size-1]
