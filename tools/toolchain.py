@@ -70,7 +70,7 @@ homePath = "/Users/bryant/repos"
 d4Path = homePath + "/d4"
 d4Program = d4Path + "/d4"
 d4v2Path = homePath + "/d4v2"
-d4v2Program = d4v2Path + "/d4"
+d4v2Program = d4v2Path + "/d4v2"
 
 genHome = homePath + "/model-counting/cpog/generator"
 genProgram = genHome + "/cpog-generate"
