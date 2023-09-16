@@ -8,7 +8,7 @@ import ProofChecker.Model.PropVars
 import ProofChecker.Model.Extensions
 import ProofChecker.Count.PropForm
 
-/-! Justifications of CRAT steps. -/
+/-! Justifications of CPOG steps. -/
 
 open PropTerm
 
@@ -128,7 +128,7 @@ theorem addConj_new_var_equiv {A : Set Var} (G : Pog) (Γ : PropTerm Var) (ls : 
   intro hMem hX hΓ hUep hExt hLs τ
   refine ⟨?mp, ?mpr⟩ <;>
     simp only [PropForm.mk_arrayConj, satisfies_conj, satisfies_biImpl,
-      PropForm.satisfies_arrayConjTerm, Array.map_data, List.mem_map', and_imp,
+      PropForm.satisfies_arrayConjTerm, Array.map_data, List.mem_map, and_imp,
       forall_apply_eq_imp_iff₂, forall_exists_index, ILit.mk_toPropForm]
   case mp =>
     intro σ₁ hAgree hσ₁p hσ₁Γ hσ₁

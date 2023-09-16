@@ -17,7 +17,7 @@
 # OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ########################################################################################
 
-# Code for generating CNF, order, schedule, and crat proof files
+# Code for generating CNF, order, schedule, and cpog proof files
 class WriterException(Exception):
 
     def __init__(self, value):
@@ -359,13 +359,13 @@ class OrderWriter(Writer):
         Writer.finish(self)
 
 
-class CratWriter(Writer):
+class CpogWriter(Writer):
     variableCount = 0
     clauseDict = []
     stepCount = 0
 
     def __init__(self, variableCount, clauseList, froot, verbLevel = 1):
-        Writer.__init__(self, variableCount, froot, suffix="crat", verbLevel=verbLevel, isNull=False)
+        Writer.__init__(self, variableCount, froot, suffix="cpog", verbLevel=verbLevel, isNull=False)
         if len(clauseList) > 0:
             self.doComment("Input clauses")
         self.variableCount = variableCount
@@ -439,8 +439,34 @@ class CratWriter(Writer):
         for i in range(3):
             self.deleteClause(clauseId+i)
         
-        
     def finish(self):
-        print("c File '%s.crat' has %d variables and %d steps" % (self.froot, self.variableCount, self.stepCount))
+        print("c File '%s.cpog' has %d variables and %d steps" % (self.froot, self.variableCount, self.stepCount))
         Writer.finish(self)
 
+class PogWriter(Writer):
+    nextVariable = 0
+    
+    def __init__(self, variableCount, froot, verbLevel = 1):
+        Writer.__init__(self, variableCount, froot, suffix="pog", verbLevel = verbLevel)
+        self.nextVariable = variableCount + 1
+
+    def doOp(self, symbol, argList):
+        var = self.nextVariable
+        self.nextVariable += 1
+        args = [symbol, var] + argList
+        sargs = [str(a) for a in args]
+        self.show(" ".join(sargs))
+
+    def doComment(self, line):
+        self.show("c " + line)
+
+    def doAnd(self, argList):
+        self.doOp('p', argList)
+
+    def doOr(self, argList):
+        self.doOp('s', argList)
+
+    def doRoot(self, lit):
+        self.doLine(['p', lit])
+        
+        
