@@ -370,7 +370,12 @@ class Threshold:
         self.expanded = True
 
     def genCnf(self, froot, verbLevel):
-        descr = "Thresh(%d, %d).  %d solutions" % (self.N, self.K, self.solutions())
+        descr = "Thresh(%d, %d)" % (self.N, self.K)
+        try:
+            sols = self.solutions()
+            descr += ".  %d solutions" % (self.solutions())
+        except:
+            pass
         self.nmgr.genCnf(froot, verbLevel, descr)
 
     def genPog(self, froot, verbLevel):
