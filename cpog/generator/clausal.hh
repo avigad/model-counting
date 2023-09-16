@@ -52,7 +52,7 @@
 
 // optionally disable high verbosity
 #ifndef VLEVEL
-#define VLEVEL 2
+#define VLEVEL 3
 #endif
 
 // Used to convert literal to variable
