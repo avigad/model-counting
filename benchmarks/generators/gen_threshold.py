@@ -117,8 +117,11 @@ class Node:
             i, t, o = self.children
             clist.append([   t, -self.id])
             clist.append([i, o, -self.id])
-            if gtype != Gtype.plaisted:
-                raise NodeException("Can't do Tseitin or POG encoding of ITO")
+            if gtype ==  Gtype.tseitin:
+                clist.append([-i, -t, self.id])
+                clist.append([-o, self.id])
+            if gtype == Gtype.pog:
+                raise NodeException("Can't do POG encoding of ITO")
         nclist = []
         for clause in clist:
             nc = cleanClause(clause)
@@ -359,7 +362,7 @@ class Threshold:
                 iedge = j
                 tedge = edgeDict[(i-1,j-1)]
                 eedge = edgeDict[(i  ,j-1)]
-                nedge = self.nmgr.doIto([iedge, tedge, eedge]) if self.gtype == Gtype.plaisted else self.nmgr.doIte([iedge, tedge, eedge])
+                nedge = self.nmgr.doIto([iedge, tedge, eedge]) if self.gtype != Gtype.pog else self.nmgr.doIte([iedge, tedge, eedge])
                 edgeDict[(i,j)] = nedge
                 if verbLevel >= 4:
                     print("Edge(%d,%d):  %s" % (i, j, self.nmgr.showEdge(nedge)))
