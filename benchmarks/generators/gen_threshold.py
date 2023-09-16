@@ -339,7 +339,10 @@ class Threshold:
     def solutions(self):
         count = 0
         for m in range(self.K, self.N+1):
-            count += math.comb(self.N, m)
+            try:
+                count += math.comb(self.N, m)
+            except:
+                pass
         return count
 
     def build(self, verbLevel):
