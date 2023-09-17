@@ -378,8 +378,8 @@ bool Pog::optimize() {
 	    if (zeroed)
 		continue;
 	    else if (nchildren.size() == 0) {
-		err(true, "Translation of And node #%d has no children\n", oid);
-		//		remap[oid-max_input_var-1] = -true_id;
+		err(false, "Translation of And node #%d has no children\n", oid);
+		remap[oid-max_input_var-1] = -true_id;
 	    } else if (nchildren.size() == 1)
 		remap[oid-max_input_var-1] = nchildren[0];
 	    else {
