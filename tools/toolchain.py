@@ -178,11 +178,33 @@ def runProgram(prefix, root, commandList, logFile, extraLogName = None):
     logFile.write(result)
     return ok
 
+def stripComments(inCnfName, outCnfName):
+    try:
+        infile = open(inCnfName, "r")
+    except:
+        logFile.write("Couldn't open input CNF file '%s'\n" % inCnfName)
+        return False
+    try:
+        outfile = open(outCnfName, "w")
+    except:
+        logFile.write("Couldn't open output CNF file '%s'\n" % outCnfName)
+        close(infile)
+        return False
+    for line in infile:
+        while len(line) > 0 and line[0] in " \t":
+            line = line[1:]
+        if len(line) > 0 and line[0] != 'c':
+            outfile.write(line)
+    infile.close()
+    outfile.close()
+    return True
+
 def nnfNamer(root, home):
     if preprocess:
         return home + "/" + root + "pre.nnf"
     else:
         return home + "/" + root + ".nnf"
+
 
 # Only run D4 if don't yet have .nnf file
 def runD4(root, home, logFile, force):
@@ -190,8 +212,13 @@ def runD4(root, home, logFile, force):
     nnfName = nnfNamer(root, home)
     if not force and os.path.exists(nnfName):
         return True
-
     if d4v2:
+        # Need to strip any projection information
+        inCnfName = cnfName
+        cnfName = home + "/" + root + ".scnf"
+        if not stripComments(inCnfName, cnfName):
+            print("Couldn't strip comments from '%s'" % (inCnfName))
+            return False
         cmd = [d4v2Program, "-i", cnfName, "-m", "ddnnf-compiler", "--dump-ddnnf", nnfName]
     else:
         cmd = [d4Program, cnfName, "-dDNNF", "-out=" + nnfName]
@@ -204,6 +231,8 @@ def runD4(root, home, logFile, force):
         os.remove(nnfName)
     if ok and cleanup:
         cleanupFiles.append(nnfName)
+    if d4v2 and os.path.exists(cnfName):
+        os.remove(cnfName)
     return ok
 
 def runPartialGen(root, home, logFile, force):
