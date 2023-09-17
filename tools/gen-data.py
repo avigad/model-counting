@@ -15,7 +15,7 @@ yThresh = 10000 * 1000 * 1000
 xThresh = 1000 * 1000 * 1000
 
 # Set any y value below yMin to yMin
-yMin = 0.0
+yMin = 0.01
 xColumn = -1
 yColumn = -1
 optionString = ""
@@ -48,18 +48,20 @@ def genPoints(infile, outfile):
         if len(fields) >= max(xColumn,yColumn):
             try:
                 fx = float(fields[xColumn-1])
+                sx = str(fx)
                 if fx > float(xThresh):
                     sys.stderr.write("%f exceeds x threshold %d\n" % (fx, xThresh))
                     continue
             except:
-                pass
+                sx = fields[xColumn-1]
             try:
-                fy = float(fields[yColumn-1])
-                if fy < yMin or fy > float(yThresh):
+                fy = max(yMin, float(fields[yColumn-1]))
+                sy = str(fx)
+                if fy > float(yThresh):
                     continue
             except:
-                pass
-            outfile.write(" (%s,%s)" % (fields[xColumn-1], fields[yColumn-1]))
+                sy = fields[yColumn-1]
+            outfile.write(" (%s,%s)" % (sx, sy))
     outfile.write("};\n")
         
 def genLines(infile, outfile):
@@ -68,13 +70,13 @@ def genLines(infile, outfile):
         fields = line.split(",")
         if len(fields) >= max(xColumn,yColumn,y2Column):
             try:
-                sx = fields[xColumn-1]
-                fx = float(sx)
-                sy = fields[yColumn-1]
-                fy = float(sy)
-                sy2 = fields[y2Column-1]
-                fy2 = float(sy2)
-                if fx > float(xThresh) or fy < yMin or fy > float(yThresh) or fy2 < yMin or fy2 > float(yThresh):
+                fx = float(fields[xColumn-1])
+                sx = str(fx)
+                fy = max(yMin, float(fields[yColumn-1]))
+                sy = str(fy)
+                fy2 = max(yMin, float(fields[y2Column-1]))
+                sy2 = str(fy2)
+                if fx > float(xThresh) or fy > float(yThresh) or fy2 > float(yThresh):
                     continue
             except:
                 continue
