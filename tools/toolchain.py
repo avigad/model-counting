@@ -29,9 +29,10 @@ import datetime
 import time
 
 def usage(name):
-    print("Usage: %s [-h] [-1] [-2] [-f] [-v VERB] [-s n|g] [-m (m|s|h|f|k)] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
+    print("Usage: %s [-h] [-1] [-2] [-f] [-R] [-v VERB] [-s n|g] [-m (m|s|h|f|k)] [-p] [-L] [-G] [-F] [-t TIME] [-l NFILE] [FILE.EXT ...]" % name)
     print("  -h       Print this message")
     print("  -f       Force regeneration of all files")
+    print("  -R       Remove all generated files")
     print("  -v       Set verbosity level")
     print("  -s n|g   Stop after NNF generation or CPOG generation (g)")
     print("  -1       Generate one-sided proof (don't validate assertions)")
@@ -53,6 +54,7 @@ sleepTime = 60
 standardTimeLimit = 60
 
 verbLevel = 1
+cleanup = False
 oneSided = False
 monolithic_threshold = 1000 * 1000
 tree_ratio_threshold = 5.0
@@ -82,11 +84,21 @@ leanHome = homePath + "/model-counting/lean4"
 leanCheckProgram = leanHome + "/ProofChecker/build/bin/checker"
 
 #timeLimits = { "D4" : 4000, "GEN" : 1000, "FCHECK" : 1000, "LCHECK" : 1000 }
-timeLimits = { "D4" : 24000, "GEN" : 10000, "FCHECK" : 10000, "LCHECK" : 10000}
+timeLimits = { "D4" : 4000, "GEN" : 10000, "FCHECK" : 10000, "LCHECK" : 10000}
 
 clauseLimit = (1 << 31) - 1
 
 commentChar = 'c'
+
+# Track files to be deleted
+cleanupFiles = []
+
+def doCleanup():
+    for fname in cleanupFiles:
+        try:
+            os.remove(fname)
+        except:
+            continue
 
 def trim(s):
     while len(s) > 0 and s[-1] in '\r\n':
@@ -190,6 +202,8 @@ def runD4(root, home, logFile, force):
         checkFile(root + ". D4 NNF", nnfName, logFile)
     if not ok and os.path.exists(nnfName):
         os.remove(nnfName)
+    if ok and cleanup:
+        cleanupFiles.append(nnfName)
     return ok
 
 def runPartialGen(root, home, logFile, force):
@@ -200,6 +214,8 @@ def runPartialGen(root, home, logFile, force):
     ok = runProgram("GEN", root, cmd, logFile)
     if not ok and os.path.exists(cpogName):
         os.remove(cpogName)
+    if ok and cleanup:
+        cleanupFiles.append(cpogName)
     return ok
 
 
@@ -236,6 +252,8 @@ def runGen(root, home, logFile, force):
         checkFile(root + ". GEN", cpogName, logFile)
     if not ok and os.path.exists(cpogName):
         os.remove(cpogName)
+    if ok and cleanup:
+        cleanupFiles.append(cpogName)
     return ok
 
 def runCheck(root, home, logFile):
@@ -279,7 +297,7 @@ def runSequence(root, home, stopD4, stopGen, force):
     if useLean:
         extension = "lean_" + extension
     if stopD4:
-        extension = "D4_log"
+        extension = "D4v2_log" if d4v2 else "D4_log"
     if stopGen:
         extension = "d2p_" + extension
     logName = root + "." + extension
@@ -316,6 +334,7 @@ def runSequence(root, home, stopD4, stopGen, force):
     print("%s. %s Logfile at %s" % (root, prefix, logName))
     logFile.write(result)
     logFile.close()
+    doCleanup()
 
 def stripSuffix(fname):
     fields = fname.split(".")
@@ -332,12 +351,12 @@ def runBatch(home, fileList, stopD4, stopGen, force):
         runSequence(r, home, stopD4, stopGen, force)
 
 def run(name, args):
-    global verbLevel, useLemma, group, oneSided, mode, useLean, preprocess, d4v2, nameFile
+    global cleanup, verbLevel, useLemma, group, oneSided, mode, useLean, preprocess, d4v2, nameFile
     home = "."
     stopD4 = False
     stopGen = False
     force = False
-    optList, args = getopt.getopt(args, "hfv:12m:pLGFs:t:l:")
+    optList, args = getopt.getopt(args, "hfRv:12m:pLGFs:t:l:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
@@ -346,6 +365,8 @@ def run(name, args):
             verbLevel = int(val)
         elif opt == '-f':
             force = True
+        elif opt == '-R':
+            cleanup = True
         elif opt == '-1':
             oneSided = True
         elif opt == '-2':
