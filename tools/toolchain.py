@@ -307,12 +307,14 @@ def runLeanCheck(root, home, logFile):
     return ok
 
 
-def runSequence(root, home, stopD4, stopGen, force):
+def runSequence(root, home, stopD4, force):
     waitWhileBlocked()
     result = ""
     prefix = "OVERALL"
     start = datetime.datetime.now()
     extension = "log"
+    if d4v2:
+        extension = "d4v2_" + extension
     if oneSided:
         extension = "onesided_" + extension
     prefix = "mono" if mode == 'm' else "structured" if mode == 's' else "forced_hybrid" if mode == 'f' else "hybrid_100k" if mode == 'k' else 'hybrid'
@@ -326,9 +328,7 @@ def runSequence(root, home, stopD4, stopGen, force):
     if useLean:
         extension = "lean_" + extension
     if stopD4:
-        extension = "D4v2_log" if d4v2 else "D4_log"
-    if stopGen:
-        extension = "d2p_" + extension
+        extension = "D4_d4v2_log" if d4v2 else "D4_log"
     logName = root + "." + extension
     if not force and os.path.exists(logName):
             print("Already have file %s.  Skipping benchmark" % logName)
@@ -346,7 +346,6 @@ def runSequence(root, home, stopD4, stopGen, force):
         done = True
     if not done:
         ok = ok and runGen(root, home, logFile, force)
-    done = done or stopGen
     if useLean:
         if not done:
             ok = ok and runLeanCheck(root, home, logFile)
@@ -372,18 +371,17 @@ def stripSuffix(fname):
     return ".".join(fields)
 
 
-def runBatch(home, fileList, stopD4, stopGen, force):
+def runBatch(home, fileList, stopD4, force):
     roots = [stripSuffix(f) for f in fileList]
     roots = [r for r in roots if r is not None]
     print("Running on roots %s" % roots)
     for r in roots:
-        runSequence(r, home, stopD4, stopGen, force)
+        runSequence(r, home, stopD4, force)
 
 def run(name, args):
     global cleanup, verbLevel, useLemma, group, oneSided, mode, useLean, preprocess, d4v2, nameFile
     home = "."
     stopD4 = False
-    stopGen = False
     force = False
     optList, args = getopt.getopt(args, "hfRv:12m:pLGFs:t:l:")
     for (opt, val) in optList:
@@ -417,8 +415,6 @@ def run(name, args):
         elif opt == '-s':
             if val == 'n':
                 stopD4 = True
-            elif val == 'g':
-                stopGen = True
             else:
                 print("Unknown stopping condition '%s'" % val)
                 usage(name)
@@ -444,7 +440,7 @@ def run(name, args):
             fileList.append(fname)
         nfile.close
             
-    runBatch(home, fileList, stopD4, stopGen, force)
+    runBatch(home, fileList, stopD4, force)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
