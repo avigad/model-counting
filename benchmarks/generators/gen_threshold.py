@@ -21,10 +21,9 @@
 
 import sys
 import  getopt
-import random
+import math
 
 import writer
-import cnf_utilities
 
 
 # Generate CNF or POG file for k/n threshold constraints
@@ -91,18 +90,22 @@ class Node:
         nchildren = [map[child] if child in map else child for child in self.children]
         return Node(self.ntype, nid, nchildren)
 
+    # Measure size as 1+degree
+    def size(self):
+        return len(self.children) + 1
+
     def clausify(self, gtype):
         clist = []
         if self.ntype == Ntype.andn:
-            clist.append(self.children + [-self.id])
-            if gtype != Gtype.plaisted:
-                for child in self.children:
-                    clist.append([-child, self.id])
-        elif self.ntype == Ntype.orn:
             for child in self.children:
                 clist.append([child, -self.id])
             if gtype != Gtype.plaisted:
                 clist.append([-child for child in self.children] +  [self.id])
+        elif self.ntype == Ntype.orn:
+            clist.append(self.children + [-self.id])
+            if gtype != Gtype.plaisted:
+                for child in self.children:
+                    clist.append([-child, self.id])
         elif self.ntype == Ntype.iten:
             i, t, e = self.children
             clist.append([-i, t, -self.id])
@@ -112,10 +115,13 @@ class Node:
                 clist.append([i,  -e, self.id])
         elif self.ntype == Ntype.iton:
             i, t, o = self.children
-            clist.append([  -t, -self.id])
+            clist.append([   t, -self.id])
             clist.append([i, o, -self.id])
-            if gtype != Gtype.plaisted:
-                raise NodeException("Can't do Tseitin or POG encoding of ITO")
+            if gtype ==  Gtype.tseitin:
+                clist.append([-i, -t, self.id])
+                clist.append([-o, self.id])
+            if gtype == Gtype.pog:
+                raise NodeException("Can't do POG encoding of ITO")
         nclist = []
         for clause in clist:
             nc = cleanClause(clause)
@@ -216,6 +222,10 @@ class NodeManager:
         sval = str(self.getNode(edge)) if self.isNode(edge) else str(var)
         return sign + sval
 
+    def size(self):
+        sizes = [node.size() for node in self.nodeList]
+        return sum(sizes)
+
     def show(self):
         for node in self.nodeList:
             print(str(node))
@@ -275,12 +285,14 @@ class NodeManager:
                 map[node.id] = nid
         return nmgr
 
-    def genCnf(self, froot, verbLevel):
+    def genCnf(self, froot, verbLevel, descr = None):
         cwriter = writer.LazyCnfWriter(froot, verbLevel = verbLevel)
         cwriter.doComment("t pmc")
         slist = [str(i) for i in range(1, self.nvar+1)]
         cwriter.doComment("p show %s 0" % " ".join(slist))
         cwriter.newVariables(self.nvar + len(self.nodeList))
+        if descr is not None:
+            cwriter.doComment(descr)
         if verbLevel >= 2:
             cwriter.doComment("%s encoding of graph with %d input variables and %d nodes" % (gnames[self.gtype], self.nvar, len(self.nodeList)))
         root = self.nvar + len(self.nodeList)
@@ -295,12 +307,14 @@ class NodeManager:
                 cwriter.doClause(clause)
         cwriter.finish()
 
-    def genPog(self, froot, verbLevel):
+    def genPog(self, froot, verbLevel, descr = None):
         if self.gtype != Gtype.pog:
             raise NodeException("Must build network in POG mode to generate POG")
         pwriter = writer.PogWriter(self.nvar, froot, verbLevel = verbLevel)
+        if descr is not None:
+            pwriter.doComment(descr)
         if verbLevel >= 2:
-            pwriter.doComment("POG representation of graph with %d variables and %d nodes" % (self.nvar, len(self.nodeList)))
+            pwriter.doComment("POG representation of graph with %d variables and %d nodes.  Size = %d" % (self.nvar, len(self.nodeList), self.size()))
         for node in self.nodeList:
             node.pogWrite(pwriter)
         pwriter.finish()
@@ -325,6 +339,15 @@ class Threshold:
     def show(self):
         self.nmgr.show()
 
+    def solutions(self):
+        count = 0
+        for m in range(self.K, self.N+1):
+            try:
+                count += math.comb(self.N, m)
+            except:
+                pass
+        return count
+
     def build(self, verbLevel):
         edgeDict = {}
         k = self.K
@@ -339,7 +362,7 @@ class Threshold:
                 iedge = j
                 tedge = edgeDict[(i-1,j-1)]
                 eedge = edgeDict[(i  ,j-1)]
-                nedge = self.nmgr.doIto([iedge, tedge, eedge]) if self.gtype == Gtype.plaisted else self.nmgr.doIte([iedge, tedge, eedge])
+                nedge = self.nmgr.doIto([iedge, tedge, eedge]) if self.gtype != Gtype.pog else self.nmgr.doIte([iedge, tedge, eedge])
                 edgeDict[(i,j)] = nedge
                 if verbLevel >= 4:
                     print("Edge(%d,%d):  %s" % (i, j, self.nmgr.showEdge(nedge)))
@@ -353,12 +376,19 @@ class Threshold:
         self.expanded = True
 
     def genCnf(self, froot, verbLevel):
-        self.nmgr.genCnf(froot, verbLevel)
+        descr = "Thresh(%d, %d)" % (self.N, self.K)
+        try:
+            sols = self.solutions()
+            descr += ".  %d solutions" % (self.solutions())
+        except:
+            pass
+        self.nmgr.genCnf(froot, verbLevel, descr)
 
     def genPog(self, froot, verbLevel):
+        descr = "Thresh(%d, %d).  %d solutions" % (self.N, self.K, self.solutions())
         if not self.expand:
             self.expand()
-        self.nmgr.genPog(froot, verbLevel)
+        self.nmgr.genPog(froot, verbLevel, descr)
 
 def run(name, args):
     verbLevel = 1
@@ -398,22 +428,24 @@ def run(name, args):
         usage(name)
         return
     t = Threshold(N, K, gtype)
-    if (verbLevel >= 1):
-        print("Building threshold network for N=%d K=%d" % (t.N, t.K))
+    if verbLevel >= 1:
+        print("Building threshold network for N=%d K=%d (%d solutions)." % (t.N, t.K, t.solutions()))
     t.build(verbLevel)
-    if (verbLevel >= 3):
+    if verbLevel >= 3:
         print("After building:")
         t.show()
     t.prune()
-    if (verbLevel >= 3):
+    if verbLevel >= 3:
         print("After pruning:")
         t.show()
     if (doPog):
         t.expand()
-        if (verbLevel >= 3):
+        if verbLevel >= 3:
             print("After expanding:")
             t.show()
         t.genPog(froot, verbLevel)
+        if verbLevel >= 1:
+            print("Generated POG.  Size = %d" % t.nmgr.size())
     else:
         t.genCnf(froot, verbLevel)
 

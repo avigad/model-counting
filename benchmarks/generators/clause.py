@@ -8,7 +8,7 @@ def usage(name):
     print("Usage: %s [-h] [-v] [-p] -n N [-r ROOT]")
     print(" -h      Print this message")
     print(" -v      Add comments to files")
-    print(" -p      Generate CRAT proof")
+    print(" -p      Generate CPOG proof")
     print(" -n N    Set number of literals")
     print(" -r ROOT Set file root name (default = clause-NNN)")
 
@@ -28,7 +28,7 @@ def cnfGen(froot, n, verbose):
     cwriter.finish()
 
 def proofGen(froot, n, verbose):
-    pwriter = writer.CratWriter(n, clauseList, froot, verbose)
+    pwriter = writer.CpogWriter(n, clauseList, froot, verbose)
     # Create chain of AND operations, using negated inputs
     pwriter.doComment("Create chain of %d AND operations with negated inputs" % (n-1))
     args = [-lit for lit in literals]
