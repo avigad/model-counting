@@ -101,6 +101,8 @@ def doCleanup():
             continue
 
 def trim(s):
+    while len(s) > 0 and not s[0].isalnum():
+        s = s[1:]
     while len(s) > 0 and s[-1] in '\r\n':
         s = s[:-1]
     return s
