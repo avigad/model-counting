@@ -20,7 +20,7 @@ def usage(name):
     eprint("  -f            Filter out lines that have at least one field missing")
     eprint("  -s I1:I2:...:Ik Sum the values from specified columns 1..k and add as new column")
     eprint("  -r I1:I2      Form the ratio between the values from specified columns 1 and 2 and add as new column")
-    eprint("  -t I:T1:T2    Compare value from column with value T1.  If greater, set to T2. Add as new column")
+    eprint("  -t I:T1:T2    Compare value from column with value T1.  If greater, set to T2.  If I negative, invert sense of threshold.  Add as new column")
     eprint("  -o I:T        Compare value from column with value T1.  If greater, omit entire line.  If I negative, invert sense of test")
     eprint("  -h            Print this message")
     eprint("  -l LABELS     Provide comma-separated set of heading labels")
@@ -170,7 +170,7 @@ def thresholdEntries(thresholdTuple):
     for k in globalEntries.keys():
         fields = globalEntries[k]
         try:
-            sfield = fields[idx-1]
+            sfield = fields[abs(idx)-1]
         except:
             print("Couldn't get field #%d from line with key %s.  Fields: %s" % (idx, k, str(fields)))
             sys.exit(1)
@@ -179,7 +179,10 @@ def thresholdEntries(thresholdTuple):
         except:
             print("Couldn't convert value '%s' to float.  Fields: %s" % (sfield, str(fields)))
             sys.exit(1)
-        tval = vfield if vfield <= thresh else nval
+        if idx >= 0:
+            tval = vfield if vfield <= thresh else nval
+        else:
+            tval = vfield if vfield >= thresh else nval
         fields.append(tval)
 
 

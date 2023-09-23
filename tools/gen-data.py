@@ -56,7 +56,7 @@ def genPoints(infile, outfile):
                 sx = fields[xColumn-1]
             try:
                 fy = max(yMin, float(fields[yColumn-1]))
-                sy = str(fx)
+                sy = str(fy)
                 if fy > float(yThresh):
                     continue
             except:
@@ -91,14 +91,14 @@ def run(name, args):
             return
         elif opt == '-x':
             try:
-                xThresh = int(val)
+                xThresh = float(val)
             except:
                 print("Desired x threshold '%s' not a number" % val)
                 usage(name)
                 return
         elif opt == '-y':
             try:
-                yThresh = int(val)
+                yThresh = float(val)
             except:
                 print("Desired y threshold '%s' not a number" % val)
                 usage(name)
