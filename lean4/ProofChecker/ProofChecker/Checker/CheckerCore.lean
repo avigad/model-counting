@@ -104,7 +104,7 @@ structure PreState where
   /-- The clause database. -/
   clauseDb : ClauseDb ClauseIdx
   
-  up : UnitPropagator
+  up : PersistentPartialAssignment
 
   /-- Which clauses are POG definition clauses. -/
   pogDefs : HashSet ClauseIdx
@@ -367,9 +367,9 @@ def initial (inputCnf : ICnf) (nVars : Nat) : Except CheckerError State := do
   return ⟨st, pfs⟩
 
 /-- Check if `C` is an asymmetric tautology wrt the clause database. `C` must not be a tautology. -/
-def checkAtWithHints (db : ClauseDb ClauseIdx) (up : UnitPropagator) (C : IClause) (hC : C.toPropTerm ≠ ⊤)
+def checkAtWithHints (db : ClauseDb ClauseIdx) (up : PersistentPartialAssignment) (C : IClause) (hC : C.toPropTerm ≠ ⊤)
     (hints : Array ClauseIdx) :
-    Except CheckerError { _up : UnitPropagator // db.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
+    Except CheckerError { _up : PersistentPartialAssignment // db.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
 := do
   let (up', res) := db.unitPropWithHintsDep' up C hints
   match res with
@@ -379,8 +379,8 @@ def checkAtWithHints (db : ClauseDb ClauseIdx) (up : UnitPropagator) (C : IClaus
   | .hintNonexistent idx => throw <| .unknownClauseIdx idx
 
 /-- Check if `C` is an asymmetric tautology wrt the clause database, or simply a tautology. -/
-def checkImpliedWithHints (db : ClauseDb ClauseIdx) (up : UnitPropagator) (C : IClause) (hints : Array ClauseIdx) :
-    Except CheckerError { _up : UnitPropagator // db.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
+def checkImpliedWithHints (db : ClauseDb ClauseIdx) (up : PersistentPartialAssignment) (C : IClause) (hints : Array ClauseIdx) :
+    Except CheckerError { _up : PersistentPartialAssignment // db.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
 := do
   -- TODO: We could maintain no-tautologies-in-clause-db as an invariant rather than dynamically
   -- checking. Checking on every deletion could cause serious slowdown (but measure first!).

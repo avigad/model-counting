@@ -7,7 +7,7 @@ import ProofChecker.Model.PropVars
 
 import ProofChecker.Data.HashMap.Extra
 import ProofChecker.Data.ICnf
-import ProofChecker.Data.UnitPropagator
+import ProofChecker.Data.PersistentPartialAssignment
 
 /-! Clause database together with some (provably correct) methods. For example, we can conclude
 that if a clause follows from the current database by unit propagation, then it is implied by the
@@ -621,9 +621,9 @@ inductive UnitPropResultDep' {α : Type} [BEq α] [Hashable α]
   /-- The hint index `idx` points at a nonexistent clause. -/
   | hintNonexistent (idx : α)
 
-def unitPropWithHintsDep' (db : ClauseDb α) (up : UnitPropagator) (C : IClause) (hints : Array α)
-    : UnitPropagator × UnitPropResultDep' db C hints := Id.run do
-  let mut up : UnitPropagator := up.newPropagation.extendNegated C
+def unitPropWithHintsDep' (db : ClauseDb α) (up : PersistentPartialAssignment) (C : IClause) (hints : Array α)
+    : PersistentPartialAssignment × UnitPropResultDep' db C hints := Id.run do
+  let mut up : PersistentPartialAssignment := up.reset.setNegatedClause C
   for h : i in [0:hints.size] do
     let hint := hints[i]'(Membership.mem.upper h)
     have hMem : hint ∈ hints.data := Array.getElem_mem_data hints _
