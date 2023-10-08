@@ -7,6 +7,7 @@ import ProofChecker.Model.PropVars
 
 import ProofChecker.Data.HashMap.Extra
 import ProofChecker.Data.ICnf
+import ProofChecker.Data.UnitPropagator
 
 /-! Clause database together with some (provably correct) methods. For example, we can conclude
 that if a clause follows from the current database by unit propagation, then it is implied by the
@@ -513,7 +514,7 @@ inductive UnitPropResultDep {α : Type} [BEq α] [Hashable α]
   /-- The hint `C` at index `idx` did not become unit under `σ`. -/
   | hintNotUnit (idx : α) (C : IClause) (σ : PartPropAssignment)
   /-- The hint index `idx` points at a nonexistent clause. -/
- | hintNonexistent (idx : α)
+  | hintNonexistent (idx : α)
 
 /-- Check whether the given clause is a unit and return the unit literal if so. Otherwise fail.
 Note that repeating a literal as in (l ∨ l ∨ l) is allowed and counts as a unit. -/
@@ -556,7 +557,7 @@ def checkIsUnit (C₀ : IClause) : Option { l : ILit // l.toPropTerm = C₀.toPr
 
 /-- Propagate units starting from the given assignment. The clauses in `hints` are expected
 to become unit in the order provided. Return the extended assignment, or `none` if a contradiction
-was found. See `unitPropWithHintsDep` for a certified version. -/
+was found. -/
 def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints : Array α)
     : UnitPropResultDep db σ₀ hints := Id.run do
   let mut σ : {σ : PartPropAssignment //
@@ -606,5 +607,35 @@ def unitPropWithHintsDep (db : ClauseDb α) (σ₀ : PartPropAssignment) (hints 
         σ := ⟨σ.val.insert u.var u.polarity, this⟩
       | _ => return .hintNotUnit hint C σ.val
   return .extended σ.val σ.property
+
+inductive UnitPropResultDep' {α : Type} [BEq α] [Hashable α]
+    (db : ClauseDb α) (C : IClause) (hints : Array α) where
+  /-- A contradiction was derived. The contradiction is implied by the subset of the database
+  used in hints as well as the initial assignment. -/
+  | contradiction (h : db.toPropTermSub (· ∈ hints.data) ⊓ C.toPropTermᶜ ≤ ⊥)
+  /-- The partial assignment was extended. The final assignment `σ'` is implied by the subset of
+  the database used in hints as well as the initial assignment. -/
+  | extended --(h : db.toPropTermSub (· ∈ hints.data) ⊓ C.toPropTermᶜ ≤ σ'.toPropTerm)
+  /-- The hint `C` at index `idx` did not become unit under `σ`. -/
+  | hintNotUnit (idx : α) (C : IClause) --(σ : PartPropAssignment)
+  /-- The hint index `idx` points at a nonexistent clause. -/
+  | hintNonexistent (idx : α)
+
+def unitPropWithHintsDep' (db : ClauseDb α) (up : UnitPropagator) (C : IClause) (hints : Array α)
+    : UnitPropagator × UnitPropResultDep' db C hints := Id.run do
+  let mut up : UnitPropagator := up.newPropagation.extendNegated C
+  for h : i in [0:hints.size] do
+    let hint := hints[i]'(Membership.mem.upper h)
+    have hMem : hint ∈ hints.data := Array.getElem_mem_data hints _
+    match hGet : db.getClause hint with
+    | none => return (up, .hintNonexistent hint)
+    | some C =>
+      let (newUp, res) := up.propagateUnit C
+      up := newUp
+      match res with
+      | .contradiction => return (up, .contradiction sorry)
+      | .notUnit => return (up, .hintNotUnit hint C)
+      | .extended => ()
+  return (up, .extended)
 
 end ClauseDb

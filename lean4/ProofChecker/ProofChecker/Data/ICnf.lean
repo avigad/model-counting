@@ -47,6 +47,7 @@ instance : Coe Var ILit :=
 def var (l : ILit) : Var :=
   ⟨Int.natAbs l.val, Int.natAbs_pos.mpr l.property⟩
 
+@[inline]
 def polarity (l : ILit) : Bool :=
   (0 : Int) < l.val
 
@@ -427,10 +428,11 @@ where
               else
                 ⟨true, by simp [tautology_of_encodes_of_find?_eq_some ilt hinv h hp]⟩
 
-instance : DecidablePred (IClause.toPropTerm · = ⊤) :=
-  fun C => match checkTautoAux C with
-    | ⟨true, h⟩  => .isTrue (h.mp rfl)
-    | ⟨false, h⟩ => .isFalse fun hC => nomatch h.mpr hC
+-- slow instance boo
+-- instance : DecidablePred (IClause.toPropTerm · = ⊤) :=
+--   fun C => match checkTautoAux C with
+--     | ⟨true, h⟩  => .isTrue (h.mp rfl)
+--     | ⟨false, h⟩ => .isFalse fun hC => nomatch h.mpr hC
 
 /-- Check whether a clause is a tautology. The type is a hack for early-return. The clause is
 tautological iff `none` is returned. -/

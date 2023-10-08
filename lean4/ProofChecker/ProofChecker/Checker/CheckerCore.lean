@@ -103,6 +103,8 @@ structure PreState where
 
   /-- The clause database. -/
   clauseDb : ClauseDb ClauseIdx
+  
+  up : UnitPropagator
 
   /-- Which clauses are POG definition clauses. -/
   pogDefs : HashSet ClauseIdx
@@ -320,6 +322,8 @@ def initial (inputCnf : ICnf) (nVars : Nat) : Except CheckerError State := do
     inputCnf
     origVars := inputCnf.vars
     clauseDb := .ofICnf inputCnf
+    -- TODO: actually figure this number out while parsing or otherwise
+    up := .new (2^20)
     pogDefs := .empty ClauseIdx
     pog := initPog
     depVars := initDv
@@ -363,28 +367,30 @@ def initial (inputCnf : ICnf) (nVars : Nat) : Except CheckerError State := do
   return ⟨st, pfs⟩
 
 /-- Check if `C` is an asymmetric tautology wrt the clause database. `C` must not be a tautology. -/
-def checkAtWithHints (db : ClauseDb ClauseIdx) (C : IClause) (hC : C.toPropTerm ≠ ⊤)
+def checkAtWithHints (db : ClauseDb ClauseIdx) (up : UnitPropagator) (C : IClause) (hC : C.toPropTerm ≠ ⊤)
     (hints : Array ClauseIdx) :
-    Except CheckerError { _u : Unit // db.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
+    Except CheckerError { _up : UnitPropagator // db.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
 := do
-  match db.unitPropWithHintsDep C.toFalsifyingAssignment hints with
-  | .contradiction h => return ⟨(), (by
-      rw [IClause.toPropTerm_toFalsifyingAssignment C hC, ← le_himp_iff, himp_bot, compl_compl] at h
-      assumption)⟩
-  | .extended τ _ => throw <| .upNoContradiction τ
-  | .hintNotUnit idx C σ => throw <| .hintNotUnit idx C σ
+  let (up', res) := db.unitPropWithHintsDep' up C hints
+  match res with
+  | .contradiction h => return ⟨up', sorry⟩
+  | .extended => throw <| .upNoContradiction default
+  | .hintNotUnit idx C => throw <| .hintNotUnit idx C default
   | .hintNonexistent idx => throw <| .unknownClauseIdx idx
 
 /-- Check if `C` is an asymmetric tautology wrt the clause database, or simply a tautology. -/
-def checkImpliedWithHints (db : ClauseDb ClauseIdx) (C : IClause) (hints : Array ClauseIdx) :
-    Except CheckerError { _u : Unit // db.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
+def checkImpliedWithHints (db : ClauseDb ClauseIdx) (up : UnitPropagator) (C : IClause) (hints : Array ClauseIdx) :
+    Except CheckerError { _up : UnitPropagator // db.toPropTermSub (· ∈ hints.data) ≤ C.toPropTerm }
 := do
   -- TODO: We could maintain no-tautologies-in-clause-db as an invariant rather than dynamically
   -- checking. Checking on every deletion could cause serious slowdown (but measure first!).
-  if hTauto : C.toPropTerm = ⊤ then
-    return ⟨(), by simp [hTauto]⟩
+  let (up', isTauto) := up.checkTauto C
+  if isTauto then
+    return ⟨up', sorry⟩
+  -- if hTauto : C.toPropTerm = ⊤ then
+  --   return ⟨up, by simp [hTauto]⟩
   else
-    checkAtWithHints db C hTauto hints
+    checkAtWithHints db up' C sorry hints
 
 def addClause (db₀ : ClauseDb ClauseIdx) (idx : ClauseIdx) (C : IClause) :
     Except CheckerError { db : ClauseDb ClauseIdx //
@@ -399,9 +405,9 @@ def addClause (db₀ : ClauseDb ClauseIdx) (idx : ClauseIdx) (C : IClause) :
 
 def addAt (idx : ClauseIdx) (C : IClause) (hints : Array ClauseIdx) : CheckerM Unit := do
   let ⟨st, pfs⟩ ← get
-  let ⟨_, hImp⟩ ← checkImpliedWithHints st.clauseDb C hints
+  let ⟨up', hImp⟩ ← checkImpliedWithHints st.clauseDb st.up C hints
   let ⟨db', hAdd, hContains, hEq⟩ ← addClause st.clauseDb idx C
-  let st' := { st with clauseDb := db' }
+  let st' := { st with clauseDb := db', up := up' }
   have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm := by
     simp [hEq, st.clauseDb.toPropTerm_subset _ |>.trans hImp]
   have hPogDefs : st'.pogDefsTerm = st.pogDefsTerm := by
@@ -441,8 +447,8 @@ def delAt (idx : ClauseIdx) (hints : Array ClauseIdx) : CheckerM Unit := do
     : Except CheckerError { _u : Unit // idx ∉ st.pogDefs' })
   let db' := st.clauseDb.delClause idx
   -- The clause is AT by everything except itself.
-  let ⟨_, hImp⟩ ← checkImpliedWithHints db' C hints
-  let st' := { st with clauseDb := db' }
+  let ⟨up', hImp⟩ ← checkImpliedWithHints db' st.up C hints
+  let st' := { st with clauseDb := db', up := up' }
   have hDb : st'.clauseDb.toPropTerm = st.clauseDb.toPropTerm := by
     have : st'.clauseDb.toPropTerm = st'.clauseDb.toPropTerm ⊓ C.toPropTerm := by
       have := st'.clauseDb.toPropTerm_subset _ |>.trans hImp
@@ -963,7 +969,7 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
   -- Check that POG defs imply that the children have no models in common.
   let ⟨_, hHints⟩ ← ensurePogHints st hints
   -- NOTE: Important that this be done before adding clauses, for linearity.
-  let ⟨_, hImp⟩ ← checkImpliedWithHints st.clauseDb #[-l₁, -l₂] hints
+  let ⟨up', hImp⟩ ← checkImpliedWithHints st.clauseDb st.up #[-l₁, -l₂] hints
 
   let ⟨pog', hPog⟩ ← addDisjToPog st.pog x l₁ l₂
 
@@ -971,6 +977,7 @@ def addSum (idx : ClauseIdx) (x : Var) (l₁ l₂ : ILit) (hints : Array ClauseI
     addSumClauses st.clauseDb st.pogDefs idx x l₁ l₂ pfs.pogDefs_in_clauseDb
 
   let st' := { st with
+    up := up'
     clauseDb := db'
     pogDefs := pd'
     pog := pog'
