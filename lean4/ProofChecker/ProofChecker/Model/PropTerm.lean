@@ -186,7 +186,9 @@ theorem entails_conj : entails φ₁ φ₂ → entails φ₁ φ₃ → entails �
 
 theorem entails_disj_conj (φ₁ φ₂ φ₃ : PropTerm ν) :
     entails (conj (disj φ₁ φ₂) (disj φ₁ φ₃)) (disj φ₁ (conj φ₂ φ₃)) :=
-  fun _ => by simp only [eval_conj, eval_disj]; exact le_sup_inf
+  fun _ => by
+    simp only [eval_conj, eval_disj]
+    exact @le_sup_inf _ GeneralizedCoheytingAlgebra.toDistribLattice _ _ _
 
 theorem conj_neg_entails_fls (φ : PropTerm ν) : entails (conj φ (neg φ)) fls :=
   fun τ => by simp only [eval_conj, eval_neg]; exact BooleanAlgebra.inf_compl_le_bot (eval τ φ)

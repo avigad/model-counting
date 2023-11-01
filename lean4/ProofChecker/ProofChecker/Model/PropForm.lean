@@ -9,7 +9,10 @@ import Mathlib.Order.BooleanAlgebra
 
 import ProofChecker.Model.ToMathlib
 
-/-! Formulas of propositional logic. -/
+/-! Formulas of propositional logic.
+
+This modules inductively defines the syntax of formulas.
+Later on we can take a quotient to identify `x ∨ ¬x` with `⊤`, for example. -/
 
 /-- A propositional formula over variables of type `ν`. -/
 inductive PropForm (ν : Type u)
@@ -81,7 +84,7 @@ end PropAssignment
 
 namespace PropForm
 
-/-- The unique evaluation function on formulas which extends `τ`. -/
+/-- The unique extension of `τ` from just variables to formulas. -/
 @[simp]
 def eval (τ : PropAssignment ν) : PropForm ν → Bool
   | var x => τ x
@@ -153,9 +156,12 @@ theorem satisfies_biImpl' : τ ⊨ biImpl φ₁ φ₂ ↔ ((τ ⊨ φ₁ ∧ τ 
 
 /-- A formula `φ₁` semantically entails `φ₂` when `τ ⊨ φ₁` implies `τ ⊨ φ₂`.
 
-This is actually defined in terms of the Boolean lattice and the above statement is a theorem.
-Note that the two-valued Boolean model is universal, so this formulation of semantic entailment
-is equivalent to entailment in every Boolean algebra, and also (by completeness) to provability. -/
+This is actually defined in terms of the Boolean lattice
+and the above statement is a theorem.
+Note that the two-valued Boolean model is universal,
+meaning that this formulation of semantic entailment
+is equivalent to entailment in any Boolean algebra,
+and also (by completeness) to provability. -/
 def entails (φ₁ φ₂ : PropForm ν) : Prop :=
   ∀ (τ : PropAssignment ν), φ₁.eval τ ≤ φ₂.eval τ
 
@@ -195,15 +201,18 @@ theorem entails_conj : entails φ₁ φ₂ → entails φ₁ φ₃ → entails �
 
 theorem entails_disj_conj (φ₁ φ₂ φ₃ : PropForm ν) :
     entails (conj (disj φ₁ φ₂) (disj φ₁ φ₃)) (disj φ₁ (conj φ₂ φ₃)) :=
-  fun _ => le_sup_inf
-
+  fun _ => @le_sup_inf Bool GeneralizedCoheytingAlgebra.toDistribLattice _ _ _
+  
 theorem conj_neg_entails_fls (φ : PropForm ν) : entails (conj φ (neg φ)) fls :=
   fun τ => BooleanAlgebra.inf_compl_le_bot (eval τ φ)
 
 theorem tr_entails_disj_neg (φ : PropForm ν) : entails tr (disj φ (neg φ)) :=
   fun τ => BooleanAlgebra.top_le_sup_compl (eval τ φ)
 
-/-- Two formulas are semantically equivalent when they always evaluate to the same thing. -/
+/-- Two formulas are semantically equivalent when they always evaluate to the same thing.
+
+This is a strong notion of equivalence.
+See `equivalentOver` for a weaker one. -/
 def equivalent (φ₁ φ₂ : PropForm ν) : Prop :=
   ∀ (τ : PropAssignment ν), φ₁.eval τ = φ₂.eval τ
 
@@ -225,7 +234,5 @@ theorem equivalent.trans : equivalent φ₁ φ₂ → equivalent φ₂ φ₃ →
   fun h₁ h₂ τ => (h₁ τ).trans (h₂ τ)
 theorem entails.antisymm : entails φ₁ φ₂ → entails φ₂ φ₁ → equivalent φ₁ φ₂ :=
   fun h₁ h₂ => equivalent_iff_entails.mpr ⟨h₁, h₂⟩
-
--- Equivalently, when `impl φ₁ φ₂` always evaluates to `⊤`.
 
 end PropForm

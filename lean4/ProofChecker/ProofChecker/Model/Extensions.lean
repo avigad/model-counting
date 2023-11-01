@@ -41,7 +41,8 @@ theorem equivalentOver_def_self {x : ν} {X : Set ν} (φ : PropTerm ν) :
     have hAgree₁₂ : σ₁.agreeOn X σ₂ := σ₂.agreeOn_set_of_not_mem _ hMem
     have : σ₁.agreeOn X τ := hAgree₁₂.trans hAgree
     have : σ₁ ⊨ φ := agreeOn_semVars (hAgree₁₂.subset hφ) |>.mpr h₂
-    exact ⟨σ₁, by assumption, satisfies_conj.mpr (by simp (config := {zeta := false}) [this])⟩
+    refine ⟨σ₁, by assumption, satisfies_conj.mpr ?_⟩
+    aesop
 
 theorem hasUniqueExtension_def_ext {X : Set ν} (x : ν) (φ ψ : PropTerm ν) :
     ↑ψ.semVars ⊆ X → hasUniqueExtension X (insert x X) (φ ⊓ .biImpl (.var x) ψ) := by

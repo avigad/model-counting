@@ -111,7 +111,7 @@ theorem find?_filter (l : List α) (p q : α → Bool) (h : ∀ a, p a → q a) 
   induction l with
   | nil => rfl
   | cons x xs ih =>
-    dsimp [filter]
+    dsimp [filter, find?]
     split <;> split <;> simp [*] at *
 
 theorem find?_filter' (l : List α) (p q : α → Bool) (h : ∀ a, p a → !q a) :
