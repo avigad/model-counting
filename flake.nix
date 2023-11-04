@@ -8,9 +8,12 @@
           bashInteractive
           elan
           hyperfine
+          cadical
+          drat-trim
           texlive.combined.scheme-full
           texlab
           fontconfig
+          (python3.withPackages (ps: with ps; [ matplotlib ]))
         ];
 
         FONTCONFIG_FILE = pkgs.makeFontsConf { fontDirectories = [
