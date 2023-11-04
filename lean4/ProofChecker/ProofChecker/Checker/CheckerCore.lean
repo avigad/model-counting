@@ -30,7 +30,7 @@ namespace CpogStep
 
 def toDimacs : CpogStep → String
   | addAt idx C upHints => s!"{idx} a {pArray C} 0 {pArray upHints} 0"
-  | delAt idx upHints => s!"dc {idx} {pArray upHints} 0"
+  | delAt idx upHints => s!"d {idx} {pArray upHints} 0"
   | prod idx x ls => s!"{idx} p {x} {pArray ls} 0"
   | sum idx x l₁ l₂ upHints => s!"{idx} s {x} {l₁} {l₂} {pArray upHints} 0"
   | root x => s!"r {x}"

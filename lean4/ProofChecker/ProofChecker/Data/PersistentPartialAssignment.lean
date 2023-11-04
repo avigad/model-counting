@@ -54,6 +54,7 @@ namespace PersistentPartialAssignment
     for l in C do
       if let some false := τ.litValue? l then
         return (τ, true)
+      τ := τ.setLit l
     return (τ, false)
 
   /-- Set `l ↦ ⊥` for each `l ∈ C` and leave the rest of the assignment untouched.
