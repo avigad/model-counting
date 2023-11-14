@@ -16,8 +16,9 @@ def eprint(s):
 
 
 def usage(name):
-    eprint("Usage: %s [-h] [-f]  [-s I1:I2:...:Ik] [-r I1:I2] [-t I:T1:T2] [-o I:T] [-l L0,L1,L2,...] FILE1.csv FILE2.csv ... FILEn.csv" % name)
+    eprint("Usage: %s [-h] [-f] [-d VAL] [-s I1:I2:...:Ik] [-r I1:I2] [-t I:T1:T2] [-o I:T] [-l L0,L1,L2,...] FILE1.csv FILE2.csv ... FILEn.csv" % name)
     eprint("  -f            Filter out lines that have at least one field missing")
+    eprint("  -d VAL        Use default of VAL when field missing")
     eprint("  -s I1:I2:...:Ik Sum the values from specified columns 1..k and add as new column")
     eprint("  -r I1:I2      Form the ratio between the values from specified columns 1 and 2 and add as new column")
     eprint("  -t I:T1:T2    Compare value from column with value T1.  If greater, set to T2.  If I negative, invert sense of threshold.  Add as new column")
@@ -60,21 +61,22 @@ def processFile(fname):
     
 # Merge two sets of entries.
 # When they both don't have the same keys, then either form superset or subset
-def merge(entries1, count1, entries2, count2, subset = True):
+def merge(entries1, count1, entries2, count2, subset = True, default = None):
     entries = {}
+    dfill = "" if default is None else default
     for k in entries1.keys():
         entry1 = entries1[k]
         if k in entries2:
             entry2 = entries2[k]
             entries[k] = entry1 + entry2
         elif not subset:
-            entry2 = [""] * count2
+            entry2 = [dfill] * count2
             entries[k] = entry1 + entry2
     if not subset:
         for k in entries2.keys():
             if k in entries1:
                 continue
-            entry1 = [""] * count1
+            entry1 = [dfill] * count1
             entry2 = entries2[k]
             entries[k] = entry1 + entry2
     return entries
@@ -86,7 +88,7 @@ def mergeConstant(entries1, value):
         entries[k] = entry1 + [str(value)]
     return entries
 
-def nextFile(fname, first, subset):
+def nextFile(fname, first, subset, default):
     global globalEntries, globalCount
     value = None
     try:
@@ -103,7 +105,7 @@ def nextFile(fname, first, subset):
         globalEntries = entries
         globalCount = ccount
     else:
-        globalEntries = merge(globalEntries, globalCount, entries, ccount, subset)
+        globalEntries = merge(globalEntries, globalCount, entries, ccount, subset, default)
         globalCount += ccount
 
 def sumEntries(sumList):
@@ -186,10 +188,10 @@ def thresholdEntries(thresholdTuple):
         fields.append(tval)
 
 
-def build(lstring, flist, doFilter, sumList, ratioList, thresholdTuple, omitTuple):
+def build(lstring, flist, doFilter, default, sumList, ratioList, thresholdTuple, omitTuple):
     first = True
     for fname in flist:
-        nextFile(fname, first, doFilter)
+        nextFile(fname, first, doFilter, default)
         first = False
     if sumList is not None:
         sumEntries(sumList)
@@ -207,18 +209,21 @@ def build(lstring, flist, doFilter, sumList, ratioList, thresholdTuple, omitTupl
 
 def run(name, args):
     doFilter = False
+    default = None
     sumList = None
     ratioList = None
     thresholdTuple = None
     omitTuple = None
     lstring = ""
-    optList, args = getopt.getopt(args, "hfs:r:t:o:l:")
+    optList, args = getopt.getopt(args, "hfd:s:r:t:o:l:")
     for (opt, val) in optList:
         if opt == '-h':
             usage(name)
             sys.exit(0)
         elif opt == '-f':
             doFilter = True
+        elif opt == '-d':
+            default = val
         elif opt == '-s' or opt == '-r' or opt == '-t' or opt == '-o':
             fields = val.split(':')
             try:
@@ -254,7 +259,7 @@ def run(name, args):
             eprint("Unknown option '%s'" % opt)
             usage(name)
             sys.exit(1)
-    build(lstring, args, doFilter, sumList, ratioList, thresholdTuple, omitTuple)
+    build(lstring, args, doFilter, default, sumList, ratioList, thresholdTuple, omitTuple)
 
 if __name__ == "__main__":
     run(sys.argv[0], sys.argv[1:])
