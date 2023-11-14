@@ -108,6 +108,7 @@
 \definecolor{softgreen}{rgb}{0.733333, 0.772549, 0.572549}
 \definecolor{offwhite}{rgb}{0.839216, 0.823529, 0.768627}
 \definecolor{medgreen}{rgb}{0.15, 0.6, 0.15}
+\definecolor{midred}{rgb}{0.80,0.3,0.3}
 
 % Lean code:
 \usepackage{listings}
@@ -122,6 +123,9 @@
 % set default language
 \lstset{language=lean, xleftmargin=1em}
 \lstset{backgroundcolor=\color{white}}
+
+\newcommand{\rtext}[1]{\textcolor{midred}{\texttt{#1}}}
+\newcommand{\btext}[1]{\textcolor{midblue}{\texttt{#1}}}
 
 \newtheorem{dfn}{Definition}
 \newtheorem{prop}{Proposition}
@@ -793,7 +797,7 @@ Key properties include:
   The associated extension variable has a dependency set equal to the union of those of its arguments.
 \item Declaring a $\por$ operation requires a sequence of clauses
   providing a RUP proof that the arguments are mutually exclusive.
-  Only binary $\por$ operations are allowed to avoid requiring multiple proofs of disjointness
+  Only binary $\por$ operations are allowed to avoid requiring multiple proofs of disjointness.
 %  Generalizing to $k$ arguments would require
 %  $k\,(k-1)/2$ proofs of disjointness.
 \end{itemize}
@@ -987,11 +991,11 @@ It does so by contradiction, proving that when $\eassign(r) = 0$, we must have $
 \toprule
 \makebox[5mm]{ID} & \makebox[15mm]{Clauses} & \\
 \midrule
-1 & \texttt{-1 3 -4} & \texttt{0} \\
-2 & \texttt{-1 -3 4} & \texttt{0} \\
-3 & \texttt{3 -4} & \texttt{0}\\
-4 & \texttt{1 -3 4} & \texttt{0} \\
-5 & \texttt{-1 -2} & \texttt{0} \\
+\rtext{1} & \texttt{-1 3 -4} & \texttt{0} \\
+\rtext{2} & \texttt{-1 -3 4} & \texttt{0} \\
+\rtext{3} & \texttt{3 -4} & \texttt{0}\\
+\rtext{4} & \texttt{1 -3 4} & \texttt{0} \\
+\rtext{5} & \texttt{-1 -2} & \texttt{0} \\
 \bottomrule
 \end{tabular}
 \\[1.8ex]
@@ -1000,12 +1004,12 @@ It does so by contradiction, proving that when $\eassign(r) = 0$, we must have $
 \toprule
 \makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line} & Explanation \\
 \midrule
-6 & \texttt{p 5 -3 -4} & \texttt{0} & $p_5 = \obar{x}_3 \pand \obar{x}_4$ \\
-9 & \texttt{p 6 3 4} & \texttt{0} & $p_6 = x_3 \pand x_4$ \\
-12 & \texttt{s 7 5 6 7 10} & \texttt{0} & $s_7 = p_5 \por p_6$ \\
-15 & \texttt{p 8 -1 7} & \texttt{0} & $p_8 = \obar{x}_1 \pand s_7$ \\
-18 & \texttt{p 9 1 -2 7} & \texttt{0} & $p_9 = x_1 \pand \obar{x}_2 \pand s_7$ \\
-22 & \texttt{s 10 8 9 16 19} & \texttt{0} & $s_{10} = p_8 \por p_9$ \\
+\rtext{6} & \texttt{p 5 -3 -4} & \texttt{0} & $p_5 = \obar{x}_3 \pand \obar{x}_4$ \\
+\rtext{9} & \texttt{p 6 3 4} & \texttt{0} & $p_6 = x_3 \pand x_4$ \\
+\rtext{12} & \texttt{s 7 5 6} \; \rtext{7 10} & \texttt{0} & $s_7 = p_5 \por p_6$ \\
+\rtext{15} & \texttt{p 8 -1 7} & \texttt{0} & $p_8 = \obar{x}_1 \pand s_7$ \\
+\rtext{18} & \texttt{p 9 1 -2 7} & \texttt{0} & $p_9 = x_1 \pand \obar{x}_2 \pand s_7$ \\
+\rtext{22} & \texttt{s 10 8 9} \; \rtext{16 19} & \texttt{0} & $s_{10} = p_8 \por p_9$ \\
  & \texttt{r 10} && Root $r = s_{10}$\\
 \bottomrule
 \end{tabular}
@@ -1022,30 +1026,30 @@ It does so by contradiction, proving that when $\eassign(r) = 0$, we must have $
 \toprule
 \makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
 \midrule
-\texttt{6} & \texttt{5 3 4} & \texttt{0} & Define $p_5$ \\
-\texttt{7} & \texttt{-5 -3} & \texttt{0} & \\
-\texttt{8} & \texttt{-5 -4} & \texttt{0} & \\
+\rtext{6} & \texttt{5 3 4} & \texttt{0} & Define $p_5$ \\
+\rtext{7} & \texttt{-5 -3} & \texttt{0} & \\
+\rtext{8} & \texttt{-5 -4} & \texttt{0} & \\
 \midrule
-\texttt{9} & \texttt{6 -3 -4} & \texttt{0} & Define $p_6$ \\
-\texttt{10} & \texttt{-6 3} & \texttt{0} & \\
-\texttt{11} & \texttt{-6 4} & \texttt{0} & \\
+\rtext{9} & \texttt{6 -3 -4} & \texttt{0} & Define $p_6$ \\
+\rtext{10} & \texttt{-6 3} & \texttt{0} & \\
+\rtext{11} & \texttt{-6 4} & \texttt{0} & \\
 \midrule
-\texttt{12} & \texttt{-7 5 6} & \texttt{0} & Define $s_7$ \\
-\texttt{13} & \texttt{7 -5} & \texttt{0} & \\
-\texttt{14} & \texttt{7 -6} & \texttt{0} & \\
+\rtext{12} & \texttt{-7 5 6} & \texttt{0} & Define $s_7$ \\
+\rtext{13} & \texttt{7 -5} & \texttt{0} & \\
+\rtext{14} & \texttt{7 -6} & \texttt{0} & \\
 \midrule
-\texttt{15} & \texttt{8 1 -7} & \texttt{0} & Define $p_8$ \\
-\texttt{16} & \texttt{-8 -1} & \texttt{0} & \\
-\texttt{17} & \texttt{-8 7} & \texttt{0} & \\
+\rtext{15} & \texttt{8 1 -7} & \texttt{0} & Define $p_8$ \\
+\rtext{16} & \texttt{-8 -1} & \texttt{0} & \\
+\rtext{17} & \texttt{-8 7} & \texttt{0} & \\
 \midrule
-\texttt{18} & \texttt{9 -1 2 -7} & \texttt{0} & Define $p_9$ \\
-\texttt{19} & \texttt{-9 1} & \texttt{0} & \\
-\texttt{20} & \texttt{-9 -2} & \texttt{0} & \\
-\texttt{21} & \texttt{-9 7} & \texttt{0} & \\
+\rtext{18} & \texttt{9 -1 2 -7} & \texttt{0} & Define $p_9$ \\
+\rtext{19} & \texttt{-9 1} & \texttt{0} & \\
+\rtext{20} & \texttt{-9 -2} & \texttt{0} & \\
+\rtext{21} & \texttt{-9 7} & \texttt{0} & \\
 \midrule
-\texttt{22} & \texttt{-10 8 9} & \texttt{0} & Define $s_{10}$ \\
-\texttt{23} & \texttt{10 -8} & \texttt{0} & \\
-\texttt{24} & \texttt{10 -9} & \texttt{0} & \\
+\rtext{22} & \texttt{-10 8 9} & \texttt{0} & Define $s_{10}$ \\
+\rtext{23} & \texttt{10 -8} & \texttt{0} & \\
+\rtext{24} & \texttt{10 -9} & \texttt{0} & \\
 \bottomrule
 \end{tabular}
 \end{minipage}
@@ -1055,18 +1059,18 @@ It does so by contradiction, proving that when $\eassign(r) = 0$, we must have $
 \toprule
 \makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hint} & Explanation \\
 \midrule
-\texttt{25} & \texttt{a 5 1 3} & \texttt{0} & \texttt{3 6} & \texttt{0} & $\obar{x}_1 \land \obar{x}_3 \imply p_5$ \\
-\texttt{26} & \texttt{a 6 1 -3} & \texttt{0} & \texttt{4 9} & \texttt{0} & $\obar{x}_1 \land x_3 \imply p_6$ \\
-\texttt{27} & \texttt{a 3 7 1} & \texttt{0} & \texttt{13 25} & \texttt{0} & $\obar{x}_3 \land \obar{x}_1 \imply s_7$  \\
-\texttt{28} & \texttt{a 7 1} & \texttt{0} & \texttt{27 14 26} & \texttt{0} & $\obar{x}_1 \imply s_7$  \\
-\texttt{29} & \texttt{a 8 1} & \texttt{0} & \texttt{28 15} & \texttt{0} & $\obar{x}_1 \imply p_8$  \\
-\texttt{30} & \texttt{a 5 -1 3} & \texttt{0} & \texttt{1 6} & \texttt{0} & $x_1 \land \obar{x}_3 \imply p_5$ \\
-\texttt{31} & \texttt{a 6 -1 -3} & \texttt{0} & \texttt{2 9} & \texttt{0} & $x_1 \land x_3 \imply p_6$ \\
-\texttt{32} & \texttt{a 3 7 -1} & \texttt{0} & \texttt{13 30} & \texttt{0} & $\obar{x}_3 \land x_1 \imply s_7$  \\
-\texttt{33} & \texttt{a 7 -1} & \texttt{0} & \texttt{32 14 31} & \texttt{0} & $x_1 \imply s_7$  \\
-\texttt{34} & \texttt{a 9 -1} & \texttt{0} & \texttt{5 33 18} & \texttt{0} & $x_1 \imply p_9$  \\
-\texttt{35} & \texttt{a 1 10} & \texttt{0} & \texttt{23 29} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
-\texttt{36} & \texttt{a 10} & \texttt{0} & \texttt{35 24 34} & \texttt{0} & $s_{10}$ \\
+\rtext{25} & \texttt{a 5 1 3} & \texttt{0} & \rtext{3 6} & \texttt{0} & $\obar{x}_1 \land \obar{x}_3 \imply p_5$ \\
+\rtext{26} & \texttt{a 6 1 -3} & \texttt{0} & \rtext{4 9} & \texttt{0} & $\obar{x}_1 \land x_3 \imply p_6$ \\
+\rtext{27} & \texttt{a 3 7 1} & \texttt{0} & \rtext{13 25} & \texttt{0} & $\obar{x}_3 \land \obar{x}_1 \imply s_7$  \\
+\rtext{28} & \texttt{a 7 1} & \texttt{0} & \rtext{27 14 26} & \texttt{0} & $\obar{x}_1 \imply s_7$  \\
+\rtext{29} & \texttt{a 8 1} & \texttt{0} & \rtext{28 15} & \texttt{0} & $\obar{x}_1 \imply p_8$  \\
+\rtext{30} & \texttt{a 5 -1 3} & \texttt{0} & \rtext{1 6} & \texttt{0} & $x_1 \land \obar{x}_3 \imply p_5$ \\
+\rtext{31} & \texttt{a 6 -1 -3} & \texttt{0} & \rtext{2 9} & \texttt{0} & $x_1 \land x_3 \imply p_6$ \\
+\rtext{32} & \texttt{a 3 7 -1} & \texttt{0} & \rtext{13 30} & \texttt{0} & $\obar{x}_3 \land x_1 \imply s_7$  \\
+\rtext{33} & \texttt{a 7 -1} & \texttt{0} & \rtext{32 14 31} & \texttt{0} & $x_1 \imply s_7$  \\
+\rtext{34} & \texttt{a 9 -1} & \texttt{0} & \rtext{5 33 18} & \texttt{0} & $x_1 \imply p_9$  \\
+\rtext{35} & \texttt{a 1 10} & \texttt{0} & \rtext{23 29} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
+\rtext{36} & \texttt{a 10} & \texttt{0} & \rtext{35 24 34} & \texttt{0} & $s_{10}$ \\
 \bottomrule
 \end{tabular}
 \\[1.5ex]
@@ -1075,15 +1079,16 @@ It does so by contradiction, proving that when $\eassign(r) = 0$, we must have $
   \toprule
  \multicolumn{3}{l}{CPOG line} & Explanation\\
 \midrule
- \texttt{d 1} & \texttt{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
- \texttt{d 2} & \texttt{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
- \texttt{d 3} & \texttt{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
- \texttt{d 4} & \texttt{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
- \texttt{d 5} & \texttt{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
+ \texttt{d 1} & \rtext{36 8 10 12 16 21 22} & \texttt{0} & Delete clause 1 \\
+ \texttt{d 2} & \rtext{36 7 11 12 16 21 22} & \texttt{0} & Delete clause 2 \\
+ \texttt{d 3} & \rtext{36 8 10 12 17 19 22} & \texttt{0} & Delete clause 3 \\
+ \texttt{d 4} & \rtext{36 7 11 12 17 19 22} & \texttt{0} & Delete clause 4 \\
+ \texttt{d 5} & \rtext{36 16 20 22} & \texttt{0} &  Delete clause 5 \\
 \bottomrule
 \end{tabular}
 \end{minipage}
-\caption{Example formula (A), its POG representation (B), and its CPOG proof (C), (E), and (F)}
+\caption{Example formula (A), its POG representation (B), and its CPOG proof (C), (E), and (F).  The defining clauses (D) are implicitly
+defined by the POG declaration (C).}
 \label{fig:eg4:all}
 \end{figure}
 
@@ -1109,7 +1114,7 @@ Figure
 defined by the POG operation declarations.  These do not appear in the
 CPOG file.  Referring back to the declarations of the sum nodes in
 Figure \ref{fig:eg4:all}(C), we can see that the declaration of node
-$\nodes_7$ had clause IDs 7 and 10 as the hint.  We can see in Figure
+$\nodes_7$ has clause IDs 7 and 10 as the hint.  We can see in Figure
 \ref{fig:eg4:all}(A) that these two clauses form a RUP proof for the clause
 $\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $\nodes_7$
 have disjoint models.  Similarly, node $\nodes_{10}$ is declared as having
@@ -1124,9 +1129,11 @@ leading to unit clause 36, consisting of the literal $s_{10}$.  This clause indi
 any total assignment $\assign$
 satisfying the input clauses must have its extension to $\eassign$ yield $\eassign(s_{10}) = 1$.
 Working backward, we can see that
-clause 29 indicates that variable $p_8$ will be implied by the input
-clauses when $\assign(x_1) = 0$, while clause 34 indicates that node $p_9$ will
-be implied by the input clauses when $\assign(x_1) = 1$.  These serve as the
+clause 35 indicates that variable $s_{10}$ will be implied by the input
+clauses when $\assign(x_1) = 0$. Clause 34 indicates that node $p_9$ will
+be implied by the input clauses when $\assign(x_1) = 1$, while defining clause 24 shows that node $s_{10}$ will be implied
+by the input clauses when $\eassign{p_9} = 1$.  These three clauses
+serve as the
 hint for clause 36.
 
 \subsection{Reverse Implication Proof}
@@ -1149,7 +1156,7 @@ must, when extended, have $\eassign(s_{10}) = 0$.
 
 Deleting the asserted clauses is so simple that we do not show it.  It
 involves simply deleting the clauses from clause number 35 down to
-clause number 25, with each deletion using the same hint as were used
+clause number 25, with each deletion using the same hint as was used
 to add that clause.  In the end, therefore, only the defining clauses
 for the POG nodes and the unit clause asserting $s_{10}$ remain,
 completing a proof that the POG is logically equivalent to the input
@@ -1384,7 +1391,7 @@ The performance of the structural proof generator for forward implication, both 
 the size of the proof generated, can be improved by two optimizations
 described here.  A key feature is that they do not require any changes
 to the proof framework---they build on the power of extended
-resolution to enable new logical structures.  They
+resolution to enable the construction of new logical structures.  They
 involve declaring new product nodes to encode products of literals.
 These nodes are not part of the POG
 representation of the formula; they serve only to enable the forward
@@ -1493,8 +1500,8 @@ but any subsequent call can simply reuse the lemma proved by the first call.
 \toprule
 \makebox[5mm]{ID} & \multicolumn{2}{l}{CPOG line} & Explanation \\
 \midrule
-25 & \texttt{p 11 -3 4} & \texttt{0} & $v_{11} = \obar{x}_3 \pand {x}_4$ \\
-28 & \texttt{p 12  3 -4} & \texttt{0} & $v_{12} = {x}_3 \pand \obar{x}_4$ \\
+\rtext{25} & \texttt{p 11 -3 4} & \texttt{0} & $v_{11} = \obar{x}_3 \pand {x}_4$ \\
+\rtext{28} & \texttt{p 12  3 -4} & \texttt{0} & $v_{12} = {x}_3 \pand \obar{x}_4$ \\
 \bottomrule
 \end{tabular}
 \\[1.0em]
@@ -1503,13 +1510,13 @@ but any subsequent call can simply reuse the lemma proved by the first call.
 \toprule
 \makebox[5mm]{ID} & \multicolumn{2}{l}{Clauses} & Explanation \\
 \midrule
-\texttt{25} & \texttt{11 3 -4} & \texttt{0} & Argument clause $\{x_3 ,\, \obar{x}_4\}$, activated by $\obar{v}_{11}$ \\
-\texttt{26} & \texttt{-11 -3} & \texttt{0} & \\
-\texttt{27} & \texttt{-11 4} & \texttt{0} & \\
+\rtext{25} & \texttt{11 3 -4} & \texttt{0} & Argument clause $\{x_3 ,\, \obar{x}_4\}$, activated by $\obar{v}_{11}$ \\
+\rtext{26} & \texttt{-11 -3} & \texttt{0} & \\
+\rtext{27} & \texttt{-11 4} & \texttt{0} & \\
 \midrule
-\texttt{28} & \texttt{12 -3 4} & \texttt{0} & Argument clause $\{\obar{x}_3,\,  {x}_4\}$, activated by $\obar{v}_{12}$ \\
-\texttt{29} & \texttt{-12 3} & \texttt{0} & \\
-\texttt{30} & \texttt{-12 -4} & \texttt{0} & \\
+\rtext{28} & \texttt{12 -3 4} & \texttt{0} & Argument clause $\{\obar{x}_3,\,  {x}_4\}$, activated by $\obar{v}_{12}$ \\
+\rtext{29} & \texttt{-12 3} & \texttt{0} & \\
+\rtext{30} & \texttt{-12 -4} & \texttt{0} & \\
 \bottomrule
 \end{tabular}
 \\[1.0em]
@@ -1519,26 +1526,26 @@ but any subsequent call can simply reuse the lemma proved by the first call.
 \makebox[5mm]{ID} & \multicolumn{2}{l}{Clause} & \multicolumn{2}{l}{Hint} & Explanation \\
 \midrule
 \multicolumn{6}{l}{Lemma Proof} \\
-\texttt{31} & \texttt{a 5 11 12 3} & \texttt{0} & \texttt{25 6} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land \obar{x}_3 \imply p_{5}$ \\
-\texttt{32} & \texttt{a 6 11 12 -3} & \texttt{0} & \texttt{28 9} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land {x}_3 \imply p_{6}$ \\
-\texttt{33} & \texttt{a 3 7 11 12} & \texttt{0} & \texttt{13 31} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land \obar{x}_3 \imply s_{7}$ \\
-\texttt{34} & \texttt{a 7 11 12} & \texttt{0} & \texttt{33 14 32} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \imply s_{7}$ \\
+\rtext{31} & \texttt{a 5 11 12 3} & \texttt{0} & \rtext{25 6} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land \obar{x}_3 \imply p_{5}$ \\
+\rtext{32} & \texttt{a 6 11 12 -3} & \texttt{0} & \rtext{28 9} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land {x}_3 \imply p_{6}$ \\
+\rtext{33} & \texttt{a 3 7 11 12} & \texttt{0} & \rtext{13 31} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \land \obar{x}_3 \imply s_{7}$ \\
+\rtext{34} & \texttt{a 7 11 12} & \texttt{0} & \rtext{33 14 32} & \texttt{0} & $(\obar{v}_{11} \land \obar{v}_{12}) \imply s_{7}$ \\
 \midrule
 \multicolumn{6}{l}{Lemma Application \#1} \\
-\texttt{35} & \texttt{a -11 1} & \texttt{0} & \texttt{26 27 3} & \texttt{0} & $\obar{x}_1 \imply \obar{v}_{11}$ \\
-\texttt{36} & \texttt{a -12 1} & \texttt{0} & \texttt{29 30 4} & \texttt{0} & $\obar{x}_1 \imply \obar{v}_{12}$ \\
-\texttt{37} & \texttt{a 7 1} & \texttt{0} & \texttt{35 36 34} & \texttt{0} & $\obar{x}_1 \imply s_7$ \\
+\rtext{35} & \texttt{a -11 1} & \texttt{0} & \rtext{26 27 3} & \texttt{0} & $\obar{x}_1 \imply \obar{v}_{11}$ \\
+\rtext{36} & \texttt{a -12 1} & \texttt{0} & \rtext{29 30 4} & \texttt{0} & $\obar{x}_1 \imply \obar{v}_{12}$ \\
+\rtext{37} & \texttt{a 7 1} & \texttt{0} & \rtext{35 36 34} & \texttt{0} & $\obar{x}_1 \imply s_7$ \\
 \midrule
-\texttt{38} & \texttt{a 8 1} & \texttt{0} & \texttt{37 15} & \texttt{0} & $\obar{x}_1 \imply p_8$ \\
+\rtext{38} & \texttt{a 8 1} & \texttt{0} & \rtext{37 15} & \texttt{0} & $\obar{x}_1 \imply p_8$ \\
 \midrule
 \multicolumn{6}{l}{Lemma Application \#2} \\
-\texttt{39} & \texttt{a -11 -1} & \texttt{0} & \texttt{26 27 1} & \texttt{0} & ${x}_1 \imply \obar{v}_{11}$ \\
-\texttt{40} & \texttt{a -12 -1} & \texttt{0} & \texttt{29 30 2} & \texttt{0} & ${x}_1 \imply \obar{v}_{12}$ \\
-\texttt{41} & \texttt{a 7 -1} & \texttt{0} & \texttt{39 40 34} & \texttt{0} & ${x}_1 \imply s_7$ \\
+\rtext{39} & \texttt{a -11 -1} & \texttt{0} & \rtext{26 27 1} & \texttt{0} & ${x}_1 \imply \obar{v}_{11}$ \\
+\rtext{40} & \texttt{a -12 -1} & \texttt{0} & \rtext{29 30 2} & \texttt{0} & ${x}_1 \imply \obar{v}_{12}$ \\
+\rtext{41} & \texttt{a 7 -1} & \texttt{0} & \rtext{39 40 34} & \texttt{0} & ${x}_1 \imply s_7$ \\
 \midrule
-\texttt{42} & \texttt{a 9 -1} & \texttt{0} & \texttt{5 41 18} & \texttt{0} & ${x}_1 \imply p_9$ \\
-\texttt{43} & \texttt{a 1 10} & \texttt{0} & \texttt{23 38} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
-\texttt{44} & \texttt{a 10} & \texttt{0} & \texttt{43 24 42} & \texttt{0} & $s_{10}$ \\
+\rtext{42} & \texttt{a 9 -1} & \texttt{0} & \rtext{5 41 18} & \texttt{0} & ${x}_1 \imply p_9$ \\
+\rtext{43} & \texttt{a 1 10} & \texttt{0} & \rtext{23 38} & \texttt{0} & $\obar{x}_1 \imply s_{10}$  \\
+\rtext{44} & \texttt{a 10} & \texttt{0} & \rtext{43 24 42} & \texttt{0} & $s_{10}$ \\
 \bottomrule
 \end{tabular}
 \caption{Example of lemma definition, proof, and application}
@@ -1554,9 +1561,9 @@ declarations shown in Figure~\ref{fig:eg4:lemmas}(A) create synthetic
 clauses 25 and 28 to encode these arguments with activating literals
 $\obar{v}_{11}$ and $\obar{v}_{12}$, respectively.  Clauses 31--34
 then provide a proof of the lemma, stating that any assignment
-$\assign$ that activates these clauses will  assign $1$ to $s_7$.
+$\assign$ that activates these clauses will, when extended,  assign $1$ to $s_7$.
 Clauses 35 and 36 state that an assignment with $\assign(x_1) = 0$
-will cause the first synthetic clause to activate due to input clause
+will, when extended, cause the first synthetic clause to activate due to input clause
 3, and it will cause the second synthetic clause to activate due to
 input clause 4.  From this, clause 37 can use the lemma to state that
 assigning $0$ to $x_1$ will cause $s_7$ to evaluate to $1$.  Similarly,
