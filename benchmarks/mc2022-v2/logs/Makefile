@@ -69,9 +69,8 @@ data:
 	$(INTERP) $(EXTRACT) 1:3 < sub10M-clauses-toobig-structured-all.csv > sub10M-clauses-toobig-structured.csv
 	cat sub10M-clauses-ok-structured.csv sub10M-clauses-toobig-structured.csv > sub10M-clauses-structured.csv
 
-#
 
-#       Comparisons
+#       Comparisons Mono vs. structured
 	$(INTERP) $(MERGE) -f -o  1:5 tree-ratio.csv sub10M-seconds-mono.csv sub10M-seconds-structured.csv | \
 		grep -v 1500,1500 > sub10M-seconds-subthresh.csv
 	$(INTERP) $(MERGE) -f -o -1:5 tree-ratio.csv sub10M-seconds-mono.csv sub10M-seconds-structured.csv | \
@@ -80,6 +79,21 @@ data:
 		grep -v 25000000,25000000 > sub10M-clauses-subthresh.csv 
 	$(INTERP) $(MERGE) -f -o -1:5 tree-ratio.csv sub10M-clauses-mono.csv sub10M-clauses-structured.csv | \
 		grep -v 25000000,25000000 > sub10M-clauses-supthresh.csv
+
+#       Optimizations
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" m*.nolemma_structured_log > seconds-gen-nolemma.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" m*.nolemma_structured_log > seconds-check-nolemma.csv
+	$(INTERP) $(GRAB) "clause TOTAL" m*.nolemma_structured_log > clauses-nolemma.csv
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" m*.split_structured_log > seconds-gen-split.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" m*.split_structured_log > seconds-check-split.csv
+	$(INTERP) $(GRAB) "clause TOTAL" m*.split_structured_log > clauses-split.csv
+	$(INTERP) $(GRAB) "GEN LOG: Elapsed" m*.split_structured_log > seconds-gen-split+nolemma.csv
+	$(INTERP) $(GRAB) "FCHECK LOG: Elapsed" m*.split_nolemma_structured_log > seconds-check-split+nolemma.csv
+	$(INTERP) $(GRAB) "clause TOTAL" m*.split_nolemma_structured_log > clauses-split+nolemma.csv
+	$(INTERP) $(MERGE) -f -s 2:3 sub10M-supthresh.arch-csv seconds-gen-structured.csv seconds-check-structured.csv > time-verify-opt.csv
+	$(INTERP) $(MERGE) -f -s 2:3 sub10M-supthresh.arch-csv seconds-gen-nolemma.csv seconds-check-nolemma.csv > time-verify-nolemma.csv
+	$(INTERP) $(MERGE) -f -s 2:3 sub10M-supthresh.arch-csv seconds-gen-split.csv seconds-check-split.csv > time-verify-split.csv
+	$(INTERP) $(MERGE) -f -s 2:3 sub10M-supthresh.arch-csv seconds-gen-split+nolemma.csv seconds-check-split+nolemma.csv > time-verify-split+nolemma.csv
 
 # Mice
 mice:
