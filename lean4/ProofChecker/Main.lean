@@ -17,7 +17,7 @@ def runCheckCmd (p : Cli.Parsed) : IO UInt32 := do
   let printProof := p.hasFlag "print-cpog"
   let count := p.hasFlag "count"
   printlnFlush "Parsing CNF.."
-  let (cnf, nVars) ← ICnf.readDimacsFile cnfFname.value
+  let (cnf, nVars) ← LeanSAT.ICnf.readDimacsFile cnfFname.value
   IO.println "done."
   if printFormula then
     IO.println "Parsed CNF:"

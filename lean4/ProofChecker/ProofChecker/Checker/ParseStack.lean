@@ -2,8 +2,9 @@
 Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import ProofChecker.Data.ICnf
 import ProofChecker.Checker.CheckerCore
+
+open LeanSAT
 
 /-! Faster CPOG parser module.
 Attempt 2: hand-rolled Nat parser, inlining, and hand-passed variables instead of StateM. -/
@@ -107,7 +108,7 @@ Return the number and the position right after it.
   while h : 0 < n do
     a := a.push ⟨n, h⟩
     pos ← consumeWhitespacePlus buf pos
-    let (ni, posi) ← consumeNat buf pos 
+    let (ni, posi) ← consumeNat buf pos
     n := ni
     pos := posi
   return (a, pos)
@@ -131,7 +132,7 @@ def consumeNats (buf : ByteArray) (pos : Nat) : ParserM (Array Nat × Nat) := do
   while h : i ≠ 0 do
     a := a.push ⟨i, h⟩
     pos ← consumeWhitespacePlus buf pos
-    let (ii, posi) ← consumeInt buf pos 
+    let (ii, posi) ← consumeInt buf pos
     i := ii
     pos := posi
   return (a, pos)
@@ -199,7 +200,7 @@ def consumeProof (buf : ByteArray) : ParserM (Array CpogStep) := do
     else if b == 'd'.val.toUInt8 then
       pos := pos + 1
       pos ← consumeWhitespacePlus buf pos
-      let (s, pos') ← consumeDel buf pos 
+      let (s, pos') ← consumeDel buf pos
       pf := pf.push s
       pos := pos'
     else if isWhitespace b then

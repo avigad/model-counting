@@ -318,7 +318,7 @@ def encodes (enc : HashMap Var Bool) (C : IClause) (start : Nat := 0) : Prop :=
     ∀ x : Var, enc.contains x ↔ ∃ j : Fin C.size, start ≤ j ∧ C[j].var = x
 
 theorem encodes_empty (C : IClause) : encodes HashMap.empty C (Array.size C) := by
-  simp [encodes]; intro j; exact not_le_of_lt j.isLt
+  simp [encodes]
 
 theorem not_tautology_of_encodes (C : IClause) (enc : HashMap Var Bool) (h : encodes enc C) :
     ¬ (toPropTerm C = ⊤) := by
