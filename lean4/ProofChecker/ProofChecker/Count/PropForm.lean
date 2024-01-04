@@ -1,7 +1,9 @@
 /-
-Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
+Copyright (c) 2023 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jeremy Avigad
 -/
+
 import Mathlib.Data.Finset.Powerset
 import Mathlib.Data.Finset.Card
 import Mathlib.Algebra.BigOperators.Ring
@@ -13,6 +15,8 @@ open Finset
 This is the counting function for partitioned formulas, also known as POGs. The main theorem,
 to be proved below, is that this really does count the number of models.
 -/
+
+namespace LeanSAT.Model
 
 namespace PropForm
 
@@ -75,7 +79,10 @@ theorem eval_restrict_vars (φ : PropForm ν) (v : PropAssignment ν) :
 
 end PropForm
 
+end LeanSAT.Model
+
 namespace Finset
+open LeanSAT Model
 
 variable [DecidableEq ν]
 
@@ -107,9 +114,11 @@ decidable equality on `PropAssignment ν`.
 
 variable [DecidableEq ν]
 
-noncomputable instance : DecidableEq (PropAssignment ν) := fun _ _ => Classical.propDecidable _
+noncomputable instance : DecidableEq (LeanSAT.Model.PropAssignment ν) :=
+  fun _ _ => Classical.propDecidable _
 
 namespace Finset
+open LeanSAT Model
 
 noncomputable def assignments (s : Finset ν) : Finset (PropAssignment ν) :=
   s.powerset.image toPropAssignment
@@ -152,6 +161,8 @@ theorem card_assignments (s : Finset ν) : card (assignments s) = 2^(card s) := 
   rw [assignments, card_image_of_injective _ injective_toPropAssignment, card_powerset]
 
 end Finset
+
+namespace LeanSAT.Model
 
 def PropAssignment.cond (s : Finset ν) (p : PropAssignment ν × PropAssignment ν) :
     PropAssignment ν :=
@@ -209,8 +220,7 @@ theorem models_var {x : ν} {s : Finset ν} (hxs : x ∈ s) :
 
 theorem models_neg (φ : PropForm ν) (s : Finset ν) :
   φ.neg.models s ∪ φ.models s = assignments s := by
-    ext v; simp only [mem_assignments, mem_union, mem_models, eval, Bool.bnot_eq_to_not_eq,
-      Bool.not_eq_true]
+    ext v; simp only [mem_assignments, mem_union, mem_models, eval, Bool.not_eq_true]
     rw [←and_or_left]; cases (eval v φ) <;> simp
 
 theorem models_neg_Disjoint (φ : PropForm ν) (s : Finset ν) :
@@ -232,14 +242,16 @@ theorem models_conj {φ ψ: PropForm ν} (hdisj : φ.vars ∩ ψ.vars = ∅) :
     constructor
     . intro x hx
       rw [mem_union, not_or] at hx
-      dsimp; rw [if_neg hx.1, hdef2 hx.2]
+      dsimp [PropAssignment.cond]
+      rw [if_neg hx.1, hdef2 hx.2]
     . constructor
       . rw [←heval1]; apply eval_ext
-        intro x hx; rw [if_pos hx]
+        intro x hx; rw [PropAssignment.cond, if_pos hx]
       . rw [←heval2]; apply eval_ext
         intro x hx
         simp only [eq_empty_iff_forall_not_mem, mem_inter, not_and'] at hdisj
         have hx' : x ∉ φ.vars := hdisj _ hx
+        dsimp [PropAssignment.cond]
         rw [if_neg hx']
   . intro ⟨hdef, heval1, heval2⟩
     use fun x => if x ∈ φ.vars then v x else false
@@ -257,23 +269,23 @@ theorem models_conj {φ ψ: PropForm ν} (hdisj : φ.vars ∩ ψ.vars = ∅) :
           apply eval_ext; intro x hx; rw [if_pos hx]
     . ext x
       have := @hdef x
+      dsimp [PropAssignment.cond]
       split <;> simp_all
 
 theorem InjOn_cond (φ ψ : PropForm ν) {s t : Finset ν} (hdisj : s ∩ t = ∅) :
   Set.InjOn (PropAssignment.cond s) <| ↑((φ.models s) ×ˢ (ψ.models t)) := by
     intro ⟨p11, p12⟩ hp1 ⟨p21, p22⟩ hp2
     simp only [coe_product, Set.mem_prod, mem_coe, mem_models] at hp1 hp2
-    simp only [PropAssignment.cond]
     intro h
     rw [Prod.mk.injEq]
     constructor
     . ext x
       have := congr_fun h x
-      by_cases h' : x ∈ s <;> simp_all
+      by_cases h' : x ∈ s <;> simp_all [PropAssignment.cond]
       rw [hp1.1.1 h', hp2.1.1 h']
     . ext x
       have := congr_fun h x
-      by_cases h' : x ∈ s <;> simp_all
+      by_cases h' : x ∈ s <;> simp_all [PropAssignment.cond]
       simp only [eq_empty_iff_forall_not_mem, mem_inter, not_and] at hdisj
       rw [hp1.2.1 (hdisj _ h'), hp2.2.1 (hdisj _ h')]
 
@@ -431,7 +443,7 @@ The main theorem.
 -/
 
 theorem countModels_eq_card_models {φ : PropForm ν} {s : Finset ν}
-      (hvars : φ.vars ⊆ s) (hdec : φ.partitioned) :
+      (hvars : φ.vars ⊆ s) (hdec : partitioned φ) :
     φ.countModels s.card = card (φ.models s) := by
   induction φ
   case var x      =>
@@ -520,7 +532,7 @@ theorem weightSum_of_vars_subset (weight : ν → R) {φ : PropForm ν} {s : Fin
     rw [←hdisj, mem_inter]
     exact ⟨ha, mem_insert_self _ _⟩
 
-theorem ringEval_eq_weightSum (weight : ν → R) {φ : PropForm ν} (hdec : φ.partitioned) :
+theorem ringEval_eq_weightSum (weight : ν → R) {φ : PropForm ν} (hdec : partitioned φ) :
     φ.ringEval weight = φ.weightSum weight φ.vars := by
   have weightSum_tr : weightSum weight tr (vars tr) = 1 := by
     rw [weightSum, models_tr, vars, assignments_empty, sum_singleton, prod_empty]
@@ -575,4 +587,3 @@ theorem ringEval_eq_weightSum (weight : ν → R) {φ : PropForm ν} (hdec : φ.
   case biImpl _ _ => rw [partitioned] at hdec; contradiction
 
 end PropForm
-
