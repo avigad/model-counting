@@ -376,17 +376,18 @@ def checkAsymmTautoHinted (db : ClauseDb ClauseIdx) (up : PPA) (C : IClause)
   | .hintNotUnit idx C => throw <| .hintNotUnit idx C
   | .hintNonexistent idx => throw <| .unknownClauseIdx idx
 
-/-- Check if `C` is an asymmetric tautology wrt the clause database~~, or simply a tautology~~. -/
+/-- Check if `C` is an asymmetric tautology wrt the clause database, or simply a tautology. -/
 def checkImpliedHinted (db : ClauseDb ClauseIdx) (up : PPA) (C : IClause) (hints : Array ClauseIdx) :
     Except CheckerError { _up : PPA // db.toPropFunSub (· ∈ hints.data) ≤ C.toPropFun }
 := do
-  -- TODO: I have somehow proved that checking for tautologies
-  -- is not necessary to ensure the correctness of UP :O
-  -- However it would still be necessary to accept wonky CPOG proofs
-  -- that add tautological clauses in the DB,
-  -- as our UP procedure will not reach a contradiction
-  -- from such a clause.
-  checkAsymmTautoHinted db up C hints
+  let (up', b) := up.checkTauto C
+  -- Checking for tautologies is not necessary to ensure the correctness of UP,
+  -- but it is needed to accept CPOG proofs that add or delete tautological clauses,
+  -- since our UP procedure will not reach a contradiction from such clauses.
+  if h : b = true then
+    .ok ⟨up', by simp [b.property.mp h]⟩
+  else
+    checkAsymmTautoHinted db up' C hints
 
 def addClause (db₀ : ClauseDb ClauseIdx) (idx : ClauseIdx) (C : IClause) :
     Except CheckerError { db : ClauseDb ClauseIdx //
