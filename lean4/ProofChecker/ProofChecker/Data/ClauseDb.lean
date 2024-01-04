@@ -505,6 +505,9 @@ inductive UPResult {α : Type} [BEq α] [Hashable α]
   /-- The hint index `idx` points at a nonexistent clause. -/
   | hintNonexistent (idx : α)
 
+/-- Propagate units starting from `¬C`.
+The clauses in `hints` are expected to become unit
+in the order provided. -/
 def propagateUnitsHinted (db : ClauseDb α) (τ : PPA) (C : IClause) (hints : Array α)
     : PPA × UPResult db C hints :=
   go 0 ⟨τ.reset.setNegatedClause C, inf_le_of_right_le (τ.toPropFun_reset_setNegatedClause _)⟩
@@ -537,9 +540,11 @@ where go (i : Nat) (τ : {τ : PPA // db.toPropFunSub (· ∈ hints.data) ⊓ (C
     (τ.val, .extended)
   termination_by go i _ => hints.size - i
 
-/-- Propagate units starting from `¬C`.
-The clauses in `hints` are expected to become unit
-in the order provided. -/
+/-- This has the same functionality as `propagateUnitsHinted`,
+but the use of `do` notation unfortunately macro-expands into code
+that does not use the PPA linearly,
+so this variant is exceedingly inefficient.
+Thus we had to hand-rool the propagation loop. -/
 def propagateUnitsHinted' (db : ClauseDb α) (τ : PPA) (C : IClause) (hints : Array α)
     : PPA × UPResult db C hints := Id.run do
   let mut τ : {τ : PPA // db.toPropFunSub (· ∈ hints.data) ⊓ (C.toPropFun)ᶜ ≤ τ.toPropFun } :=
