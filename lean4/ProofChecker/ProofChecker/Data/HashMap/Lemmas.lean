@@ -419,6 +419,10 @@ theorem toList_empty : (HashMap.empty : HashMap α β).toList = [] :=
 theorem isEmpty_empty : (HashMap.empty : HashMap α β).isEmpty :=
   sorry
 
+@[simp]
+theorem contains_empty (a : α) : (@empty α β _ _).contains a = false := by
+  sorry
+
 /-! `findEntry?` -/
 
 @[simp]

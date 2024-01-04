@@ -6,7 +6,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 import LeanSAT.Data.ICnf
 import LeanSAT.Data.PPA
 
-import ProofChecker.Data.HashMap.Extra
+import ProofChecker.Data.HashMap.Lemmas
 
 /-! Clause database together with some (provably correct) methods. For example, we can conclude
 that if a clause follows from the current database by unit propagation, then it is implied by the

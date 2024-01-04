@@ -2,8 +2,11 @@
 Copyright (c) 2023 Wojciech Nawrocki. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import ProofChecker.Data.ICnf
+import LeanSAT.Data.ICnf
+
 import ProofChecker.Checker.CheckerCore
+
+open LeanSAT
 
 /-! Faster CPOG parser module.
 Attempt 1: hand-rolled Nat parser, inlining, and StateM. -/

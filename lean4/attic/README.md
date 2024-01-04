@@ -1,0 +1,1 @@
+The attic contains files that have been deprecated, moved upstream, or are otherwise not currently in use.
