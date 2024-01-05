@@ -12,6 +12,7 @@ all:
 	bibtex jair-paper
 	pdflatex jair-paper
 	pdflatex jair-paper
+	pdflatex jair-paper
 
 rdata:
 	rm -rf $(SRCDATA)
