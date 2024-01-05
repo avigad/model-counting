@@ -211,11 +211,11 @@ is straightforward.  For example, the \emph{deterministic, decomposable, negatio
 represent a
 Boolean formula as a directed acyclic graph, with terminal nodes
 labeled by Boolean variables and their complements, and with each
-nonterminal node labeled by a Boolean And or Or operation.  Restrictions
+nonterminal node labeled by a Boolean \textsc{and} or \textsc{or} operation.  Restrictions
 are placed on the structure of the graph (described in Section~\ref{sect:pog}) such that a count of the
 models can be computed by a single bottom-up traversal.
 Kimmig et al.\ present a very general {\em
-  algebraic model counting}~\cite{kimmig:jal:2017} framework describing
+  algebraic model counting} framework~\cite{kimmig:jal:2017} describing
 properties of Boolean functions that can be efficiently computed from
 a det-DNNF representation.  These include standard and weighted model
 counting, and much more.
@@ -320,9 +320,9 @@ assurance that the proof and the model count are correct. Our
 experience with developing a formally verified proof checker has shown
 that, even within the well-understood framework of extended
 resolution, it can be challenging to formulate a full set of
-requirements that guarantee soundness.  In fact, our efforts to
+requirements that guarantee soundness.  In fact, as described in Section~\ref{sect:lean:subtle-condition}, our efforts to
 formally verify our proof framework exposed subtle conditions that we had
-to impose on our partitioned sum rule.
+to impose on our partitioned sum rule.  
 
 
 We evaluate our toolchain using benchmark formulas from the 2022
@@ -340,7 +340,7 @@ the knowledge compiler, and the proof generator.
 
 This paper is an extended version of one published at the 2023
 Conference on the Theory and Application of Boolean
-Satisfiability~\cite{bryant:sat:2023}.  It provides greater detail of
+Satisfiability~\cite{bryant:sat:2023}.  It provides much greater detail about
 the algorithms, the formal verification, and the experimental results.
 
 \section{Related Work}
@@ -355,14 +355,14 @@ A number of formally verified checkers have been developed within different veri
 The associated proofs add clauses while preserving satisfiability until the empty clause is derived.
 Our work builds on the well-established technology and tools associated with clausal proof systems,
 but we require features not found in proofs of unsatisfiability.
-Our proofs construct a new propositional formula, and we must verify
+In particular, our proofs construct a new propositional formula, and we must verify
 both
 that it
 satisfies a set of rules and that it
 is equivalent to the input formula.  This requires verifying
 additional proof steps, including clause deletion steps, and subtle
 invariants, as described in Sections~\ref{sect:cpog} and
-\ref{section:formally-verified-toolchain}.
+\ref{sect:formally-verified-toolchain}.
 
 Capelli, Lagniez, and Marquis developed a knowledge compiler that
 generates a certificate in a proof system that is itself based on
@@ -446,7 +446,7 @@ we also compare the performance of our toolchain to these other two.
 
 
 \section{Logical Foundations}
-\label{section:logical:foundations}
+\label{sect:logical:foundations}
 
   Let $\varset$ denote a set of Boolean variables, and let $\assign$
   be an \emph{assignment} of truth values to some subset of the
@@ -602,7 +602,7 @@ Ring evaluation with operations $\boolnot$, $\pand$, and $\por$ satisfies the fo
 \scalebox{1.2}{\rep}\left(\Por_{1 \leq i \leq k} \phi_i,\; w\right) &=& \sum_{1 \leq i \leq k} \rep(\phi_i, w) \label{eqn:ring:sum} 
 \end{eqnarray}
 \end{prop}
-As is described in \ref{section:formally-verified-toolchain}, we have proved these three equations using \lean{}.
+As is described in \ref{sect:formally-verified-toolchain}, we have proved these three equations using \lean{}.
 
 A \emph{partitioned-operation graph} (POG) is a directed, acyclic
 graph with nodes $N$ and edges $E \subseteq N \times N$.  We denote
@@ -629,9 +629,14 @@ Each such formula has a set of models $\modelset(\phi_{\nodeu})$.
 We can now define and compare two related representations:
 \begin{itemize}
 \item A det-DNNF graph can be viewed a POG with negation applied only to variables.
-\item A dec-DNNF graph is a det-DNNF graph with the further restriction that any
-  sum node $\nodeu$ has exactly two children $\nodeu_1$ and $\nodeu_0$, and for these there is a \emph{decision variable} $x$ such that
-  any total assignment $\assign \in  \modelset(\phi_{\nodeu_b})$ has $\assign(x)=b$, for $b \in \{0,1\}$.
+\item A dec-DNNF graph is a det-DNNF graph with the further
+  restriction that any sum node $\nodeu$ has exactly two children
+  $\nodeu_1$ and $\nodeu_0$, and it has an associated \emph{decision variable} $x$.
+  For $b \in \{0,1\}$, node $\nodeu_b$ can be a terminal node with variable $x$, where the polarity of the edge from $\nodeu$ to $\nodeu_b$ is
+  negative for $b=0$ and positive for $b=1$.
+  Alternatively, $\nodeu_b$ can be a product node having either literal $\obar{x}$ ($b=0$), or literal $x$ ($b=1$) as one of its arguments.
+  Either form implies that any total assignment $\assign \in \modelset(\phi_{\nodeu_b})$
+  has $\assign(x)=b$, for $b \in \{0,1\}$.
 \end{itemize}
 The generalizations encompassed by POGs have also been referred to as \emph{deterministic decomposable circuits} (d-Ds)~\cite{monet:amw:2018}.
 Our current proof generator only works for knowledge compilers
@@ -646,7 +651,6 @@ evaluation of $P$ can be performed with at most $|P|$ ring
 operations by traversing the graph from the terminal nodes up to
 the root, computing a value $\rep(\nodeu, w)$ for each node $\nodeu$.
 The final result is then $\rep(\noder, w)$.
-
 
 
 \section{Clausal Proof Framework}
@@ -670,7 +674,7 @@ that use no extension variables.
 
 Let $\exvarset(\theta)$
 denote the set of extension variables occuring in formula $\theta$.
-For any assignment $\assign$ to the variables in $\varset$, the defining
+For any total assignment $\assign$ to the variables in $\varset$, the defining
 clauses induce a unique assignment $\eassign$ to the variables in $\varset
 \cup \exvarset(\theta)$.  For Boolean formula $\phi$ over variables
 $\varset$ and clausal
@@ -838,8 +842,8 @@ variables and successive ones being extension variables.  Literal $\lit$
 is represented by a signed integer, with $-v$ being the logical negation of
 variable $v$.  Each clause is indicated by a positive integer
 identifier $C$, with the first ones being the IDs of the input clauses and successive
-ones being the IDs of added clauses.  Clause identifiers must be totally ordered,
-such that any clause identifier $C'$ given in the hint when adding clause $C$ must have $C' < C$.
+ones being the IDs of added clauses.  Clause identifiers must be defined in order,
+with any clause identifier $C'$ given in the hint when adding clause $C$ having $C' < C$.
 
 The first set of proof rules are similar to those in other clausal
 proofs.
@@ -1168,7 +1172,7 @@ completing a proof that the POG is logically equivalent to the input
 formula.
 
 \section{Generating CPOG from dec-DNNF}
-\label{section:generating:cpog}
+\label{sect:generating:cpog}
 
 %%Figure~\ref{fig:chain} illustrates one method of generating a CPOG
 %%file from an input formula in conjunctive normal form.  Our toolchain
@@ -1584,7 +1588,8 @@ is only because it is such a simple formula.
 %%\input{lean}
 
 \section{A Formally Verified Toolchain}
-\label{section:formally-verified-toolchain}
+\label{sect:formally-verified-toolchain}
+\label{sect:lean:subtle-condition}
 
 We set out to formally verify the system with two goals in mind: first, to ensure that the CPOG framework is mathematically
 sound; and second, to implement correct-by-construction proof checking and ring evaluation (the ``Trusted Code'' components of \ref{fig:chain}). These two goals are achieved with a single proof development in the \lean{} programming language~\cite{demoura:cade:2021}. Verification was greatly aided by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean} automated tactic. In this section, we briefly describe the functionality we implemented and what we proved about it.
@@ -1592,7 +1597,7 @@ sound; and second, to implement correct-by-construction proof checking and ring 
 \vspace{1em}\noindent
 \textbf{Proof checking.} The goal of a CPOG proof is to construct a POG that is equivalent to the input CNF $\inputformula$. The POG being constructed, and the set of active clauses are stored in the checker state \texttt{st}. The checker begins by parsing the input formula, initializing the active clauses to $\theta \leftarrow \inputformula$, and initializing the POG $P$ to an empty one. It then processes every step of the CPOG proof, either modifying its state by adding/deleting clauses in $\theta$ and adding nodes to $P$, or throwing an exception if a step is incorrect. Afterwards, it carries out the \textsc{final conditions} check of \ref{subsection:semantics}. Throughout the process, we maintain invariants that ensure that $P$ is partitioned and that a successful final check entails the logical equivalence of $\inputformula$ and $\phi_\noder$, where $\noder$ is the final POG root (\ref{thm:lean:equiv}).
 
-The specifications we use to state these invariants are built on a general theory of propositional logic, mirroring \ref{section:logical:foundations}. Following the DIMACS CNF convention, we define the data types \lstinline{Var} of variables being positive natural numbers, \lstinline{ILit} of literals being non-zero integers, and \lstinline{PropForm} of propositional formulas. \lstinline{PropForm} is generic over the type of variables, so we instantiate it with our type as \lstinline{PropForm Var}. Assignments of truth values are taken to be total functions \lstinline{PropAssignment Var := Var → Bool}. Requiring totality is not a limitation: instead of talking about two equal, partial assignments to a subset $X' \subseteq X$ of variables, we can more conveniently talk about two total assignments that agree on $X'$. We write \lstinline{σ ⊨ φ} when \lstinline{σ : PropAssignment Var} satisfies \lstinline{φ : PropForm Var}.
+The specifications we use to state these invariants are built on a general theory of propositional logic, mirroring \ref{sect:logical:foundations}. Following the DIMACS CNF convention, we define the data types \lstinline{Var} of variables being positive natural numbers, \lstinline{ILit} of literals being non-zero integers, and \lstinline{PropForm} of propositional formulas. \lstinline{PropForm} is generic over the type of variables, so we instantiate it with our type as \lstinline{PropForm Var}. Assignments of truth values are taken to be total functions \lstinline{PropAssignment Var := Var → Bool}. Requiring totality is not a limitation: instead of talking about two equal, partial assignments to a subset $X' \subseteq X$ of variables, we can more conveniently talk about two total assignments that agree on $X'$. We write \lstinline{σ ⊨ φ} when \lstinline{σ : PropAssignment Var} satisfies \lstinline{φ : PropForm Var}.
 
 The invariants refer to the checker state \lstinline{st} with fields \lstinline{st.inputCnf} for $\inputformula$, \lstinline{st.clauseDb} for $\theta$, \lstinline{st.pog} for $P$, \lstinline{st.pogDefsForm} for the clausal POG definitions formula $\bigwedge_{\nodeu\in P}\theta_u$, and \lstinline{st.allVars} for all variables (original and extension) added so far. For any $\nodeu\in P$, \lstinline{st.pog.toPropForm u} computes $\phi_\nodeu$. The first two invariants state that assignments to original variables extend uniquely to extension variables defining the POG nodes. In the formalization, we split this into extension and uniqueness:
 \begin{lstlisting}
