@@ -5,9 +5,13 @@ SRCDATA = data-raw
 
 all:
 	cd dd ; make
-	cd ../benchmarks/mc2022-v2/logs ; make data
+	cd ../../benchmarks/mc2022-v2/logs ; make data
 	make rdata
 	make pdata
+	pdflatex jair-paper
+	bibtex jair-paper
+	pdflatex jair-paper
+	pdflatex jair-paper
 
 rdata:
 	rm -rf $(SRCDATA)
