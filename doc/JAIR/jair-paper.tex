@@ -1480,7 +1480,7 @@ Let $\lassign = \{ \obar{v}_1, \obar{v}_2, \ldots, \obar{v}_m \}$.
 Invoking $\validate(\nodeu, \lassign, \gamma'_{\nodeu})$
  will then prove a lemma, given by the target clause
  $u \lor v_1 \lor v_2 \lor \cdots \lor v_m$,
- showing that any total assignment $\assign$ that activates the synthetic clauses will, when cause $u$ to be assigned $1$.
+ showing that any total assignment $\assign$ that activates the synthetic clauses will cause $u$ to be assigned $1$.
  More precisely, given assignment $\assign$ and its extension $\eassign$, if $\eassign(v_j) = 0$ for every guard literal $\obar{v}_j$, then $\eassign(u) = 1$.
 
 Later, when node $\nodeu$ is encountered by a call to $\validate(\nodeu, \passign, \psi)$, we invoke the lemma
