@@ -1124,7 +1124,7 @@ defined by the POG operation declarations.  These do not appear in the
 CPOG file.  Referring back to the declarations of the sum nodes in
 Figure \ref{fig:eg4:all}(C), we can see that the declaration of node
 $\nodes_7$ has clause IDs 7 and 10 as the hint.  We can see in Figure
-\ref{fig:eg4:all}(A) that these two clauses form a RUP proof for the clause
+\ref{fig:eg4:all}(D) that these two clauses form a RUP proof for the clause
 $\obar{p}_5 \lor \obar{p}_6$, showing that the two children of $\nodes_7$
 have disjoint models.  Similarly, node $\nodes_{10}$ is declared as having
 clause IDs 16 and 19 as the hint.  These form a RUP proof for the clause
@@ -1141,7 +1141,7 @@ Working backward, we can see that
 clause 35 indicates that variable $s_{10}$ will be implied by the input
 clauses when $\assign(x_1) = 0$. Clause 34 indicates that node $p_9$ will
 be implied by the input clauses when $\assign(x_1) = 1$, while defining clause 24 shows that node $s_{10}$ will be implied
-by the input clauses when $\eassign{p_9} = 1$.  These three clauses
+by the input clauses when $\eassign(p_9) = 1$.  These three clauses
 serve as the
 hint for clause 36.
 
@@ -1150,10 +1150,10 @@ hint for clause 36.
 Figure \ref{fig:eg4:all}(F) shows the RUP proof steps required to
 delete the input clauses.  Consider the first of these, deleting
 input clause $\obar{x}_1 \lor x_3 \lor \obar{x}_4$.  The requirement is to show
-that there is no total assignment $\assign$ that falsifies this clause but extends to $\eassign$ such that  $\assign(s_{10}) = 1$.
+that there is no total assignment $\assign$ that falsifies this clause but extends to $\eassign$ such that $\eassign(s_{10}) = 1$.
 The proof proceeds by first assuming that the clause is false, requiring
 $\assign(x_1) = 1$, $\assign(x_3) = 0$, and $\assign(x_4) = 1$.  The hint then consists of unit
-clauses (e.g., clause 36 asserting that $\eassign(p_{10}) = 1$) or
+clauses (e.g., clause 36 asserting that $\eassign(s_{10}) = 1$) or
 clauses that cause unit propagation.  Hint clauses 8 and 10 force the
 assignments $\eassign(p_5) = \eassign(p_6) = 0$.  These, plus hint clause 12 force
 $\eassign(s_7) = 0$.  This, plus hint clauses 16 and 21 force $\eassign(p_8) = \eassign(p_9) = 0$, leading,
