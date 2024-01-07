@@ -4,15 +4,173 @@
 \label{sect:formally-verified-toolchain}
 \label{sect:lean:subtle-condition}
 
-We set out to formally verify the system with two goals in mind: first, to ensure that the CPOG framework is mathematically
-sound; and second, to implement correct-by-construction proof checking and ring evaluation (the ``Trusted Code'' components of \ref{fig:chain}). These two goals are achieved with a single proof development in the \lean{} programming language~\cite{demoura:cade:2021}. Verification was greatly aided by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean} automated tactic. In this section, we briefly describe the functionality we implemented and what we proved about it.
+We set out to formally verify the system with two goals in mind:
+first, to ensure that the CPOG framework is mathematically sound;
+and second, to implement correct-by-construction proof checking
+and ring evaluation (the ``Trusted Code'' components of \ref{fig:chain}).
+These two goals are achieved with a single proof development
+in the \lean{} programming language~\cite{demoura:cade:2021}.
+Verification was greatly aided
+by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean}
+automated proof search tactic.
+\lean{} is based on a logical foundation
+in which expressions have a computational interpretation.
+As in other proof assistants such as Isabelle and Coq,
+functions defined in the formal system
+can be compiled to machine code.
+At the same time,
+we can state and prove claims about them within the same system,
+thereby verifying that our functions compute the intended results.
+In this section,
+we describe the functionality we implemented,
+what we proved about it,
+and the assumptions we made.
 
-\vspace{1em}\noindent
-\textbf{Proof checking.} The goal of a CPOG proof is to construct a POG that is equivalent to the input CNF $\inputformula$. The POG being constructed, and the set of active clauses are stored in the checker state \texttt{st}. The checker begins by parsing the input formula, initializing the active clauses to $\theta \leftarrow \inputformula$, and initializing the POG $P$ to an empty one. It then processes every step of the CPOG proof, either modifying its state by adding/deleting clauses in $\theta$ and adding nodes to $P$, or throwing an exception if a step is incorrect. Afterwards, it carries out the \textsc{final conditions} check of \ref{subsection:semantics}. Throughout the process, we maintain invariants that ensure that $P$ is partitioned and that a successful final check entails the logical equivalence of $\inputformula$ and $\phi_\noder$, where $\noder$ is the final POG root (\ref{thm:lean:equiv}).
+\paragraph{Data structures and mathematical model.}
+When thinking about formal verification,
+it is helpful to distinguish between data structures
+that play a role in the code being executed,
+and \emph{ghost} definitions that serve as a mathematical model,
+allowing us to state and prove specifications,
+but are erased during compilation and not executed.
+We generally store definitions in the two classes
+under {\tt Data/} and {\tt Model/},
+respectively.
 
-The specifications we use to state these invariants are built on a general theory of propositional logic, mirroring \ref{sect:logical:foundations}. Following the DIMACS CNF convention, we define the data types \lstinline{Var} of variables being positive natural numbers, \lstinline{ILit} of literals being non-zero integers, and \lstinline{PropForm} of propositional formulas. \lstinline{PropForm} is generic over the type of variables, so we instantiate it with our type as \lstinline{PropForm Var}. Assignments of truth values are taken to be total functions \lstinline{PropAssignment Var := Var → Bool}. Requiring totality is not a limitation: instead of talking about two equal, partial assignments to a subset $X' \subseteq X$ of variables, we can more conveniently talk about two total assignments that agree on $X'$. We write \lstinline{σ ⊨ φ} when \lstinline{σ : PropAssignment Var} satisfies \lstinline{φ : PropForm Var}.
+Among the former is our representation of CNF formulas.
+Following the DIMACS CNF convention,
+a variable is represented as a positive natural number,
+a literal is a non-zero integer,
+a clause is an array of literals,
+and a CNF formula is an array of clauses.
+\begin{lstlisting}
+def Var := { x : Nat // 0 < x }
+def ILit := { i : Int // i ≠ 0 }
+abbrev IClause := Array ILit
+abbrev ICnf := Array IClause
+\end{lstlisting}
 
-The invariants refer to the checker state \lstinline{st} with fields \lstinline{st.inputCnf} for $\inputformula$, \lstinline{st.clauseDb} for $\theta$, \lstinline{st.pog} for $P$, \lstinline{st.pogDefsForm} for the clausal POG definitions formula $\bigwedge_{\nodeu\in P}\theta_u$, and \lstinline{st.allVars} for all variables (original and extension) added so far. For any $\nodeu\in P$, \lstinline{st.pog.toPropForm u} computes $\phi_\nodeu$. The first two invariants state that assignments to original variables extend uniquely to extension variables defining the POG nodes. In the formalization, we split this into extension and uniqueness:
+A POG is represented as a flat array of elements.
+Each element {\tt PogElt} of a POG is either a variable,
+a binary disjunction (sum),
+or an arbitrary conjunction (product).
+\begin{lstlisting}
+inductive PogElt where
+  | var (x : Var) : PogElt
+  | disj (x : Var) (l r : ILit) : PogElt
+  | conj (x : Var) (args : Array ILit) : PogElt
+\end{lstlisting}
+In the first case,
+the argument \lstinline{x} is the index of an input variable;
+in disjunctions and conjunctions,
+it is an extension variable appearing in the CPOG file.
+A \lstinline{Pog} is then an array of \lstinline{PogElt}s that is well-founded
+in the sense that each element depends only on prior elements in the array.
+Note that representing edges as literals
+allows us to negate the arguments to \lstinline{disj} and \lstinline{conj}.
+
+On the mathematical side,
+our specifications rely on a general theory of propositional logic
+mirroring \ref{sect:logical:foundations}.
+The type \lstinline{PropForm} describes the syntax of propositional formulas.
+It is generic over the type of variables,
+so we instantiate it with numeric variables as \lstinline{PropForm Var}.
+Assignments of truth values are taken to be total functions \lstinline{PropAssignment Var := Var → Bool}.
+Requiring totality is not a limitation:
+instead of talking about two equal,
+partial assignments to a subset $X' \subseteq X$ of variables,
+we can more conveniently talk about two total assignments that agree on $X'$.
+We write \lstinline{σ ⊨ φ} when \lstinline{σ : PropAssignment Var} satisfies \lstinline{φ : PropForm Var}.
+
+Functions \lstinline{ILit.toPropForm},
+\lstinline{IClause.toPropForm},
+\lstinline{ICnf.toPropForm},
+and \lstinline{Pog.toPropForm}
+relate data structures to the formulas they encode.
+For example, given a literal \lstinline{u},
+\lstinline{P.toPropForm u} denotes the interpretation
+of the node $\nodeu$ corresponding to \lstinline{u} in the POG \lstinline{P}
+as a propositional formula $\phi_\nodeu/\neg\phi_\nodeu$
+over the input variables.
+It is negated if \lstinline{u} has negative polarity.
+Lean provides a convenient ``anonymous projection'' notation
+that allows writing \lstinline{P.toPropForm u} instead of \lstinline{Pog.toPropForm P u}
+when \lstinline{P} has type \lstinline{Pog},
+\lstinline{C.toPropForm} instead of \lstinline{IClause.toPropForm C}
+when \lstinline{C} has type \lstinline{IClause},
+etc.
+
+In order to reason about composite formulas,
+we found it easier to work with propositional formulas modulo logical equivalence,
+a structure known in logic as the \emph{Lindenbaum--Tarski algebra},
+rather than using \lstinline{PropForm} directly.
+Its advantage is that equivalent but not syntactically equal formulas
+(such as $x \vee \neg x$ and $\top$)
+give rise to equal elements in the algebra,
+and equality has a privileged position in proof assistants based on type theory:
+equals can be substituted for equals in any context.
+In this way, forgetting syntactic detail is helpful.
+On the other hand,
+using the algebra gives rise to some challenges.
+The algebra, called {\tt PropFun}, is defined as a quotient,
+with Boolean operations and the entailment relation
+lifted from the syntax of formulas to the new type.
+It is no longer straightforward to say
+when an element of the quotient ``depends'' on a variable
+since equivalent formulas can refer to different sets of variables.
+Instead, we use a semantic notion of dependence
+in which an element $\phi$ of the quotient depends on a variable $x$
+if and only if there is a truth assignment that satisfies $\phi$,
+but falsifies $\phi$ after $x$ is flipped.
+\begin{lstlisting}
+/-- The *semantic variables* of `φ`
+are those it is sensitive to as a Boolean function.
+Unlike `vars`, this set is stable under equivalence of formulas. -/
+def semVars (φ : PropFun ν) : Set ν :=
+  { x | ∃ (τ : PropAssignment ν), τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ }
+\end{lstlisting}
+
+\paragraph{Proof checking.}
+The goal of a CPOG proof is to construct a POG
+that is equivalent to the input CNF $\inputformula$.
+The database of active clauses,
+the POG being constructed,
+and its root literal,
+are stored in a checker state structure {\tt PreState}.
+The checker begins by parsing the input formula,
+initializing the active clauses to $\theta \leftarrow \inputformula$,
+and initializing the POG $P$ to an empty one.
+It then processes every step of the CPOG proof,
+either modifying its state by adding/deleting clauses in $\theta$
+and adding nodes to $P$,
+or throwing an exception if a step is incorrect.
+Afterwards, it carries out the \textsc{final conditions} check of \ref{subsection:semantics}.
+
+Throughout the process,
+we maintain invariants needed to establish the final result.
+These ensure that $P$ is partitioned
+and that a successful final check entails the logical equivalence
+of $\inputformula$ and $\phi_\noder$,
+where $\noder$ is the final POG root (\ref{thm:lean:equiv}).
+Formally, we define a type {\tt State}
+consisting of those {\tt PreState}s
+that satisfy all the invariants.
+A {\tt State} is a structure
+combining {\tt PreState} fields with additional ones
+storing computationally irrelevant \emph{ghost state}
+that asserts the invariants.
+The fields of \lstinline{st : PreState} include
+\lstinline{st.inputCnf} for $\inputformula$,
+\lstinline{st.clauseDb} for $\theta$,
+and \lstinline{st.pog} for $P$.
+We write \lstinline{st.pogDefsForm} for the clausal POG definitions formula $\bigwedge_{\nodeu\in P}\theta_u$,
+and \lstinline{st.allVars} for all variables (original and extension) added so far.
+For any $\nodeu\in P$,
+\lstinline{st.pog.toPropForm u} computes $\phi_\nodeu$.
+
+The first invariant states that assignments to input variables
+extend uniquely to extension variables defining the POG nodes.
+In the formalization, we split this into extension and uniqueness:
 \begin{lstlisting}
 /-- Any assignment satisfying φ₁ extends to φ₂ while preserving values on X. -/
 def extendsOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
@@ -27,7 +185,7 @@ invariants.uep_pogDefsForm : uniqueExt st.inputCnf.vars st.allVars st.pogDefsFor
 \end{lstlisting}
 Note that in the definition of \lstinline{uniqueExt}, the arrows associate to the right,
 so the definition says that the three assumptions imply the conclusion.
-The next invariant guarantees that the set of solutions over the original variables is preserved:
+The next invariant guarantees that the set of solutions over the input variables is preserved:
 \begin{lstlisting}
 def equivalentOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
   extendsOver X φ₁ φ₂ ∧ extendsOver X φ₂ φ₁
@@ -46,9 +204,14 @@ invariants.partitioned : ∀ (u : ILit), (st.pog.toPropForm u).partitioned
 invariants.equivalent_lits : ∀ (u : ILit), equivalentOver st.inputCnf.vars
     (u ∧ st.pogDefsForm) (st.pog.toPropForm x)
 \end{lstlisting}
-These invariants are maintained by valid CPOG proofs. Together with additional invariants
-that ensure the correctness of cached computations, they imply the soundness theorem for $P$ with root
-node $\noder$:
+
+The bulk of our work involved showing
+that these invariants are indeed maintained by the checker
+when going through a valid CPOG proof,
+modifying the active clause database and the POG.
+Together with additional, technical invariants
+about the correctness of cached computations,
+they imply the soundness theorem for $P$ with root node $\noder$:
 
 \begin{thm}
 \label{thm:lean:equiv}
@@ -59,8 +222,7 @@ If the proof checker has assembled POG $P$ with root node $\noder$ starting from
 \end{proof}
 After certifying a CPOG proof, the checker can pass its in-memory POG representation to the ring evaluator, along with the partitioning guarantee provided by \texttt{invariants.partitioned}.
 
-\vspace{1em}\noindent
-\textbf{Ring evaluation}. We formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem
+\paragraph{Ring evaluation.} We formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem
 (\ref{def:ring_evaluation}) in a commutative ring \lstinline{R} as follows:
 \begin{lstlisting}
 def weightSum {R : Type} [CommRing R]
@@ -92,8 +254,7 @@ Applying this to the output of our verified CPOG proof checker, which we know to
 and equivalent to the input formula $\inputformula$, we obtain a proof that our toolchain computes
 the correct ring evaluation of $\inputformula$.
 
-\vspace{1em}\noindent
-\textbf{Model counting.} Finally, we established that ring evaluation with the appropriate weights
+\paragraph{Model counting.} Finally, we established that ring evaluation with the appropriate weights
 corresponds to the standard model count. To do so, we defined a function that
 carries out an integer calculation of the number of models over a set of variables
 of cardinality \lstinline{nVars}:
@@ -112,6 +273,45 @@ We then formally proved that for a partitioned formula whose variables are among
 theorem countModels_eq_card_models {φ : PropForm Var} {s : Finset Var} :
   vars φ ⊆ s → partitioned φ → countModels (card s) φ = card (models φ s)
 \end{lstlisting}
-In particular, taking \lstinline{s} to be exactly the variables of \lstinline{φ},
-we have that the number of models of \lstinline{φ} on its variables is
+In particular, taking \lstinline{s} to be exactly the variables appearing in \lstinline{φ},
+we have that the number of models of \lstinline{φ} over its variables is
 \lstinline{countModels φ (card (vars φ))}.
+
+\subsection{Trust}
+In this subsection, we clarify what has been verified and what has to be trusted.
+Recall that our first step is to parse CNF and CPOG files in order to read in the initial
+formula and the proof. We do not verify this step. Instead, the verified checker exposes
+flags \verb+--print-cnf+ and \verb+--print-cpog+ which reprint the consumed formula or proof,
+respectively. Comparing this to the actual files using {\tt diff} provides an easy way of ensuring
+that what was parsed matches their contents. This involves trusting only the correctness of the
+print procedure and {\tt diff}. Similarly, if one wants to establish the correctness of the POG
+contained in the CPOG file, one can print out the POG that is constructed by the checker and compare.
+
+Lean's code extraction replaces calculations on natural numbers and integers with
+efficient but unverified arbitrary precision versions.
+Lean also uses an efficient implementation of arrays; within the
+formal system, these are defined in terms of lists, but code extraction replaces them
+with dynamic arrays and uses reference counting to allow destructive updates when it is safe
+to do so \cite{Ullrich:de:Moura:19}.
+Finally, Lean's standard library implements hashmaps in terms of arrays.
+Many of the basic properties of hashmaps have been formally verified, but not all.
+In particular, we make use of a fold operation whose verification is not yet complete.
+Thus our proofs depend on the assumption that the fold operation has the
+expected properties.
+
+In summary, in addition to trusting Lean's foundation and kernel checker,
+we also have to trust that code extraction respects that foundation,
+that the implementation of the fold operation for hashmaps satisfies its description,
+and that, after parsing, the computation uses the correct input formula.
+All of our specifications have been completely proven and verified relative to these assumptions.
+
+%P: clause db
+% We define clause databases in {\tt ClauseDb} as hashmaps
+% that store each clause together with a flag
+% indicating whether it has been deleted.
+
+%P: files and directories
+% Our code is contained in the directory {\tt ProofChecker}.
+% The main checker loop is implemented in {\tt Checker/CheckerCore.lean}.
+% The ring evaluator and model counter are contained in the
+% {\tt Count} directory.
