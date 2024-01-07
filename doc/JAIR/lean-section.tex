@@ -15,7 +15,7 @@ by the Aesop~\cite{23limperg_aesop_white_box_best_first_proof_search_lean}
 automated proof search tactic.
 \lean{} is based on a logical foundation
 in which expressions have a computational interpretation.
-As in other proof assistants such as Isabelle and Coq,
+As in other proof assistants such as Isabelle~\cite{nipkow:et:al:02} and Coq~\cite{coq},
 functions defined in the formal system
 can be compiled to machine code.
 At the same time,
@@ -71,7 +71,7 @@ allows us to negate the arguments to \lstinline{disj} and \lstinline{conj}.
 
 On the mathematical side,
 our specifications rely on a general theory of propositional logic
-mirroring \ref{sect:logical:foundations}.
+mirroring Section~\ref{sect:logical:foundations}.
 The type \lstinline{PropForm} describes the syntax of propositional formulas.
 It is generic over the type of variables,
 so we instantiate it with numeric variables as \lstinline{PropForm Var}.
@@ -123,9 +123,8 @@ in which an element $\phi$ of the quotient depends on a variable $x$
 if and only if there is a truth assignment that satisfies $\phi$,
 but falsifies $\phi$ after $x$ is flipped.
 \begin{lstlisting}
-/-- The *semantic variables* of `φ`
-are those it is sensitive to as a Boolean function.
-Unlike `vars`, this set is stable under equivalence of formulas. -/
+/-- The *semantic variables* of `φ` are those it is sensitive to as a Boolean
+function. Unlike `vars`, this set is stable under equivalence of formulas. -/
 def semVars (φ : PropFun ν) : Set ν :=
   { x | ∃ (τ : PropAssignment ν), τ ⊨ φ ∧ τ.set x (!τ x) ⊭ φ }
 \end{lstlisting}
@@ -144,14 +143,14 @@ It then processes every step of the CPOG proof,
 either modifying its state by adding/deleting clauses in $\theta$
 and adding nodes to $P$,
 or throwing an exception if a step is incorrect.
-Afterwards, it carries out the \textsc{final conditions} check of \ref{subsection:semantics}.
+Afterwards, it carries out the \textsc{final conditions} check of Section~\ref{subsection:semantics}.
 
 Throughout the process,
 we maintain invariants needed to establish the final result.
 These ensure that $P$ is partitioned
 and that a successful final check entails the logical equivalence
 of $\inputformula$ and $\phi_\noder$,
-where $\noder$ is the final POG root (\ref{thm:lean:equiv}).
+where $\noder$ is the final POG root (Theorem~\ref{thm:lean:equiv}).
 Formally, we define a type {\tt State}
 consisting of those {\tt PreState}s
 that satisfy all the invariants.
@@ -192,7 +191,7 @@ def equivalentOver (X : Set Var) (φ₁ φ₂ : PropForm Var) :=
 
 invariants.equivInput : equivalentOver st.inputCnf.vars st.inputCnf st.clauseDb
 \end{lstlisting}
-Finally, for every node $\nodeu\in P$ with corresponding literal $u$ we ensure that $\phi_\nodeu$ is partitioned (\ref{def:partitioned-operation-formula}) and relate $\phi_\nodeu$ to its clausal encoding $\theta_u \doteq u \wedge \bigwedge_{\nodev\in P}\theta_v$:
+Finally, for every node $\nodeu\in P$ with corresponding literal $u$ we ensure that $\phi_\nodeu$ is partitioned (Definition~\ref{def:partitioned-operation-formula}) and relate $\phi_\nodeu$ to its clausal encoding $\theta_u \doteq u \wedge \bigwedge_{\nodev\in P}\theta_v$:
 \begin{lstlisting}
 def partitioned : PropForm Var → Prop
   | tr | fls | var _ => True
@@ -223,7 +222,7 @@ If the proof checker has assembled POG $P$ with root node $\noder$ starting from
 After certifying a CPOG proof, the checker can pass its in-memory POG representation to the ring evaluator, along with the partitioning guarantee provided by \texttt{invariants.partitioned}.
 
 \paragraph{Ring evaluation.} We formalized the central quantity (\ref{eqn:rep}) in the ring evaluation problem
-(\ref{def:ring_evaluation}) in a commutative ring \lstinline{R} as follows:
+(Definition \ref{def:ring_evaluation}) in a commutative ring \lstinline{R} as follows:
 \begin{lstlisting}
 def weightSum {R : Type} [CommRing R]
     (weight : Var → R) (φ : PropForm Var) (s : Finset Var) : R :=
@@ -239,7 +238,7 @@ def ringEval (weight : Var → R) : PropForm Var → R
   | disj φ ψ => ringEval weight φ + ringEval weight ψ
   | conj φ ψ => ringEval weight φ * ringEval weight ψ
 \end{lstlisting}
-\ref{prop:ring:eval} is then formalized as follows:
+Proposition~\ref{prop:ring:eval} is then formalized as follows:
 \begin{lstlisting}
 theorem ringEval_eq_weightSum (weight : Var → R) {φ : PropForm Var} :
     partitioned φ → ringEval weight φ = weightSum weight φ (vars φ)
